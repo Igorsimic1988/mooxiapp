@@ -1,0 +1,93 @@
+
+.roomListContainer {
+
+    background-color: #F2F5F8;
+    display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin: 0 auto;
+  max-width: 100%;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.roomListContainer::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+
+
+.roomButton {
+  align-self: flex-start;
+    background-color: white;
+    border-radius: 10px;
+    border: none;
+    height: 50px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s;
+}
+
+.roomButton:hover {
+  background-color: #f0f0f0;
+}
+
+.roomName {
+    flex: 1;
+    color: #2F3236;
+    font-family: Satoshi;
+    font-size: 0.9375rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+
+  .rightSection {
+    display: flex;
+    align-items: center;
+  }
+
+  .itemCount {
+    margin-right: 8px;
+    font-size: 0.68rem;
+    color: #FFF;
+    text-align: center;
+    font-family: Satoshi;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    border-radius: 60px;
+    background: #59B779;
+    display: flex;
+    width: 30px;
+    height: 30px;
+    padding: 5px 6px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .moreIcon {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+padding: 3px 4px;
+align-items: center;
+gap: 10px;
+  }
+
+  .moreIcon svg {
+    width: 100%;
+    height: 100%;
+    fill: #90A4B7;
+  }

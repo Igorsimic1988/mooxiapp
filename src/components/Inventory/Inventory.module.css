@@ -1,0 +1,56 @@
+/* Reset box-sizing for consistency */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.inventoryContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Full viewport height */
+  overflow: hidden; /* Prevents body scrolling */
+}
+
+/* Fixed Header */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; /* Ensures it stays above other elements */
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* Main Content */
+.mainContent {
+  margin-top: 120px; /* Height of TopNavigation + HouseHeader/SearchHeader */
+  margin-bottom: 60px; /* Height of FooterNavigation */
+  overflow: hidden; /* Disable scrolling here */
+  height: calc(100vh - 120px - 60px); /* Full height minus header and footer */
+  padding: 16px; /* Optional padding */
+  background-color: #F2F5F8; /* Optional background color */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fixed Footer */
+.footerNavigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px; /* Adjust as necessary */
+  background-color: #fff; /* Optional background color */
+  border-top: 1px solid #ccc; /* Optional border */
+  z-index: 1000; /* Ensures it stays above other elements */
+}
+
+/* Optional: Prevent scrollbar on body */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}

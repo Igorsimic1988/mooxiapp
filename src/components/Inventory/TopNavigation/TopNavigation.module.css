@@ -1,0 +1,41 @@
+
+.topNavigation {
+    background-color: #3FA9F5;
+    min-height: 80px;
+    display: flex;
+    flex: 0 0 auto;
+}
+
+.menuIcon {
+width: 60px;
+display: flex;
+justify-content: center;
+padding-top: 15px;
+}
+
+.barsMobileversion {
+width: 28px;
+height: 28px;
+}
+
+.verticalLineMobile {
+    width: 1px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.20);
+    margin-top: 9px;
+}
+
+.navigationContent {
+    color: white;
+    display: flex;
+    margin-left: 16px;
+    padding-top: 15px;
+    gap: 10px;
+}
+
+.navigationText {
+    font-size: 1.125rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}

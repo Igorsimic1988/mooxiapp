@@ -1,0 +1,17 @@
+
+.toggleSwitch {
+    display: flex;
+    cursor: pointer;
+    outline: none;
+    user-select: none;
+    position: relative;
+    padding: 5px; /* Adds padding around the SVG */
+}
+
+.toggleSwitch:focus {
+    box-shadow: none;
+}
+
+.toggleCircle {
+    transition: cx 0.3s ease, fill 0.3s ease;
+}

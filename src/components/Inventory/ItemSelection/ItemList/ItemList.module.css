@@ -1,0 +1,13 @@
+.itemList {
+    display: flex;           /* Establishes Flexbox layout */
+    flex-wrap: wrap;         /* Allows items to wrap to the next line */
+    justify-content: flex-start; /* Aligns items to the start of the container */
+    align-items: flex-start; /* Aligns items vertically to the top */
+    gap: 15px;               /* Defines space between items */
+    padding-top: 15px; 
+    padding-left: 5px;
+    padding-right: 0px;             /* Removes default padding */
+    margin: 0;               /* Removes default margin */
+    list-style: none;        /* Removes default list bullets */
+  }
+  

@@ -1,0 +1,28 @@
+.itemSelectionContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100svh; /* Full viewport height */
+  }
+  
+  .mainContent {
+    flex: 1; /* Take the remaining space after header and footer */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .scrollableItemList {
+    flex: 1; /* Take the available space */
+    overflow-y: auto; /* Make the item list scrollable */
+  }
+
+  .scrollableItemList::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge, and Firefox */
+  .scrollableItemList {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  

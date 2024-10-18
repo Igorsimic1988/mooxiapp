@@ -82,6 +82,11 @@
     background-color: #71879C;
     color: white;
   }
+
+  .activeSubButton {
+    background-color: #71879C;
+    color: white;
+  }
   
   .alphabetFilterBanner {
    height: 30px;

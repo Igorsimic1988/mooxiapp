@@ -17,7 +17,7 @@ const LETTERS_WITH_SUBBUTTONS = {
 
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-function AlphabetFilter({ selectedLetter, onLetterSelect, onSubButtonClick }) {
+function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onSubButtonClick }) {
   const [activeLetter, setActiveLetter] = useState(null);
   const filterRef = useRef(null);
 
@@ -32,8 +32,8 @@ function AlphabetFilter({ selectedLetter, onLetterSelect, onSubButtonClick }) {
     }
   };
 
-  const handleSubButtonClickInternal = (subButton) => {
-    onSubButtonClick(subButton);
+  const handleSubButtonClickInternal = (subButton, letter) => {
+    onSubButtonClick(letter, subButton);
   };
 
   const handleClickOutside = (event) => {
@@ -53,36 +53,45 @@ function AlphabetFilter({ selectedLetter, onLetterSelect, onSubButtonClick }) {
   return (
     <div ref={filterRef}>
       <div className={styles.alphabetFilter}>
-        {ALPHABETS.map((letter) => (
-          <React.Fragment key={letter}>
-            <button
-              className={`${styles.alphabetButton} ${
-                selectedLetter === letter ? styles.active : ''
-              }`}
-              onClick={() => handleLetterClick(letter)}
-              aria-expanded={
-                activeLetter === letter && LETTERS_WITH_SUBBUTTONS[letter]
-                  ? 'true'
-                  : 'false'
-              }
-              aria-controls={`subButtons-${letter}`}
-            >
-              {letter}
-            </button>
-            {/* Render sub-buttons as direct siblings if they exist */}
-            {activeLetter === letter &&
-              Array.isArray(LETTERS_WITH_SUBBUTTONS[letter]) && // Ensure it's an array
-              LETTERS_WITH_SUBBUTTONS[letter].map((subButton) => (
-                <button
-                  key={subButton}
-                  className={styles.subButton}
-                  onClick={() => handleSubButtonClickInternal(subButton)}
-                >
-                  {subButton}
-                </button>
-              ))}
-          </React.Fragment>
-        ))}
+        {ALPHABETS.map((letter) => {
+          // Determine if the main button should be active
+          const isMainActive = selectedLetter === letter && (selectedSubButton.letter !== letter || !selectedSubButton.subButton);
+
+          return (
+            <React.Fragment key={letter}>
+              <button
+                className={`${styles.alphabetButton} ${isMainActive ? styles.active : ''}`}
+                onClick={() => handleLetterClick(letter)}
+                aria-haspopup="true" // Indicates that the button controls a submenu
+                aria-expanded={
+                  activeLetter === letter && LETTERS_WITH_SUBBUTTONS[letter]
+                    ? 'true'
+                    : 'false'
+                }
+                aria-controls={`subButtons-${letter}`}
+              >
+                {letter}
+              </button>
+              {/* Render sub-buttons as direct siblings if they exist */}
+              {activeLetter === letter &&
+                Array.isArray(LETTERS_WITH_SUBBUTTONS[letter]) &&
+                LETTERS_WITH_SUBBUTTONS[letter].map((subButton) => {
+                  // Determine if the sub-button is active
+                  const isSubButtonActive = selectedSubButton.letter === letter && selectedSubButton.subButton === subButton;
+
+                  return (
+                    <button
+                      key={subButton}
+                      className={`${styles.subButton} ${isSubButtonActive ? styles.activeSubButton : ''}`}
+                      onClick={() => handleSubButtonClickInternal(subButton, letter)}
+                    >
+                      {subButton}
+                    </button>
+                  );
+                })}
+            </React.Fragment>
+          );
+        })}
       </div>
       <div className={styles.alphabetFilterBanner}>
         <p>COMMON ITEMS FOR THIS ROOM</p>
@@ -93,12 +102,17 @@ function AlphabetFilter({ selectedLetter, onLetterSelect, onSubButtonClick }) {
 
 AlphabetFilter.propTypes = {
   selectedLetter: PropTypes.string,
+  selectedSubButton: PropTypes.shape({
+    letter: PropTypes.string,
+    subButton: PropTypes.string,
+  }),
   onLetterSelect: PropTypes.func.isRequired,
   onSubButtonClick: PropTypes.func.isRequired,
 };
 
 AlphabetFilter.defaultProps = {
   selectedLetter: null,
+  selectedSubButton: { letter: null, subButton: null },
 };
 
 export default AlphabetFilter;

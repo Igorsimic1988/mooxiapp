@@ -1,0 +1,95 @@
+
+.item {
+    list-style: none; /* Removes the default bullet */
+    margin: 0;        /* Resets margin */
+    padding: 0; 
+  }
+
+  .card {
+    position: relative;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 0px; 
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    flex: 1 1 118px; /* Flex-grow: allow item to grow, Flex-basis: ideal width */
+    max-width: 136px; /* Maximum width of card */
+    min-width: 107px; /* Minimum width of card */
+    height: 120px; /* Adjust as needed */
+    box-shadow: 0 1px 16px 0px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-4px);
+  }
+  
+  .numberBadge {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    background-color: #59B779; /* Green background */
+    color: #ffffff;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .menuIcon {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    top: 5px;
+    right: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .menuIcon svg {
+    width: 4px;
+    height: 13px;
+    fill: #6E7882; /* Icon color */
+    transition: fill 0.3s ease;
+  }
+  
+  .menuIcon:hover svg {
+    fill: #000000; /* Icon color on hover */
+  }
+
+  .itemImagewrapper {
+   width: 72px;
+   height: 72px;
+   margin-left: auto;
+   margin-right: auto;
+   margin-top: 14px;
+  }
+  
+  .itemImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .itemName {
+    margin-top: 8px;
+    color: #6E7882;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+  }

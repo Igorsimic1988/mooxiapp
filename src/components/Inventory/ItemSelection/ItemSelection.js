@@ -1,3 +1,5 @@
+// src/components/Inventory/ItemSelection/ItemSelection.js
+
 import React, { useState } from 'react';
 import allItems from '../../../data/constants/funitureItems';
 import styles from './ItemSelection.module.css';
@@ -8,7 +10,7 @@ import AlphabetFilter from './AlphabetFilter/AlphabetFilter';
 function ItemSelection({ room, searchQuery }) {
   const [isToggled, setIsToggled] = useState(true);
   const [selectedLetter, setSelectedLetter] = useState(null);
-  const [selectedSubButton, setSelectedSubButton] = useState(null);
+  const [selectedSubButton, setSelectedSubButton] = useState({ letter: null, subButton: null });
 
   const handleToggle = () => {
     setIsToggled((prev) => !prev);
@@ -22,53 +24,59 @@ function ItemSelection({ room, searchQuery }) {
 
   const handleLetterClick = (letter) => {
     if (selectedLetter === letter) {
-      setSelectedLetter(null); // Deselect if already selected
+      setSelectedLetter(null);
+      setSelectedSubButton({ letter: null, subButton: null }); // Reset sub-button selection
     } else {
       setSelectedLetter(letter);
-    }}
+      setSelectedSubButton({ letter: null, subButton: null }); // Reset sub-button selection when a new letter is selected
+    }
+  };
 
-    const handleSubButtonClick = (subButton) => {
-      setSelectedSubButton(subButton);
-      // Define further actions based on the sub-button click
-    };
+  const handleSubButtonClick = (letter, subButton) => {
+    setSelectedSubButton({ letter, subButton });
+    setSelectedLetter(null); // Deselect the main letter button
+  };
 
-  
-    // Ensure searchQuery is defined
-    const query = searchQuery ? searchQuery.toLowerCase() : '';
-  
-    // Step 2: Use allItems to filter based on searchQuery
-    const filteredItems = allItems.filter((item) => {
+  // Ensure searchQuery is defined
+  const query = searchQuery ? searchQuery.toLowerCase() : '';
+
+  // Use allItems to filter based on searchQuery, selectedLetter, and selectedSubButton
+  const filteredItems = allItems.filter((item) => {
+    // Incorporate searchQuery into filtering
+    const matchesQuery = item.name.toLowerCase().includes(query);
+    
+    if (selectedSubButton.subButton) {
+      return item.name.startsWith(selectedSubButton.subButton) && matchesQuery;
+    }
+    if (selectedLetter) {
+      return item.name.startsWith(selectedLetter) && matchesQuery;
+    }
+    return matchesQuery;
+  });
+
+  return (
+    <div className={styles.itemSelectionContainer}>
+      <BcalculatorMyitems
+        filterText="Enable Filters"
+        isToggled={isToggled}
+        onToggle={handleToggle}
+        onActionClick={handleActionClick} 
+      />
       
-      if (selectedSubButton) {
-        return item.name.startsWith(selectedSubButton);
-      }
-      if (selectedLetter) {
-        return item.name.startsWith(selectedLetter);
-      }
-      return true;
-    });
-  
-    return (
-      <div className={styles.itemSelectionContainer}>
+      <AlphabetFilter
+        selectedLetter={selectedLetter}
+        selectedSubButton={selectedSubButton}
+        onLetterSelect={handleLetterClick}
+        onSubButtonClick={handleSubButtonClick} 
+      />
 
-        <BcalculatorMyitems
-         filterText="Enable Filters"
-         isToggled={isToggled}
-         onToggle={handleToggle}
-         onActionClick={handleActionClick} />
-         
-         <AlphabetFilter
-         selectedLetter={selectedLetter}
-         onLetterSelect={handleLetterClick}
-         onSubButtonClick={handleSubButtonClick} />
+      <main className={styles.mainContent}>
+        <div className={styles.scrollableItemList}>
+        <ItemList items={filteredItems} />
+        </div>
+      </main>
+    </div>
+  );
+}
 
-       <main className={styles.mainContent}>
-
-         <ItemList items={filteredItems} />
-
-       </main>
-      </div>
-    );
-  }
-  
-  export default ItemSelection;
+export default ItemSelection;

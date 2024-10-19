@@ -2,22 +2,24 @@ import React from 'react';
 import styles from './Item.module.css';
 import { ReactComponent as ThreeDots } from '../../../../assets/icons/more.svg';
 
-function Item({ item, number, imageUrl, name }) {
+function Item({ item, clickCount, onItemClick }) {
   return (
-    <li className={styles.item}>
+    <li className={styles.item} onClick={onItemClick}>
       <button className={styles.card}>
-      <div className={styles.numberBadge}>
-        {number}
-      </div>
-      <div className={styles.menuIcon}>
-        <ThreeDots />
-      </div>
-      <div className={styles.itemImagewrapper}>
-      <img src={item.src} alt={item.name} className={styles.itemImage} />
-      </div>
-      <div className={styles.itemName}>
-       {item.name}
-      </div>   
+        {clickCount > 0 && (
+          <div className={styles.numberBadge}>
+            {clickCount}
+          </div>
+        )}
+        <div className={styles.menuIcon}>
+          <ThreeDots />
+        </div>
+        <div className={styles.itemImagewrapper}>
+          <img src={item.src} alt={item.name} className={styles.itemImage} />
+        </div>
+        <div className={styles.itemName}>
+          {item.name}
+        </div>
       </button>
     </li>
   );

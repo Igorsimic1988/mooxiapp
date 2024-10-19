@@ -1,4 +1,5 @@
 
+
 .item {
     list-style: none; /* Removes the default bullet */
     margin: 0;        /* Resets margin */
@@ -14,8 +15,7 @@
     cursor: pointer;
     transition: box-shadow 0.3s ease, transform 0.3s ease;
     flex: 1 1 118px; /* Flex-grow: allow item to grow, Flex-basis: ideal width */
-    max-width: 136px; /* Maximum width of card */
-    min-width: 107px; /* Minimum width of card */
+    width: 100%; /* Maximum width of card */
     height: 120px; /* Adjust as needed */
     box-shadow: 0 1px 16px 0px rgba(0, 0, 0, 0.1);
   }

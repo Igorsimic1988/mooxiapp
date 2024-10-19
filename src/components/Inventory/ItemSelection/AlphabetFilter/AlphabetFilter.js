@@ -1,8 +1,6 @@
-// src/components/Inventory/ItemSelection/AlphabetFilter/AlphabetFilter.js
-
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import styles from './AlphabetFilter.module.css'; // Corrected import
+import styles from './AlphabetFilter.module.css';
 
 const LETTERS_WITH_SUBBUTTONS = {
   B: ['B1', 'B2', 'B3', 'B4'],
@@ -12,71 +10,46 @@ const LETTERS_WITH_SUBBUTTONS = {
   P: ['P1', 'P2'],
   S: ['S1', 'S2'],
   T: ['T1', 'T2', 'T3'],
-  // Add other letters with sub-buttons as needed
 };
 
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onSubButtonClick }) {
-  const [activeLetter, setActiveLetter] = useState(null);
-  const filterRef = useRef(null);
-
+  // Letter selection logic
   const handleLetterClick = (letter) => {
-    if (activeLetter === letter) {
-      // If the same letter is clicked again, toggle it off
-      setActiveLetter(null);
-      onLetterSelect(null);
+    if (selectedLetter === letter) {
+      onLetterSelect(null); // Deselect letter if clicked again
     } else {
-      setActiveLetter(letter);
-      onLetterSelect(letter);
+      onLetterSelect(letter); // Select letter
     }
   };
 
+  // Sub-button selection logic
   const handleSubButtonClickInternal = (subButton, letter) => {
     onSubButtonClick(letter, subButton);
   };
 
-  const handleClickOutside = (event) => {
-    if (filterRef.current && !filterRef.current.contains(event.target)) {
-      setActiveLetter(null);
-      onLetterSelect(null);
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   return (
-    <div ref={filterRef}>
+    <div>
       <div className={styles.alphabetFilter}>
         {ALPHABETS.map((letter) => {
-          // Determine if the main button should be active
-          const isMainActive = selectedLetter === letter && (selectedSubButton.letter !== letter || !selectedSubButton.subButton);
+          const isMainActive = selectedLetter === letter && (!selectedSubButton || selectedSubButton.letter !== letter);
 
           return (
             <React.Fragment key={letter}>
               <button
                 className={`${styles.alphabetButton} ${isMainActive ? styles.active : ''}`}
                 onClick={() => handleLetterClick(letter)}
-                aria-haspopup="true" // Indicates that the button controls a submenu
-                aria-expanded={
-                  activeLetter === letter && LETTERS_WITH_SUBBUTTONS[letter]
-                    ? 'true'
-                    : 'false'
-                }
+                aria-haspopup="true"
+                aria-expanded={selectedLetter === letter && LETTERS_WITH_SUBBUTTONS[letter] ? 'true' : 'false'}
                 aria-controls={`subButtons-${letter}`}
               >
                 {letter}
               </button>
-              {/* Render sub-buttons as direct siblings if they exist */}
-              {activeLetter === letter &&
+
+              {selectedLetter === letter &&
                 Array.isArray(LETTERS_WITH_SUBBUTTONS[letter]) &&
                 LETTERS_WITH_SUBBUTTONS[letter].map((subButton) => {
-                  // Determine if the sub-button is active
                   const isSubButtonActive = selectedSubButton.letter === letter && selectedSubButton.subButton === subButton;
 
                   return (
@@ -108,11 +81,6 @@ AlphabetFilter.propTypes = {
   }),
   onLetterSelect: PropTypes.func.isRequired,
   onSubButtonClick: PropTypes.func.isRequired,
-};
-
-AlphabetFilter.defaultProps = {
-  selectedLetter: null,
-  selectedSubButton: { letter: null, subButton: null },
 };
 
 export default AlphabetFilter;

@@ -1,28 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './SearchHeader.module.css';
 import { ReactComponent as SearchIcon } from '../../../assets/icons/search.svg';
 
-function SearchHeader({ roomName, onSearch }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
+function SearchHeader({ roomName, searchQuery, onSearch  }) {
 
   const isActive = searchQuery.trim() !== '';
 
 
   const handleSearch = (event) => {
     const query = event.target.value;
-    setSearchQuery(query);
     onSearch(query);
   };
-
-  const handleFocus = () => {
-    setIsFocused(true);
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-  };
-
 
   return (
     <header className={styles.searchHeader}>
@@ -33,8 +21,8 @@ function SearchHeader({ roomName, onSearch }) {
           placeholder="Search"
           aria-label="Search"
           onChange={handleSearch}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
+
+         
           value={searchQuery}
         />
         <SearchIcon

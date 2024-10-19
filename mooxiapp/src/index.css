@@ -1,0 +1,27 @@
+@import url('./assets/fonts/Fonts/WEB/css/satoshi.css');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+#root, #__next {
+  isolation: isolate;
+}
+
+body {
+  margin: 0;
+  font-family: 'Satoshi', 'Roboto';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+

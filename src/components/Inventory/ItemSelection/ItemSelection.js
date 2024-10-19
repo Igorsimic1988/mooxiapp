@@ -13,20 +13,16 @@ function ItemSelection({
   selectedSubButton,
   onLetterSelect,
   onSubButtonSelect,
+  itemClickCounts,
+  onItemClick,
 }) {
   const [isToggled, setIsToggled] = useState(true);
-  const [itemClickCounts, setItemClickCounts] = useState({}); // Counter for item clicks
+  
 
   const handleToggle = () => {
     setIsToggled((prev) => !prev);
   };
 
-  const handleItemClick = (itemId) => {
-    setItemClickCounts((prev) => ({
-      ...prev,
-      [itemId]: (prev[itemId] || 0) + 1,
-    }));
-  };
 
   const query = searchQuery ? searchQuery.toLowerCase() : '';
   const filteredItems = allItems.filter((item) => {
@@ -60,8 +56,8 @@ function ItemSelection({
         <div className={styles.scrollableItemList}>
           <ItemList
             items={filteredItems}
-            itemClickCounts={itemClickCounts}
-            onItemClick={handleItemClick}
+            itemClickCounts={itemClickCounts} // Use the prop passed down from Inventory
+            onItemClick={onItemClick}        // Pass the click handler from Inventory
           />
         </div>
       </main>

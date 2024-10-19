@@ -1,5 +1,3 @@
-// Inventory.js
-
 import React, { useState } from 'react';
 import styles from './Inventory.module.css';
 import TopNavigation from '../Inventory/TopNavigation/TopNavigation';
@@ -8,11 +6,10 @@ import HouseHeader from './HouseHeader/HouseHeader';
 import FooterNavigation from './FooterNavigation/FooterNavigation';
 import ItemSelection from './ItemSelection/ItemSelection';
 import SearchHeader from './SearchHeader/SearchHeader';
+import rooms from '../../data/constants/AllRoomsList'; // Import rooms data
 
-const initialRooms = [
-  'Living Room', 'Family Room', 'Kitchen', 'Master Bedroom', 'Bedroom 1', 'Bedroom 2', 'Bedroom 3',
-  'Garage', 'Laundry Room', 'Home Office', 'Yard/Patio', 'Basement', 'Attic', 'Storage',
-];
+// Set IDs of the rooms that will be shown by default initially
+const defaultRoomIds = [1, 2, 3, 4, 5, 6 ,7 ,8 ,9, 10, 11, 12, 13]; // Replace with the initial room IDs you want
 
 function Inventory() {
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -20,12 +17,14 @@ function Inventory() {
   const [selectedLetter, setSelectedLetter] = useState(null);
   const [selectedSubButton, setSelectedSubButton] = useState({ letter: null, subButton: null });
   const [roomItemSelections, setRoomItemSelections] = useState(
-    initialRooms.reduce((acc, room) => {
-      acc[room] = {};
+    rooms.reduce((acc, room) => {
+      acc[room.name] = {};
       return acc;
     }, {})
   );
-
+  const [displayedRooms, setDisplayedRooms] = useState(
+    rooms.filter(room => defaultRoomIds.includes(room.id))
+  );
 
   const handleRoomSelect = (room) => {
     setSelectedRoom(room);
@@ -43,7 +42,6 @@ function Inventory() {
   };
 
   const handleSearchClick = () => {
-    // Reset the letter and subButton states when clicking on the search input
     setSelectedLetter(null);
     setSelectedSubButton({ letter: null, subButton: null });
   };
@@ -65,7 +63,6 @@ function Inventory() {
     setSearchQuery('');
   };
 
-
   const handleItemSelection = (itemId) => {
     if (!selectedRoom) return;
 
@@ -81,6 +78,13 @@ function Inventory() {
     });
   };
 
+  // Function to handle adding a new room
+  const handleAddRoom = (roomId) => {
+    const roomToAdd = rooms.find((room) => room.id === roomId);
+    if (roomToAdd && !displayedRooms.find((room) => room.id === roomId)) {
+      setDisplayedRooms((prev) => [...prev, roomToAdd]);
+    }
+  };
 
   return (
     <div className={styles.inventoryContainer}>
@@ -98,7 +102,7 @@ function Inventory() {
             onSearchClick={handleSearchClick}
           />
         ) : (
-          <HouseHeader />
+          <HouseHeader onAddRoom={handleAddRoom} rooms={rooms} displayedRooms={displayedRooms} />
         )}
       </header>
 
@@ -112,11 +116,15 @@ function Inventory() {
             selectedSubButton={selectedSubButton}
             onLetterSelect={handleLetterSelect}
             onSubButtonSelect={handleSubButtonSelect}
-            itemClickCounts={roomItemSelections[selectedRoom.name] || {}} // Updated: use itemClickCounts from roomItemSelections
+            itemClickCounts={roomItemSelections[selectedRoom.name] || {}}
             onItemClick={handleItemSelection}
           />
         ) : (
-          <RoomList onRoomSelect={handleRoomSelect} roomItemSelections={roomItemSelections} />
+          <RoomList
+            onRoomSelect={handleRoomSelect}
+            roomItemSelections={roomItemSelections}
+            displayedRooms={displayedRooms}
+          />
         )}
       </main>
 

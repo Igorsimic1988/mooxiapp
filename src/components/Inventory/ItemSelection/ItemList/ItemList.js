@@ -14,7 +14,7 @@ function ItemList({ items, itemClickCounts, onItemClick }) {
           key={item.id}
           item={item}
           clickCount={itemClickCounts[item.id] || 0} // Pass click count for each item
-          onItemClick={() => onItemClick(item.id)} // Handle item click
+          onItemClick={() => onItemClick(item)} // Pass the entire item object
         />
       ))}
     </ul>

@@ -15,19 +15,60 @@ function ItemSelection({
   onSubButtonSelect,
   itemClickCounts,
   onItemClick,
+  itemCount,
+  isMyItemsActive,
+  setIsMyItemsActive,
 }) {
   const [isToggled, setIsToggled] = useState(true);
-  
 
   const handleToggle = () => {
     setIsToggled((prev) => !prev);
   };
 
+  // Handle "My Items" button click to toggle its active state
+  const handleMyItemsClick = () => {
+    const newMyItemsState = !isMyItemsActive;
 
-  const query = searchQuery ? searchQuery.toLowerCase() : '';
+    // If activating "My Items", reset other filter states
+    if (newMyItemsState) {
+      setSearchQuery(''); // Clear search query
+      onLetterSelect(null); // Reset selected letter
+      onSubButtonSelect(null, null); // Reset selected sub-button
+    }
+
+    // Toggle "My Items" state after resetting filters
+    setIsMyItemsActive(newMyItemsState);
+  };
+
+  const handleLetterSelection = (letter) => {
+    if (isMyItemsActive) {
+      setIsMyItemsActive(false); // Deactivate "My Items" button
+    }
+    onLetterSelect(letter);
+  };
+
+  const handleSubButtonSelection = (letter, subButton) => {
+    if (isMyItemsActive) {
+      setIsMyItemsActive(false); // Deactivate "My Items" button
+    }
+    onSubButtonSelect(letter, subButton);
+  };
+
+  const handleSearchChange = (query) => {
+    if (isMyItemsActive) {
+      setIsMyItemsActive(false); // Deactivate "My Items" button
+    }
+    setSearchQuery(query);
+  };
+
+  // Filter items based on "My Items" button state
   const filteredItems = allItems.filter((item) => {
-    const matchesQuery = item.name.toLowerCase().includes(query);
+    if (isMyItemsActive) {
+      // When "My Items" button is active, only show items that have been selected in the current room
+      return itemClickCounts[item.id] && itemClickCounts[item.id] > 0;
+    }
 
+    const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     if (selectedSubButton.subButton) {
       return item.name.startsWith(selectedSubButton.subButton) && matchesQuery;
     }
@@ -43,21 +84,24 @@ function ItemSelection({
         filterText="Enable Filters"
         isToggled={isToggled}
         onToggle={handleToggle}
+        onActionClick={handleMyItemsClick} // Use handleMyItemsClick to properly manage state
+        itemCount={itemCount}
+        isMyItemsActive={isMyItemsActive} // Pass the active state to BcalculatorMyitems
       />
 
       <AlphabetFilter
         selectedLetter={selectedLetter}
         selectedSubButton={selectedSubButton}
-        onLetterSelect={onLetterSelect}
-        onSubButtonClick={onSubButtonSelect}
+        onLetterSelect={handleLetterSelection}
+        onSubButtonClick={handleSubButtonSelection}
       />
 
       <main className={styles.mainContent}>
         <div className={styles.scrollableItemList}>
           <ItemList
-            items={filteredItems}
-            itemClickCounts={itemClickCounts} // Use the prop passed down from Inventory
-            onItemClick={onItemClick}        // Pass the click handler from Inventory
+            items={filteredItems} // Pass the filtered items to ItemList
+            itemClickCounts={itemClickCounts}
+            onItemClick={onItemClick}
           />
         </div>
       </main>

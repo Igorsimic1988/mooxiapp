@@ -9,6 +9,8 @@
     padding-right: 0px;             /* Removes default padding */
     margin: 0;               /* Removes default margin */
     list-style: none;        /* Removes default list bullets */
+    margin-bottom: 70px;
+    padding-bottom: 15px;
   }
 
   

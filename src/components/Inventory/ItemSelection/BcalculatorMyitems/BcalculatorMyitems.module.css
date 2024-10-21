@@ -57,3 +57,14 @@ margin-right: 12px;
     justify-content: center;
     align-items: center;
   }
+
+  .activeButton {
+    border-radius: 11px;
+    background-color: #59B779;
+    color: white;
+  }
+
+  .activeButton > .itemCount {
+    border: 2px solid white;
+    border-radius: 60px;
+  }

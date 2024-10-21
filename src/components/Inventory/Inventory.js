@@ -9,7 +9,7 @@ import SearchHeader from './SearchHeader/SearchHeader';
 import rooms from '../../data/constants/AllRoomsList'; // Import rooms data
 
 // Set IDs of the rooms that will be shown by default initially
-const defaultRoomIds = [1, 2, 3, 4, 5, 6 ,7 ,8 ,9, 10, 11, 12, 13]; // Replace with the initial room IDs you want
+const defaultRoomIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
 function Inventory() {
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -23,8 +23,10 @@ function Inventory() {
     }, {})
   );
   const [displayedRooms, setDisplayedRooms] = useState(
-    rooms.filter(room => defaultRoomIds.includes(room.id))
+    rooms.filter((room) => defaultRoomIds.includes(room.id))
   );
+  const [isMyItemsActive, setIsMyItemsActive] = useState(false); // Track if "My Items" button is active
+  const [isDeleteActive, setIsDeleteActive] = useState(false);
 
   const handleRoomSelect = (room) => {
     setSelectedRoom(room);
@@ -38,15 +40,19 @@ function Inventory() {
   };
 
   const handleSearch = (query) => {
+    setIsMyItemsActive(false); // Deactivate "My Items" button when interacting with search input
     setSearchQuery(query);
   };
 
   const handleSearchClick = () => {
+    // Reset all the states when the search input is clicked
+    setIsMyItemsActive(false);
     setSelectedLetter(null);
     setSelectedSubButton({ letter: null, subButton: null });
   };
 
   const handleLetterSelect = (letter) => {
+    setIsMyItemsActive(false); // Deactivate "My Items" button
     if (selectedLetter === letter) {
       setSelectedLetter(null);
       setSelectedSubButton({ letter: null, subButton: null });
@@ -58,21 +64,31 @@ function Inventory() {
   };
 
   const handleSubButtonSelect = (letter, subButton) => {
+    setIsMyItemsActive(false); // Deactivate "My Items" button
     setSelectedSubButton({ letter, subButton });
     setSelectedLetter(letter);
     setSearchQuery('');
   };
 
-  const handleItemSelection = (itemId) => {
+  // Function to handle item selection
+  const handleItemSelection = (item) => {
     if (!selectedRoom) return;
 
     setRoomItemSelections((prevSelections) => {
       const currentRoomSelections = prevSelections[selectedRoom.name] || {};
+      const currentCount = currentRoomSelections[item.id] || 0;
+
+      // If delete is active, reduce the count if greater than 0; otherwise, increase the count
+      const change = isDeleteActive ? -1 : 1;
+
+      // Update the count with the specified change, making sure it doesn't go below zero
+      const newCount = Math.max(currentCount + change, 0);
+
       return {
         ...prevSelections,
         [selectedRoom.name]: {
           ...currentRoomSelections,
-          [itemId]: (currentRoomSelections[itemId] || 0) + 1,
+          [item.id]: newCount,
         },
       };
     });
@@ -84,6 +100,12 @@ function Inventory() {
     if (roomToAdd && !displayedRooms.find((room) => room.id === roomId)) {
       setDisplayedRooms((prev) => [...prev, roomToAdd]);
     }
+  };
+
+  // Function to get the count of items selected in the current room
+  const getItemCountForCurrentRoom = () => {
+    if (!selectedRoom || !roomItemSelections[selectedRoom.name]) return 0;
+    return Object.values(roomItemSelections[selectedRoom.name]).reduce((total, count) => total + count, 0);
   };
 
   return (
@@ -100,6 +122,7 @@ function Inventory() {
             searchQuery={searchQuery}
             onSearch={handleSearch}
             onSearchClick={handleSearchClick}
+            onSearchFocus={handleSearchClick} // Use handleSearchClick to reset when focusing on the search bar
           />
         ) : (
           <HouseHeader onAddRoom={handleAddRoom} rooms={rooms} displayedRooms={displayedRooms} />
@@ -118,6 +141,10 @@ function Inventory() {
             onSubButtonSelect={handleSubButtonSelect}
             itemClickCounts={roomItemSelections[selectedRoom.name] || {}}
             onItemClick={handleItemSelection}
+            itemCount={getItemCountForCurrentRoom()} // Pass the item count for current room
+            isMyItemsActive={isMyItemsActive} // Pass the state to ItemSelection
+            setIsMyItemsActive={setIsMyItemsActive} // Pass the setter to ItemSelection
+            isDeleteActive={isDeleteActive} // Pass the state to ItemSelection for delete functionality
           />
         ) : (
           <RoomList
@@ -128,7 +155,12 @@ function Inventory() {
         )}
       </main>
 
-      <FooterNavigation inRoom={!!selectedRoom} onBackToRooms={handleBackToRooms} />
+      <FooterNavigation
+        inRoom={!!selectedRoom}
+        onBackToRooms={handleBackToRooms}
+        isDeleteActive={isDeleteActive}
+        setIsDeleteActive={setIsDeleteActive} // Pass the setter to toggle delete mode
+      />
     </div>
   );
 }

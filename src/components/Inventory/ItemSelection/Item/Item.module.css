@@ -84,7 +84,9 @@
   }
   
   .itemName {
-    margin-top: 8px;
+    margin-top: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
     color: #6E7882;
     text-align: center;
     font-family: Satoshi;

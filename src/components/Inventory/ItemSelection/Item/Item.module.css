@@ -11,7 +11,7 @@
     background-color: #ffffff;
     border: none;
     border-radius: 12px;
-    padding: 0px; 
+    padding: 0; 
     cursor: pointer;
     transition: box-shadow 0.3s ease, transform 0.3s ease;
     flex: 1 1 118px; /* Flex-grow: allow item to grow, Flex-basis: ideal width */
@@ -74,7 +74,7 @@
    height: 72px;
    margin-left: auto;
    margin-right: auto;
-   margin-top: 14px;
+   margin-top: 10px;
   }
   
   .itemImage {
@@ -86,8 +86,8 @@
   
   .itemName {
     margin-top: 2px;
-    padding-left: 2px;
-    padding-right: 2px;
+    padding-left: 3px;
+    padding-right: 3px;
     color: #6E7882;
     text-align: center;
     font-family: Satoshi;

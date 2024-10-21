@@ -17,7 +17,7 @@
     flex: 1 1 118px; /* Flex-grow: allow item to grow, Flex-basis: ideal width */
     width: 100%; /* Maximum width of card */
     height: 120px; /* Adjust as needed */
-    box-shadow: 0 1px 16px 0px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.1);
   }
   
   .card:hover {

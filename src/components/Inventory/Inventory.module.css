@@ -30,7 +30,7 @@
   margin-bottom: 60px; /* Height of FooterNavigation */
   overflow: hidden; /* Disable scrolling here */
   height: calc(100vh - 120px - 60px); /* Full height minus header and footer */
-  padding: 16px; /* Optional padding */
+  padding: 16px 10px 16px 16px; /* Optional padding */
   background-color: #F2F5F8; /* Optional background color */
   display: flex;
   flex-direction: column;

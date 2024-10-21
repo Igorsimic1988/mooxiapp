@@ -6,7 +6,7 @@ function BcalculatorMyitems({ isToggled, onToggle, itemCount, onActionClick, isM
     return (
         <div className={styles.filterHeader}>
             <div className={styles.leftSection}>
-                <span className={styles.filterText}>Boxes Auto Calculator</span>
+                <span className={styles.filterText}>Boxes Auto<br />Calculator</span>
                 <ToggleSwitch isToggled={isToggled} onToggle={onToggle} />
             </div>
             <button

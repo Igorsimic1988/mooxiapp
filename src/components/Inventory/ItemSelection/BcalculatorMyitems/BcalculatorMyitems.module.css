@@ -17,6 +17,7 @@ font-style: normal;
 font-weight: 700;
 line-height: normal;
 margin-right: 12px;
+max-width: fit-content;
 }
 
 
@@ -25,7 +26,7 @@ margin-right: 12px;
     justify-content: flex-start;
     align-items: center;
     margin-right: 20px;
-    width: fit-content;
+    max-width: fit-content;
     flex-grow: 1;
 }
 

@@ -5,9 +5,11 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #D8DCE0;
+    
 }
 
 .filterText {
+    display: inline-block;
     color: #2F3236;
 font-family: Satoshi;
 font-size: 1rem;
@@ -17,9 +19,14 @@ line-height: normal;
 margin-right: 12px;
 }
 
+
 .leftSection {
     display: flex;
+    justify-content: flex-start;
     align-items: center;
+    margin-right: 20px;
+    width: fit-content;
+    flex-grow: 1;
 }
 
 .actionButton {

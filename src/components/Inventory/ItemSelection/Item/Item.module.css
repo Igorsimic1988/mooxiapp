@@ -4,6 +4,7 @@
     list-style: none; /* Removes the default bullet */
     margin: 0;        /* Resets margin */
     padding: 0; 
+    background-color: white;
   }
 
   .card {

@@ -104,7 +104,8 @@ const allItems = [
   { id: 102, name: 'Dryer With Storage', src:'/asssets/furnitureImages/DryerWithStorage.jpg'  },
   { id: 103, name: 'Washer With Storage', src:'/asssets/furnitureImages/WasherWithStorage.jpg'  },
   { id: 104, name: 'Washer Top Load', src:'/asssets/furnitureImages/WasherTopLoad.jpg'  },
-  { id: 105, name: 'Go Cart Powered', src:'/asssets/furnitureImages/GoCartPowered.jpg'  }
+  { id: 105, name: 'Go Cart Powered', src:'/asssets/furnitureImages/GoCartPowered.jpg'  },
+  { id: 106, name: 'Chest of Drawers Large', src:'/asssets/furnitureImages/ChestofDrawersLarge.jpg'  },
     // Add more items as needed
   ];
 

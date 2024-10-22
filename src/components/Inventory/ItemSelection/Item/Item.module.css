@@ -16,7 +16,7 @@
     transition: box-shadow 0.3s ease, transform 0.3s ease;
     flex: 1 1 118px; /* Flex-grow: allow item to grow, Flex-basis: ideal width */
     width: 100%; /* Maximum width of card */
-    height: 120px; /* Adjust as needed */
+    height: 118px; /* Adjust as needed */
     box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.1);
   }
   
@@ -74,7 +74,7 @@
    height: 72px;
    margin-left: auto;
    margin-right: auto;
-   margin-top: 10px;
+   margin-top: 6px;
   }
   
   .itemImage {

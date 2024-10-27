@@ -11,6 +11,7 @@
   overflow-y: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  padding-bottom: 10px;
 }
 
 .roomListContainer::-webkit-scrollbar {

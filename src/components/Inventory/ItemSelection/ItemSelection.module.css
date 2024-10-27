@@ -1,7 +1,8 @@
 .itemSelectionContainer {
     display: flex;
     flex-direction: column;
-    height: 100svh; /* Full viewport height */
+    height: 100vh; /* Full viewport height */
+    height: 100dvh;
   }
   
   .mainContent {

@@ -7,7 +7,6 @@
   align-items: flex-start;
   margin: 0 auto;
   max-width: 100%;
-  flex: 1 1 auto;
   overflow-y: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */

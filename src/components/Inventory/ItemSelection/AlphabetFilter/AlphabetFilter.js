@@ -6,7 +6,7 @@ const LETTERS_WITH_SUBBUTTONS = {
   B: ['B1', 'B2', 'B3', 'B4'],
   C: ['C1', 'C2', 'C3'],
   D: ['D1', 'D2'],
-  M: ['M1', 'M2'],
+  M: ['M1'],
   P: ['P1', 'P2'],
   S: ['S1', 'S2'],
   T: ['T1', 'T2', 'T3'],

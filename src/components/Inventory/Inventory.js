@@ -42,6 +42,8 @@ function Inventory() {
   const handleSearch = (query) => {
     setIsMyItemsActive(false); // Deactivate "My Items" button when interacting with search input
     setSearchQuery(query);
+    setSelectedLetter(null);
+    setSelectedSubButton({ letter: null, subButton: null });
   };
 
   const handleSearchClick = () => {
@@ -65,9 +67,21 @@ function Inventory() {
 
   const handleSubButtonSelect = (letter, subButton) => {
     setIsMyItemsActive(false); // Deactivate "My Items" button
-    setSelectedSubButton({ letter, subButton });
-    setSelectedLetter(letter);
-    setSearchQuery('');
+  
+    if (
+      selectedSubButton &&
+      selectedSubButton.subButton === subButton &&
+      selectedSubButton.letter === letter
+    ) {
+      // Deselect the sub-button if it's already selected
+      setSelectedSubButton({ letter: null, subButton: null });
+      setSelectedLetter(null); // Optionally deselect the letter as well
+    } else {
+      // Select the new sub-button
+      setSelectedSubButton({ letter, subButton });
+      setSelectedLetter(letter);
+      setSearchQuery('');
+    }
   };
 
   // Function to handle item selection

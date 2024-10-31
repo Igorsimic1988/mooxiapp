@@ -64,18 +64,30 @@ function ItemSelection({
   // Filter items based on "My Items" button state
   const filteredItems = allItems.filter((item) => {
     if (isMyItemsActive) {
-      // When "My Items" button is active, only show items that have been selected in the current room
+      // Show only items selected in the current room
       return itemClickCounts[item.id] && itemClickCounts[item.id] > 0;
     }
-
+  
     const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+  
+    if (searchQuery.trim() !== '') {
+      // Search through all items
+      return matchesQuery;
+    }
+  
     if (selectedSubButton.subButton) {
-      return item.name.startsWith(selectedSubButton.subButton) && matchesQuery;
+      // Show items that have the selected sub-button, regardless of room
+      return item.letters.includes(selectedSubButton.subButton);
     }
+  
     if (selectedLetter) {
-      return item.name.startsWith(selectedLetter) && matchesQuery;
+      // Show items that have the selected letter, regardless of room
+      return item.letters.includes(selectedLetter);
     }
-    return matchesQuery;
+  
+    // No search query, letter, or sub-button selected
+    // Display default items for the current room
+    return item.rooms.includes(room.id);
   });
 
   return (

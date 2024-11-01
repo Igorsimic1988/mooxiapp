@@ -54,18 +54,13 @@ function ItemSelection({
     onSubButtonSelect(letter, subButton);
   };
 
-  const handleSearchChange = (query) => {
-    if (isMyItemsActive) {
-      setIsMyItemsActive(false); // Deactivate "My Items" button
-    }
-    setSearchQuery(query);
-  };
+
 
   // Filter items based on "My Items" button state
   const filteredItems = allItems.filter((item) => {
     if (isMyItemsActive) {
       // Show only items selected in the current room
-      return itemClickCounts[item.id] && itemClickCounts[item.id] > 0;
+      return itemClickCounts[item.id]?.count > 0;
     }
   
     const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());

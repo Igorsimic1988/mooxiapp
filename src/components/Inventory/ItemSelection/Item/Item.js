@@ -4,8 +4,8 @@ import { ReactComponent as ThreeDots } from '../../../../assets/icons/more.svg';
 
 function Item({ item, clickCount, onItemClick }) {
   return (
-    <li className={styles.item} onClick={onItemClick}>
-      <button className={styles.card}>
+    <li className={styles.item}>
+      <button className={styles.card} onClick={onItemClick}>
         {clickCount > 0 && (
           <div className={styles.numberBadge}>
             {clickCount}

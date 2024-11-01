@@ -7,7 +7,10 @@ function RoomList({ onRoomSelect, roomItemSelections, displayedRooms }) {
     <div className={styles.roomListContainer}>
       {displayedRooms.map((room) => {
         const selectedItems = roomItemSelections?.[room.name] || {};
-        const selectedItemCount = Object.values(selectedItems).reduce((acc, count) => acc + count, 0);
+        const selectedItemCount = Object.values(selectedItems).reduce(
+          (acc, selection) => acc + selection.count,
+          0
+        );
 
         return (
           <button

@@ -87,24 +87,36 @@ function Inventory() {
   // Function to handle item selection
   const handleItemSelection = (item) => {
     if (!selectedRoom) return;
-
+  
     setRoomItemSelections((prevSelections) => {
       const currentRoomSelections = prevSelections[selectedRoom.name] || {};
-      const currentCount = currentRoomSelections[item.id] || 0;
-
+      const itemId = item.id.toString(); // Ensure itemId is a string for consistent keys
+      const currentItemSelection = currentRoomSelections[itemId] || { count: 0, item };
+      const currentCount = currentItemSelection.count;
+  
       // If delete is active, reduce the count if greater than 0; otherwise, increase the count
       const change = isDeleteActive ? -1 : 1;
-
+  
       // Update the count with the specified change, making sure it doesn't go below zero
       const newCount = Math.max(currentCount + change, 0);
-
-      return {
+  
+      // If the new count is zero, remove the item from the selections
+      const updatedRoomSelections = { ...currentRoomSelections };
+      if (newCount > 0) {
+        updatedRoomSelections[itemId] = {
+          count: newCount,
+          item: currentItemSelection.item, // Use existing item data
+        };
+      } else {
+        delete updatedRoomSelections[itemId];
+      }
+  
+      const updatedSelections = {
         ...prevSelections,
-        [selectedRoom.name]: {
-          ...currentRoomSelections,
-          [item.id]: newCount,
-        },
+        [selectedRoom.name]: updatedRoomSelections,
       };
+  
+      return updatedSelections;
     });
   };
 
@@ -119,7 +131,10 @@ function Inventory() {
   // Function to get the count of items selected in the current room
   const getItemCountForCurrentRoom = () => {
     if (!selectedRoom || !roomItemSelections[selectedRoom.name]) return 0;
-    return Object.values(roomItemSelections[selectedRoom.name]).reduce((total, count) => total + count, 0);
+    return Object.values(roomItemSelections[selectedRoom.name]).reduce(
+      (total, { count }) => total + count,
+      0
+    );
   };
 
   return (

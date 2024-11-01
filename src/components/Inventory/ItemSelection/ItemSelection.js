@@ -71,8 +71,8 @@ function ItemSelection({
     const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
   
     if (searchQuery.trim() !== '') {
-      // Search through all items
-      return matchesQuery;
+      // Search through all items but exclude items where search is 'N'
+      return matchesQuery && item.search !== 'N';
     }
   
     if (selectedSubButton.subButton) {

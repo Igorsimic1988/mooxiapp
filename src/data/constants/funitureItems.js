@@ -214,7 +214,7 @@ const allItems = [
   { id: 212, name: 'Wardrobe Large', src:'/asssets/furnitureImages/WardrobeLarge.jpg', rooms: [ 5, 6, 7, 8, 14 , 15, 16, 30, 40, 45 ], letters: [ 'W' ], cuft: 50, lbs: 280, search: 'Y'  },
   { id: 213, name: 'Wardrobe Medium', src:'/asssets/furnitureImages/WardrobeMedium.jpg', rooms: [ 5, 6, 7, 8, 14 , 15, 16, 40, 45 ], letters: [ 'W' ], cuft: 40, lbs: 240, search: 'Y'  },
   { id: 214, name: 'Wardrobe Small', src:'/asssets/furnitureImages/WardrobeSmall.jpg', rooms: [ 10, 11, 29, 21, 40, 45 ], letters: [ 'W' ], cuft: 30, lbs: 175, search: 'Y'  },
-  { id: 215, name: 'Night Stand', src:'/asssets/furnitureImages/NightStand.jpg', rooms: [ 1, 2, 5, 6, 7, 8, 14 , 15, 16, 10, 11, 29, 12, 18, 19, 21, 31, 40, 45 ], letters: [ 'N' ], cuft: 5, lbs: 35, search: 'Y'  },
+  { id: 215, name: 'Night Stand', src:'/asssets/furnitureImages/NightStand.jpg', rooms: [ 1, 2, 5, 6, 7, 8, 14, 15, 16, 10, 11, 29, 12, 18, 19, 21, 31, 40, 45 ], letters: [ 'N' ], cuft: 5, lbs: 35, search: 'Y'  },
   { id: 216, name: 'Inversion Table Exercise', src:'/asssets/furnitureImages/InversionTableExercise.jpg', rooms: [ 36, 38, 39 ], letters: [ 'I' ], cuft: 10, lbs: 70, search: 'Y'  },
   { id: 217, name: 'Refrigerator Mini', src:'/asssets/furnitureImages/RefrigeratorMini.jpg', rooms: [ 12, 4, 21, 36, 38, 39, 40, 45 ], letters: [ 'R' ], cuft: 7, lbs: 49, search: 'Y'  },
   { id: 218, name: 'Refrigerator Small', src:'/asssets/furnitureImages/RefrigeratorSmall.jpg', rooms: [ 45391 ], letters: [ 'R' ], cuft: 25, lbs: 140, search: 'Y'  },
@@ -636,6 +636,7 @@ const allItems = [
   { id: 634, name: 'Yard Swing', src:'/asssets/furnitureImages/YardSwing.jpg', rooms: [  ], letters: [ 'Y' ], cuft: 30, lbs: 150, search: 'Y'  },
   { id: 635, name: 'Zero Gravity Chair', src:'/asssets/furnitureImages/ZeroGravityChair.jpg', rooms: [  ], letters: [ 'Z' ], cuft: 3, lbs: 10, search: 'Y'  },
   { id: 636, name: 'Zigzag Bookshelf Small', src:'/asssets/furnitureImages/ZigzagBookshelfSmall.jpg', rooms: [  ], letters: [ 'Z' ], cuft: 8, lbs: 40, search: 'Y'  },
+  { id: 637, name: 'Cabinet Over Toilet', src:'/asssets/furnitureImages/CabinetOverToilet.jpg', rooms: [ 10, 11, 29, 40, 45 ], letters: [ 'C2' ], cuft: 10, lbs: 70, search: 'Y'  },
   ];
 
 

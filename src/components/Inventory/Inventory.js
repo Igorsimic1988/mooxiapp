@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Inventory.module.css';
 import TopNavigation from '../Inventory/TopNavigation/TopNavigation';
 import RoomList from '../Inventory/RoomList/RoomList';
@@ -7,6 +7,7 @@ import FooterNavigation from './FooterNavigation/FooterNavigation';
 import ItemSelection from './ItemSelection/ItemSelection';
 import SearchHeader from './SearchHeader/SearchHeader';
 import rooms from '../../data/constants/AllRoomsList'; // Import rooms data
+import { v4 as uuidv4 } from 'uuid'; // Import UUID library for generating unique IDs
 
 // Set IDs of the rooms that will be shown by default initially
 const defaultRoomIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
@@ -18,10 +19,16 @@ function Inventory() {
   const [selectedSubButton, setSelectedSubButton] = useState({ letter: null, subButton: null });
   const [roomItemSelections, setRoomItemSelections] = useState(
     rooms.reduce((acc, room) => {
-      acc[room.name] = {};
+      acc[room.name] = []; // Initialize with an empty array for each room
       return acc;
     }, {})
   );
+
+  useEffect(() => {
+    console.log('roomItemSelections:', roomItemSelections);
+  }, [roomItemSelections]);
+  
+
   const [displayedRooms, setDisplayedRooms] = useState(
     rooms.filter((room) => defaultRoomIds.includes(room.id))
   );
@@ -84,41 +91,39 @@ function Inventory() {
     }
   };
 
-  // Function to handle item selection
-  const handleItemSelection = (item) => {
-    if (!selectedRoom) return;
-  
-    setRoomItemSelections((prevSelections) => {
-      const currentRoomSelections = prevSelections[selectedRoom.name] || {};
-      const itemId = item.id.toString(); // Ensure itemId is a string for consistent keys
-      const currentItemSelection = currentRoomSelections[itemId] || { count: 0, item };
-      const currentCount = currentItemSelection.count;
-  
-      // If delete is active, reduce the count if greater than 0; otherwise, increase the count
-      const change = isDeleteActive ? -1 : 1;
-  
-      // Update the count with the specified change, making sure it doesn't go below zero
-      const newCount = Math.max(currentCount + change, 0);
-  
-      // If the new count is zero, remove the item from the selections
-      const updatedRoomSelections = { ...currentRoomSelections };
-      if (newCount > 0) {
-        updatedRoomSelections[itemId] = {
-          count: newCount,
-          item: currentItemSelection.item, // Use existing item data
-        };
-      } else {
-        delete updatedRoomSelections[itemId];
+ // Function to handle item selection
+const handleItemSelection = (item) => {
+  if (!selectedRoom) return;
+
+  setRoomItemSelections((prevSelections) => {
+    const currentRoomSelections = prevSelections[selectedRoom.name] || [];
+    const updatedRoomSelections = [...currentRoomSelections];
+
+    if (isDeleteActive) {
+      // Remove an instance of the item from the room selections
+      const index = updatedRoomSelections.findIndex(
+        (instance) => instance.itemId === item.id.toString()
+      );
+      if (index !== -1) {
+        updatedRoomSelections.splice(index, 1);
       }
-  
-      const updatedSelections = {
-        ...prevSelections,
-        [selectedRoom.name]: updatedRoomSelections,
+    } else {
+      // Add a new unique item instance
+      const newItemInstance = {
+        id: uuidv4(), // Generate a unique ID for this instance
+        itemId: item.id.toString(),
+        item: item,
+        tags: [], // Initialize with empty tags or other properties as needed
       };
-  
-      return updatedSelections;
-    });
-  };
+      updatedRoomSelections.push(newItemInstance);
+    }
+
+    return {
+      ...prevSelections,
+      [selectedRoom.name]: updatedRoomSelections,
+    };
+  });
+};
 
   // Function to handle adding a new room
   const handleAddRoom = (roomId) => {
@@ -131,10 +136,7 @@ function Inventory() {
   // Function to get the count of items selected in the current room
   const getItemCountForCurrentRoom = () => {
     if (!selectedRoom || !roomItemSelections[selectedRoom.name]) return 0;
-    return Object.values(roomItemSelections[selectedRoom.name]).reduce(
-      (total, { count }) => total + count,
-      0
-    );
+    return roomItemSelections[selectedRoom.name].length;
   };
 
   return (
@@ -174,6 +176,7 @@ function Inventory() {
             isMyItemsActive={isMyItemsActive} // Pass the state to ItemSelection
             setIsMyItemsActive={setIsMyItemsActive} // Pass the setter to ItemSelection
             isDeleteActive={isDeleteActive} // Pass the state to ItemSelection for delete functionality
+            itemInstances={roomItemSelections[selectedRoom.name] || []}
           />
         ) : (
           <RoomList

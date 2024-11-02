@@ -10,14 +10,14 @@ function ItemList({ items, itemClickCounts, onItemClick }) {
   return (
     <ul className={styles.itemList}>
       {items.map((item) => {
-        const count = itemClickCounts[item.id]?.count || 0; // Access the count from itemClickCounts
+        const count = itemClickCounts[item.id.toString()] || 0;
 
         return (
           <Item
             key={item.id}
             item={item}
-            clickCount={count} // Pass the click count to Item component
-            onItemClick={() => onItemClick(item)} // Pass the entire item object
+            clickCount={count} // Pass the correct click count for each item
+            onItemClick={() => onItemClick(item)}
           />
         );
       })}

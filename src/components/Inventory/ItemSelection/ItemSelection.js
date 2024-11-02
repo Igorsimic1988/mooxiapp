@@ -13,11 +13,11 @@ function ItemSelection({
   selectedSubButton,
   onLetterSelect,
   onSubButtonSelect,
-  itemClickCounts,
   onItemClick,
   itemCount,
   isMyItemsActive,
   setIsMyItemsActive,
+  itemInstances,
 }) {
   const [isToggled, setIsToggled] = useState(true);
 
@@ -54,36 +54,40 @@ function ItemSelection({
     onSubButtonSelect(letter, subButton);
   };
 
-
+  // Compute itemCounts from itemInstances
+  const itemCounts = itemInstances.reduce((counts, instance) => {
+    const itemId = instance.itemId;
+    counts[itemId] = (counts[itemId] || 0) + 1;
+    return counts;
+  }, {});
 
   // Filter items based on "My Items" button state
-  const filteredItems = allItems.filter((item) => {
-    if (isMyItemsActive) {
-      // Show only items selected in the current room
-      return itemClickCounts[item.id]?.count > 0;
-    }
-  
-    const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-  
-    if (searchQuery.trim() !== '') {
-      // Search through all items but exclude items where search is 'N'
-      return matchesQuery && item.search !== 'N';
-    }
-  
-    if (selectedSubButton.subButton) {
-      // Show items that have the selected sub-button, regardless of room
-      return item.letters.includes(selectedSubButton.subButton);
-    }
-  
-    if (selectedLetter) {
-      // Show items that have the selected letter, regardless of room
-      return item.letters.includes(selectedLetter);
-    }
-  
-    // No search query, letter, or sub-button selected
-    // Display default items for the current room
-    return item.rooms.includes(room.id);
-  });
+  const filteredItems = isMyItemsActive
+    ? Object.keys(itemCounts).map((itemId) =>
+        allItems.find((item) => item.id.toString() === itemId)
+      )
+    : allItems.filter((item) => {
+        const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+        if (searchQuery.trim() !== '') {
+          // Search through all items but exclude items where search is 'N'
+          return matchesQuery && item.search !== 'N';
+        }
+
+        if (selectedSubButton.subButton) {
+          // Show items that have the selected sub-button, regardless of room
+          return item.letters.includes(selectedSubButton.subButton);
+        }
+
+        if (selectedLetter) {
+          // Show items that have the selected letter, regardless of room
+          return item.letters.includes(selectedLetter);
+        }
+
+        // No search query, letter, or sub-button selected
+        // Display default items for the current room
+        return item.rooms.includes(room.id);
+      });
 
   return (
     <div className={styles.itemSelectionContainer}>
@@ -107,7 +111,7 @@ function ItemSelection({
         <div className={styles.scrollableItemList}>
           <ItemList
             items={filteredItems} // Pass the filtered items to ItemList
-            itemClickCounts={itemClickCounts}
+            itemClickCounts={itemCounts} // Pass the computed itemCounts
             onItemClick={onItemClick}
           />
         </div>

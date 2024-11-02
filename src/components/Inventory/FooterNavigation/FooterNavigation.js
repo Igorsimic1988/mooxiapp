@@ -1,14 +1,27 @@
 import React from 'react';
 import styles from './FooterNavigation.module.css';
+import SpecialH from './SpecialH/SpecialH';
 
 import { ReactComponent as CreateQuote } from '../../../assets/icons/createquoteicon.svg';
 import { ReactComponent as MyInventory } from '../../../assets/icons/myinventory.svg';
-import { ReactComponent as SpecialH } from '../../../assets/icons/specialh.svg';
+import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.svg';
 import { ReactComponent as DeleteIcon } from '../../../assets/icons/specialh.svg';
 
-function FooterNavigation({ inRoom, onBackToRooms, isDeleteActive, setIsDeleteActive }) {
+function FooterNavigation({
+  inRoom,
+  onBackToRooms,
+  isDeleteActive,
+  setIsDeleteActive,
+  isSpecialHVisible,
+  setIsSpecialHVisible,
+  roomItemSelections
+}) {
   const handleDeleteClick = () => {
     setIsDeleteActive((prevState) => !prevState);
+  };
+
+  const handleSpecialHClick = () => {
+    setIsSpecialHVisible(true);
   };
 
   return (
@@ -32,9 +45,15 @@ function FooterNavigation({ inRoom, onBackToRooms, isDeleteActive, setIsDeleteAc
         <p className={styles.navText}>My Inventory</p>
       </div>
 
-      <div className={styles.navItem}>
+        {/* Special Handling */}
+      <div
+        className={styles.navItem}
+        onClick={handleSpecialHClick}
+        role="button"
+        tabIndex={0}
+      >
         <div className={styles.iconWrapper}>
-          <SpecialH className={styles.navIcon} />
+          <SpecialHIcon className={styles.navIcon} />
         </div>
         <p className={styles.navText}>Special Handling</p>
       </div>
@@ -50,6 +69,14 @@ function FooterNavigation({ inRoom, onBackToRooms, isDeleteActive, setIsDeleteAc
         </div>
         <p className={`${styles.navText} ${isDeleteActive ? styles.redText : ''}`}>Delete</p>
       </div>
+
+    {/* Render SpecialH Popup */}
+      {isSpecialHVisible && (
+        <SpecialH 
+        setIsSpecialHVisible={setIsSpecialHVisible} 
+        roomItemSelections={roomItemSelections}
+        />
+      )}
     </footer>
   );
 }

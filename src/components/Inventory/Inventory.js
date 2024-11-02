@@ -23,6 +23,8 @@ function Inventory() {
       return acc;
     }, {})
   );
+  const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
+
 
   useEffect(() => {
     console.log('roomItemSelections:', roomItemSelections);
@@ -192,6 +194,9 @@ const handleItemSelection = (item) => {
         onBackToRooms={handleBackToRooms}
         isDeleteActive={isDeleteActive}
         setIsDeleteActive={setIsDeleteActive} // Pass the setter to toggle delete mode
+        isSpecialHVisible={isSpecialHVisible}
+        setIsSpecialHVisible={setIsSpecialHVisible} // Pass the state and setter
+        roomItemSelections={roomItemSelections}
       />
     </div>
   );

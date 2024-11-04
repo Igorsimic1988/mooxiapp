@@ -1,47 +1,34 @@
-// SpecialH.js
+// src/components/SpecialH/SpecialH.js
+
 import React, { useState, useEffect } from 'react';
 import styles from "./SpecialH.module.css";
-import ItemCard from './ItemCard/ItemCard'; // Adjust the path based on your folder structure
+import ItemCard from './ItemCard/ItemCard'; // Ensure the path is correct
 
 import { ReactComponent as SpecialHPopupIcon } from "../../../../assets/icons/SpecialHPopupIcon.svg";
 import { ReactComponent as CloseIcon } from "../../../../assets/icons/Close.svg";
 
 import CustomSelect from './CustomSelect/CustomSelect'; // Ensure the path is correct
-import { optionsData } from '../../../../data/constants/optionsData'; // Adjust the path based on your folder structure
+import { optionsData } from '../../../../data/constants/optionsData'; // Ensure the path is correct
 
-function SpecialH({ setIsSpecialHVisible, roomItemSelections }) {
+function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelections, selectedRoom }) {
   const handleClose = () => {
     setIsSpecialHVisible(false);
   };
 
-  // State to manage selected items using unique itemInstance.id
-  const [selectedItems, setSelectedItems] = useState({}); // { [itemInstance.id]: true/false }
+  // State to manage the currently selected tag
+  const [currentTag, setCurrentTag] = useState(null); // { subOption, value }
 
-  // Initialize selectedOption to 'itemTags'
+  // State for main options ('itemTags' or 'locationTags')
   const [selectedOption, setSelectedOption] = useState("itemTags"); // 'itemTags' or 'locationTags'
-  
-  // Initialize selectedSubOption based on selectedOption
+
+  // State for sub-options based on main selection
   const [selectedSubOption, setSelectedSubOption] = useState("packing"); // Default for 'itemTags'
-  
-  const [selectedFurtherOption, setSelectedFurtherOption] = useState("");
 
   // Define main selection options
   const mainOptions = [
     { value: 'itemTags', label: 'Item Tags' },
     { value: 'locationTags', label: 'Location Tags' },
   ];
-
-  // Define sub-selection options based on main selection
-  const subOptionsMap = {
-    itemTags: [
-      { value: 'packing', label: 'Packing' },
-      { value: 'extraAttention', label: 'Extra Attention' },
-    ],
-    locationTags: [
-      { value: 'handlingInfo', label: 'Handling Info' },
-      { value: 'dropPoints', label: 'Drop Points' },
-    ],
-  };
 
   // Update selectedSubOption when selectedOption changes
   useEffect(() => {
@@ -52,7 +39,8 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections }) {
     } else {
       setSelectedSubOption('');
     }
-    setSelectedFurtherOption(''); // Reset further selection
+    // Reset currentTag when changing main option
+    setCurrentTag(null);
   }, [selectedOption]);
 
   // Get further options based on selectedSubOption using optionsData
@@ -60,21 +48,53 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections }) {
     ? optionsData[selectedOption].subOptions[selectedSubOption]
     : [];
 
-  // **New useEffect to set the default selection to the first option**
-  useEffect(() => {
-    if (furtherOptions.length > 0) {
-      setSelectedFurtherOption(furtherOptions[0].value);
-    } else {
-      setSelectedFurtherOption("");
-    }
-  }, [furtherOptions]);
+  // Handle tag selection from dropdown
+  const handleTagSelect = (option) => {
+    setCurrentTag(option); // Set the currently selected tag
+  };
 
-  // Handle item click to toggle selection
-  const handleItemClick = (id) => {
-    setSelectedItems((prevSelected) => ({
-      ...prevSelected,
-      [id]: !prevSelected[id],
-    }));
+  // Handle item click to assign/remove the currentTag
+  const handleItemClick = (roomName, id) => {
+    if (!currentTag) {
+      // Optionally, alert the user to select a tag first
+      alert("Please select a tag from the dropdown before assigning.");
+      return;
+    }
+
+    setRoomItemSelections((prevSelections) => {
+      const updatedSelections = { ...prevSelections };
+      const currentRoomItems = updatedSelections[roomName] || [];
+
+      const updatedRoomItems = currentRoomItems.map((itemInstance) => {
+        if (itemInstance.id === id) {
+          const hasTag = itemInstance.tags.some(
+            (tag) => tag.subOption === currentTag.subOption && tag.value === currentTag.value
+          );
+
+          if (hasTag) {
+            // Remove the tag
+            const filteredTags = itemInstance.tags.filter(
+              (tag) => !(tag.subOption === currentTag.subOption && tag.value === currentTag.value)
+            );
+            return {
+              ...itemInstance,
+              tags: filteredTags,
+            };
+          } else {
+            // Assign the tag
+            const newTag = { subOption: currentTag.subOption, value: currentTag.value };
+            return {
+              ...itemInstance,
+              tags: [...itemInstance.tags, newTag],
+            };
+          }
+        }
+        return itemInstance;
+      });
+
+      updatedSelections[roomName] = updatedRoomItems;
+      return updatedSelections;
+    });
   };
 
   return (
@@ -126,7 +146,8 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections }) {
                   checked={selectedSubOption === 'packing'}
                   onChange={(e) => {
                     setSelectedSubOption(e.target.value);
-                    setSelectedFurtherOption('');
+                    // Reset currentTag when changing sub-option
+                    setCurrentTag(null);
                   }}
                   className={styles.radioButtonInput}
                 />
@@ -142,14 +163,15 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections }) {
                   checked={selectedSubOption === 'extraAttention'}
                   onChange={(e) => {
                     setSelectedSubOption(e.target.value);
-                    setSelectedFurtherOption('');
+                    // Reset currentTag when changing sub-option
+                    setCurrentTag(null);
                   }}
                   className={styles.radioButtonInput}
                 />
                 <span className={styles.radioButtonText}>Extra Attention</span>
               </label>
             </div>
-            {/* ...Rest of your content for Item Tags... */}
+            {/* Additional content for Item Tags can be added here */}
           </div>
         )}
 
@@ -165,7 +187,8 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections }) {
                   checked={selectedSubOption === 'handlingInfo'}
                   onChange={(e) => {
                     setSelectedSubOption(e.target.value);
-                    setSelectedFurtherOption('');
+                    // Reset currentTag when changing sub-option
+                    setCurrentTag(null);
                   }}
                   className={styles.radioButtonInput}
                 />
@@ -181,14 +204,15 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections }) {
                   checked={selectedSubOption === 'dropPoints'}
                   onChange={(e) => {
                     setSelectedSubOption(e.target.value);
-                    setSelectedFurtherOption('');
+                    // Reset currentTag when changing sub-option
+                    setCurrentTag(null);
                   }}
                   className={styles.radioButtonInput}
                 />
                 <span className={styles.radioButtonText}>Drop Points</span>
               </label>
             </div>
-            {/* ...Rest of your content for Location Tags... */}
+            {/* Additional content for Location Tags can be added here */}
           </div>
         )}
 
@@ -197,40 +221,39 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections }) {
           {selectedSubOption && (
             <CustomSelect
               options={furtherOptions}
-              selectedOption={
-                furtherOptions.find((opt) => opt.value === selectedFurtherOption) || null
-              }
-              onOptionChange={(option) => setSelectedFurtherOption(option.value)}
-              placeholder="Select an Option"
+              selectedOption={currentTag}
+              onOptionChange={(option) => {
+                // Assign the selected tag as the currentTag
+                handleTagSelect(option);
+              }}
+              placeholder="Select a Tag"
             />
           )}
         </div>
 
-        {/* Room Lists */}
+        {/* Room Lists - Display only rooms that have items */}
         <div className={styles.roomLists}>
-          {Object.keys(roomItemSelections).map((roomName) => {
-            const items = roomItemSelections[roomName];
-            if (!items || items.length === 0) return null; // Enhanced check to handle undefined
-
-            return (
+          {Object.keys(roomItemSelections)
+            .filter(roomName => Array.isArray(roomItemSelections[roomName]) && roomItemSelections[roomName].length > 0)
+            .map(roomName => (
               <div key={roomName} className={styles.room}>
                 <div className={styles.roomNameWrapper}>
                   <h3 className={styles.roomName}>{roomName}</h3>
                 </div>
                 <ul className={styles.itemList}>
-                  {items.map((itemInstance) => (
+                  {roomItemSelections[roomName].map((itemInstance) => (
                     <ItemCard
                       key={itemInstance.id}
                       id={itemInstance.id} // Pass unique id
                       item={itemInstance.item}
-                      isSelected={!!selectedItems[itemInstance.id]} // Use unique id for selection
-                      onItemClick={() => handleItemClick(itemInstance.id)} // Pass unique id to handler
+                      tags={itemInstance.tags} // Pass tags separately
+                      isSelected={!!currentTag && itemInstance.tags.some(tag => tag.subOption === currentTag.subOption && tag.value === currentTag.value)}
+                      onItemClick={() => handleItemClick(roomName, itemInstance.id)} // Pass roomName and unique id to handler
                     />
                   ))}
                 </ul>
               </div>
-            );
-          })}
+          ))}
         </div>
       </div>
     </div>

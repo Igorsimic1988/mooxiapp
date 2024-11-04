@@ -1,16 +1,24 @@
-// components/ItemCard/ItemCard.js
+// src/components/SpecialH/ItemCard/ItemCard.js
+
 import React from 'react';
 import styles from './ItemCard.module.css';
 import { ReactComponent as CheckmarkIcon } from '../../../../../assets/icons/checksmall.svg'; // Adjust the path as needed
 
-function ItemCard({ id, item, onItemClick, isSelected }) {
+function ItemCard({ id, item, tags, onItemClick, isSelected }) {
+  console.log(`Rendering ItemCard ${id} with tags:`, tags); // Debugging log
+
   return (
     <li className={styles.item}>
       <button
-        className={styles.cardButton}
+        className={`${styles.cardButton} ${isSelected ? styles.selected : ''}`}
         onClick={onItemClick}
         aria-pressed={isSelected}
         aria-label={`Select ${item.name}`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            onItemClick();
+          }
+        }}
       >
         {/* Checkmark Badge */}
         {isSelected && (
@@ -28,6 +36,17 @@ function ItemCard({ id, item, onItemClick, isSelected }) {
         <div className={styles.itemName}>
           {item.name}
         </div>
+
+        {/* Display Tags */}
+        {/* {tags && tags.length > 0 && (
+          <div className={styles.tagsContainer}>
+            {tags.map((tag, index) => (
+              <span key={index} className={styles.tag}>
+                {tag.value}
+              </span>
+            ))}
+          </div>
+        )} */}
       </button>
     </li>
   );

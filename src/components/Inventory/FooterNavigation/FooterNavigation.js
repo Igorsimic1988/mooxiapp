@@ -1,3 +1,5 @@
+// src/components/Inventory/FooterNavigation/FooterNavigation.js
+
 import React from 'react';
 import styles from './FooterNavigation.module.css';
 import SpecialH from './SpecialH/SpecialH';
@@ -5,7 +7,7 @@ import SpecialH from './SpecialH/SpecialH';
 import { ReactComponent as CreateQuote } from '../../../assets/icons/createquoteicon.svg';
 import { ReactComponent as MyInventory } from '../../../assets/icons/myinventory.svg';
 import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.svg';
-import { ReactComponent as DeleteIcon } from '../../../assets/icons/specialh.svg';
+import { ReactComponent as DeleteIcon } from '../../../assets/icons/deletemobile.svg'; // Corrected icon import
 
 function FooterNavigation({
   inRoom,
@@ -14,7 +16,9 @@ function FooterNavigation({
   setIsDeleteActive,
   isSpecialHVisible,
   setIsSpecialHVisible,
-  roomItemSelections
+  roomItemSelections,
+  setRoomItemSelections,
+  selectedRoom,
 }) {
   const handleDeleteClick = () => {
     setIsDeleteActive((prevState) => !prevState);
@@ -45,7 +49,7 @@ function FooterNavigation({
         <p className={styles.navText}>My Inventory</p>
       </div>
 
-        {/* Special Handling */}
+      {/* Special Handling */}
       <div
         className={styles.navItem}
         onClick={handleSpecialHClick}
@@ -58,6 +62,7 @@ function FooterNavigation({
         <p className={styles.navText}>Special Handling</p>
       </div>
 
+      {/* Delete */}
       <div
         className={`${styles.navItem} ${isDeleteActive ? styles.activeDelete : ''}`}
         onClick={handleDeleteClick}
@@ -70,11 +75,13 @@ function FooterNavigation({
         <p className={`${styles.navText} ${isDeleteActive ? styles.redText : ''}`}>Delete</p>
       </div>
 
-    {/* Render SpecialH Popup */}
+      {/* Render SpecialH Popup */}
       {isSpecialHVisible && (
         <SpecialH 
-        setIsSpecialHVisible={setIsSpecialHVisible} 
-        roomItemSelections={roomItemSelections}
+          setIsSpecialHVisible={setIsSpecialHVisible} 
+          roomItemSelections={roomItemSelections}
+          setRoomItemSelections={setRoomItemSelections} // Pass the setter
+          selectedRoom={selectedRoom} // Pass the selectedRoom
         />
       )}
     </footer>

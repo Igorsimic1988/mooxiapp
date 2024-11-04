@@ -1,3 +1,5 @@
+// src/components/Inventory/Inventory.js
+
 import React, { useState, useEffect } from 'react';
 import styles from './Inventory.module.css';
 import TopNavigation from '../Inventory/TopNavigation/TopNavigation';
@@ -25,11 +27,9 @@ function Inventory() {
   );
   const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
 
-
   useEffect(() => {
     console.log('roomItemSelections:', roomItemSelections);
   }, [roomItemSelections]);
-  
 
   const [displayedRooms, setDisplayedRooms] = useState(
     rooms.filter((room) => defaultRoomIds.includes(room.id))
@@ -193,10 +193,12 @@ const handleItemSelection = (item) => {
         inRoom={!!selectedRoom}
         onBackToRooms={handleBackToRooms}
         isDeleteActive={isDeleteActive}
-        setIsDeleteActive={setIsDeleteActive} // Pass the setter to toggle delete mode
+        setIsDeleteActive={setIsDeleteActive}
         isSpecialHVisible={isSpecialHVisible}
-        setIsSpecialHVisible={setIsSpecialHVisible} // Pass the state and setter
+        setIsSpecialHVisible={setIsSpecialHVisible}
         roomItemSelections={roomItemSelections}
+        setRoomItemSelections={setRoomItemSelections} // Pass the setter
+        selectedRoom={selectedRoom} // Pass the selectedRoom
       />
     </div>
   );

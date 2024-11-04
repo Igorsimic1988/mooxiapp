@@ -1,0 +1,81 @@
+/* components/ItemCard/ItemCard.module.css */
+
+.item {
+    list-style: none;
+    margin: 0;        /* Resets margin */
+    padding: 0; 
+  }
+  
+  .cardButton {
+    position: relative;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 0; 
+    cursor: pointer;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    flex: 1 1 118px; /* Flex-grow: allow item to grow, Flex-basis: ideal width */
+    width: 100%; /* Maximum width of card */
+    height: 118px; /* Adjust as needed */
+    box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.1);
+  }
+  
+  .cardButton:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-4px);
+  }
+  
+  .checkmarkBadge {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    background-color: #59B779; /* Green background */
+    color: #ffffff;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .checkmarkBadge svg {
+    width: 14px;
+    height: 10px;
+    fill: #fff; /* White checkmark */
+  }
+  
+  .imageWrapper {
+    width: 72px;
+    height: 72px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 6px;
+  }
+  
+  .itemImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .itemName {
+    margin-top: 2px;
+    padding-left: 3px;
+    padding-right: 3px;
+    color: #6E7882;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+  }
+  

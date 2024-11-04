@@ -22,6 +22,7 @@
     box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3); /* Add a shadow for depth */
     display: flex;
     flex-direction: column; /* Arrange child elements vertically */
+    background-color: #F2F5F8;
   }
 
 .tabNavigation,
@@ -82,8 +83,8 @@
     margin: 0;        /* Adjust margins if necessary */
   }
 
-  .tabNavigation {
-    margin-left: 29px;
+  .radioGroup {
+    padding-left: 29px;
     width: 100%;
     height: 60px;
     display: flex;
@@ -94,14 +95,131 @@
     background: #FFF;
   }
 
- .tab {
-    height: 100%;
+  .radioInput {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .radioText {
+    display: inline-block;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #90A4B7;
+  }
+
+  .radioInput:checked + .radioText {
+    color: #2F3236;
+    border-bottom: 3px solid #3FA9F5;
+  }
+
+
+  .buttonGroup {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-bottom: 1px solid #D8DCE0;
+    background: #FFF;
+  }
+
+  .radioButtonInput {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .radioButtonLabel {
+    position: relative;
     display: flex;
     align-items: center;
   }
 
-
-.roomLists {
-    flex-grow: 1; /* Allow roomLists to take up remaining space */
-    overflow-y: auto; /* Enable vertical scrolling */
+  .radioButtonText {
+    display: flex;
+    width: 160px;
+    height: 40px;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    background-color: rgba(63, 169, 245, 0.15); /* Default background */
+    color: #3FA9F5; /* Default text color */
+    font-family: 'Satoshi', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
   }
+
+  .radioButtonInput:checked + .radioButtonText {
+    background-color: #3FA9F5; /* Selected background */
+    color: #FFF; /* Selected text color */
+  }
+
+  .selectOptionsGroup {
+    padding-left: 35px;
+    padding-right: 35px;
+    width: 100%;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    background: #F2F5F8;
+  }
+
+
+  .roomLists {
+    flex-grow: 1; /* Takes up remaining space */
+    overflow-y: auto; /* Enables vertical scrolling */
+    margin-top: 8px;
+  }
+
+  .itemList {
+    display: grid; /* Enables grid layout */
+    grid-template-columns: repeat(auto-fill, minmax(101px, 1fr)); /* Responsive grid */       /* Allows items to wrap to the next line */
+      gap: 10px;               /* Defines space between items */
+      padding-top: 10px; 
+      padding-left: 5px;
+      padding-right: 5px;             /* Removes default padding */
+      margin: 0;               /* Removes default margin */
+      list-style: none;        /* Removes default list bullets */
+      margin-bottom: 8px;
+      margin-left: 3px;
+    }
+
+    .roomNameWrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 350px;
+      height: 26px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      background-color: #E4EAEF;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .roomName {
+      color: #90A4B7;
+      text-align: center;
+      font-family: Satoshi;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+
+    }
+
+    @media (max-width: 400px) {
+      .popupContent {
+        border-radius: 0px 0px 0px 0px;
+      }
+
+      .header {
+        border-radius: 0px 0px 0px 0px;
+      }
+    }
+    

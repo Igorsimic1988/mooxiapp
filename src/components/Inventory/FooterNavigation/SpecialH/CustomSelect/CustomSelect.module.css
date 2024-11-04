@@ -1,0 +1,78 @@
+/* CustomSelect.module.css */
+
+.customSelect {
+    position: relative;
+    width: 100%;
+  }
+  
+  .selectButton {
+    width: 100%;
+    height: 50px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: white;
+    color: #2F3236;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 12px;
+    border: 1px solid #D8DCE0;
+    background: #FFF;
+    cursor: pointer;
+  }
+  
+  .selectButton:focus {
+    outline: 2px solid #3FA9F5;
+  }
+  
+  .selectedText {
+    flex-grow: 1;
+    text-align: left;
+  }
+  
+  .dropdownIcon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+  }
+  
+  .rotate {
+    transform: rotate(180deg);
+  }
+  
+  .optionsList {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 500px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    margin-top: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+  
+  .option {
+    padding: 10px;
+    cursor: pointer;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2F3236;
+  }
+  
+  .option:hover,
+  .option:focus {
+    background-color: rgba(63, 169, 245, 0.1);
+  }
+  
+  .selected {
+    background-color: #3FA9F5;
+    color: #fff;
+  }
+  

@@ -27,10 +27,13 @@ function CustomSelect({ options, selectedOption, onOptionChange, placeholder }) 
   };
 
   // Handle option selection
-  const handleOptionClick = (option) => {
-    onOptionChange(option);
+  const handleOptionClick = (tagValue) => {
+    onOptionChange(tagValue); // Pass the tag value string
     setIsOpen(false);
   };
+
+  // Determine the label to display based on selectedOption
+  const selectedLabel = options.find(opt => opt.value === selectedOption)?.label || placeholder;
 
   return (
     <div className={styles.customSelect} ref={selectRef}>
@@ -42,7 +45,7 @@ function CustomSelect({ options, selectedOption, onOptionChange, placeholder }) 
         aria-expanded={isOpen}
       >
         <span className={styles.selectedText}>
-          {selectedOption ? selectedOption.label : placeholder}
+          {selectedLabel}
         </span>
         <DropdownIcon className={`${styles.dropdownIcon} ${isOpen ? styles.rotate : ''}`} />
       </button>
@@ -53,14 +56,14 @@ function CustomSelect({ options, selectedOption, onOptionChange, placeholder }) 
             <li
               key={option.value}
               className={`${styles.option} ${
-                selectedOption && selectedOption.value === option.value ? styles.selected : ''
+                selectedOption === option.value ? styles.selected : ''
               }`}
               role="option"
-              aria-selected={selectedOption && selectedOption.value === option.value}
-              onClick={() => handleOptionClick(option)}
+              aria-selected={selectedOption === option.value}
+              onClick={() => handleOptionClick(option.value)}
               onKeyPress={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                  handleOptionClick(option);
+                  handleOptionClick(option.value);
                 }
               }}
               tabIndex={0}

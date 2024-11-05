@@ -1,6 +1,6 @@
 // src/components/SpecialH/SpecialH.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import styles from "./SpecialH.module.css";
 import ItemCard from './ItemCard/ItemCard'; // Ensure the path is correct
 
@@ -11,12 +11,15 @@ import CustomSelect from './CustomSelect/CustomSelect'; // Ensure the path is co
 import { optionsData } from '../../../../data/constants/optionsData'; // Ensure the path is correct
 
 function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelections, selectedRoom }) {
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsSpecialHVisible(false);
-  };
+  }, [setIsSpecialHVisible]);
 
-  // State to manage the currently selected tag
-  const [currentTag, setCurrentTag] = useState(null); // { subOption, value }
+  // Ref for popupContent
+  const popupContentRef = useRef(null);
+
+  // State to manage the currently selected tag (string)
+  const [currentTag, setCurrentTag] = useState('');
 
   // State for main options ('itemTags' or 'locationTags')
   const [selectedOption, setSelectedOption] = useState("itemTags"); // 'itemTags' or 'locationTags'
@@ -39,18 +42,32 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
     } else {
       setSelectedSubOption('');
     }
-    // Reset currentTag when changing main option
-    setCurrentTag(null);
+    // No need to reset currentTag here
   }, [selectedOption]);
 
-  // Get further options based on selectedSubOption using optionsData
-  const furtherOptions = selectedSubOption && optionsData[selectedOption] && optionsData[selectedOption].subOptions[selectedSubOption]
-    ? optionsData[selectedOption].subOptions[selectedSubOption]
-    : [];
+  // Memoize furtherOptions to prevent unnecessary recalculations
+  const furtherOptions = useMemo(() => {
+    return (
+      selectedSubOption &&
+      optionsData[selectedOption] &&
+      optionsData[selectedOption][selectedSubOption]
+        ? optionsData[selectedOption][selectedSubOption]
+        : []
+    );
+  }, [selectedOption, selectedSubOption]);
+
+  // Set currentTag to the first option in furtherOptions when it changes
+  useEffect(() => {
+    if (furtherOptions.length > 0) {
+      setCurrentTag(furtherOptions[0].value); // Set to the first tag value
+    } else {
+      setCurrentTag(''); // Reset if no options available
+    }
+  }, [furtherOptions]);
 
   // Handle tag selection from dropdown
-  const handleTagSelect = (option) => {
-    setCurrentTag(option); // Set the currently selected tag
+  const handleTagSelect = (tagValue) => {
+    setCurrentTag(tagValue); // Set the currently selected tag value
   };
 
   // Handle item click to assign/remove the currentTag
@@ -67,14 +84,12 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
 
       const updatedRoomItems = currentRoomItems.map((itemInstance) => {
         if (itemInstance.id === id) {
-          const hasTag = itemInstance.tags.some(
-            (tag) => tag.subOption === currentTag.subOption && tag.value === currentTag.value
-          );
+          const hasTag = itemInstance.tags.includes(currentTag);
 
           if (hasTag) {
             // Remove the tag
             const filteredTags = itemInstance.tags.filter(
-              (tag) => !(tag.subOption === currentTag.subOption && tag.value === currentTag.value)
+              (tag) => tag !== currentTag
             );
             return {
               ...itemInstance,
@@ -82,10 +97,9 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
             };
           } else {
             // Assign the tag
-            const newTag = { subOption: currentTag.subOption, value: currentTag.value };
             return {
               ...itemInstance,
-              tags: [...itemInstance.tags, newTag],
+              tags: [...itemInstance.tags, currentTag],
             };
           }
         }
@@ -97,9 +111,29 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
     });
   };
 
+  // Click outside handler using useRef
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popupContentRef.current && !popupContentRef.current.contains(event.target)) {
+        handleClose();
+      }
+    };
+
+    // Bind the event listener
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      // Unbind the event listener on clean up
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [handleClose]);
+
   return (
     <div className={styles.popup}>
-      <div className={styles.popupContent}>
+      <div
+        className={styles.popupContent}
+        ref={popupContentRef} // Attach the ref
+      >
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
@@ -146,8 +180,7 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
                   checked={selectedSubOption === 'packing'}
                   onChange={(e) => {
                     setSelectedSubOption(e.target.value);
-                    // Reset currentTag when changing sub-option
-                    setCurrentTag(null);
+                    // No need to reset currentTag
                   }}
                   className={styles.radioButtonInput}
                 />
@@ -163,8 +196,7 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
                   checked={selectedSubOption === 'extraAttention'}
                   onChange={(e) => {
                     setSelectedSubOption(e.target.value);
-                    // Reset currentTag when changing sub-option
-                    setCurrentTag(null);
+                    // No need to reset currentTag
                   }}
                   className={styles.radioButtonInput}
                 />
@@ -187,8 +219,7 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
                   checked={selectedSubOption === 'handlingInfo'}
                   onChange={(e) => {
                     setSelectedSubOption(e.target.value);
-                    // Reset currentTag when changing sub-option
-                    setCurrentTag(null);
+                    // No need to reset currentTag
                   }}
                   className={styles.radioButtonInput}
                 />
@@ -204,8 +235,7 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
                   checked={selectedSubOption === 'dropPoints'}
                   onChange={(e) => {
                     setSelectedSubOption(e.target.value);
-                    // Reset currentTag when changing sub-option
-                    setCurrentTag(null);
+                    // No need to reset currentTag
                   }}
                   className={styles.radioButtonInput}
                 />
@@ -218,14 +248,11 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
 
         {/* CustomSelect for Further Options */}
         <div className={styles.selectOptionsGroup}>
-          {selectedSubOption && (
+          {selectedSubOption && furtherOptions.length > 0 && (
             <CustomSelect
               options={furtherOptions}
               selectedOption={currentTag}
-              onOptionChange={(option) => {
-                // Assign the selected tag as the currentTag
-                handleTagSelect(option);
-              }}
+              onOptionChange={handleTagSelect}
               placeholder="Select a Tag"
             />
           )}
@@ -246,8 +273,8 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
                       key={itemInstance.id}
                       id={itemInstance.id} // Pass unique id
                       item={itemInstance.item}
-                      tags={itemInstance.tags} // Pass tags separately
-                      isSelected={!!currentTag && itemInstance.tags.some(tag => tag.subOption === currentTag.subOption && tag.value === currentTag.value)}
+                      tags={itemInstance.tags} // Pass tags as array of strings
+                      isSelected={currentTag && itemInstance.tags.includes(currentTag)}
                       onItemClick={() => handleItemClick(roomName, itemInstance.id)} // Pass roomName and unique id to handler
                     />
                   ))}

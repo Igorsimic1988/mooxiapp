@@ -93,7 +93,7 @@ function Inventory() {
     }
   };
 
- // Function to handle item selection
+// Function to handle item selection
 const handleItemSelection = (item) => {
   if (!selectedRoom) return;
 
@@ -110,12 +110,12 @@ const handleItemSelection = (item) => {
         updatedRoomSelections.splice(index, 1);
       }
     } else {
-      // Add a new unique item instance
+      // Add a new unique item instance with default tags
       const newItemInstance = {
         id: uuidv4(), // Generate a unique ID for this instance
         itemId: item.id.toString(),
         item: item,
-        tags: [], // Initialize with empty tags or other properties as needed
+        tags: [...item.tags], // Copy default tags from the original item
       };
       updatedRoomSelections.push(newItemInstance);
     }
@@ -126,6 +126,8 @@ const handleItemSelection = (item) => {
     };
   });
 };
+
+
 
   // Function to handle adding a new room
   const handleAddRoom = (roomId) => {

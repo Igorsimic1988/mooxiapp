@@ -195,7 +195,7 @@
       gap: 10px;               /* Defines space between items */
       padding-top: 10px; 
       padding-left: 5px;
-      padding-right: 5px;             /* Removes default padding */
+      padding-right: 7px;             /* Removes default padding */
       margin: 0;               /* Removes default margin */
       list-style: none;        /* Removes default list bullets */
       margin-bottom: 8px;

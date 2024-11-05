@@ -50,7 +50,7 @@
   .header p {
     color: white;
     font-family: Satoshi;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 700;
     margin-left: 10px;
   }
@@ -84,15 +84,16 @@
   }
 
   .radioGroup {
-    padding-left: 29px;
+    padding-left: 35px;
     width: 100%;
-    height: 60px;
+    min-height: 60px;
     display: flex;
     align-items: center;
     gap: 26px;
     border-top: 1px solid #D8DCE0;
     border-bottom: 1px solid #D8DCE0;
     background: #FFF;
+    flex-shrink: 0;
   }
 
   .radioInput {
@@ -123,6 +124,9 @@
     gap: 10px;
     border-bottom: 1px solid #D8DCE0;
     background: #FFF;
+    padding-left: 35px; /* Adds 35px padding to the left */
+    padding-right: 35px; /* Adds 35px padding to the right */
+    box-sizing: border-box;
   }
 
   .radioButtonInput {
@@ -135,17 +139,18 @@
     position: relative;
     display: flex;
     align-items: center;
+    flex: 1; 
   }
 
   .radioButtonText {
+    /* Removed fixed width to allow flexibility */
     display: flex;
-    width: 160px;
     height: 40px;
     padding: 10px;
     justify-content: center;
     align-items: center;
     gap: 10px;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevents buttons from shrinking below their content */
     border-radius: 8px;
     background-color: rgba(63, 169, 245, 0.15); /* Default background */
     color: #3FA9F5; /* Default text color */
@@ -153,6 +158,11 @@
     font-size: 0.875rem;
     font-weight: 700;
     cursor: pointer;
+  
+    /* Flex properties for flexibility */
+    flex: 1 1 160px; /* flex-grow:1, flex-shrink:1, flex-basis:160px */
+    max-width: 200px; /* Optional: Set a maximum width */
+    min-width: 120px; /* Optional: Set a minimum width */
   }
 
   .radioButtonInput:checked + .radioButtonText {
@@ -164,10 +174,12 @@
     padding-left: 35px;
     padding-right: 35px;
     width: 100%;
-    height: 80px;
+    min-height: 60px;
     display: flex;
     align-items: center;
+    justify-content: center;
     background: #F2F5F8;
+
   }
 
 

@@ -70,6 +70,7 @@ line-height: normal;
     background: #E4EAEF;
     border: none;
     align-self: center;
+    cursor: pointer;
 }
 
 .addRoomText{

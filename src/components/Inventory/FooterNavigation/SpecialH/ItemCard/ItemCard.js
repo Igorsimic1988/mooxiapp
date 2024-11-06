@@ -5,7 +5,6 @@ import styles from './ItemCard.module.css';
 import { ReactComponent as CheckmarkIcon } from '../../../../../assets/icons/checksmall.svg'; // Adjust the path as needed
 
 function ItemCard({ id, item, tags, onItemClick, isSelected }) {
-
   return (
     <li className={styles.item}>
       <button
@@ -36,17 +35,20 @@ function ItemCard({ id, item, tags, onItemClick, isSelected }) {
           {item.name}
         </div>
 
-        {/* Display Tags */}
-        {/* {
-        tags && tags.length > 0 && (
-          <div className={styles.tagsContainer}>
-            {tags.map((tag, index) => (
-              <span key={index} className={styles.tag}>
-                {tag}
-              </span>
-            ))}
-          </div>
-        )} */}
+        {/* Optionally, display tags */}
+        {/* Uncomment if needed
+        {
+          tags && tags.length > 0 && (
+            <div className={styles.tagsContainer}>
+              {tags.map((tag, index) => (
+                <span key={index} className={styles.tag}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )
+        }
+        */}
       </button>
     </li>
   );

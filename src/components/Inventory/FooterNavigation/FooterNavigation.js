@@ -19,6 +19,7 @@ function FooterNavigation({
   roomItemSelections,
   setRoomItemSelections,
   selectedRoom,
+  displayedRooms,
 }) {
   const handleDeleteClick = () => {
     setIsDeleteActive((prevState) => !prevState);
@@ -82,6 +83,7 @@ function FooterNavigation({
           roomItemSelections={roomItemSelections}
           setRoomItemSelections={setRoomItemSelections} // Pass the setter
           selectedRoom={selectedRoom} // Pass the selectedRoom
+          displayedRooms={displayedRooms}
         />
       )}
     </footer>

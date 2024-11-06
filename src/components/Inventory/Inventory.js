@@ -21,7 +21,7 @@ function Inventory() {
   const [selectedSubButton, setSelectedSubButton] = useState({ letter: null, subButton: null });
   const [roomItemSelections, setRoomItemSelections] = useState(
     rooms.reduce((acc, room) => {
-      acc[room.name] = []; // Initialize with an empty array for each room
+      acc[room.id] = []; // Initialize with an empty array for each room using room.id
       return acc;
     }, {})
   );
@@ -98,7 +98,7 @@ function Inventory() {
     if (!selectedRoom) return;
 
     setRoomItemSelections((prevSelections) => {
-      const currentRoomSelections = prevSelections[selectedRoom.name] || [];
+      const currentRoomSelections = prevSelections[selectedRoom.id] || [];
       const updatedRoomSelections = [...currentRoomSelections];
 
       if (isDeleteActive) {
@@ -122,7 +122,7 @@ function Inventory() {
 
       return {
         ...prevSelections,
-        [selectedRoom.name]: updatedRoomSelections,
+        [selectedRoom.id]: updatedRoomSelections,
       };
     });
   };
@@ -148,10 +148,18 @@ function Inventory() {
     });
   };
 
+  // Ensure "Boxes" room is always displayed
+  useEffect(() => {
+    const boxesRoom = rooms.find((room) => room.id === 13);
+    if (boxesRoom && !displayedRooms.some((room) => room.id === 13)) {
+      setDisplayedRooms((prevDisplayedRooms) => [...prevDisplayedRooms, boxesRoom]);
+    }
+  }, [displayedRooms]);
+
   // Function to get the count of items selected in the current room
   const getItemCountForCurrentRoom = () => {
-    if (!selectedRoom || !roomItemSelections[selectedRoom.name]) return 0;
-    return roomItemSelections[selectedRoom.name].length;
+    if (!selectedRoom || !roomItemSelections[selectedRoom.id]) return 0;
+    return roomItemSelections[selectedRoom.id].length;
   };
 
   return (
@@ -189,13 +197,13 @@ function Inventory() {
             selectedSubButton={selectedSubButton}
             onLetterSelect={handleLetterSelect}
             onSubButtonSelect={handleSubButtonSelect}
-            itemClickCounts={roomItemSelections[selectedRoom.name] || {}}
+            itemClickCounts={roomItemSelections[selectedRoom.id] || {}}
             onItemClick={handleItemSelection}
             itemCount={getItemCountForCurrentRoom()} // Pass the item count for current room
             isMyItemsActive={isMyItemsActive} // Pass the state to ItemSelection
             setIsMyItemsActive={setIsMyItemsActive} // Pass the setter to ItemSelection
             isDeleteActive={isDeleteActive} // Pass the state to ItemSelection for delete functionality
-            itemInstances={roomItemSelections[selectedRoom.name] || []}
+            itemInstances={roomItemSelections[selectedRoom.id] || []}
           />
         ) : (
           <RoomList
@@ -216,6 +224,7 @@ function Inventory() {
         roomItemSelections={roomItemSelections}
         setRoomItemSelections={setRoomItemSelections} // Pass the setter
         selectedRoom={selectedRoom} // Pass the selectedRoom
+        displayedRooms={displayedRooms} // Pass displayedRooms to FooterNavigation
       />
     </div>
   );

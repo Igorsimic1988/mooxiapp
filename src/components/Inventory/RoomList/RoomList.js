@@ -4,8 +4,8 @@ import React from 'react';
 import styles from './RoomList.module.css';
 import { ReactComponent as More } from '../../../assets/icons/more.svg';
 
-function RoomList({ onRoomSelect, roomItemSelections, displayedRooms }) {
-  // Separate "Boxes" room
+function RoomList({ onRoomSelect, roomItemSelections, displayedRooms, selectedRoom }) {
+  // Separate "Boxes" room to render it last
   const otherRooms = displayedRooms.filter((room) => room.id !== 13);
   const boxesRoom = displayedRooms.find((room) => room.id === 13);
 
@@ -13,14 +13,16 @@ function RoomList({ onRoomSelect, roomItemSelections, displayedRooms }) {
     <div className={styles.roomListContainer}>
       {/* Render all rooms except "Boxes" first */}
       {otherRooms.map((room) => {
-        const itemInstances = roomItemSelections?.[room.name] || [];
+        const itemInstances = roomItemSelections?.[room.id] || [];
         const selectedItemCount = itemInstances.length;
 
         return (
           <button
             key={room.id}
             onClick={() => onRoomSelect(room)}
-            className={styles.roomButton}
+            className={`${styles.roomButton} ${selectedRoom && selectedRoom.id === room.id ? styles.active : ''}`}
+            aria-pressed={selectedRoom && selectedRoom.id === room.id}
+            aria-label={`Select ${room.name}`}
           >
             <p className={styles.roomName}>{room.name}</p>
             <div className={styles.rightSection}>
@@ -42,13 +44,15 @@ function RoomList({ onRoomSelect, roomItemSelections, displayedRooms }) {
         <button
           key={boxesRoom.id}
           onClick={() => onRoomSelect(boxesRoom)}
-          className={styles.roomButton}
+          className={`${styles.roomButton} ${styles.fixedRoom} ${selectedRoom && selectedRoom.id === boxesRoom.id ? styles.active : ''}`}
+          aria-pressed={selectedRoom && selectedRoom.id === boxesRoom.id}
+          aria-label={`Select ${boxesRoom.name}`}
         >
           <p className={styles.roomName}>{boxesRoom.name}</p>
           <div className={styles.rightSection}>
-            {roomItemSelections?.[boxesRoom.name]?.length > 0 && (
+            {roomItemSelections?.[boxesRoom.id]?.length > 0 && (
               <div className={styles.itemCount}>
-                <p>{roomItemSelections[boxesRoom.name].length}</p>
+                <p>{roomItemSelections[boxesRoom.id].length}</p>
               </div>
             )}
             <div className={styles.moreIcon}>
@@ -61,4 +65,4 @@ function RoomList({ onRoomSelect, roomItemSelections, displayedRooms }) {
   );
 }
 
-export default RoomList;
+export default React.memo(RoomList);

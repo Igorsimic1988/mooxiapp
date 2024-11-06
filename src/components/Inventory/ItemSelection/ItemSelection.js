@@ -1,3 +1,5 @@
+// src/components/Inventory/ItemSelection/ItemSelection.js
+
 import React, { useState } from 'react';
 import allItems from '../../../data/constants/funitureItems';
 import styles from './ItemSelection.module.css';
@@ -17,6 +19,7 @@ function ItemSelection({
   itemCount,
   isMyItemsActive,
   setIsMyItemsActive,
+  isDeleteActive,
   itemInstances,
 }) {
   const [isToggled, setIsToggled] = useState(true);

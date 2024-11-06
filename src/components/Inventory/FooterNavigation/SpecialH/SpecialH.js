@@ -9,8 +9,9 @@ import { ReactComponent as CloseIcon } from "../../../../assets/icons/Close.svg"
 
 import CustomSelect from './CustomSelect/CustomSelect'; // Ensure the path is correct
 import { optionsData } from '../../../../data/constants/optionsData'; // Ensure the path is correct
+import rooms from '../../../../data/constants/AllRoomsList'; // Import rooms data
 
-function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelections, selectedRoom }) {
+function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelections, selectedRoom, displayedRooms }) {
   const handleClose = useCallback(() => {
     setIsSpecialHVisible(false);
   }, [setIsSpecialHVisible]);
@@ -71,7 +72,7 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
   };
 
   // Handle item click to assign/remove the currentTag
-  const handleItemClick = (roomName, id) => {
+  const handleItemClick = (roomId, id) => {
     if (!currentTag) {
       // Optionally, alert the user to select a tag first
       alert("Please select a tag from the dropdown before assigning.");
@@ -80,7 +81,7 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
 
     setRoomItemSelections((prevSelections) => {
       const updatedSelections = { ...prevSelections };
-      const currentRoomItems = updatedSelections[roomName] || [];
+      const currentRoomItems = updatedSelections[roomId] || [];
 
       const updatedRoomItems = currentRoomItems.map((itemInstance) => {
         if (itemInstance.id === id) {
@@ -106,7 +107,7 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
         return itemInstance;
       });
 
-      updatedSelections[roomName] = updatedRoomItems;
+      updatedSelections[roomId] = updatedRoomItems;
       return updatedSelections;
     });
   };
@@ -258,29 +259,39 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
           )}
         </div>
 
-        {/* Room Lists - Display only rooms that have items */}
+        {/* Room Lists - Display only rooms that have items and are visible */}
         <div className={styles.roomLists}>
           {Object.keys(roomItemSelections)
-            .filter(roomName => Array.isArray(roomItemSelections[roomName]) && roomItemSelections[roomName].length > 0)
-            .map(roomName => (
-              <div key={roomName} className={styles.room}>
-                <div className={styles.roomNameWrapper}>
-                  <h3 className={styles.roomName}>{roomName}</h3>
+            .filter(
+              (roomId) =>
+                displayedRooms.some((room) => room.id.toString() === roomId) &&
+                Array.isArray(roomItemSelections[roomId]) &&
+                roomItemSelections[roomId].length > 0
+            )
+            .map((roomId) => {
+              const room = rooms.find((r) => r.id.toString() === roomId);
+              if (!room) return null; // Room not found
+
+              return (
+                <div key={roomId} className={styles.room}>
+                  <div className={styles.roomNameWrapper}>
+                    <h3 className={styles.roomName}>{room.name}</h3>
+                  </div>
+                  <ul className={styles.itemList}>
+                    {roomItemSelections[roomId].map((itemInstance) => (
+                      <ItemCard
+                        key={itemInstance.id} // Pass unique id
+                        id={itemInstance.id}
+                        item={itemInstance.item}
+                        tags={itemInstance.tags}
+                        isSelected={currentTag && itemInstance.tags.includes(currentTag)}
+                        onItemClick={() => handleItemClick(roomId, itemInstance.id)}
+                      />
+                    ))}
+                  </ul>
                 </div>
-                <ul className={styles.itemList}>
-                  {roomItemSelections[roomName].map((itemInstance) => (
-                    <ItemCard
-                      key={itemInstance.id}
-                      id={itemInstance.id} // Pass unique id
-                      item={itemInstance.item}
-                      tags={itemInstance.tags} // Pass tags as array of strings
-                      isSelected={currentTag && itemInstance.tags.includes(currentTag)}
-                      onItemClick={() => handleItemClick(roomName, itemInstance.id)} // Pass roomName and unique id to handler
-                    />
-                  ))}
-                </ul>
-              </div>
-          ))}
+              );
+            })}
         </div>
       </div>
     </div>

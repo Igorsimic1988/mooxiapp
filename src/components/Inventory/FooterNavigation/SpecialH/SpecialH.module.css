@@ -107,6 +107,7 @@
     font-size: 0.9375rem;
     font-weight: 700;
     color: #90A4B7;
+    cursor: pointer;
   }
 
   .radioInput:checked + .radioText {

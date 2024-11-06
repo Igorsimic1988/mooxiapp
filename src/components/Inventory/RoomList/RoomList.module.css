@@ -29,6 +29,7 @@
   padding: 0 18px; /* Padding on left and right */
   margin-bottom: 10px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   text-align: left;
   transition: background-color 0.2s, transform 0.2s;
   width: 100%; /* Ensure the button occupies full width */

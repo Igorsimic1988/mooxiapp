@@ -71,6 +71,7 @@ line-height: normal;
     border: none;
     align-self: center;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .addRoomText{

@@ -13,6 +13,7 @@
     border-radius: 12px;
     padding: 0; 
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     transition: box-shadow 0.3s ease, transform 0.3s ease;
     flex: 1 1 118px; /* Flex-grow: allow item to grow, Flex-basis: ideal width */
     width: 100%; /* Maximum width of card */
@@ -55,6 +56,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     display: none;
   }
   

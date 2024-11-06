@@ -21,6 +21,7 @@
     border: 1px solid #D8DCE0;
     background: #FFF;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
   
   .selectButton:focus {
@@ -65,6 +66,7 @@
   .option {
     padding: 10px;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     font-family: 'Satoshi', sans-serif;
     font-size: 1rem;
     font-weight: 700;

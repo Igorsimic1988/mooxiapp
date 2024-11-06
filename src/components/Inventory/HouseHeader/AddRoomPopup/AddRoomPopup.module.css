@@ -63,6 +63,7 @@
     background: none;
     border: none;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     outline: none; /* Removes the default focus outline */
     display: flex;
     align-items: center;
@@ -109,6 +110,7 @@
     padding-left: 18px;
     margin-bottom: 10px;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     text-align: left;
     transition: background-color 0.2s, color 0.2s;
   }

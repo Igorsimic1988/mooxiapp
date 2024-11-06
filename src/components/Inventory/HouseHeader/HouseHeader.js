@@ -1,11 +1,20 @@
-import React from 'react';
+// src/components/Inventory/HouseHeader/HouseHeader.js
+
+import React, { useState } from 'react';
 import styles from './HouseHeader.module.css';
 import { ReactComponent as AddRoomIcon } from '../../../assets/icons/addroom.svg';
 import { ReactComponent as HouseIcon } from '../../../assets/icons/house.svg';
+import AddRoomPopup from './AddRoomPopup/AddRoomPopup';
 
-function HouseHeader() {
+function HouseHeader({ rooms, displayedRooms, onToggleRoom }) {
+  const [isAddRoomPopupVisible, setIsAddRoomPopupVisible] = useState(false);
+
   const handleAddRoom = () => {
-    // TODO: Implement add room functionality
+    setIsAddRoomPopupVisible(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsAddRoomPopupVisible(false);
   };
 
   return (
@@ -30,6 +39,16 @@ function HouseHeader() {
         <span className={styles.addRoomText}>Add Room</span>
         <AddRoomIcon className={styles.addRoomIcon} aria-hidden="true" />
       </button>
+
+      {/* Render the AddRoomPopup when visible */}
+      {isAddRoomPopupVisible && (
+        <AddRoomPopup
+          rooms={rooms}
+          displayedRooms={displayedRooms}
+          onClose={handleClosePopup}
+          onToggleRoom={onToggleRoom} // Pass the correct onToggleRoom
+        />
+      )}
     </header>
   );
 }

@@ -76,7 +76,7 @@ function Inventory() {
 
   const handleSubButtonSelect = (letter, subButton) => {
     setIsMyItemsActive(false); // Deactivate "My Items" button
-  
+
     if (
       selectedSubButton &&
       selectedSubButton.subButton === subButton &&
@@ -93,48 +93,59 @@ function Inventory() {
     }
   };
 
-// Function to handle item selection
-const handleItemSelection = (item) => {
-  if (!selectedRoom) return;
+  // Function to handle item selection
+  const handleItemSelection = (item) => {
+    if (!selectedRoom) return;
 
-  setRoomItemSelections((prevSelections) => {
-    const currentRoomSelections = prevSelections[selectedRoom.name] || [];
-    const updatedRoomSelections = [...currentRoomSelections];
+    setRoomItemSelections((prevSelections) => {
+      const currentRoomSelections = prevSelections[selectedRoom.name] || [];
+      const updatedRoomSelections = [...currentRoomSelections];
 
-    if (isDeleteActive) {
-      // Remove an instance of the item from the room selections
-      const index = updatedRoomSelections.findIndex(
-        (instance) => instance.itemId === item.id.toString()
-      );
-      if (index !== -1) {
-        updatedRoomSelections.splice(index, 1);
+      if (isDeleteActive) {
+        // Remove an instance of the item from the room selections
+        const index = updatedRoomSelections.findIndex(
+          (instance) => instance.itemId === item.id.toString()
+        );
+        if (index !== -1) {
+          updatedRoomSelections.splice(index, 1);
+        }
+      } else {
+        // Add a new unique item instance with default tags
+        const newItemInstance = {
+          id: uuidv4(), // Generate a unique ID for this instance
+          itemId: item.id.toString(),
+          item: item,
+          tags: [...item.tags], // Copy default tags from the original item
+        };
+        updatedRoomSelections.push(newItemInstance);
       }
-    } else {
-      // Add a new unique item instance with default tags
-      const newItemInstance = {
-        id: uuidv4(), // Generate a unique ID for this instance
-        itemId: item.id.toString(),
-        item: item,
-        tags: [...item.tags], // Copy default tags from the original item
+
+      return {
+        ...prevSelections,
+        [selectedRoom.name]: updatedRoomSelections,
       };
-      updatedRoomSelections.push(newItemInstance);
+    });
+  };
+
+  // Function to toggle room visibility
+  const handleToggleRoom = (roomId) => {
+    if (roomId === 13) {
+      // Prevent toggling room id=13 (Boxes)
+      return;
     }
 
-    return {
-      ...prevSelections,
-      [selectedRoom.name]: updatedRoomSelections,
-    };
-  });
-};
+    const roomToToggle = rooms.find((room) => room.id === roomId);
+    if (!roomToToggle) return;
 
-
-
-  // Function to handle adding a new room
-  const handleAddRoom = (roomId) => {
-    const roomToAdd = rooms.find((room) => room.id === roomId);
-    if (roomToAdd && !displayedRooms.find((room) => room.id === roomId)) {
-      setDisplayedRooms((prev) => [...prev, roomToAdd]);
-    }
+    setDisplayedRooms((prevDisplayedRooms) => {
+      if (prevDisplayedRooms.some((room) => room.id === roomId)) {
+        // If the room is already displayed, remove it
+        return prevDisplayedRooms.filter((room) => room.id !== roomId);
+      } else {
+        // If the room is not displayed, add it
+        return [...prevDisplayedRooms, roomToToggle];
+      }
+    });
   };
 
   // Function to get the count of items selected in the current room
@@ -160,7 +171,11 @@ const handleItemSelection = (item) => {
             onSearchFocus={handleSearchClick} // Use handleSearchClick to reset when focusing on the search bar
           />
         ) : (
-          <HouseHeader onAddRoom={handleAddRoom} rooms={rooms} displayedRooms={displayedRooms} />
+          <HouseHeader
+            onToggleRoom={handleToggleRoom} // Correctly pass onToggleRoom
+            rooms={rooms}
+            displayedRooms={displayedRooms}
+          />
         )}
       </header>
 

@@ -48,6 +48,7 @@ max-width: fit-content;
     border: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .itemCount > p:first-child { 

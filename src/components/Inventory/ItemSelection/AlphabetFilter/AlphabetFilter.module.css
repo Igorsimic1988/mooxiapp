@@ -24,6 +24,7 @@
     border-radius: 5px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
     transition: background-color 0.3s ease, color 0.3s ease;
     display: flex;
     align-items: center;
@@ -61,6 +62,7 @@
     border-radius: 5px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
     transition: background-color 0.3s ease, color 0.3s ease;
     display: flex;
     align-items: center;

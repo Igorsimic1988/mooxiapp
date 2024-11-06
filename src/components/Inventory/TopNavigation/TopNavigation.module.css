@@ -33,6 +33,7 @@ height: 28px;
     gap: 10px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 

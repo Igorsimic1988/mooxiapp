@@ -71,6 +71,21 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
     setCurrentTag(tagValue); // Set the currently selected tag value
   };
 
+  // Define incompatible and required tags
+  const incompatibleTags = {
+    'cp_packed_by_movers': ['pbo_packed_by_customer'],
+    'pbo_packed_by_customer': ['cp_packed_by_movers', 'crating', 'unpacking', 'pack_and_leave_behind'],
+    'paper_blanket_wrapped': ['purchased_blankets'],
+    'purchased_blankets': ['paper_blanket_wrapped'],
+    'pack_and_leave_behind': ['pbo_packed_by_customer'],
+    // Add any other incompatible tags here
+  };
+
+  const requiredTags = {
+    'crating': ['cp_packed_by_movers'],
+    // Add any other required tags here
+  };
+
   // Handle item click to assign/remove the currentTag
   const handleItemClick = (roomId, id) => {
     if (!currentTag) {
@@ -85,24 +100,67 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
 
       const updatedRoomItems = currentRoomItems.map((itemInstance) => {
         if (itemInstance.id === id) {
-          const hasTag = itemInstance.tags.includes(currentTag);
+          let tags = [...itemInstance.tags];
+          const hasTag = tags.includes(currentTag);
 
           if (hasTag) {
             // Remove the tag
-            const filteredTags = itemInstance.tags.filter(
-              (tag) => tag !== currentTag
-            );
-            return {
-              ...itemInstance,
-              tags: filteredTags,
-            };
+            tags = tags.filter((tag) => tag !== currentTag);
+
+            // Special handling when removing 'item_for_company_storage'
+            if (currentTag === 'item_for_company_storage') {
+              // Optionally remove 'keep_blanket_on' if it was added due to 'item_for_company_storage'
+              // Implement logic here if needed
+            }
+
+            // Special handling when removing 'excluded'
+            if (currentTag === 'excluded') {
+              // No action needed; simply remove 'excluded' tag
+            }
           } else {
             // Assign the tag
-            return {
-              ...itemInstance,
-              tags: [...itemInstance.tags, currentTag],
-            };
+            tags.push(currentTag);
+
+            // Special handling for 'excluded' tag
+            if (currentTag === 'excluded') {
+              // Remove all other tags except 'pack_and_leave_behind' if it exists
+              tags = tags.filter(
+                (tag) => tag === 'excluded' || tag === 'pack_and_leave_behind'
+              );
+            } else {
+              // Remove incompatible tags
+              const incompatible = incompatibleTags[currentTag] || [];
+              tags = tags.filter((tag) => !incompatible.includes(tag));
+
+              // Add required tags
+              const required = requiredTags[currentTag] || [];
+              required.forEach((reqTag) => {
+                if (!tags.includes(reqTag)) {
+                  tags.push(reqTag);
+                }
+              });
+
+              // Special handling for 'item_for_company_storage' tag
+              if (currentTag === 'item_for_company_storage') {
+                const protectiveTags = [
+                  'blanket_wrapped',
+                  'paper_blanket_wrapped',
+                  'purchased_blankets',
+                ];
+                const hasProtectiveTag = tags.some((tag) =>
+                  protectiveTags.includes(tag)
+                );
+                if (hasProtectiveTag && !tags.includes('keep_blanket_on')) {
+                  tags.push('keep_blanket_on');
+                }
+              }
+            }
           }
+
+          return {
+            ...itemInstance,
+            tags,
+          };
         }
         return itemInstance;
       });
@@ -115,7 +173,10 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
   // Click outside handler using useRef
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (popupContentRef.current && !popupContentRef.current.contains(event.target)) {
+      if (
+        popupContentRef.current &&
+        !popupContentRef.current.contains(event.target)
+      ) {
         handleClose();
       }
     };
@@ -284,8 +345,12 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
                         id={itemInstance.id}
                         item={itemInstance.item}
                         tags={itemInstance.tags}
-                        isSelected={currentTag && itemInstance.tags.includes(currentTag)}
-                        onItemClick={() => handleItemClick(roomId, itemInstance.id)}
+                        isSelected={
+                          currentTag && itemInstance.tags.includes(currentTag)
+                        }
+                        onItemClick={() =>
+                          handleItemClick(roomId, itemInstance.id)
+                        }
                       />
                     ))}
                   </ul>

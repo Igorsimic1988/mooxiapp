@@ -128,6 +128,15 @@ function Inventory() {
             tags: [...clickedItem.tags], // Copy default tags from the original item
           };
         }
+
+        // Check if the selected room is 'Disposal' (id: 45)
+        if (selectedRoom.id === 45) {
+          // Ensure 'disposal' tag is added
+          if (!newItemInstance.tags.includes('disposal')) {
+            newItemInstance.tags.push('disposal');
+          }
+        }
+
         updatedRoomSelections.push(newItemInstance);
       }
 

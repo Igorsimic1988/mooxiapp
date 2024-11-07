@@ -57,18 +57,41 @@ function ItemSelection({
     onSubButtonSelect(letter, subButton);
   };
 
-  // Compute itemCounts from itemInstances
+  // Compute itemCounts based on isMyItemsActive
   const itemCounts = itemInstances.reduce((counts, instance) => {
-    const itemId = instance.itemId;
-    counts[itemId] = (counts[itemId] || 0) + 1;
+    if (isMyItemsActive) {
+      const key = `${instance.itemId}-${instance.tags.sort().join(',')}`;
+      counts[key] = (counts[key] || 0) + 1;
+    } else {
+      const key = instance.itemId;
+      counts[key] = (counts[key] || 0) + 1;
+    }
     return counts;
   }, {});
 
+  // Group items by itemId and tags when isMyItemsActive is true
+  const groupedItems = isMyItemsActive
+    ? Object.values(
+        itemInstances.reduce((groups, instance) => {
+          const key = `${instance.itemId}-${instance.tags.sort().join(',')}`;
+          if (!groups[key]) {
+            groups[key] = {
+              itemId: instance.itemId,
+              item: instance.item,
+              tags: [...instance.tags], // Make a copy of tags
+              count: 1,
+            };
+          } else {
+            groups[key].count += 1;
+          }
+          return groups;
+        }, {})
+      )
+    : [];
+
   // Filter items based on "My Items" button state
   const filteredItems = isMyItemsActive
-    ? Object.keys(itemCounts).map((itemId) =>
-        allItems.find((item) => item.id.toString() === itemId)
-      )
+    ? groupedItems
     : allItems.filter((item) => {
         const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -116,6 +139,7 @@ function ItemSelection({
             items={filteredItems} // Pass the filtered items to ItemList
             itemClickCounts={itemCounts} // Pass the computed itemCounts
             onItemClick={onItemClick}
+            isMyItemsActive={isMyItemsActive} // Pass the state to ItemList
           />
         </div>
       </main>

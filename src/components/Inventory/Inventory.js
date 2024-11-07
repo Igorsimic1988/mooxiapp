@@ -94,7 +94,7 @@ function Inventory() {
   };
 
   // Function to handle item selection
-  const handleItemSelection = (item) => {
+  const handleItemSelection = (clickedItem) => {
     if (!selectedRoom) return;
 
     setRoomItemSelections((prevSelections) => {
@@ -104,19 +104,30 @@ function Inventory() {
       if (isDeleteActive) {
         // Remove an instance of the item from the room selections
         const index = updatedRoomSelections.findIndex(
-          (instance) => instance.itemId === item.id.toString()
+          (instance) =>
+            instance.itemId === (clickedItem.itemId || clickedItem.id.toString()) &&
+            (!isMyItemsActive || JSON.stringify(instance.tags) === JSON.stringify(clickedItem.tags))
         );
         if (index !== -1) {
           updatedRoomSelections.splice(index, 1);
         }
       } else {
-        // Add a new unique item instance with default tags
-        const newItemInstance = {
-          id: uuidv4(), // Generate a unique ID for this instance
-          itemId: item.id.toString(),
-          item: item,
-          tags: [...item.tags], // Copy default tags from the original item
-        };
+        let newItemInstance;
+        if (isMyItemsActive) {
+          // clickedItem is grouped item data when isMyItemsActive is true
+          newItemInstance = {
+            ...clickedItem,
+            id: uuidv4(), // Assign a new unique ID
+          };
+        } else {
+          // clickedItem is a regular item
+          newItemInstance = {
+            id: uuidv4(), // Generate a unique ID for this instance
+            itemId: clickedItem.id.toString(),
+            item: clickedItem,
+            tags: [...clickedItem.tags], // Copy default tags from the original item
+          };
+        }
         updatedRoomSelections.push(newItemInstance);
       }
 

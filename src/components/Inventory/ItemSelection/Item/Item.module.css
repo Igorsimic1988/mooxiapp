@@ -59,7 +59,7 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-    display: none;
+
   }
   
   .menuIcon svg {

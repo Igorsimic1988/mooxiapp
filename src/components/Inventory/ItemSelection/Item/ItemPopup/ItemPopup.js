@@ -56,33 +56,37 @@ function ItemPopup({ item, onClose }) {
 
           {/* Additional Inputs */}
           <div className={styles.inputRow}>
-            <div className={styles.inputGroup}>
-              <input
-                type="number"
-                id="cuft"
-                defaultValue="4.5"
-                placeholder="Cuft:"
-                className={styles.inputField}
-              />
-            </div>
-            <div className={styles.inputGroup}>
-              <input
-                type="number"
-                id="lbs"
-                defaultValue="31.5"
-                placeholder="Lbs:"
-                className={styles.inputField}
-              />
-            </div>
-          </div>
-          <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
-            <input
-              type="text"
-              id="notes"
-              placeholder="Notes"
-              className={styles.inputField}
-            />
-          </div>
+  <div className={styles.inputGroup}>
+    <div className={styles.inputContainer}>
+      <span className={styles.inputLabel}>Cuft:</span>
+      <input
+        type="number"
+        id="cuft"
+        defaultValue="4.5"
+        className={`${styles.inputField} ${styles.inputNumberField}`}
+      />
+    </div>
+  </div>
+  <div className={styles.inputGroup}>
+    <div className={styles.inputContainer}>
+      <span className={styles.inputLabel}>Lbs:</span>
+      <input
+        type="number"
+        id="lbs"
+        defaultValue="31.5"
+        className={`${styles.inputField} ${styles.inputNumberField}`}
+      />
+    </div>
+  </div>
+</div>
+
+<div className={`${styles.inputGroup} ${styles.fullWidth} ${styles.notesInputGroup}`}>
+  <textarea
+    id="notes"
+    placeholder="Notes"
+    className={`${styles.inputField} ${styles.inputNotes}`}
+  ></textarea>
+</div>
 
           {/* Action Buttons */}
           <div className={styles.container}>

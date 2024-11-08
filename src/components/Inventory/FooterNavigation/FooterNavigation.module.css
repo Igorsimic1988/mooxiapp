@@ -61,13 +61,14 @@
 }
 
 .activeDelete .navIcon {
-  filter: drop-shadow(1px 0 5px #F65676); /* Outer glow effect */
+  filter: drop-shadow(0px 0 0px #F65676); /* Outer glow effect */
 }
 
 /* Apply a red tint to the SVG icon using filter */
-.redIcon {
-  filter: invert(35%) sepia(100%) saturate(6286%) hue-rotate(0deg) brightness(100%) contrast(106%);
+.redIcon path {
+  fill: #F65676;
 }
+
 
 
 

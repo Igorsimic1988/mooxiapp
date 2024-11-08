@@ -4,86 +4,191 @@
   -ms-user-select: none;
 }
 
+/* * {
+  border: 1px solid red;
+} */
+
 .popup {
-    position: fixed;
-    top: 0;
-    right: 0; /* Align to the right side */
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.15); /* Semi-transparent background */
-    display: flex;
-    justify-content: flex-end; /* Align content to the right */
-    align-items: stretch; /* Stretch content to fill height */
-    z-index: 1000; /* Ensure it overlays other content */
-  }
+  position: fixed;
+  top: 0;
+  right: 0; /* Align to the right side */
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.15); /* Semi-transparent background */
+  display: flex;
+  justify-content: flex-end; /* Align content to the right */
+  align-items: stretch; /* Stretch content to fill height */
+  z-index: 1000; /* Ensure it overlays other content */
+}
 
-  .popupContent {
-    border-radius: 20px 0px 0px 0px;
-    background-color: #F2F5F8; /* Adjusted as per your styles */
-    width: calc(100% - 16px);
-    max-width: 400px; /* Max width of 400px */
-    height: 100%; /* Full height */
-    box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3); /* Add a shadow for depth */
-    display: flex;
-    flex-direction: column; /* Arrange child elements vertically */
-  }
-  
-  .header {
-    width: 100%;
-    min-height: 60px;
-    border-radius: 20px 0px 0px 0px;
-    background: #3FA9F5;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+.popupContent {
+  border-radius: 20px 0px 0px 0px;
+  background-color: white;
+  width: calc(100% - 16px);
+  max-width: 400px; /* Max width of 400px */
+  height: 100%; /* Full height */
+  box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3); /* Add a shadow for depth */
+  display: flex;
+  flex-direction: column; /* Arrange child elements vertically */
+}
 
-  .header .title {
-    display: flex;
-    align-items: center;
-  }
+/* Header Styles */
+.header {
+  width: 100%;
+  min-height: 60px;
+  border-radius: 20px 0px 0px 0px;
+  background: #3FA9F5;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-  .header p {
-    color: white;
-    font-family: Satoshi;
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-left: 54px;
-  }
+.title {
+  display: flex;
+  align-items: center;
+}
 
-  .closeButton {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-  }
+.title p {
+  color: white;
+  font-family: Satoshi, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-left: 54px;
+}
 
-  .closeButton button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    outline: none; /* Removes the default focus outline */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 50px;      /* Set the desired width */
-    height: 50px;     /* Set the desired height */
-    padding: 0;       /* Remove padding if needed */
-    margin: 0;        /* Adjust margins if necessary */
-  }
+.closeButton {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+}
 
-  .closeIcon {
-    width: 24px; /* Adjust as needed */
-    height: 24px;
-    fill: white; /* Icon color */
-  }
+.closeButton button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  margin: 0;
+}
 
-  .content {
-    flex: 1; /* Allow content to grow and fill available space */
-    overflow-y: auto; /* Add scroll if content overflows */
-    padding: 30px; /* Adjust padding as needed */
-  }
+.closeIcon {
+  width: 24px;
+  height: 24px;
+  fill: white;
+}
+
+/* Content Styles */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px;
+}
+
+.itemGroup {
+  display: flex;
+  gap: 21px;
+}
+
+.furnitureOutline {
+  width: 88px;
+  height: 88px;
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  background: #FFF;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.furnitureWrapper {
+  width: 72px;
+  height: 72px;
+}
+
+.itemImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.furnitureTextGroup {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.itemName {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  white-space: nowrap;       /* Prevent text from wrapping */
+  overflow: hidden;          /* Hide overflow */
+  text-overflow: ellipsis;   /* Add ellipsis at the end */
+}
+
+/* Number Input Styles */
+.numberInputWrapper {
+  background-color: #F2F5F8;
+  width: 157px;
+  height: 53px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+}
+
+.numberInput {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.button {
+  width: 40px;
+  height: 40px;
+  background-color: #3FA9F5;
+  color: white;
+  border: none;
+  border-radius: 50%;    /* Makes the button circular */
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;            /* Remove default padding */
+}
+
+.inputNumber {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  border: none;
+  background: none;
+  font-size: 1.125rem;
+  -moz-appearance: textfield; /* Remove default styling in Firefox */
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.inputNumber:focus {
+  outline: none; /* Remove default browser outline */
+  box-shadow: 0 0 0 2px #3FA9F5; /* Add custom outline using box-shadow */
+}
+
+.inputNumber::-webkit-inner-spin-button,
+.inputNumber::-webkit-outer-spin-button {
+  -webkit-appearance: none; /* Remove default styling in Chrome */
+  margin: 0;
+}

@@ -22,10 +22,10 @@ function ItemPopup({ item, onClose }) {
 
         {/* Content */}
         <div className={styles.content}>
-          {/* Add your popup content here */}
-          <div className={styles.itemgroup}>
-            <div className={styles.furnitureoutline}>
-              <div className={styles.furniturewrapper}>
+          {/* Item Group */}
+          <div className={styles.itemGroup}>
+            <div className={styles.furnitureOutline}>
+              <div className={styles.furnitureWrapper}>
                 <img
                   src={item.src}
                   alt={item.name}
@@ -33,72 +33,98 @@ function ItemPopup({ item, onClose }) {
                 />
               </div>
             </div>
-            <div className="furnituretextgroup">
+            <div className={styles.furnitureTextGroup}>
               <p className={styles.itemName}>{item.name}</p>
-              <div class="number-input-wrapper">
-              <div class="number-input">
-                <button class="button decrement">−</button>
-                <input type="number" value="0" step="1" />
-                <button class="button increment">+</button>
-              </div>
+              <div className={styles.numberInputWrapper}>
+                <div className={styles.numberInput}>
+                  <button className={`${styles.button} ${styles.decrement}`}>
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    defaultValue="0"
+                    step="1"
+                    className={styles.inputNumber}
+                  />
+                  <button className={`${styles.button} ${styles.increment}`}>
+                    +
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="input-row">
-  <div class="input-group">
-    <input type="number" id="cuft" value="4.5" placeholder="Cuft:" />
-  </div>
-  <div class="input-group">
-    <input type="number" id="lbs" value="31.5" placeholder="Lbs:" />
-  </div>
-</div>
-<div class="input-group full-width">
-  <input type="text" id="notes" placeholder="Notes" />
-</div>
+          {/* Additional Inputs */}
+          <div className={styles.inputRow}>
+            <div className={styles.inputGroup}>
+              <input
+                type="number"
+                id="cuft"
+                defaultValue="4.5"
+                placeholder="Cuft:"
+                className={styles.inputField}
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <input
+                type="number"
+                id="lbs"
+                defaultValue="31.5"
+                placeholder="Lbs:"
+                className={styles.inputField}
+              />
+            </div>
+          </div>
+          <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
+            <input
+              type="text"
+              id="notes"
+              placeholder="Notes"
+              className={styles.inputField}
+            />
+          </div>
 
-<div className="container">
-      
-      {/* First Element */}
-      <div className="element">
-        <label>
-          <input
-            type="file"
-            accept="image/*"
-            capture="camera"
-            className="hidden-input"
-          />
-          <img src="" alt="Camera Icon" />
-          <div>Camera Roll</div>
-        </label>
-      </div>
-      
-      {/* Second Element */}
-      <div className="element">
-        <label>
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden-input"
-          />
-          <img src="" alt="Upload Icon" />
-          <div>Upload</div>
-        </label>
-      </div>
-      
-      {/* Third Element */}
-      <div className="element">
-        <label>
-          <div
-            contentEditable="true"
-            className="hidden-editable"
-          ></div>
-          <img src="" alt="Link Icon" />
-          <div>Link</div>
-        </label>
-      </div>
-      
-    </div>
+          {/* Action Buttons */}
+          <div className={styles.container}>
+            {/* First Element */}
+            <div className={styles.element}>
+              <label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="camera"
+                  className={styles.hiddenInput}
+                />
+                <img src="" alt="Camera Icon" />
+                <div>Camera Roll</div>
+              </label>
+            </div>
+
+            {/* Second Element */}
+            <div className={styles.element}>
+              <label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className={styles.hiddenInput}
+                />
+                <img src="" alt="Upload Icon" />
+                <div>Upload</div>
+              </label>
+            </div>
+
+            {/* Third Element */}
+            <div className={styles.element}>
+              <label>
+                <div
+                  contentEditable="true"
+                  className={styles.hiddenEditable}
+                ></div>
+                <img src="" alt="Link Icon" />
+                <div>Link</div>
+              </label>
+            </div>
+          </div>
 
         </div>
       </div>

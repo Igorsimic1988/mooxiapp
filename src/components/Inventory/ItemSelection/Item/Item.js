@@ -5,7 +5,7 @@ import styles from './Item.module.css';
 import { ReactComponent as ThreeDots } from '../../../../assets/icons/more.svg';
 import ItemPopup from './ItemPopup/ItemPopup'; // Import the popup component
 
-function Item({ item, clickCount, onItemClick, isMyItemsActive }) {
+function Item({ item, clickCount, onItemClick, isMyItemsActive, isDeleteActive}) {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const timerRef = useRef(null);
 
@@ -26,8 +26,9 @@ function Item({ item, clickCount, onItemClick, isMyItemsActive }) {
     clearTimeout(timerRef.current);
   };
 
-  const handleTouchStart = () => {
-    if (!isMyItemsActive) return; // Only activate if isMyItemsActive is true
+  const handleTouchStart = (e) => {
+    if (!isMyItemsActive) return;
+    e.preventDefault(); // Prevents default selection behavior on mobile
     timerRef.current = setTimeout(() => {
       setIsPopupVisible(true);
     }, 500);
@@ -61,7 +62,13 @@ function Item({ item, clickCount, onItemClick, isMyItemsActive }) {
         onTouchEnd={handleTouchEnd}
       >
         {clickCount > 0 && (
-          <div className={styles.numberBadge}>{clickCount}</div>
+          <div
+            className={`${styles.numberBadge} ${
+              isDeleteActive ? styles.numberBadgeRed : ''
+            }`}
+          >
+            {clickCount}
+          </div>
         )}
         {isMyItemsActive && (
           <div className={styles.menuIcon} onClick={handleMenuIconClick}>

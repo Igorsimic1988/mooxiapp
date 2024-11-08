@@ -140,6 +140,7 @@ function ItemSelection({
             itemClickCounts={itemCounts} // Pass the computed itemCounts
             onItemClick={onItemClick}
             isMyItemsActive={isMyItemsActive} // Pass the state to ItemList
+            isDeleteActive={isDeleteActive}
           />
         </div>
       </main>

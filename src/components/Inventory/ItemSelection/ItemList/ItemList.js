@@ -4,7 +4,7 @@ import React from 'react';
 import styles from './ItemList.module.css';
 import Item from '../Item/Item';
 
-function ItemList({ items, itemClickCounts, onItemClick, isMyItemsActive }) {
+function ItemList({ items, itemClickCounts, onItemClick, isMyItemsActive,  isDeleteActive }) {
   if (!Array.isArray(items) || items.length === 0) {
     return <p className={styles.noItems}>No items found.</p>;
   }
@@ -31,6 +31,7 @@ function ItemList({ items, itemClickCounts, onItemClick, isMyItemsActive }) {
             clickCount={count}
             onItemClick={() => onItemClick(itemData)}
             isMyItemsActive={isMyItemsActive}
+            isDeleteActive={isDeleteActive}
           />
         );
       })}

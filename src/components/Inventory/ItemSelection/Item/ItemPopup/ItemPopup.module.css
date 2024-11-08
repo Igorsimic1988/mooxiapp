@@ -1,3 +1,9 @@
+.popup, .popupContent, .itemSelectionContainer, .card {
+  user-select: none; /* Disable text selection */
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
 .popup {
     position: fixed;
     top: 0;

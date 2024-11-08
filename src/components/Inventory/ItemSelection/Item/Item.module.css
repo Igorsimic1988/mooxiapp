@@ -46,6 +46,28 @@
     font-weight: 700;
     line-height: normal;
   }
+
+  .numberBadgeRed {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    background-color: #F65676; /* Green background */
+    color: #ffffff;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+
+
   
   .menuIcon {
     position: absolute;

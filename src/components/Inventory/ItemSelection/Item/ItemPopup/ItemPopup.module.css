@@ -20,7 +20,7 @@
   .popupContent {
     border-radius: 20px 0px 0px 0px;
     background-color: #F2F5F8; /* Adjusted as per your styles */
-    width: 100%;
+    width: calc(100% - 16px);
     max-width: 400px; /* Max width of 400px */
     height: 100%; /* Full height */
     box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3); /* Add a shadow for depth */

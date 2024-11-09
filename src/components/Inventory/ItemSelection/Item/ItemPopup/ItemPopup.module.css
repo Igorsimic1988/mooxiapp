@@ -180,7 +180,9 @@
   border: none;
   background: none;
   font-size: 1.125rem;
-  -moz-appearance: textfield; /* Remove default styling in Firefox */
+  appearance: textfield;          /* Standard property */
+  -moz-appearance: textfield;     /* Firefox */
+  -webkit-appearance: none;       /* WebKit browsers (Chrome, Safari) */
   transition: box-shadow 0.2s ease-in-out;
 }
 
@@ -264,23 +266,27 @@
 
 .inputNotes {
   width: 100%;
-  height: 100px; /* Set initial height */
+  height: 100px;  /* Set initial height */
   border: none;
   background: none;
   font-family: Satoshi, sans-serif;
   font-size: 1rem;
   font-weight: 500;
   color: #2F3236;
-  padding: 10px 20px; /* Adjust padding as needed */
-  resize: vertical; /* Allow users to resize vertically */
-  overflow: auto; /* Add scrollbars when content overflows */
-  box-sizing: border-box; /* Ensure padding is included in height */
+  padding: 10px 20px;
+  resize: vertical;
+  overflow: auto;
+  box-sizing: border-box;
+
+  /* Scrollbar styles for Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #C1C7CD #F2F5F8;
+  clip-path: inset(0 0 0 0 round 12px);
 }
 
 .inputNotes:focus {
-  outline: none; /* Remove default focus outline */
-  box-shadow: 0 0 0 2px #3FA9F5; /* Custom focus outline */
-  border-radius: 12px;
+  outline: none;  /* Remove default focus outline */
+  box-shadow: 0 0 0 2px #3FA9F5;  /* Custom focus outline */
 }
 
 .inputNotes::placeholder {
@@ -289,6 +295,90 @@
   font-size: 1rem;
   font-weight: 500;
 }
+
+/* Scrollbar styles for WebKit browsers */
+.inputNotes::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.inputNotes::-webkit-scrollbar-track {
+  background: #F2F5F8;
+  border-radius: 3px;
+}
+
+.inputNotes::-webkit-scrollbar-thumb {
+  background: #C1C7CD;
+  border-radius: 3px;
+  background: rgba(193, 199, 205, 0.5); 
+}
+
+.inputNotes::-webkit-scrollbar-thumb:hover {
+  background: #A6ADB4;
+}
+
+.inputNotes::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.inputNotes:hover::-webkit-scrollbar {
+  opacity: 1;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px; /* Adjust gap between elements */
+  margin-top: 15px;
+}
+
+.element {
+  flex: 1 1 calc(33.333% - 10px); /* Adjusting for gap */
+  max-width: calc(33.333% - 10px);
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  box-sizing: border-box;
+  border-radius: 12px;
+background-color: #F2F5F8;
+}
+
+.element img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.element div {
+  font-family: Satoshi, sans-serif;
+  color: #90A4B7;
+  font-weight: 700;
+  text-align: center;
+  font-size: 0.87rem;
+}
+
+.hiddenInput,
+.hiddenEditable {
+  display: none;
+}
+
+.icon {
+  width: 36px;   /* Adjust size as needed */
+  height: 36px;
+  margin-bottom: 16px;
+  margin-top: 8px;
+}
+
+
+
+
+
 
 
 

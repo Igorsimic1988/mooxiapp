@@ -3,6 +3,9 @@
 import React from "react";
 import styles from "./ItemPopup.module.css";
 import { ReactComponent as CloseIcon } from "../../../../../assets/icons/Close.svg"; // Adjust the path as needed
+import { ReactComponent as CameraIcon } from '../../../../../assets/icons/cameraroll.svg';
+import { ReactComponent as UploadIcon } from '../../../../../assets/icons/upload.svg';
+import { ReactComponent as LinkIcon } from '../../../../../assets/icons/pastelink.svg';
 
 function ItemPopup({ item, onClose }) {
   return (
@@ -90,45 +93,35 @@ function ItemPopup({ item, onClose }) {
 
           {/* Action Buttons */}
           <div className={styles.container}>
-            {/* First Element */}
-            <div className={styles.element}>
-              <label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="camera"
-                  className={styles.hiddenInput}
-                />
-                <img src="" alt="Camera Icon" />
-                <div>Camera Roll</div>
-              </label>
-            </div>
+  {/* First Element */}
+  <label className={styles.element}>
+    <input
+      type="file"
+      accept="image/*"
+      capture="camera"
+      className={styles.hiddenInput}
+    />
+    <CameraIcon className={styles.icon} />
+    <div>Camera Roll</div>
+  </label>
 
-            {/* Second Element */}
-            <div className={styles.element}>
-              <label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className={styles.hiddenInput}
-                />
-                <img src="" alt="Upload Icon" />
-                <div>Upload</div>
-              </label>
-            </div>
+  {/* Second Element */}
+  <label className={styles.element}>
+    <input
+      type="file"
+      accept="image/*"
+      className={styles.hiddenInput}
+    />
+      <UploadIcon className={styles.icon} />
+    <div>Upload</div>
+  </label>
 
-            {/* Third Element */}
-            <div className={styles.element}>
-              <label>
-                <div
-                  contentEditable="true"
-                  className={styles.hiddenEditable}
-                ></div>
-                <img src="" alt="Link Icon" />
-                <div>Link</div>
-              </label>
-            </div>
-          </div>
+  {/* Third Element */}
+  <div className={styles.element}>
+  <LinkIcon className={styles.icon} />
+    <div>Link</div>
+  </div>
+</div>
 
         </div>
       </div>

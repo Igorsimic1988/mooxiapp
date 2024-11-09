@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './Inventory.module.css';
-import TopNavigation from '../Inventory/TopNavigation/TopNavigation';
-import RoomList from '../Inventory/RoomList/RoomList';
+import TopNavigation from './TopNavigation/TopNavigation';
+import RoomList from './RoomList/RoomList';
 import HouseHeader from './HouseHeader/HouseHeader';
 import FooterNavigation from './FooterNavigation/FooterNavigation';
 import ItemSelection from './ItemSelection/ItemSelection';
@@ -182,6 +182,43 @@ function Inventory() {
     return roomItemSelections[selectedRoom.id].length;
   };
 
+  // Function to handle item updates from ItemPopup
+  const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
+    setRoomItemSelections((prevSelections) => {
+      const updatedSelections = { ...prevSelections };
+      const roomItems = updatedSelections[selectedRoom.id] || [];
+  
+      // Remove all item instances that match the original itemId and tags
+      const updatedRoomItems = roomItems.filter(
+        (itemInstance) =>
+          !(
+            itemInstance.itemId === originalItemInstance.itemId &&
+            JSON.stringify(itemInstance.tags.sort()) ===
+              JSON.stringify(originalItemInstance.tags.sort())
+          )
+      );
+  
+      const newCount = updatedItemInstance.count || 1;
+  
+      // Create new item instances based on new count
+      for (let i = 0; i < newCount; i++) {
+        const newItemInstance = {
+          ...updatedItemInstance,
+          id: uuidv4(), // Generate a new unique ID
+          item: updatedItemInstance.item || originalItemInstance.item,
+          itemId: updatedItemInstance.itemId || originalItemInstance.itemId,
+          // Ensure tags and notes are included
+          tags: updatedItemInstance.tags,
+          notes: updatedItemInstance.notes,
+        };
+        updatedRoomItems.push(newItemInstance);
+      }
+  
+      updatedSelections[selectedRoom.id] = updatedRoomItems;
+      return updatedSelections;
+    });
+  };
+
   return (
     <div className={styles.inventoryContainer}>
       <header className={styles.header}>
@@ -224,6 +261,7 @@ function Inventory() {
             setIsMyItemsActive={setIsMyItemsActive} // Pass the setter to ItemSelection
             isDeleteActive={isDeleteActive} // Pass the state to ItemSelection for delete functionality
             itemInstances={roomItemSelections[selectedRoom.id] || []}
+            onUpdateItem={handleUpdateItem} // **Pass the onUpdateItem function**
           />
         ) : (
           <RoomList

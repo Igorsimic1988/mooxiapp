@@ -1,3 +1,7 @@
+/* src/components/Inventory/ItemSelection/Item/ItemPopup.module.css */
+
+/* Existing styles remain unchanged */
+
 .popup, .popupContent, .itemSelectionContainer, .card {
   user-select: none; /* Disable text selection */
   -webkit-user-select: none;
@@ -207,7 +211,7 @@
 
 .inputGroup {
   border-radius: 12px;
-  border: 1px solid #D8DCE0;
+  border: 1px solid #D8DCE0; /* Retain border */
   background: #FFF;
   height: 50px;
   display: flex;
@@ -249,8 +253,6 @@
   box-shadow: 0 0 0 2px #3FA9F5; /* Custom focus outline */
   border-radius: 12px;
 }
-
-
 
 .notesInputGroup {
   height: 100px; /* Set height for the notes input */
@@ -346,13 +348,7 @@
   padding: 10px;
   box-sizing: border-box;
   border-radius: 12px;
-background-color: #F2F5F8;
-}
-
-.element img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 10px;
+  background-color: #F2F5F8;
 }
 
 .element div {
@@ -371,14 +367,111 @@ background-color: #F2F5F8;
 .icon {
   width: 36px;   /* Adjust size as needed */
   height: 36px;
-  margin-bottom: 16px;
-  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
+/* Save Button Container */
+.saveButtonContainer {
+  flex-shrink: 0; /* Prevent the Save button from shrinking */
+  padding: 20px 30px;  /* Add padding for spacing */
+  border-top: 1px solid #D8DCE0; /* Optional: Add a top border for separation */
+  background-color: #FFF; /* Optional: Match popup background */
+  position: sticky; /* Ensure it's always visible */
+  bottom: 0; /* Stick to the bottom */
+}
 
+.saveButton {
+  background-color: #3FA9F5;
+  color: white;
+  font-family: Satoshi, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  width: 100%; /* Make the button full width */
+}
 
+.saveButton:hover {
+  background-color: #358dc4;
+}
 
+/* -------------------- */
+/* Modified Section Styles */
+/* -------------------- */
 
+/* Ensure that sections can expand vertically */
+.section {
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Adds space between multiple Select components */
+}
 
+/* Modify inputGroup within .section to allow expansion */
+.section .inputGroup {
+  /* Remove fixed height to allow react-select to determine height */
+  height: auto;
+  min-height: 50px; /* Optional: Ensures a minimum height */
+  /* Retain border on .inputGroup */
+  border: 1px solid #D8DCE0;
+}
+
+/* Override react-select's control styles */
+:global(.custom-select__control) {
+  border: none !important; /* Remove border */
+  box-shadow: none !important; /* Remove box-shadow */
+  background: transparent !important; /* Make background transparent */
+}
+
+/* Style selected tags */
+:global(.custom-select__multi-value) {
+  background-color: #90A4B7 !important; /* Set desired background color */
+  border-radius: 12px !important;        /* Set rounded corners */
+}
+
+/* Style selected tag labels */
+:global(.custom-select__multi-value__label) {
+  color: white !important;               /* Set tag text color to white */
+  font-weight: 500 !important;          /* Optional: Set font weight */
+  font-size: 1rem !important;            /* Optional: Set font size */
+}
+
+/* Style 'x' remove button */
+:global(.custom-select__multi-value__remove) {
+  color: white !important;               /* Set 'x' button color to white */
+  cursor: pointer;                       /* Change cursor on hover */
+}
+
+/* Hover state for 'x' remove button */
+:global(.custom-select__multi-value__remove:hover) {
+  background-color: #6E7882 !important;  /* Optional: Change background on hover */
+  color: white !important;               /* Ensure 'x' remains white */
+}
+
+/* Ensure select inputs take full width */
+.selectInput {
+  width: 100%;
+}
+
+/* Ensure that react-select menus are not constrained by parent overflow */
+.section :global(.custom-select__menu) {
+  z-index: 1001; /* Higher than popup background */
+}
+
+/* Optional: Adjust menu to prevent overflow */
+:global(.custom-select__menu) {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Ensure that the menu appears above other content */
+.popupContent {
+  position: relative; /* Ensure positioning context */
+}
 
 

@@ -21,6 +21,7 @@ function ItemSelection({
   setIsMyItemsActive,
   isDeleteActive,
   itemInstances,
+  onUpdateItem, // **Accept the onUpdateItem prop**
 }) {
   const [isToggled, setIsToggled] = useState(true);
 
@@ -80,6 +81,7 @@ function ItemSelection({
               item: instance.item,
               tags: [...instance.tags], // Make a copy of tags
               count: 1,
+              id: instance.id, // Keep the instance ID
             };
           } else {
             groups[key].count += 1;
@@ -141,6 +143,7 @@ function ItemSelection({
             onItemClick={onItemClick}
             isMyItemsActive={isMyItemsActive} // Pass the state to ItemList
             isDeleteActive={isDeleteActive}
+            onUpdateItem={onUpdateItem} // **Pass the onUpdateItem function**
           />
         </div>
       </main>

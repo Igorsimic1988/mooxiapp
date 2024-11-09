@@ -5,7 +5,7 @@ import styles from './Item.module.css';
 import { ReactComponent as ThreeDots } from '../../../../assets/icons/more.svg';
 import ItemPopup from './ItemPopup/ItemPopup'; // Import the popup component
 
-function Item({ item, clickCount, onItemClick, isMyItemsActive, isDeleteActive}) {
+function Item({ item, clickCount, onItemClick, isMyItemsActive, isDeleteActive, onUpdateItem, itemInstance }) {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const timerRef = useRef(null);
 
@@ -89,6 +89,8 @@ function Item({ item, clickCount, onItemClick, isMyItemsActive, isDeleteActive})
         <ItemPopup
           item={item}
           onClose={handleClosePopup}
+          onUpdateItem={onUpdateItem} // **Pass the onUpdateItem function**
+          itemInstance={itemInstance} // **Pass the item instance**
         />
       )}
     </li>

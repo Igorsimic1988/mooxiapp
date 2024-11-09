@@ -7,7 +7,12 @@ import { ReactComponent as CameraIcon } from "../../../../../assets/icons/camera
 import { ReactComponent as UploadIcon } from "../../../../../assets/icons/upload.svg";
 import { ReactComponent as LinkIcon } from "../../../../../assets/icons/pastelink.svg";
 import { optionsData } from "../../../../../data/constants/optionsData";
-import Select from 'react-select';
+import Select, { components } from 'react-select';
+
+// Custom Input component to prevent mobile keyboard from opening
+const CustomInput = (props) => {
+  return <components.Input {...props} readOnly />;
+};
 
 function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   // State to manage selected options
@@ -139,7 +144,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
           </div>
         </div>
 
-        {/* Content */}
+        {/* Scrollable Content */}
         <div className={styles.content}>
           {/* Item Group */}
           <div className={styles.itemGroup}>
@@ -270,6 +275,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 value={packingOptions}
                 onChange={setPackingOptions}
                 aria-label="Item Tags - Packing"
+                components={{ Input: CustomInput }} // Use Custom Input
                 styles={customSelectStyles} // Apply custom styles
               />
             </div>
@@ -285,6 +291,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 value={extraAttentionOptions}
                 onChange={setExtraAttentionOptions}
                 aria-label="Item Tags - Extra Attention"
+                components={{ Input: CustomInput }} // Use Custom Input
                 styles={customSelectStyles} // Apply custom styles
               />
             </div>
@@ -305,6 +312,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 value={handlingInfoOptions}
                 onChange={setHandlingInfoOptions}
                 aria-label="Location Tags - Handling Info"
+                components={{ Input: CustomInput }} // Use Custom Input
                 styles={customSelectStyles} // Apply custom styles
               />
             </div>
@@ -320,6 +328,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 value={dropPointsOptions}
                 onChange={setDropPointsOptions}
                 aria-label="Location Tags - Drop Points"
+                components={{ Input: CustomInput }} // Use Custom Input
                 styles={customSelectStyles} // Apply custom styles
               />
             </div>

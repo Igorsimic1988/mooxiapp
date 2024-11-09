@@ -167,13 +167,12 @@
   color: white;
   border: none;
   border-radius: 50%;    /* Makes the button circular */
-  font-size: 14px;
+  font-size: 1.5rem;     /* Adjusted for better visibility */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;            /* Remove default padding */
-  font-size: 1.5rem;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -255,7 +254,7 @@
 }
 
 .notesInputGroup {
-  height: 100px; /* Set height for the notes input */
+  /* Removed duplicate height property */
   border-radius: 12px;
   border: 1px solid #D8DCE0;
   background: #FFF;
@@ -473,5 +472,3 @@
 .popupContent {
   position: relative; /* Ensure positioning context */
 }
-
-

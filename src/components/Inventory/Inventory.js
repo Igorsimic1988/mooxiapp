@@ -1,6 +1,6 @@
 // src/components/Inventory/Inventory.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './Inventory.module.css';
 import TopNavigation from './TopNavigation/TopNavigation';
 import RoomList from './RoomList/RoomList';
@@ -9,6 +9,7 @@ import FooterNavigation from './FooterNavigation/FooterNavigation';
 import ItemSelection from './ItemSelection/ItemSelection';
 import SearchHeader from './SearchHeader/SearchHeader';
 import rooms from '../../data/constants/AllRoomsList'; // Import rooms data
+import allItems from '../../data/constants/funitureItems'; // Import allItems
 import { v4 as uuidv4 } from 'uuid'; // Import UUID library for generating unique IDs
 
 // Set IDs of the rooms that will be shown by default initially
@@ -26,6 +27,9 @@ function Inventory() {
     }, {})
   );
   const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
+  const [isToggled, setIsToggled] = useState(true); // Moved isToggled state here
+
+  const prevTotalLbsRef = useRef(null);
 
   useEffect(() => {
     console.log('roomItemSelections:', roomItemSelections);
@@ -96,11 +100,11 @@ function Inventory() {
   // Function to handle item selection
   const handleItemSelection = (clickedItem) => {
     if (!selectedRoom) return;
-  
+
     setRoomItemSelections((prevSelections) => {
       const currentRoomSelections = prevSelections[selectedRoom.id] || [];
       const updatedRoomSelections = [...currentRoomSelections];
-  
+
       if (isDeleteActive) {
         // Remove an instance of the item from the room selections
         const index = updatedRoomSelections.findIndex(
@@ -138,7 +142,7 @@ function Inventory() {
             lbs: '', // Default lbs
           };
         }
-  
+
         // Check if the selected room is 'Disposal' (id: 45)
         if (selectedRoom.id === 45) {
           // Ensure 'disposal' tag is added
@@ -146,10 +150,10 @@ function Inventory() {
             newItemInstance.tags.push('disposal');
           }
         }
-  
+
         updatedRoomSelections.push(newItemInstance);
       }
-  
+
       return {
         ...prevSelections,
         [selectedRoom.id]: updatedRoomSelections,
@@ -193,77 +197,173 @@ function Inventory() {
   };
 
   // Function to handle item updates from ItemPopup
-  // src/components/Inventory/Inventory.js
+  const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
+    setRoomItemSelections((prevSelections) => {
+      const updatedSelections = { ...prevSelections };
+      const roomItems = updatedSelections[selectedRoom.id] || [];
 
-const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
-  setRoomItemSelections((prevSelections) => {
-    const updatedSelections = { ...prevSelections };
-    const roomItems = updatedSelections[selectedRoom.id] || [];
+      // Generate the original grouping key
+      const originalKey = `${originalItemInstance.itemId}-${originalItemInstance.tags.sort().join(',')}-${originalItemInstance.notes || ''}-${originalItemInstance.cuft || ''}-${originalItemInstance.lbs || ''}`;
 
-    // Generate the original grouping key
-    const originalKey = `${originalItemInstance.itemId}-${originalItemInstance.tags.sort().join(',')}-${originalItemInstance.notes || ''}-${originalItemInstance.cuft || ''}-${originalItemInstance.lbs || ''}`;
+      // Generate the updated grouping key
+      const updatedKey = `${updatedItemInstance.itemId}-${updatedItemInstance.tags.sort().join(',')}-${updatedItemInstance.notes || ''}-${updatedItemInstance.cuft || ''}-${updatedItemInstance.lbs || ''}`;
 
-    // Generate the updated grouping key
-    const updatedKey = `${updatedItemInstance.itemId}-${updatedItemInstance.tags.sort().join(',')}-${updatedItemInstance.notes || ''}-${updatedItemInstance.cuft || ''}-${updatedItemInstance.lbs || ''}`;
+      // Update the groupId if the grouping key has changed
+      const newGroupId = originalKey === updatedKey ? originalItemInstance.groupId : uuidv4();
 
-    // Update the groupId if the grouping key has changed
-    const newGroupId = originalKey === updatedKey ? originalItemInstance.groupId : uuidv4();
-
-    // Use the original item
-    const baseItemInstance = {
-      itemId: originalItemInstance.itemId,
-      item: originalItemInstance.item,
-      groupId: newGroupId, // Use the new or original groupId
-      tags: updatedItemInstance.tags,
-      notes: updatedItemInstance.notes,
-      cuft: updatedItemInstance.cuft,
-      lbs: updatedItemInstance.lbs,
-    };
-
-    // Find indices of items to update
-    const indicesToUpdate = roomItems.reduce((indices, itemInstance, index) => {
-      // Match items with the same original grouping key
-      const instanceKey = `${itemInstance.itemId}-${itemInstance.tags.sort().join(',')}-${itemInstance.notes || ''}-${itemInstance.cuft || ''}-${itemInstance.lbs || ''}`;
-      if (instanceKey === originalKey) {
-        indices.push(index);
-      }
-      return indices;
-    }, []);
-
-    const oldCount = indicesToUpdate.length;
-    const newCount = updatedItemInstance.count || 1;
-
-    // Update existing instances
-    for (let i = 0; i < Math.min(oldCount, newCount); i++) {
-      const index = indicesToUpdate[i];
-      roomItems[index] = {
-        ...roomItems[index],
-        ...baseItemInstance,
-        id: roomItems[index].id, // Keep existing id
+      // Use the original item
+      const baseItemInstance = {
+        itemId: originalItemInstance.itemId,
+        item: originalItemInstance.item,
+        groupId: newGroupId, // Use the new or original groupId
+        tags: updatedItemInstance.tags,
+        notes: updatedItemInstance.notes,
+        cuft: updatedItemInstance.cuft,
+        lbs: updatedItemInstance.lbs,
       };
-    }
 
-    // Add or remove instances as needed
-    if (newCount > oldCount) {
-      // Add new instances
-      for (let i = oldCount; i < newCount; i++) {
-        roomItems.push({
+      // Find indices of items to update
+      const indicesToUpdate = roomItems.reduce((indices, itemInstance, index) => {
+        // Match items with the same original grouping key
+        const instanceKey = `${itemInstance.itemId}-${itemInstance.tags.sort().join(',')}-${itemInstance.notes || ''}-${itemInstance.cuft || ''}-${itemInstance.lbs || ''}`;
+        if (instanceKey === originalKey) {
+          indices.push(index);
+        }
+        return indices;
+      }, []);
+
+      const oldCount = indicesToUpdate.length;
+      const newCount = updatedItemInstance.count || 1;
+
+      // Update existing instances
+      for (let i = 0; i < Math.min(oldCount, newCount); i++) {
+        const index = indicesToUpdate[i];
+        roomItems[index] = {
+          ...roomItems[index],
           ...baseItemInstance,
-          id: uuidv4(),
-        });
+          id: roomItems[index].id, // Keep existing id
+        };
       }
-    } else if (newCount < oldCount) {
-      // Remove extra instances
-      for (let i = oldCount - 1; i >= newCount; i--) {
-        roomItems.splice(indicesToUpdate[i], 1);
+
+      // Add or remove instances as needed
+      if (newCount > oldCount) {
+        // Add new instances
+        for (let i = oldCount; i < newCount; i++) {
+          roomItems.push({
+            ...baseItemInstance,
+            id: uuidv4(),
+          });
+        }
+      } else if (newCount < oldCount) {
+        // Remove extra instances
+        for (let i = oldCount - 1; i >= newCount; i--) {
+          roomItems.splice(indicesToUpdate[i], 1);
+        }
       }
+
+      updatedSelections[selectedRoom.id] = roomItems;
+      return updatedSelections;
+    });
+  };
+
+  // Helper function to get item data by itemId
+  const getItemById = (itemId) => {
+    return allItems.find((item) => item.id.toString() === itemId);
+  };
+
+  // Effect to handle auto-adding boxes based on total lbs
+  useEffect(() => {
+    if (!isToggled) {
+      // Do nothing when toggle is off
+      return;
     }
 
-    updatedSelections[selectedRoom.id] = roomItems;
-    return updatedSelections;
-  });
-};
+    // Exclude room id 13 (Boxes room) and specific itemIds
+    const excludedRoomId = '13';
+    const excludedItemIds = ['529', '530', '531', '532', '533', '534', '535', '536', '537'];
 
+    // Calculate total lbs
+    let totalLbs = 0;
+    Object.keys(roomItemSelections).forEach((roomId) => {
+      if (roomId === excludedRoomId) return;
+
+      const items = roomItemSelections[roomId];
+      items.forEach((itemInstance) => {
+        if (!excludedItemIds.includes(itemInstance.itemId)) {
+          // Use itemInstance.lbs or fallback to itemInstance.item.lbs
+          const lbs = parseFloat(itemInstance.lbs || itemInstance.item.lbs);
+          if (!isNaN(lbs)) {
+            totalLbs += lbs;
+          }
+        }
+      });
+    });
+
+    // Check if totalLbs has changed
+    if (prevTotalLbsRef.current === totalLbs) {
+      // No change in total lbs, no need to update boxes
+      return;
+    }
+
+    prevTotalLbsRef.current = totalLbs;
+
+    // Calculate number of boxes needed
+    const boxesPer200lbs = 3;
+    const num200lbsUnits = Math.ceil(totalLbs / 200);
+    const totalBoxesNeeded = num200lbsUnits * boxesPer200lbs;
+
+    // Box distribution
+    const distribution = [
+      { percent: 0.10, itemId: '533' }, // Box Dishpack
+      { percent: 0.05, itemId: '529' }, // Box Wardrobe 12cuft
+      { percent: 0.20, itemId: '534' }, // Box Large 4.5 cuft
+      { percent: 0.45, itemId: '535' }, // Box Medium 3 cuft
+      { percent: 0.20, itemId: '536' }, // Box Small 1.5 cuft
+    ];
+
+    // Calculate boxes to add
+    const boxesToAdd = distribution.map((dist) => {
+      const count = Math.round(totalBoxesNeeded * dist.percent);
+      return { itemId: dist.itemId, count };
+    });
+
+    // Update the "Boxes" room
+    setRoomItemSelections((prevSelections) => {
+      const updatedSelections = { ...prevSelections };
+      const boxesRoomId = '13';
+      const currentBoxes = updatedSelections[boxesRoomId] || [];
+
+      // Remove existing auto-added boxes
+      const nonAutoBoxes = currentBoxes.filter((item) => !item.autoAdded);
+
+      // Generate new auto-added boxes
+      const newBoxItems = [];
+
+      boxesToAdd.forEach((box) => {
+        for (let i = 0; i < box.count; i++) {
+          const itemData = getItemById(box.itemId);
+          if (itemData) {
+            const newItemInstance = {
+              id: uuidv4(),
+              groupId: uuidv4(),
+              itemId: box.itemId,
+              item: { ...itemData },
+              tags: [],
+              notes: '',
+              cuft: itemData.cuft || '',
+              lbs: itemData.lbs || '',
+              autoAdded: true, // Mark as auto-added
+            };
+            newBoxItems.push(newItemInstance);
+          }
+        }
+      });
+
+      // Update the "Boxes" room items
+      updatedSelections[boxesRoomId] = [...nonAutoBoxes, ...newBoxItems];
+      return updatedSelections;
+    });
+  }, [isToggled, roomItemSelections]);
 
   return (
     <div className={styles.inventoryContainer}>
@@ -307,7 +407,9 @@ const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
             setIsMyItemsActive={setIsMyItemsActive} // Pass the setter to ItemSelection
             isDeleteActive={isDeleteActive} // Pass the state to ItemSelection for delete functionality
             itemInstances={roomItemSelections[selectedRoom.id] || []}
-            onUpdateItem={handleUpdateItem} // **Pass the onUpdateItem function**
+            onUpdateItem={handleUpdateItem} // Pass the onUpdateItem function
+            isToggled={isToggled}
+            setIsToggled={setIsToggled} // Pass the toggle state and setter
           />
         ) : (
           <RoomList

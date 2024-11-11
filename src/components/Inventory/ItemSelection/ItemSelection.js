@@ -1,6 +1,6 @@
 // src/components/Inventory/ItemSelection/ItemSelection.js
 
-import React, { useState } from 'react';
+import React from 'react';
 import allItems from '../../../data/constants/funitureItems';
 import styles from './ItemSelection.module.css';
 import ItemList from './ItemList/ItemList';
@@ -22,8 +22,9 @@ function ItemSelection({
   isDeleteActive,
   itemInstances,
   onUpdateItem, // **Accept the onUpdateItem prop**
+  isToggled,
+  setIsToggled,
 }) {
-  const [isToggled, setIsToggled] = useState(true);
 
   const handleToggle = () => {
     setIsToggled((prev) => !prev);

@@ -329,6 +329,13 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
                 Array.isArray(roomItemSelections[roomId]) &&
                 roomItemSelections[roomId].length > 0
             )
+            .sort((a, b) => {
+              // Place roomId '13' (Boxes room) last
+              if (a === '13') return 1;
+              if (b === '13') return -1;
+              // Otherwise, sort numerically
+              return parseInt(a) - parseInt(b);
+            })
             .map((roomId) => {
               const room = rooms.find((r) => r.id.toString() === roomId);
               if (!room) return null; // Room not found

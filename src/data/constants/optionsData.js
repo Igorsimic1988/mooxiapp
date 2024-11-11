@@ -29,6 +29,7 @@ export const optionsData = {
         handlingInfo: [
           { value: 'excluded', label: 'Excluded' },
           { value: 'may_not_ship', label: 'May not ship' },
+          { value: 'disposal', label: 'Disposal' },
           { value: 'item_in_closet', label: 'Item in closet' },
           { value: 'hoisting_origin', label: 'Hoisting origin' },
           { value: 'hoisting_destination', label: 'Hoisting destination' },
@@ -39,11 +40,10 @@ export const optionsData = {
           { value: 'help_with_unloading', label: 'Help with unloading' },
         ],
         dropPoints: [
+          { value: 'item_for_company_storage', label: 'Item for company storage' },
           { value: 'main_drop_off', label: 'Main drop off' },
           { value: 'second_drop', label: '2nd drop' },
           { value: 'third_drop', label: '3rd drop' },
-          { value: 'disposal', label: 'Disposal' },
-          { value: 'item_for_company_storage', label: 'Item for company storage' },
           { value: 'post_storage_main_drop', label: 'Post-Storage main drop' },
           { value: 'post_storage_second_drop', label: 'Post-Storage 2nd drop' },
           { value: 'post_storage_third_drop', label: 'Post-Storage 3rd drop' },

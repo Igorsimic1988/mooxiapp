@@ -72,24 +72,27 @@ function ItemSelection({
 
   // Group items by itemId and tags when isMyItemsActive is true
   const groupedItems = isMyItemsActive
-    ? Object.values(
-        itemInstances.reduce((groups, instance) => {
-          const key = `${instance.itemId}-${instance.tags.sort().join(',')}`;
-          if (!groups[key]) {
-            groups[key] = {
-              itemId: instance.itemId,
-              item: instance.item,
-              tags: [...instance.tags], // Make a copy of tags
-              count: 1,
-              id: instance.id, // Keep the instance ID
-            };
-          } else {
-            groups[key].count += 1;
-          }
-          return groups;
-        }, {})
-      )
-    : [];
+  ? Object.values(
+      itemInstances.reduce((groups, instance) => {
+        const key = `${instance.itemId}-${instance.tags.sort().join(',')}-${instance.notes || ''}-${instance.cuft || ''}-${instance.lbs || ''}`;
+        if (!groups[key]) {
+          groups[key] = {
+            itemId: instance.itemId,
+            item: instance.item,
+            tags: [...instance.tags], // Make a copy of tags
+            notes: instance.notes,    // Include notes
+            cuft: instance.cuft,      // Include cuft
+            lbs: instance.lbs,        // Include lbs
+            count: 1,
+            id: instance.id,          // Keep the instance ID
+          };
+        } else {
+          groups[key].count += 1;
+        }
+        return groups;
+      }, {})
+    )
+  : [];
 
   // Filter items based on "My Items" button state
   const filteredItems = isMyItemsActive

@@ -420,6 +420,14 @@
   border: 1px solid #D8DCE0;
 }
 
+.sectionLabel {
+  font-weight: 700;
+  color: #2F3236; /* Optional: Ensure consistent text color */
+  font-family: Satoshi, sans-serif;
+  font-size: 1rem;
+}
+
+
 /* Override react-select's control styles */
 :global(.custom-select__control) {
   border: none !important; /* Remove border */
@@ -451,6 +459,25 @@
   background-color: #6E7882 !important;  /* Optional: Change background on hover */
   color: white !important;               /* Ensure 'x' remains white */
 }
+
+:global(.custom-select__placeholder) {
+  color: #6E7882 !important;
+  font-family: Satoshi, sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+:global(.custom-select__option) {
+  font-weight: 700 !important;
+}
+
+:global(.custom-select__option--is-selected) {
+  background-color: #3FA9F5 !important;
+  color: white !important;
+}
+
+
+
 
 /* Ensure select inputs take full width */
 .selectInput {

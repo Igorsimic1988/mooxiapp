@@ -20,6 +20,8 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   const [extraAttentionOptions, setExtraAttentionOptions] = useState([]);
   const [handlingInfoOptions, setHandlingInfoOptions] = useState([]);
   const [dropPointsOptions, setDropPointsOptions] = useState([]);
+  const [cuft, setCuft] = useState(itemInstance.cuft || item.cuft || '');
+  const [lbs, setLbs] = useState(itemInstance.lbs || item.lbs || '');
 
   // State for item count and notes
   const [itemCount, setItemCount] = useState(itemInstance.count || 1);
@@ -27,6 +29,90 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
 
   // Custom className prefix for react-select
   const selectClassNamePrefix = "custom-select";
+
+  const handleCuftChange = (e) => {
+    setCuft(e.target.value);
+  };
+
+  const handleLbsChange = (e) => {
+    setLbs(e.target.value);
+  };
+
+  // Define incompatible and required tags
+  const incompatibleTags = {
+    'cp_packed_by_movers': ['pbo_packed_by_customer'],
+    'pbo_packed_by_customer': ['cp_packed_by_movers', 'crating', 'unpacking', 'pack_and_leave_behind'],
+    'paper_blanket_wrapped': ['purchased_blankets'],
+    'purchased_blankets': ['paper_blanket_wrapped'],
+    'pack_and_leave_behind': ['pbo_packed_by_customer'],
+    // Add any other incompatible tags here
+  };
+
+  const requiredTags = {
+    'crating': ['cp_packed_by_movers'],
+    // Add any other required tags here
+  };
+
+  // Combine all selected tags into one array
+  const getAllSelectedTags = () => {
+    return [
+      ...packingOptions.map((opt) => opt.value),
+      ...extraAttentionOptions.map((opt) => opt.value),
+      ...handlingInfoOptions.map((opt) => opt.value),
+      ...dropPointsOptions.map((opt) => opt.value),
+    ];
+  };
+
+  // Function to handle tag selection changes with incompatible and required tags logic
+  const handleTagChange = (selectedOptions, setOptions, category) => {
+    let updatedOptions = selectedOptions || [];
+    let allSelectedTags = getAllSelectedTags();
+
+    // Get the newly added or removed tag
+    const lastChangedTag = updatedOptions.length > allSelectedTags.length
+      ? updatedOptions.find(opt => !allSelectedTags.includes(opt.value))
+      : allSelectedTags.find(tag => !updatedOptions.map(opt => opt.value).includes(tag));
+
+    if (!lastChangedTag) {
+      setOptions(updatedOptions);
+      return;
+    }
+
+    const tagValue = lastChangedTag.value;
+
+    // Handle incompatible tags
+    const incompatible = incompatibleTags[tagValue] || [];
+    if (updatedOptions.length > allSelectedTags.length) {
+      // Tag was added
+      // Remove incompatible tags from other categories
+      setPackingOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
+      setExtraAttentionOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
+      setHandlingInfoOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
+      setDropPointsOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
+
+      // Add required tags
+      const required = requiredTags[tagValue] || [];
+      required.forEach((reqTagValue) => {
+        const reqOption = findOptionByValue(reqTagValue);
+        if (reqOption && !updatedOptions.find((opt) => opt.value === reqTagValue)) {
+          updatedOptions.push(reqOption);
+        }
+      });
+    }
+
+    setOptions(updatedOptions);
+  };
+
+  // Helper function to find option by value across all categories
+  const findOptionByValue = (value) => {
+    const allOptions = [
+      ...optionsData.itemTags.packing,
+      ...optionsData.itemTags.extraAttention,
+      ...optionsData.locationTags.handlingInfo,
+      ...optionsData.locationTags.dropPoints,
+    ];
+    return allOptions.find((opt) => opt.value === value);
+  };
 
   // Initialize the selected options based on the item's current tags
   useEffect(() => {
@@ -68,12 +154,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   // Function to handle saving the item
   const handleSaveItem = () => {
     // Collect all selected tags
-    const selectedTags = [
-      ...packingOptions.map((opt) => opt.value),
-      ...extraAttentionOptions.map((opt) => opt.value),
-      ...handlingInfoOptions.map((opt) => opt.value),
-      ...dropPointsOptions.map((opt) => opt.value),
-    ];
+    const selectedTags = getAllSelectedTags();
 
     // Create updated item instance
     const updatedItemInstance = {
@@ -81,6 +162,8 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
       tags: selectedTags,
       count: itemCount,
       notes: notes,
+      cuft: cuft,
+      lbs: lbs,
     };
 
     // Call the onUpdateItem callback with both updated and original instances
@@ -127,7 +210,33 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
       fontSize: '1rem',
       padding: '0 8px',
     }),
+    option: (base, state) => ({
+      ...base,
+      color: state.isDisabled ? '#ccc' : '#000',
+    }),
   };
+
+  // Function to disable incompatible options
+  const filterOptions = (options, selectedTags) => {
+    return options.map((option) => {
+      const isIncompatible = selectedTags.some((tag) => {
+        const incompatible = incompatibleTags[tag] || [];
+        return incompatible.includes(option.value);
+      });
+      return {
+        ...option,
+        isDisabled: isIncompatible,
+      };
+    });
+  };
+
+  // Prepare options with disabled incompatible options
+  const allSelectedTags = getAllSelectedTags();
+
+  const filteredPackingOptions = filterOptions(optionsData.itemTags.packing, allSelectedTags);
+  const filteredExtraAttentionOptions = filterOptions(optionsData.itemTags.extraAttention, allSelectedTags);
+  const filteredHandlingInfoOptions = filterOptions(optionsData.locationTags.handlingInfo, allSelectedTags);
+  const filteredDropPointsOptions = filterOptions(optionsData.locationTags.dropPoints, allSelectedTags);
 
   return (
     <div className={styles.popup}>
@@ -197,7 +306,8 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 <input
                   type="number"
                   id="cuft"
-                  defaultValue={item.cuft || ''}
+                  value={cuft}
+                  onChange={handleCuftChange}
                   className={`${styles.inputField} ${styles.inputNumberField}`}
                   aria-label="Cuft"
                 />
@@ -209,7 +319,8 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 <input
                   type="number"
                   id="lbs"
-                  defaultValue={item.lbs || ''}
+                  value={lbs}
+                  onChange={handleLbsChange}
                   className={`${styles.inputField} ${styles.inputNumberField}`}
                   aria-label="Lbs"
                 />
@@ -270,13 +381,14 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 className={styles.selectInput}
                 classNamePrefix={selectClassNamePrefix} // Ensure this is set
                 name="packing"
-                options={optionsData.itemTags.packing}
+                options={filteredPackingOptions}
                 placeholder="Packing"
                 value={packingOptions}
-                onChange={setPackingOptions}
+                onChange={(selectedOptions) => handleTagChange(selectedOptions, setPackingOptions, 'packing')}
                 aria-label="Item Tags - Packing"
                 components={{ Input: CustomInput }} // Use Custom Input
                 styles={customSelectStyles} // Apply custom styles
+                isOptionDisabled={(option) => option.isDisabled}
               />
             </div>
             <div className={styles.inputGroup}>
@@ -286,13 +398,14 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 className={styles.selectInput}
                 classNamePrefix={selectClassNamePrefix} // Ensure this is set
                 name="extraAttention"
-                options={optionsData.itemTags.extraAttention}
+                options={filteredExtraAttentionOptions}
                 placeholder="Extra Attention"
                 value={extraAttentionOptions}
-                onChange={setExtraAttentionOptions}
+                onChange={(selectedOptions) => handleTagChange(selectedOptions, setExtraAttentionOptions, 'extraAttention')}
                 aria-label="Item Tags - Extra Attention"
                 components={{ Input: CustomInput }} // Use Custom Input
                 styles={customSelectStyles} // Apply custom styles
+                isOptionDisabled={(option) => option.isDisabled}
               />
             </div>
           </div>
@@ -307,13 +420,14 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 className={styles.selectInput}
                 classNamePrefix={selectClassNamePrefix} // Ensure this is set
                 name="handlingInfo"
-                options={optionsData.locationTags.handlingInfo}
+                options={filteredHandlingInfoOptions}
                 placeholder="Handling Info"
                 value={handlingInfoOptions}
-                onChange={setHandlingInfoOptions}
+                onChange={(selectedOptions) => handleTagChange(selectedOptions, setHandlingInfoOptions, 'handlingInfo')}
                 aria-label="Location Tags - Handling Info"
                 components={{ Input: CustomInput }} // Use Custom Input
                 styles={customSelectStyles} // Apply custom styles
+                isOptionDisabled={(option) => option.isDisabled}
               />
             </div>
             <div className={styles.inputGroup}>
@@ -323,13 +437,14 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 className={styles.selectInput}
                 classNamePrefix={selectClassNamePrefix} // Ensure this is set
                 name="dropPoints"
-                options={optionsData.locationTags.dropPoints}
+                options={filteredDropPointsOptions}
                 placeholder="Drop Points"
                 value={dropPointsOptions}
-                onChange={setDropPointsOptions}
+                onChange={(selectedOptions) => handleTagChange(selectedOptions, setDropPointsOptions, 'dropPoints')}
                 aria-label="Location Tags - Drop Points"
                 components={{ Input: CustomInput }} // Use Custom Input
                 styles={customSelectStyles} // Apply custom styles
+                isOptionDisabled={(option) => option.isDisabled}
               />
             </div>
           </div>

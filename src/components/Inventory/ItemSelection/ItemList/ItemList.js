@@ -15,7 +15,7 @@ function ItemList({ items, itemClickCounts, onItemClick, isMyItemsActive, isDele
         let key, item, count, itemInstance;
 
         if (isMyItemsActive) {
-          key = `${itemData.itemId}-${itemData.tags.sort().join(',')}`;
+          key = `${itemData.itemId}-${itemData.tags.sort().join(',')}-${itemData.notes || ''}-${itemData.cuft || ''}-${itemData.lbs || ''}`;
           item = itemData.item;
           count = itemData.count;
           itemInstance = itemData; // The grouped item data

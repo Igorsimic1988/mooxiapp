@@ -96,11 +96,11 @@ function Inventory() {
   // Function to handle item selection
   const handleItemSelection = (clickedItem) => {
     if (!selectedRoom) return;
-
+  
     setRoomItemSelections((prevSelections) => {
       const currentRoomSelections = prevSelections[selectedRoom.id] || [];
       const updatedRoomSelections = [...currentRoomSelections];
-
+  
       if (isDeleteActive) {
         // Remove an instance of the item from the room selections
         const index = updatedRoomSelections.findIndex(
@@ -116,19 +116,29 @@ function Inventory() {
         if (isMyItemsActive) {
           // clickedItem is grouped item data when isMyItemsActive is true
           newItemInstance = {
-            ...clickedItem,
             id: uuidv4(), // Assign a new unique ID
+            groupId: uuidv4(), // Assign a unique groupId
+            itemId: clickedItem.itemId,
+            item: { ...clickedItem.item }, // Make a copy of the item
+            tags: [...clickedItem.tags], // Copy tags
+            notes: clickedItem.notes || '', // Copy notes
+            cuft: clickedItem.cuft || '', // Copy cuft
+            lbs: clickedItem.lbs || '', // Copy lbs
           };
         } else {
           // clickedItem is a regular item
           newItemInstance = {
             id: uuidv4(), // Generate a unique ID for this instance
+            groupId: uuidv4(), // Assign a unique groupId
             itemId: clickedItem.id.toString(),
-            item: clickedItem,
+            item: { ...clickedItem }, // Make a shallow copy to prevent mutations
             tags: [...clickedItem.tags], // Copy default tags from the original item
+            notes: '', // Default notes
+            cuft: '', // Default cuft
+            lbs: '', // Default lbs
           };
         }
-
+  
         // Check if the selected room is 'Disposal' (id: 45)
         if (selectedRoom.id === 45) {
           // Ensure 'disposal' tag is added
@@ -136,10 +146,10 @@ function Inventory() {
             newItemInstance.tags.push('disposal');
           }
         }
-
+  
         updatedRoomSelections.push(newItemInstance);
       }
-
+  
       return {
         ...prevSelections,
         [selectedRoom.id]: updatedRoomSelections,
@@ -183,41 +193,77 @@ function Inventory() {
   };
 
   // Function to handle item updates from ItemPopup
-  const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
-    setRoomItemSelections((prevSelections) => {
-      const updatedSelections = { ...prevSelections };
-      const roomItems = updatedSelections[selectedRoom.id] || [];
-  
-      // Remove all item instances that match the original itemId and tags
-      const updatedRoomItems = roomItems.filter(
-        (itemInstance) =>
-          !(
-            itemInstance.itemId === originalItemInstance.itemId &&
-            JSON.stringify(itemInstance.tags.sort()) ===
-              JSON.stringify(originalItemInstance.tags.sort())
-          )
-      );
-  
-      const newCount = updatedItemInstance.count || 1;
-  
-      // Create new item instances based on new count
-      for (let i = 0; i < newCount; i++) {
-        const newItemInstance = {
-          ...updatedItemInstance,
-          id: uuidv4(), // Generate a new unique ID
-          item: updatedItemInstance.item || originalItemInstance.item,
-          itemId: updatedItemInstance.itemId || originalItemInstance.itemId,
-          // Ensure tags and notes are included
-          tags: updatedItemInstance.tags,
-          notes: updatedItemInstance.notes,
-        };
-        updatedRoomItems.push(newItemInstance);
+  // src/components/Inventory/Inventory.js
+
+const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
+  setRoomItemSelections((prevSelections) => {
+    const updatedSelections = { ...prevSelections };
+    const roomItems = updatedSelections[selectedRoom.id] || [];
+
+    // Generate the original grouping key
+    const originalKey = `${originalItemInstance.itemId}-${originalItemInstance.tags.sort().join(',')}-${originalItemInstance.notes || ''}-${originalItemInstance.cuft || ''}-${originalItemInstance.lbs || ''}`;
+
+    // Generate the updated grouping key
+    const updatedKey = `${updatedItemInstance.itemId}-${updatedItemInstance.tags.sort().join(',')}-${updatedItemInstance.notes || ''}-${updatedItemInstance.cuft || ''}-${updatedItemInstance.lbs || ''}`;
+
+    // Update the groupId if the grouping key has changed
+    const newGroupId = originalKey === updatedKey ? originalItemInstance.groupId : uuidv4();
+
+    // Use the original item
+    const baseItemInstance = {
+      itemId: originalItemInstance.itemId,
+      item: originalItemInstance.item,
+      groupId: newGroupId, // Use the new or original groupId
+      tags: updatedItemInstance.tags,
+      notes: updatedItemInstance.notes,
+      cuft: updatedItemInstance.cuft,
+      lbs: updatedItemInstance.lbs,
+    };
+
+    // Find indices of items to update
+    const indicesToUpdate = roomItems.reduce((indices, itemInstance, index) => {
+      // Match items with the same original grouping key
+      const instanceKey = `${itemInstance.itemId}-${itemInstance.tags.sort().join(',')}-${itemInstance.notes || ''}-${itemInstance.cuft || ''}-${itemInstance.lbs || ''}`;
+      if (instanceKey === originalKey) {
+        indices.push(index);
       }
-  
-      updatedSelections[selectedRoom.id] = updatedRoomItems;
-      return updatedSelections;
-    });
-  };
+      return indices;
+    }, []);
+
+    const oldCount = indicesToUpdate.length;
+    const newCount = updatedItemInstance.count || 1;
+
+    // Update existing instances
+    for (let i = 0; i < Math.min(oldCount, newCount); i++) {
+      const index = indicesToUpdate[i];
+      roomItems[index] = {
+        ...roomItems[index],
+        ...baseItemInstance,
+        id: roomItems[index].id, // Keep existing id
+      };
+    }
+
+    // Add or remove instances as needed
+    if (newCount > oldCount) {
+      // Add new instances
+      for (let i = oldCount; i < newCount; i++) {
+        roomItems.push({
+          ...baseItemInstance,
+          id: uuidv4(),
+        });
+      }
+    } else if (newCount < oldCount) {
+      // Remove extra instances
+      for (let i = oldCount - 1; i >= newCount; i--) {
+        roomItems.splice(indicesToUpdate[i], 1);
+      }
+    }
+
+    updatedSelections[selectedRoom.id] = roomItems;
+    return updatedSelections;
+  });
+};
+
 
   return (
     <div className={styles.inventoryContainer}>

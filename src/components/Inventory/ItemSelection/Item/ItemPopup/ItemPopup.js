@@ -21,7 +21,7 @@ const MultiValue = (props) => {
   const { data } = props;
   return (
     <components.MultiValue {...props}>
-      <span>{`${data.label} (${data.count})`}</span>
+      <span>{`${data.name} (${data.count})`}</span>
     </components.MultiValue>
   );
 };
@@ -36,18 +36,24 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   const [lbs, setLbs] = useState(itemInstance.lbs || item.lbs || '');
 
   // State for item count and notes
-  const [itemCount, setItemCount] = useState(itemInstance.count || 1);
+  const [itemCount, setItemCount] = useState(
+    itemInstance.count !== undefined ? itemInstance.count : 1
+  );
+  
   const [notes, setNotes] = useState(itemInstance.notes || '');
 
   // State for packing needs counts
   const [packingNeedsCounts, setPackingNeedsCounts] = useState({});
 
   // Convert packingNeedsCounts to array for Select component
-  const selectedPackingNeeds = Object.keys(packingNeedsCounts).map((key) => ({
-    value: key,
-    label: packingOptions.find((opt) => opt.value === key)?.label || key,
-    count: packingNeedsCounts[key],
-  }));
+  const selectedPackingNeeds = Object.keys(packingNeedsCounts).map((key) => {
+    const option = packingOptions.find((opt) => opt.value === key);
+    return {
+      value: key,
+      name: option ? option.name : key, // Include 'name' property
+      count: packingNeedsCounts[key],
+    };
+  });
 
   // Custom className prefix for react-select
   const selectClassNamePrefix = "custom-select";
@@ -136,7 +142,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
     return allOptions.find((opt) => opt.value === value);
   };
 
-  // Initialize the selected options based on the item's current tags
+  // Initialize the selected options based on the item's current tags and packing needs
   useEffect(() => {
     if (itemInstance && itemInstance.tags) {
       const allOptions = [
@@ -171,11 +177,19 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
         )
       );
     }
+
     // Initialize packing needs counts
     if (itemInstance && itemInstance.packingNeedsCounts) {
       setPackingNeedsCounts(itemInstance.packingNeedsCounts);
+    } else if (item.packing && item.packing.length > 0) {
+      // Initialize packingNeedsCounts from item's default packing
+      const counts = {};
+      item.packing.forEach((pack) => {
+        counts[pack.type] = pack.quantity;
+      });
+      setPackingNeedsCounts(counts);
     }
-  }, [itemInstance]);
+  }, [itemInstance, item]);
 
   // Function to handle packing needs change
   const handlePackingNeedsChange = (selectedOptions, actionMeta) => {
@@ -210,7 +224,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   const handleSaveItem = () => {
     // Collect all selected tags
     const selectedTags = getAllSelectedTags();
-
+  
     // Create updated item instance
     const updatedItemInstance = {
       ...itemInstance,
@@ -221,10 +235,10 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
       lbs: lbs,
       packingNeedsCounts: packingNeedsCounts, // Save counts
     };
-
+  
     // Call the onUpdateItem callback with both updated and original instances
     onUpdateItem(updatedItemInstance, itemInstance);
-
+  
     onClose(); // Close the popup after saving
   };
 
@@ -234,12 +248,12 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   };
 
   const handleDecrement = () => {
-    setItemCount((prevCount) => (prevCount > 1 ? prevCount - 1 : 1));
+    setItemCount((prevCount) => (prevCount > 0 ? prevCount - 1 : 0));
   };
 
   const handleCountChange = (e) => {
     const value = parseInt(e.target.value, 10);
-    setItemCount(value > 0 ? value : 1);
+    setItemCount(value >= 0 ? value : 0);
   };
 
   // Handler for notes
@@ -291,6 +305,9 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   const filteredHandlingInfoOptions = filterOptions(optionsData.locationTags.handlingInfo, allSelectedTags);
   const filteredDropPointsOptions = filterOptions(optionsData.locationTags.dropPoints, allSelectedTags);
 
+  // Determine if 'cp_packed_by_movers' is selected
+  const isCpPackedByMoversSelected = selectedPackingTags.some(tag => tag.value === 'cp_packed_by_movers');
+
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent}>
@@ -335,7 +352,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                     value={itemCount}
                     onChange={handleCountChange}
                     step="1"
-                    min="1"
+                    min="0"
                     className={styles.inputNumber}
                     aria-label="Item count"
                   />
@@ -501,35 +518,51 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
               />
             </div>
           </div>
+          {/* Informational Message */}
+{!isCpPackedByMoversSelected && (
+  <div className={styles.infoMessage}>
+    <p>
+    Select 'CP Packed by Movers' to specify packing materials.
+    </p>
+  </div>
+)}
+
 
           {/* New Section: Packing Needs */}
-          <div className={styles.section}>
-            <p className={styles.sectionLabel}>Packing Needs</p>
-            <div className={styles.inputGroup}>
-            <Select
-  isMulti
-  isClearable
-  className={styles.selectInput}
-  classNamePrefix={selectClassNamePrefix}
-  name="packingNeeds"
-  options={packingOptions}
-  placeholder="Select Packing Needs"
-  value={selectedPackingNeeds}
-  onChange={handlePackingNeedsChange}
-  aria-label="Packing Needs"
-  getOptionLabel={(option) => option.name}
-  getOptionValue={(option) => option.value}
-  components={{
-    DropdownIndicator: () => null,
-    IndicatorSeparator: () => null,
-    MultiValue,
-  }}
-  styles={customSelectStyles}
-  hideSelectedOptions={false}
-  isOptionSelected={() => false}
-/>
+          {/* Conditionally render this section based on 'cp_packed_by_movers' tag */}
+          {isCpPackedByMoversSelected && (
+            <div className={styles.section}>
+              <p className={styles.sectionLabel}>Packing Needs</p>
+              <div className={styles.inputGroup}>
+                <Select
+                  isMulti
+                  isClearable
+                  className={styles.selectInput}
+                  classNamePrefix={selectClassNamePrefix}
+                  name="packingNeeds"
+                  options={packingOptions}
+                  placeholder="Select Packing Needs"
+                  value={selectedPackingNeeds}
+                  onChange={handlePackingNeedsChange}
+                  aria-label="Packing Needs"
+                  getOptionLabel={(option) => option.name} // Use 'name' for labels
+                  getOptionValue={(option) => option.value}
+                  components={{
+                    DropdownIndicator: () => null,
+                    IndicatorSeparator: () => null,
+                    MultiValue,
+                  }}
+                  styles={customSelectStyles}
+                  hideSelectedOptions={false}
+                  isOptionSelected={() => false}
+                  // Ensure the input displays the 'name' of the selected option
+                  formatOptionLabel={(option, { context }) =>
+                    context === 'value' ? option.name : option.name
+                  }
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Save Button */}

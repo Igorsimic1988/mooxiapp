@@ -15,7 +15,7 @@ function ItemList({ items, itemClickCounts, onItemClick, isMyItemsActive, isDele
         let key, item, count, itemInstance;
 
         if (isMyItemsActive) {
-          key = `${itemData.itemId}-${itemData.tags.sort().join(',')}-${itemData.notes || ''}-${itemData.cuft || ''}-${itemData.lbs || ''}`;
+          key = itemData.groupingKey; // Use groupingKey as the key
           item = itemData.item;
           count = itemData.count;
           itemInstance = itemData; // The grouped item data
@@ -34,8 +34,8 @@ function ItemList({ items, itemClickCounts, onItemClick, isMyItemsActive, isDele
             onItemClick={() => onItemClick(itemData)}
             isMyItemsActive={isMyItemsActive}
             isDeleteActive={isDeleteActive}
-            onUpdateItem={onUpdateItem} // **Pass the onUpdateItem function**
-            itemInstance={itemInstance} // **Pass the item instance**
+            onUpdateItem={onUpdateItem}
+            itemInstance={itemInstance}
           />
         );
       })}

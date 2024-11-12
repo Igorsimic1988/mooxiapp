@@ -97,6 +97,18 @@ function Inventory() {
     }
   };
 
+  // Helper function to generate the grouping key
+  const generateGroupingKey = (instance) => {
+    const tagsKey = instance.tags.sort().join(',');
+    const notesKey = instance.notes || '';
+    const cuftKey = instance.cuft || '';
+    const lbsKey = instance.lbs || '';
+    const packingNeedsEntries = Object.entries(instance.packingNeedsCounts || {}).sort();
+    const packingNeedsKey = packingNeedsEntries.map(([key, value]) => `${key}:${value}`).join(',');
+
+    return `${instance.itemId}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}`;
+  };
+
   // Function to handle item selection
   const handleItemSelection = (clickedItem) => {
     if (!selectedRoom) return;
@@ -128,9 +140,17 @@ function Inventory() {
             notes: clickedItem.notes || '', // Copy notes
             cuft: clickedItem.cuft || '', // Copy cuft
             lbs: clickedItem.lbs || '', // Copy lbs
+            packingNeedsCounts: { ...clickedItem.packingNeedsCounts }, // Copy packingNeedsCounts
           };
         } else {
           // clickedItem is a regular item
+          let defaultPackingNeedsCounts = {};
+          if (clickedItem.packing && clickedItem.packing.length > 0) {
+            clickedItem.packing.forEach((pack) => {
+              defaultPackingNeedsCounts[pack.type] = pack.quantity;
+            });
+          }
+
           newItemInstance = {
             id: uuidv4(), // Generate a unique ID for this instance
             groupId: uuidv4(), // Assign a unique groupId
@@ -140,6 +160,7 @@ function Inventory() {
             notes: '', // Default notes
             cuft: '', // Default cuft
             lbs: '', // Default lbs
+            packingNeedsCounts: defaultPackingNeedsCounts, // Include default packing needs
           };
         }
 
@@ -201,16 +222,14 @@ function Inventory() {
     setRoomItemSelections((prevSelections) => {
       const updatedSelections = { ...prevSelections };
       const roomItems = updatedSelections[selectedRoom.id] || [];
-
-      // Generate the original grouping key
-      const originalKey = `${originalItemInstance.itemId}-${originalItemInstance.tags.sort().join(',')}-${originalItemInstance.notes || ''}-${originalItemInstance.cuft || ''}-${originalItemInstance.lbs || ''}`;
-
-      // Generate the updated grouping key
-      const updatedKey = `${updatedItemInstance.itemId}-${updatedItemInstance.tags.sort().join(',')}-${updatedItemInstance.notes || ''}-${updatedItemInstance.cuft || ''}-${updatedItemInstance.lbs || ''}`;
-
+  
+      // Generate the original and updated grouping keys
+      const originalKey = generateGroupingKey(originalItemInstance);
+      const updatedKey = generateGroupingKey(updatedItemInstance);
+  
       // Update the groupId if the grouping key has changed
       const newGroupId = originalKey === updatedKey ? originalItemInstance.groupId : uuidv4();
-
+  
       // Use the original item
       const baseItemInstance = {
         itemId: originalItemInstance.itemId,
@@ -220,51 +239,64 @@ function Inventory() {
         notes: updatedItemInstance.notes,
         cuft: updatedItemInstance.cuft,
         lbs: updatedItemInstance.lbs,
+        packingNeedsCounts: updatedItemInstance.packingNeedsCounts, // Include packingNeedsCounts
       };
-
+  
       // Find indices of items to update
       const indicesToUpdate = roomItems.reduce((indices, itemInstance, index) => {
         // Match items with the same original grouping key
-        const instanceKey = `${itemInstance.itemId}-${itemInstance.tags.sort().join(',')}-${itemInstance.notes || ''}-${itemInstance.cuft || ''}-${itemInstance.lbs || ''}`;
+        const instanceKey = generateGroupingKey(itemInstance);
         if (instanceKey === originalKey) {
           indices.push(index);
         }
         return indices;
       }, []);
-
+  
       const oldCount = indicesToUpdate.length;
-      const newCount = updatedItemInstance.count || 1;
+      const newCount =
+  updatedItemInstance.count !== undefined
+    ? updatedItemInstance.count
+    : 1;
 
-      // Update existing instances
-      for (let i = 0; i < Math.min(oldCount, newCount); i++) {
-        const index = indicesToUpdate[i];
-        roomItems[index] = {
-          ...roomItems[index],
-          ...baseItemInstance,
-          id: roomItems[index].id, // Keep existing id
-        };
-      }
-
-      // Add or remove instances as needed
-      if (newCount > oldCount) {
-        // Add new instances
-        for (let i = oldCount; i < newCount; i++) {
-          roomItems.push({
-            ...baseItemInstance,
-            id: uuidv4(),
-          });
-        }
-      } else if (newCount < oldCount) {
-        // Remove extra instances
-        for (let i = oldCount - 1; i >= newCount; i--) {
+  
+      if (newCount === 0) {
+        // Remove all instances matching the original key
+        for (let i = indicesToUpdate.length - 1; i >= 0; i--) {
           roomItems.splice(indicesToUpdate[i], 1);
         }
+      } else {
+        // Update existing instances
+        for (let i = 0; i < Math.min(oldCount, newCount); i++) {
+          const index = indicesToUpdate[i];
+          roomItems[index] = {
+            ...roomItems[index],
+            ...baseItemInstance,
+            id: roomItems[index].id, // Keep existing id
+          };
+        }
+  
+        // Add or remove instances as needed
+        if (newCount > oldCount) {
+          // Add new instances
+          for (let i = oldCount; i < newCount; i++) {
+            roomItems.push({
+              ...baseItemInstance,
+              id: uuidv4(),
+            });
+          }
+        } else if (newCount < oldCount) {
+          // Remove extra instances
+          for (let i = oldCount - 1; i >= newCount; i--) {
+            roomItems.splice(indicesToUpdate[i], 1);
+          }
+        }
       }
-
+  
       updatedSelections[selectedRoom.id] = roomItems;
       return updatedSelections;
     });
   };
+  
 
   // Helper function to get item data by itemId
   const getItemById = (itemId) => {
@@ -277,16 +309,16 @@ function Inventory() {
       // Do nothing when toggle is off
       return;
     }
-
+  
     // Exclude room id 13 (Boxes room) and specific itemIds
     const excludedRoomId = '13';
     const excludedItemIds = ['529', '530', '531', '532', '533', '534', '535', '536', '537'];
-
+  
     // Calculate total lbs
     let totalLbs = 0;
     Object.keys(roomItemSelections).forEach((roomId) => {
       if (roomId === excludedRoomId) return;
-
+  
       const items = roomItemSelections[roomId];
       items.forEach((itemInstance) => {
         if (!excludedItemIds.includes(itemInstance.itemId)) {
@@ -298,20 +330,20 @@ function Inventory() {
         }
       });
     });
-
+  
     // Check if totalLbs has changed
     if (prevTotalLbsRef.current === totalLbs) {
       // No change in total lbs, no need to update boxes
       return;
     }
-
+  
     prevTotalLbsRef.current = totalLbs;
-
+  
     // Calculate number of boxes needed
     const boxesPer200lbs = 3;
     const num200lbsUnits = Math.ceil(totalLbs / 200);
     const totalBoxesNeeded = num200lbsUnits * boxesPer200lbs;
-
+  
     // Box distribution
     const distribution = [
       { percent: 0.10, itemId: '533' }, // Box Dishpack
@@ -320,50 +352,60 @@ function Inventory() {
       { percent: 0.45, itemId: '535' }, // Box Medium 3 cuft
       { percent: 0.20, itemId: '536' }, // Box Small 1.5 cuft
     ];
-
+  
     // Calculate boxes to add
     const boxesToAdd = distribution.map((dist) => {
       const count = Math.round(totalBoxesNeeded * dist.percent);
       return { itemId: dist.itemId, count };
     });
-
+  
     // Update the "Boxes" room
     setRoomItemSelections((prevSelections) => {
       const updatedSelections = { ...prevSelections };
       const boxesRoomId = '13';
       const currentBoxes = updatedSelections[boxesRoomId] || [];
-
+  
       // Remove existing auto-added boxes
       const nonAutoBoxes = currentBoxes.filter((item) => !item.autoAdded);
-
+  
       // Generate new auto-added boxes
       const newBoxItems = [];
-
+  
       boxesToAdd.forEach((box) => {
         for (let i = 0; i < box.count; i++) {
           const itemData = getItemById(box.itemId);
           if (itemData) {
+            // Initialize packingNeedsCounts based on itemData.packing
+            let packingNeedsCounts = {};
+            if (itemData.packing && itemData.packing.length > 0) {
+              itemData.packing.forEach((pack) => {
+                packingNeedsCounts[pack.type] = pack.quantity;
+              });
+            }
+  
             const newItemInstance = {
               id: uuidv4(),
               groupId: uuidv4(),
               itemId: box.itemId,
               item: { ...itemData },
-              tags: [],
+              tags: [...itemData.tags], // Assign default tags
               notes: '',
               cuft: itemData.cuft || '',
               lbs: itemData.lbs || '',
+              packingNeedsCounts: packingNeedsCounts, // Initialize packing needs
               autoAdded: true, // Mark as auto-added
             };
             newBoxItems.push(newItemInstance);
           }
         }
       });
-
+  
       // Update the "Boxes" room items
       updatedSelections[boxesRoomId] = [...nonAutoBoxes, ...newBoxItems];
       return updatedSelections;
     });
   }, [isToggled, roomItemSelections]);
+  
 
   return (
     <div className={styles.inventoryContainer}>

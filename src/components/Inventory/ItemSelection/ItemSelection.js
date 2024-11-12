@@ -25,7 +25,6 @@ function ItemSelection({
   isToggled,
   setIsToggled,
 }) {
-
   const handleToggle = () => {
     setIsToggled((prev) => !prev);
   };
@@ -59,10 +58,22 @@ function ItemSelection({
     onSubButtonSelect(letter, subButton);
   };
 
+  // Helper function to generate the grouping key
+  const generateGroupingKey = (instance) => {
+    const tagsKey = instance.tags.sort().join(',');
+    const notesKey = instance.notes || '';
+    const cuftKey = instance.cuft || '';
+    const lbsKey = instance.lbs || '';
+    const packingNeedsEntries = Object.entries(instance.packingNeedsCounts || {}).sort();
+    const packingNeedsKey = packingNeedsEntries.map(([key, value]) => `${key}:${value}`).join(',');
+  
+    return `${instance.itemId}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}`;
+  };
+
   // Compute itemCounts based on isMyItemsActive
   const itemCounts = itemInstances.reduce((counts, instance) => {
     if (isMyItemsActive) {
-      const key = `${instance.itemId}-${instance.tags.sort().join(',')}`;
+      const key = generateGroupingKey(instance);
       counts[key] = (counts[key] || 0) + 1;
     } else {
       const key = instance.itemId;
@@ -75,17 +86,19 @@ function ItemSelection({
   const groupedItems = isMyItemsActive
   ? Object.values(
       itemInstances.reduce((groups, instance) => {
-        const key = `${instance.itemId}-${instance.tags.sort().join(',')}-${instance.notes || ''}-${instance.cuft || ''}-${instance.lbs || ''}`;
+        const key = generateGroupingKey(instance);
         if (!groups[key]) {
           groups[key] = {
+            groupingKey: key, // Include the groupingKey
             itemId: instance.itemId,
             item: instance.item,
-            tags: [...instance.tags], // Make a copy of tags
-            notes: instance.notes,    // Include notes
-            cuft: instance.cuft,      // Include cuft
-            lbs: instance.lbs,        // Include lbs
+            tags: [...instance.tags],
+            notes: instance.notes,
+            cuft: instance.cuft,
+            lbs: instance.lbs,
+            packingNeedsCounts: { ...instance.packingNeedsCounts },
             count: 1,
-            id: instance.id,          // Keep the instance ID
+            id: instance.id,
           };
         } else {
           groups[key].count += 1;
@@ -141,13 +154,13 @@ function ItemSelection({
 
       <main className={styles.mainContent}>
         <div className={styles.scrollableItemList}>
-          <ItemList
-            items={filteredItems} // Pass the filtered items to ItemList
-            itemClickCounts={itemCounts} // Pass the computed itemCounts
+        <ItemList
+            items={filteredItems}
+            itemClickCounts={itemCounts}
             onItemClick={onItemClick}
-            isMyItemsActive={isMyItemsActive} // Pass the state to ItemList
+            isMyItemsActive={isMyItemsActive}
             isDeleteActive={isDeleteActive}
-            onUpdateItem={onUpdateItem} // **Pass the onUpdateItem function**
+            onUpdateItem={onUpdateItem}
           />
         </div>
       </main>

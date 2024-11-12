@@ -9,14 +9,26 @@ import { ReactComponent as LinkIcon } from "../../../../../assets/icons/pastelin
 import { optionsData } from "../../../../../data/constants/optionsData";
 import Select, { components } from 'react-select';
 
+import packingOptions from "../../../../../data/constants/packingOptions";
+
 // Custom Input component to prevent mobile keyboard from opening
 const CustomInput = (props) => {
   return <components.Input {...props} readOnly />;
 };
 
+// Custom MultiValue component to display counts
+const MultiValue = (props) => {
+  const { data } = props;
+  return (
+    <components.MultiValue {...props}>
+      <span>{`${data.label} (${data.count})`}</span>
+    </components.MultiValue>
+  );
+};
+
 function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   // State to manage selected options
-  const [packingOptions, setPackingOptions] = useState([]);
+  const [selectedPackingTags, setSelectedPackingTags] = useState([]);
   const [extraAttentionOptions, setExtraAttentionOptions] = useState([]);
   const [handlingInfoOptions, setHandlingInfoOptions] = useState([]);
   const [dropPointsOptions, setDropPointsOptions] = useState([]);
@@ -26,6 +38,16 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   // State for item count and notes
   const [itemCount, setItemCount] = useState(itemInstance.count || 1);
   const [notes, setNotes] = useState(itemInstance.notes || '');
+
+  // State for packing needs counts
+  const [packingNeedsCounts, setPackingNeedsCounts] = useState({});
+
+  // Convert packingNeedsCounts to array for Select component
+  const selectedPackingNeeds = Object.keys(packingNeedsCounts).map((key) => ({
+    value: key,
+    label: packingOptions.find((opt) => opt.value === key)?.label || key,
+    count: packingNeedsCounts[key],
+  }));
 
   // Custom className prefix for react-select
   const selectClassNamePrefix = "custom-select";
@@ -56,7 +78,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   // Combine all selected tags into one array
   const getAllSelectedTags = () => {
     return [
-      ...packingOptions.map((opt) => opt.value),
+      ...selectedPackingTags.map((opt) => opt.value),
       ...extraAttentionOptions.map((opt) => opt.value),
       ...handlingInfoOptions.map((opt) => opt.value),
       ...dropPointsOptions.map((opt) => opt.value),
@@ -85,7 +107,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
     if (updatedOptions.length > allSelectedTags.length) {
       // Tag was added
       // Remove incompatible tags from other categories
-      setPackingOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
+      setSelectedPackingTags((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
       setExtraAttentionOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
       setHandlingInfoOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
       setDropPointsOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
@@ -128,7 +150,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
         .map((tag) => allOptions.find((opt) => opt.value === tag))
         .filter(Boolean);
 
-      setPackingOptions(
+      setSelectedPackingTags(
         selectedOptions.filter((opt) =>
           optionsData.itemTags.packing.some((o) => o.value === opt.value)
         )
@@ -149,7 +171,40 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
         )
       );
     }
+    // Initialize packing needs counts
+    if (itemInstance && itemInstance.packingNeedsCounts) {
+      setPackingNeedsCounts(itemInstance.packingNeedsCounts);
+    }
   }, [itemInstance]);
+
+  // Function to handle packing needs change
+  const handlePackingNeedsChange = (selectedOptions, actionMeta) => {
+    if (actionMeta.action === 'select-option' && actionMeta.option) {
+      const selectedOption = actionMeta.option;
+      setPackingNeedsCounts((prevCounts) => ({
+        ...prevCounts,
+        [selectedOption.value]: (prevCounts[selectedOption.value] || 0) + 1,
+      }));
+    } else if (actionMeta.action === 'remove-value' && actionMeta.removedValue) {
+      const removedOption = actionMeta.removedValue;
+      handleRemovePackingNeed(removedOption);
+    } else if (actionMeta.action === 'clear') {
+      setPackingNeedsCounts({});
+    }
+  };
+
+  // Function to remove a packing need
+  const handleRemovePackingNeed = (option) => {
+    setPackingNeedsCounts((prevCounts) => {
+      const newCounts = { ...prevCounts };
+      if (newCounts[option.value] > 1) {
+        newCounts[option.value] -= 1;
+      } else {
+        delete newCounts[option.value];
+      }
+      return newCounts;
+    });
+  };
 
   // Function to handle saving the item
   const handleSaveItem = () => {
@@ -164,6 +219,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
       notes: notes,
       cuft: cuft,
       lbs: lbs,
+      packingNeedsCounts: packingNeedsCounts, // Save counts
     };
 
     // Call the onUpdateItem callback with both updated and original instances
@@ -195,16 +251,13 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   const customSelectStyles = {
     multiValueRemove: (base, state) => ({
       ...base,
-      // Increase the size of the 'x' button
-      fontSize: '1.2rem', // Larger font size
-      padding: '4px',     // Increased padding
+      fontSize: '1.2rem',
+      padding: '4px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       cursor: 'pointer',
-      // Optionally add more styles
     }),
-    // Optionally, you can adjust the size of the multi-value label
     multiValueLabel: (base, state) => ({
       ...base,
       fontSize: '1rem',
@@ -383,8 +436,8 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 name="packing"
                 options={filteredPackingOptions}
                 placeholder="Packing"
-                value={packingOptions}
-                onChange={(selectedOptions) => handleTagChange(selectedOptions, setPackingOptions, 'packing')}
+                value={selectedPackingTags}
+                onChange={(selectedOptions) => handleTagChange(selectedOptions, setSelectedPackingTags, 'packing')}
                 aria-label="Item Tags - Packing"
                 components={{ Input: CustomInput }} // Use Custom Input
                 styles={customSelectStyles} // Apply custom styles
@@ -446,6 +499,35 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 styles={customSelectStyles} // Apply custom styles
                 isOptionDisabled={(option) => option.isDisabled}
               />
+            </div>
+          </div>
+
+          {/* New Section: Packing Needs */}
+          <div className={styles.section}>
+            <p className={styles.sectionLabel}>Packing Needs</p>
+            <div className={styles.inputGroup}>
+            <Select
+  isMulti
+  isClearable
+  className={styles.selectInput}
+  classNamePrefix={selectClassNamePrefix}
+  name="packingNeeds"
+  options={packingOptions}
+  placeholder="Select Packing Needs"
+  value={selectedPackingNeeds}
+  onChange={handlePackingNeedsChange}
+  aria-label="Packing Needs"
+  getOptionLabel={(option) => option.name}
+  getOptionValue={(option) => option.value}
+  components={{
+    DropdownIndicator: () => null,
+    IndicatorSeparator: () => null,
+    MultiValue,
+  }}
+  styles={customSelectStyles}
+  hideSelectedOptions={false}
+  isOptionSelected={() => false}
+/>
             </div>
           </div>
         </div>

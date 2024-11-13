@@ -396,6 +396,24 @@
   background-color: #358dc4;
 }
 
+.newItemButton {
+  background-color: white;
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 10px 20px;
+  border: 1px solid var(--Blue, #3FA9F5);
+  border-radius: 12px;
+  cursor: pointer;
+  width: 100%; /* Make the button full width */
+  margin-top: 10px; /* Add spacing below the Save button */
+}
+
+.newItemButton:hover {
+  background-color: #f5f5f5; /* Optional: Change background on hover */
+}
+
 /* -------------------- */
 /* Modified Section Styles */
 /* -------------------- */
@@ -512,4 +530,17 @@
 .infoMessage p {
   margin: 0;
   font-size: 0.9rem;
+}
+
+@keyframes highlightNewItem {
+  0% {
+    background-color: #91CFF9; /* Semi-transparent blue with 20% opacity */
+  }
+  100% {
+    background-color: white;
+  }
+}
+
+.newItemAnimation {
+  animation: highlightNewItem 1s ease-in-out;
 }

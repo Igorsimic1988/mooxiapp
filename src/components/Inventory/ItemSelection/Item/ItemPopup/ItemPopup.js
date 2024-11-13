@@ -1,15 +1,15 @@
 // src/components/Inventory/ItemSelection/Item/ItemPopup.js
 
-import React, { useEffect, useState } from "react";
-import styles from "./ItemPopup.module.css";
-import { ReactComponent as CloseIcon } from "../../../../../assets/icons/Close.svg";
-import { ReactComponent as CameraIcon } from "../../../../../assets/icons/cameraroll.svg";
-import { ReactComponent as UploadIcon } from "../../../../../assets/icons/upload.svg";
-import { ReactComponent as LinkIcon } from "../../../../../assets/icons/pastelink.svg";
-import { optionsData } from "../../../../../data/constants/optionsData";
+import React, { useEffect, useState } from 'react';
+import styles from './ItemPopup.module.css';
+import { ReactComponent as CloseIcon } from '../../../../../assets/icons/Close.svg';
+import { ReactComponent as CameraIcon } from '../../../../../assets/icons/cameraroll.svg';
+import { ReactComponent as UploadIcon } from '../../../../../assets/icons/upload.svg';
+import { ReactComponent as LinkIcon } from '../../../../../assets/icons/pastelink.svg';
+import { optionsData } from '../../../../../data/constants/optionsData';
 import Select, { components } from 'react-select';
-
-import packingOptions from "../../../../../data/constants/packingOptions";
+import { v4 as uuidv4 } from 'uuid';
+import packingOptions from '../../../../../data/constants/packingOptions';
 
 // Custom Input component to prevent mobile keyboard from opening
 const CustomInput = (props) => {
@@ -26,21 +26,34 @@ const MultiValue = (props) => {
   );
 };
 
-function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
+function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
+  // Define generateGroupingKey inside the component
+  const generateGroupingKey = (instance) => {
+    const tagsKey = instance.tags.sort().join(',');
+    const notesKey = instance.notes || '';
+    const cuftKey = instance.cuft || '';
+    const lbsKey = instance.lbs || '';
+    const packingNeedsEntries = Object.entries(instance.packingNeedsCounts || {}).sort();
+    const packingNeedsKey = packingNeedsEntries.map(([key, value]) => `${key}:${value}`).join(',');
+
+    return `${instance.itemId}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}`;
+  };
+
+  // Initialize local state for itemInstance
+  const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
+
   // State to manage selected options
   const [selectedPackingTags, setSelectedPackingTags] = useState([]);
   const [extraAttentionOptions, setExtraAttentionOptions] = useState([]);
   const [handlingInfoOptions, setHandlingInfoOptions] = useState([]);
   const [dropPointsOptions, setDropPointsOptions] = useState([]);
-  const [cuft, setCuft] = useState(itemInstance.cuft || item.cuft || '');
-  const [lbs, setLbs] = useState(itemInstance.lbs || item.lbs || '');
+  const [cuft, setCuft] = useState('');
+  const [lbs, setLbs] = useState('');
 
   // State for item count and notes
-  const [itemCount, setItemCount] = useState(
-    itemInstance.count !== undefined ? itemInstance.count : 1
-  );
-  
-  const [notes, setNotes] = useState(itemInstance.notes || '');
+  const [itemCount, setItemCount] = useState(1);
+  const [notes, setNotes] = useState('');
+  const [isNewItem, setIsNewItem] = useState(false);
 
   // State for packing needs counts
   const [packingNeedsCounts, setPackingNeedsCounts] = useState({});
@@ -56,7 +69,104 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   });
 
   // Custom className prefix for react-select
-  const selectClassNamePrefix = "custom-select";
+  const selectClassNamePrefix = 'custom-select';
+
+  // Initialize the selected options based on the currentItemInstance's tags and packing needs
+  useEffect(() => {
+    if (currentItemInstance && currentItemInstance.tags) {
+      // Initialize selected options based on currentItemInstance's tags
+      const allOptions = [
+        ...optionsData.itemTags.packing,
+        ...optionsData.itemTags.extraAttention,
+        ...optionsData.locationTags.handlingInfo,
+        ...optionsData.locationTags.dropPoints,
+      ];
+
+      const selectedOptions = currentItemInstance.tags
+        .map((tag) => allOptions.find((opt) => opt.value === tag))
+        .filter(Boolean);
+
+      setSelectedPackingTags(
+        selectedOptions.filter((opt) =>
+          optionsData.itemTags.packing.some((o) => o.value === opt.value)
+        )
+      );
+      setExtraAttentionOptions(
+        selectedOptions.filter((opt) =>
+          optionsData.itemTags.extraAttention.some((o) => o.value === opt.value)
+        )
+      );
+      setHandlingInfoOptions(
+        selectedOptions.filter((opt) =>
+          optionsData.locationTags.handlingInfo.some((o) => o.value === opt.value)
+        )
+      );
+      setDropPointsOptions(
+        selectedOptions.filter((opt) =>
+          optionsData.locationTags.dropPoints.some((o) => o.value === opt.value)
+        )
+      );
+    } else if (item.tags && item.tags.length > 0) {
+      // Initialize selected options from item's default tags
+      const allOptions = [
+        ...optionsData.itemTags.packing,
+        ...optionsData.itemTags.extraAttention,
+        ...optionsData.locationTags.handlingInfo,
+        ...optionsData.locationTags.dropPoints,
+      ];
+
+      const selectedOptions = item.tags
+        .map((tag) => allOptions.find((opt) => opt.value === tag))
+        .filter(Boolean);
+
+      setSelectedPackingTags(
+        selectedOptions.filter((opt) =>
+          optionsData.itemTags.packing.some((o) => o.value === opt.value)
+        )
+      );
+      setExtraAttentionOptions(
+        selectedOptions.filter((opt) =>
+          optionsData.itemTags.extraAttention.some((o) => o.value === opt.value)
+        )
+      );
+      setHandlingInfoOptions(
+        selectedOptions.filter((opt) =>
+          optionsData.locationTags.handlingInfo.some((o) => o.value === opt.value)
+        )
+      );
+      setDropPointsOptions(
+        selectedOptions.filter((opt) =>
+          optionsData.locationTags.dropPoints.some((o) => o.value === opt.value)
+        )
+      );
+    } else {
+      // Reset options if no currentItemInstance or item tags
+      setSelectedPackingTags([]);
+      setExtraAttentionOptions([]);
+      setHandlingInfoOptions([]);
+      setDropPointsOptions([]);
+    }
+
+    // Initialize packing needs counts
+    if (currentItemInstance && currentItemInstance.packingNeedsCounts) {
+      setPackingNeedsCounts(currentItemInstance.packingNeedsCounts);
+    } else if (item.packing && item.packing.length > 0) {
+      // Initialize packingNeedsCounts from item's default packing
+      const counts = {};
+      item.packing.forEach((pack) => {
+        counts[pack.type] = pack.quantity;
+      });
+      setPackingNeedsCounts(counts);
+    } else {
+      setPackingNeedsCounts({});
+    }
+
+    // Initialize other fields
+    setCuft(currentItemInstance?.cuft || item.cuft || '');
+    setLbs(currentItemInstance?.lbs || item.lbs || '');
+    setItemCount(currentItemInstance?.count !== undefined ? currentItemInstance.count : 1);
+    setNotes(currentItemInstance?.notes || '');
+  }, [currentItemInstance, item]);
 
   const handleCuftChange = (e) => {
     setCuft(e.target.value);
@@ -68,16 +178,16 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
 
   // Define incompatible and required tags
   const incompatibleTags = {
-    'cp_packed_by_movers': ['pbo_packed_by_customer'],
-    'pbo_packed_by_customer': ['cp_packed_by_movers', 'crating', 'unpacking', 'pack_and_leave_behind'],
-    'paper_blanket_wrapped': ['purchased_blankets'],
-    'purchased_blankets': ['paper_blanket_wrapped'],
-    'pack_and_leave_behind': ['pbo_packed_by_customer'],
+    cp_packed_by_movers: ['pbo_packed_by_customer'],
+    pbo_packed_by_customer: ['cp_packed_by_movers', 'crating', 'unpacking', 'pack_and_leave_behind'],
+    paper_blanket_wrapped: ['purchased_blankets'],
+    purchased_blankets: ['paper_blanket_wrapped'],
+    pack_and_leave_behind: ['pbo_packed_by_customer'],
     // Add any other incompatible tags here
   };
 
   const requiredTags = {
-    'crating': ['cp_packed_by_movers'],
+    crating: ['cp_packed_by_movers'],
     // Add any other required tags here
   };
 
@@ -92,14 +202,15 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   };
 
   // Function to handle tag selection changes with incompatible and required tags logic
-  const handleTagChange = (selectedOptions, setOptions, category) => {
+  const handleTagChange = (selectedOptions, setOptions) => {
     let updatedOptions = selectedOptions || [];
     let allSelectedTags = getAllSelectedTags();
 
     // Get the newly added or removed tag
-    const lastChangedTag = updatedOptions.length > allSelectedTags.length
-      ? updatedOptions.find(opt => !allSelectedTags.includes(opt.value))
-      : allSelectedTags.find(tag => !updatedOptions.map(opt => opt.value).includes(tag));
+    const lastChangedTag =
+      updatedOptions.length > allSelectedTags.length
+        ? updatedOptions.find((opt) => !allSelectedTags.includes(opt.value))
+        : allSelectedTags.find((tag) => !updatedOptions.map((opt) => opt.value).includes(tag));
 
     if (!lastChangedTag) {
       setOptions(updatedOptions);
@@ -142,55 +253,6 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
     return allOptions.find((opt) => opt.value === value);
   };
 
-  // Initialize the selected options based on the item's current tags and packing needs
-  useEffect(() => {
-    if (itemInstance && itemInstance.tags) {
-      const allOptions = [
-        ...optionsData.itemTags.packing,
-        ...optionsData.itemTags.extraAttention,
-        ...optionsData.locationTags.handlingInfo,
-        ...optionsData.locationTags.dropPoints,
-      ];
-
-      const selectedOptions = itemInstance.tags
-        .map((tag) => allOptions.find((opt) => opt.value === tag))
-        .filter(Boolean);
-
-      setSelectedPackingTags(
-        selectedOptions.filter((opt) =>
-          optionsData.itemTags.packing.some((o) => o.value === opt.value)
-        )
-      );
-      setExtraAttentionOptions(
-        selectedOptions.filter((opt) =>
-          optionsData.itemTags.extraAttention.some((o) => o.value === opt.value)
-        )
-      );
-      setHandlingInfoOptions(
-        selectedOptions.filter((opt) =>
-          optionsData.locationTags.handlingInfo.some((o) => o.value === opt.value)
-        )
-      );
-      setDropPointsOptions(
-        selectedOptions.filter((opt) =>
-          optionsData.locationTags.dropPoints.some((o) => o.value === opt.value)
-        )
-      );
-    }
-
-    // Initialize packing needs counts
-    if (itemInstance && itemInstance.packingNeedsCounts) {
-      setPackingNeedsCounts(itemInstance.packingNeedsCounts);
-    } else if (item.packing && item.packing.length > 0) {
-      // Initialize packingNeedsCounts from item's default packing
-      const counts = {};
-      item.packing.forEach((pack) => {
-        counts[pack.type] = pack.quantity;
-      });
-      setPackingNeedsCounts(counts);
-    }
-  }, [itemInstance, item]);
-
   // Function to handle packing needs change
   const handlePackingNeedsChange = (selectedOptions, actionMeta) => {
     if (actionMeta.action === 'select-option' && actionMeta.option) {
@@ -224,21 +286,31 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   const handleSaveItem = () => {
     // Collect all selected tags
     const selectedTags = getAllSelectedTags();
-  
+
     // Create updated item instance
     const updatedItemInstance = {
-      ...itemInstance,
+      id: currentItemInstance ? currentItemInstance.id : uuidv4(),
+      itemId: item.id.toString(),
+      item: { ...item },
       tags: selectedTags,
       count: itemCount,
       notes: notes,
       cuft: cuft,
       lbs: lbs,
-      packingNeedsCounts: packingNeedsCounts, // Save counts
+      packingNeedsCounts: packingNeedsCounts,
     };
-  
-    // Call the onUpdateItem callback with both updated and original instances
-    onUpdateItem(updatedItemInstance, itemInstance);
-  
+
+    // Generate and store the new groupingKey
+    updatedItemInstance.groupingKey = generateGroupingKey(updatedItemInstance);
+
+    if (currentItemInstance) {
+      // We're updating an existing item
+      onUpdateItem(updatedItemInstance, currentItemInstance);
+    } else {
+      // We're adding a new item
+      onAddItem(updatedItemInstance);
+    }
+
     onClose(); // Close the popup after saving
   };
 
@@ -263,7 +335,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
 
   // Custom styles for react-select
   const customSelectStyles = {
-    multiValueRemove: (base, state) => ({
+    multiValueRemove: (base) => ({
       ...base,
       fontSize: '1.2rem',
       padding: '4px',
@@ -272,7 +344,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
       justifyContent: 'center',
       cursor: 'pointer',
     }),
-    multiValueLabel: (base, state) => ({
+    multiValueLabel: (base) => ({
       ...base,
       fontSize: '1rem',
       padding: '0 8px',
@@ -301,16 +373,49 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
   const allSelectedTags = getAllSelectedTags();
 
   const filteredPackingOptions = filterOptions(optionsData.itemTags.packing, allSelectedTags);
-  const filteredExtraAttentionOptions = filterOptions(optionsData.itemTags.extraAttention, allSelectedTags);
-  const filteredHandlingInfoOptions = filterOptions(optionsData.locationTags.handlingInfo, allSelectedTags);
-  const filteredDropPointsOptions = filterOptions(optionsData.locationTags.dropPoints, allSelectedTags);
+  const filteredExtraAttentionOptions = filterOptions(
+    optionsData.itemTags.extraAttention,
+    allSelectedTags
+  );
+  const filteredHandlingInfoOptions = filterOptions(
+    optionsData.locationTags.handlingInfo,
+    allSelectedTags
+  );
+  const filteredDropPointsOptions = filterOptions(
+    optionsData.locationTags.dropPoints,
+    allSelectedTags
+  );
 
   // Determine if 'cp_packed_by_movers' is selected
-  const isCpPackedByMoversSelected = selectedPackingTags.some(tag => tag.value === 'cp_packed_by_movers');
+  const isCpPackedByMoversSelected = selectedPackingTags.some(
+    (tag) => tag.value === 'cp_packed_by_movers'
+  );
+
+  // Handle the "Start Fresh as New Item" functionality
+  const handleStartFreshClick = () => {
+    // Set currentItemInstance to null to indicate we're creating a new item
+    setCurrentItemInstance(null);
+    // Set isNewItem to true to trigger the animation
+    setIsNewItem(true);
+  };
+
+  const animationDuration = 1000; // Duration in milliseconds
+
+  useEffect(() => {
+    let timer;
+    if (isNewItem) {
+      timer = setTimeout(() => {
+        setIsNewItem(false);
+      }, animationDuration);
+    }
+    return () => clearTimeout(timer);
+  }, [isNewItem]);
 
   return (
     <div className={styles.popup}>
-      <div className={styles.popupContent}>
+      <div
+        className={`${styles.popupContent} ${isNewItem ? styles.newItemAnimation : ''}`}
+      >
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
@@ -329,11 +434,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
           <div className={styles.itemGroup}>
             <div className={styles.furnitureOutline}>
               <div className={styles.furnitureWrapper}>
-                <img
-                  src={item.src}
-                  alt={item.name}
-                  className={styles.itemImage}
-                />
+                <img src={item.src} alt={item.name} className={styles.itemImage} />
               </div>
             </div>
             <div className={styles.furnitureTextGroup}>
@@ -398,7 +499,9 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
             </div>
           </div>
 
-          <div className={`${styles.inputGroup} ${styles.fullWidth} ${styles.notesInputGroup}`}>
+          <div
+            className={`${styles.inputGroup} ${styles.fullWidth} ${styles.notesInputGroup}`}
+          >
             <textarea
               id="notes"
               placeholder="Notes"
@@ -425,11 +528,7 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
 
             {/* Second Element */}
             <label className={styles.element}>
-              <input
-                type="file"
-                accept="image/*"
-                className={styles.hiddenInput}
-              />
+              <input type="file" accept="image/*" className={styles.hiddenInput} />
               <UploadIcon className={styles.icon} />
               <div>Upload</div>
             </label>
@@ -449,15 +548,17 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 isMulti
                 isClearable={false} // Remove 'Clear All' button
                 className={styles.selectInput}
-                classNamePrefix={selectClassNamePrefix} // Ensure this is set
+                classNamePrefix={selectClassNamePrefix}
                 name="packing"
                 options={filteredPackingOptions}
                 placeholder="Packing"
                 value={selectedPackingTags}
-                onChange={(selectedOptions) => handleTagChange(selectedOptions, setSelectedPackingTags, 'packing')}
+                onChange={(selectedOptions) =>
+                  handleTagChange(selectedOptions, setSelectedPackingTags)
+                }
                 aria-label="Item Tags - Packing"
-                components={{ Input: CustomInput }} // Use Custom Input
-                styles={customSelectStyles} // Apply custom styles
+                components={{ Input: CustomInput }}
+                styles={customSelectStyles}
                 isOptionDisabled={(option) => option.isDisabled}
               />
             </div>
@@ -466,15 +567,17 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 isMulti
                 isClearable={false} // Remove 'Clear All' button
                 className={styles.selectInput}
-                classNamePrefix={selectClassNamePrefix} // Ensure this is set
+                classNamePrefix={selectClassNamePrefix}
                 name="extraAttention"
                 options={filteredExtraAttentionOptions}
                 placeholder="Extra Attention"
                 value={extraAttentionOptions}
-                onChange={(selectedOptions) => handleTagChange(selectedOptions, setExtraAttentionOptions, 'extraAttention')}
+                onChange={(selectedOptions) =>
+                  handleTagChange(selectedOptions, setExtraAttentionOptions)
+                }
                 aria-label="Item Tags - Extra Attention"
-                components={{ Input: CustomInput }} // Use Custom Input
-                styles={customSelectStyles} // Apply custom styles
+                components={{ Input: CustomInput }}
+                styles={customSelectStyles}
                 isOptionDisabled={(option) => option.isDisabled}
               />
             </div>
@@ -488,15 +591,17 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 isMulti
                 isClearable={false} // Remove 'Clear All' button
                 className={styles.selectInput}
-                classNamePrefix={selectClassNamePrefix} // Ensure this is set
+                classNamePrefix={selectClassNamePrefix}
                 name="handlingInfo"
                 options={filteredHandlingInfoOptions}
                 placeholder="Handling Info"
                 value={handlingInfoOptions}
-                onChange={(selectedOptions) => handleTagChange(selectedOptions, setHandlingInfoOptions, 'handlingInfo')}
+                onChange={(selectedOptions) =>
+                  handleTagChange(selectedOptions, setHandlingInfoOptions)
+                }
                 aria-label="Location Tags - Handling Info"
-                components={{ Input: CustomInput }} // Use Custom Input
-                styles={customSelectStyles} // Apply custom styles
+                components={{ Input: CustomInput }}
+                styles={customSelectStyles}
                 isOptionDisabled={(option) => option.isDisabled}
               />
             </div>
@@ -505,31 +610,30 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                 isMulti
                 isClearable={false} // Remove 'Clear All' button
                 className={styles.selectInput}
-                classNamePrefix={selectClassNamePrefix} // Ensure this is set
+                classNamePrefix={selectClassNamePrefix}
                 name="dropPoints"
                 options={filteredDropPointsOptions}
                 placeholder="Drop Points"
                 value={dropPointsOptions}
-                onChange={(selectedOptions) => handleTagChange(selectedOptions, setDropPointsOptions, 'dropPoints')}
+                onChange={(selectedOptions) =>
+                  handleTagChange(selectedOptions, setDropPointsOptions)
+                }
                 aria-label="Location Tags - Drop Points"
-                components={{ Input: CustomInput }} // Use Custom Input
-                styles={customSelectStyles} // Apply custom styles
+                components={{ Input: CustomInput }}
+                styles={customSelectStyles}
                 isOptionDisabled={(option) => option.isDisabled}
               />
             </div>
           </div>
+
           {/* Informational Message */}
-{!isCpPackedByMoversSelected && (
-  <div className={styles.infoMessage}>
-    <p>
-    Select 'CP Packed by Movers' to specify packing materials.
-    </p>
-  </div>
-)}
+          {!isCpPackedByMoversSelected && (
+            <div className={styles.infoMessage}>
+              <p>Select 'CP Packed by Movers' to specify packing materials.</p>
+            </div>
+          )}
 
-
-          {/* New Section: Packing Needs */}
-          {/* Conditionally render this section based on 'cp_packed_by_movers' tag */}
+          {/* Packing Needs Section */}
           {isCpPackedByMoversSelected && (
             <div className={styles.section}>
               <p className={styles.sectionLabel}>Packing Needs</p>
@@ -551,11 +655,11 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
                     DropdownIndicator: () => null,
                     IndicatorSeparator: () => null,
                     MultiValue,
+                    Input: CustomInput,
                   }}
                   styles={customSelectStyles}
                   hideSelectedOptions={false}
                   isOptionSelected={() => false}
-                  // Ensure the input displays the 'name' of the selected option
                   formatOptionLabel={(option, { context }) =>
                     context === 'value' ? option.name : option.name
                   }
@@ -565,10 +669,17 @@ function ItemPopup({ item, onClose, onUpdateItem, itemInstance }) {
           )}
         </div>
 
-        {/* Save Button */}
-        <div className={styles.saveButtonContainer}>
+        {/* Save and Start Fresh Buttons */}
+        <div
+        className={`${styles.saveButtonContainer} ${
+          isNewItem ? styles.newItemAnimation : ''
+        }`}
+      >
           <button className={styles.saveButton} onClick={handleSaveItem}>
             Save
+          </button>
+          <button className={styles.newItemButton} onClick={handleStartFreshClick}>
+            Start Fresh as New Item
           </button>
         </div>
       </div>

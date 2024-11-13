@@ -5,7 +5,17 @@ import styles from './Item.module.css';
 import { ReactComponent as ThreeDots } from '../../../../assets/icons/more.svg';
 import ItemPopup from './ItemPopup/ItemPopup'; // Import the popup component
 
-function Item({ item, clickCount, onItemClick, isMyItemsActive, isDeleteActive, onUpdateItem, itemInstance }) {
+function Item({
+  item,
+  clickCount,
+  onItemClick,
+  isMyItemsActive,
+  isDeleteActive,
+  onUpdateItem,
+  onAddItem,
+  itemInstance,
+  onStartFresh,
+}) {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const timerRef = useRef(null);
 
@@ -76,11 +86,7 @@ function Item({ item, clickCount, onItemClick, isMyItemsActive, isDeleteActive, 
           </div>
         )}
         <div className={styles.itemImagewrapper}>
-          <img
-            src={item.src}
-            alt={item.name}
-            className={styles.itemImage}
-          />
+          <img src={item.src} alt={item.name} className={styles.itemImage} />
         </div>
         <div className={styles.itemName}>{item.name}</div>
       </button>
@@ -89,8 +95,10 @@ function Item({ item, clickCount, onItemClick, isMyItemsActive, isDeleteActive, 
         <ItemPopup
           item={item}
           onClose={handleClosePopup}
-          onUpdateItem={onUpdateItem} // **Pass the onUpdateItem function**
-          itemInstance={itemInstance} // **Pass the item instance**
+          onUpdateItem={onUpdateItem}
+          onAddItem={onAddItem}
+          itemInstance={itemInstance}
+          onStartFresh={onStartFresh}
         />
       )}
     </li>

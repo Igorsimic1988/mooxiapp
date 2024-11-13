@@ -21,9 +21,11 @@ function ItemSelection({
   setIsMyItemsActive,
   isDeleteActive,
   itemInstances,
-  onUpdateItem, // **Accept the onUpdateItem prop**
+  onUpdateItem,
+  onAddItem,
   isToggled,
   setIsToggled,
+  onStartFresh,
 }) {
   const handleToggle = () => {
     setIsToggled((prev) => !prev);
@@ -66,7 +68,7 @@ function ItemSelection({
     const lbsKey = instance.lbs || '';
     const packingNeedsEntries = Object.entries(instance.packingNeedsCounts || {}).sort();
     const packingNeedsKey = packingNeedsEntries.map(([key, value]) => `${key}:${value}`).join(',');
-  
+
     return `${instance.itemId}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}`;
   };
 
@@ -82,31 +84,31 @@ function ItemSelection({
     return counts;
   }, {});
 
-  // Group items by itemId and tags when isMyItemsActive is true
+  // Group items by current properties when isMyItemsActive is true
   const groupedItems = isMyItemsActive
-  ? Object.values(
-      itemInstances.reduce((groups, instance) => {
-        const key = generateGroupingKey(instance);
-        if (!groups[key]) {
-          groups[key] = {
-            groupingKey: key, // Include the groupingKey
-            itemId: instance.itemId,
-            item: instance.item,
-            tags: [...instance.tags],
-            notes: instance.notes,
-            cuft: instance.cuft,
-            lbs: instance.lbs,
-            packingNeedsCounts: { ...instance.packingNeedsCounts },
-            count: 1,
-            id: instance.id,
-          };
-        } else {
-          groups[key].count += 1;
-        }
-        return groups;
-      }, {})
-    )
-  : [];
+    ? Object.values(
+        itemInstances.reduce((groups, instance) => {
+          const key = generateGroupingKey(instance);
+          if (!groups[key]) {
+            groups[key] = {
+              groupingKey: key,
+              itemId: instance.itemId,
+              item: instance.item,
+              tags: [...instance.tags],
+              notes: instance.notes,
+              cuft: instance.cuft,
+              lbs: instance.lbs,
+              packingNeedsCounts: { ...instance.packingNeedsCounts },
+              count: 1,
+              id: instance.id,
+            };
+          } else {
+            groups[key].count += 1;
+          }
+          return groups;
+        }, {})
+      )
+    : [];
 
   // Filter items based on "My Items" button state
   const filteredItems = isMyItemsActive
@@ -140,9 +142,9 @@ function ItemSelection({
         filterText="Enable Filters"
         isToggled={isToggled}
         onToggle={handleToggle}
-        onActionClick={handleMyItemsClick} // Use handleMyItemsClick to properly manage state
+        onActionClick={handleMyItemsClick}
         itemCount={itemCount}
-        isMyItemsActive={isMyItemsActive} // Pass the active state to BcalculatorMyitems
+        isMyItemsActive={isMyItemsActive}
       />
 
       <AlphabetFilter
@@ -154,13 +156,15 @@ function ItemSelection({
 
       <main className={styles.mainContent}>
         <div className={styles.scrollableItemList}>
-        <ItemList
+          <ItemList
             items={filteredItems}
             itemClickCounts={itemCounts}
             onItemClick={onItemClick}
             isMyItemsActive={isMyItemsActive}
             isDeleteActive={isDeleteActive}
             onUpdateItem={onUpdateItem}
+            onAddItem={onAddItem}
+            onStartFresh={onStartFresh}
           />
         </div>
       </main>

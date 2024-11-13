@@ -41,6 +41,21 @@ function Inventory() {
   const [isMyItemsActive, setIsMyItemsActive] = useState(false); // Track if "My Items" button is active
   const [isDeleteActive, setIsDeleteActive] = useState(false);
 
+  // Function to handle starting fresh with a new item
+  const handleStartFresh = (newItemInstance) => {
+    if (!selectedRoom) return;
+
+    setRoomItemSelections((prevSelections) => {
+      const currentRoomSelections = prevSelections[selectedRoom.id] || [];
+      const updatedRoomSelections = [...currentRoomSelections, newItemInstance];
+
+      return {
+        ...prevSelections,
+        [selectedRoom.id]: updatedRoomSelections,
+      };
+    });
+  };
+
   const handleRoomSelect = (room) => {
     setSelectedRoom(room);
   };
@@ -112,35 +127,48 @@ function Inventory() {
   // Function to handle item selection
   const handleItemSelection = (clickedItem) => {
     if (!selectedRoom) return;
-
+  
     setRoomItemSelections((prevSelections) => {
       const currentRoomSelections = prevSelections[selectedRoom.id] || [];
-      const updatedRoomSelections = [...currentRoomSelections];
-
+      let updatedRoomSelections = [...currentRoomSelections];
+  
       if (isDeleteActive) {
-        // Remove an instance of the item from the room selections
-        const index = updatedRoomSelections.findIndex(
-          (instance) =>
-            instance.itemId === (clickedItem.itemId || clickedItem.id.toString()) &&
-            (!isMyItemsActive || JSON.stringify(instance.tags) === JSON.stringify(clickedItem.tags))
-        );
-        if (index !== -1) {
-          updatedRoomSelections.splice(index, 1);
+        if (isMyItemsActive) {
+          // clickedItem is a grouped item with groupingKey
+          const groupingKeyToDelete = clickedItem.groupingKey;
+          // Remove one item matching the groupingKey
+          const indexToRemove = updatedRoomSelections.findIndex(
+            (itemInstance) => itemInstance.groupingKey === groupingKeyToDelete
+          );
+          if (indexToRemove !== -1) {
+            updatedRoomSelections.splice(indexToRemove, 1);
+          }
+        } else {
+          // clickedItem is a regular item
+          const itemIdToDelete = clickedItem.id.toString();
+          // Remove one instance of this item
+          const indexToRemove = updatedRoomSelections.findIndex(
+            (itemInstance) => itemInstance.itemId === itemIdToDelete
+          );
+          if (indexToRemove !== -1) {
+            updatedRoomSelections.splice(indexToRemove, 1);
+          }
         }
       } else {
+        // Existing logic to add items
         let newItemInstance;
         if (isMyItemsActive) {
           // clickedItem is grouped item data when isMyItemsActive is true
           newItemInstance = {
-            id: uuidv4(), // Assign a new unique ID
-            groupId: uuidv4(), // Assign a unique groupId
+            id: uuidv4(),
             itemId: clickedItem.itemId,
-            item: { ...clickedItem.item }, // Make a copy of the item
-            tags: [...clickedItem.tags], // Copy tags
-            notes: clickedItem.notes || '', // Copy notes
-            cuft: clickedItem.cuft || '', // Copy cuft
-            lbs: clickedItem.lbs || '', // Copy lbs
-            packingNeedsCounts: { ...clickedItem.packingNeedsCounts }, // Copy packingNeedsCounts
+            item: { ...clickedItem.item },
+            tags: [...clickedItem.tags],
+            notes: clickedItem.notes || '',
+            cuft: clickedItem.cuft || '',
+            lbs: clickedItem.lbs || '',
+            packingNeedsCounts: { ...clickedItem.packingNeedsCounts },
+            groupingKey: clickedItem.groupingKey,
           };
         } else {
           // clickedItem is a regular item
@@ -150,37 +178,32 @@ function Inventory() {
               defaultPackingNeedsCounts[pack.type] = pack.quantity;
             });
           }
-
+  
           newItemInstance = {
-            id: uuidv4(), // Generate a unique ID for this instance
-            groupId: uuidv4(), // Assign a unique groupId
+            id: uuidv4(),
             itemId: clickedItem.id.toString(),
-            item: { ...clickedItem }, // Make a shallow copy to prevent mutations
-            tags: [...clickedItem.tags], // Copy default tags from the original item
-            notes: '', // Default notes
-            cuft: '', // Default cuft
-            lbs: '', // Default lbs
-            packingNeedsCounts: defaultPackingNeedsCounts, // Include default packing needs
+            item: { ...clickedItem },
+            tags: [...clickedItem.tags],
+            notes: '',
+            cuft: clickedItem.cuft || '',
+            lbs: clickedItem.lbs || '',
+            packingNeedsCounts: defaultPackingNeedsCounts,
           };
+  
+          // Generate and store the groupingKey
+          newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
         }
-
-        // Check if the selected room is 'Disposal' (id: 45)
-        if (selectedRoom.id === 45) {
-          // Ensure 'disposal' tag is added
-          if (!newItemInstance.tags.includes('disposal')) {
-            newItemInstance.tags.push('disposal');
-          }
-        }
-
+  
         updatedRoomSelections.push(newItemInstance);
       }
-
+  
       return {
         ...prevSelections,
         [selectedRoom.id]: updatedRoomSelections,
       };
     });
   };
+  
 
   // Function to toggle room visibility
   const handleToggleRoom = (roomId) => {
@@ -222,45 +245,29 @@ function Inventory() {
     setRoomItemSelections((prevSelections) => {
       const updatedSelections = { ...prevSelections };
       const roomItems = updatedSelections[selectedRoom.id] || [];
-  
-      // Generate the original and updated grouping keys
-      const originalKey = generateGroupingKey(originalItemInstance);
+
+      // Use the stored groupingKey to find items to update
+      const originalKey = originalItemInstance.groupingKey;
+
+      // Generate the updated grouping key
       const updatedKey = generateGroupingKey(updatedItemInstance);
-  
-      // Update the groupId if the grouping key has changed
-      const newGroupId = originalKey === updatedKey ? originalItemInstance.groupId : uuidv4();
-  
-      // Use the original item
-      const baseItemInstance = {
-        itemId: originalItemInstance.itemId,
-        item: originalItemInstance.item,
-        groupId: newGroupId, // Use the new or original groupId
-        tags: updatedItemInstance.tags,
-        notes: updatedItemInstance.notes,
-        cuft: updatedItemInstance.cuft,
-        lbs: updatedItemInstance.lbs,
-        packingNeedsCounts: updatedItemInstance.packingNeedsCounts, // Include packingNeedsCounts
-      };
-  
-      // Find indices of items to update
+
+      // Update the groupingKey on the updatedItemInstance
+      updatedItemInstance.groupingKey = updatedKey;
+
+      // Find indices of items to update based on the stored groupingKey
       const indicesToUpdate = roomItems.reduce((indices, itemInstance, index) => {
-        // Match items with the same original grouping key
-        const instanceKey = generateGroupingKey(itemInstance);
-        if (instanceKey === originalKey) {
+        if (itemInstance.groupingKey === originalKey) {
           indices.push(index);
         }
         return indices;
       }, []);
-  
-      const oldCount = indicesToUpdate.length;
-      const newCount =
-  updatedItemInstance.count !== undefined
-    ? updatedItemInstance.count
-    : 1;
 
-  
+      const oldCount = indicesToUpdate.length;
+      const newCount = updatedItemInstance.count !== undefined ? updatedItemInstance.count : 1;
+
       if (newCount === 0) {
-        // Remove all instances matching the original key
+        // Remove all instances matching the grouping key
         for (let i = indicesToUpdate.length - 1; i >= 0; i--) {
           roomItems.splice(indicesToUpdate[i], 1);
         }
@@ -270,17 +277,17 @@ function Inventory() {
           const index = indicesToUpdate[i];
           roomItems[index] = {
             ...roomItems[index],
-            ...baseItemInstance,
+            ...updatedItemInstance,
             id: roomItems[index].id, // Keep existing id
           };
         }
-  
+
         // Add or remove instances as needed
         if (newCount > oldCount) {
           // Add new instances
           for (let i = oldCount; i < newCount; i++) {
             roomItems.push({
-              ...baseItemInstance,
+              ...updatedItemInstance,
               id: uuidv4(),
             });
           }
@@ -291,12 +298,36 @@ function Inventory() {
           }
         }
       }
-  
+
       updatedSelections[selectedRoom.id] = roomItems;
       return updatedSelections;
     });
   };
+
+  // Function to handle adding new items
+  const handleAddItem = (newItemInstance) => {
+    if (!selectedRoom) return;
   
+    setRoomItemSelections((prevSelections) => {
+      const currentRoomSelections = prevSelections[selectedRoom.id] || [];
+      const updatedRoomSelections = [...currentRoomSelections];
+  
+      // Add as many instances as specified by newItemInstance.count
+      const itemCount = newItemInstance.count || 1;
+      for (let i = 0; i < itemCount; i++) {
+        // Create a new instance with a unique id
+        updatedRoomSelections.push({
+          ...newItemInstance,
+          id: uuidv4(),
+        });
+      }
+  
+      return {
+        ...prevSelections,
+        [selectedRoom.id]: updatedRoomSelections,
+      };
+    });
+  };
 
   // Helper function to get item data by itemId
   const getItemById = (itemId) => {
@@ -309,16 +340,16 @@ function Inventory() {
       // Do nothing when toggle is off
       return;
     }
-  
+
     // Exclude room id 13 (Boxes room) and specific itemIds
     const excludedRoomId = '13';
     const excludedItemIds = ['529', '530', '531', '532', '533', '534', '535', '536', '537'];
-  
+
     // Calculate total lbs
     let totalLbs = 0;
     Object.keys(roomItemSelections).forEach((roomId) => {
       if (roomId === excludedRoomId) return;
-  
+
       const items = roomItemSelections[roomId];
       items.forEach((itemInstance) => {
         if (!excludedItemIds.includes(itemInstance.itemId)) {
@@ -330,20 +361,20 @@ function Inventory() {
         }
       });
     });
-  
+
     // Check if totalLbs has changed
     if (prevTotalLbsRef.current === totalLbs) {
       // No change in total lbs, no need to update boxes
       return;
     }
-  
+
     prevTotalLbsRef.current = totalLbs;
-  
+
     // Calculate number of boxes needed
     const boxesPer200lbs = 3;
     const num200lbsUnits = Math.ceil(totalLbs / 200);
     const totalBoxesNeeded = num200lbsUnits * boxesPer200lbs;
-  
+
     // Box distribution
     const distribution = [
       { percent: 0.10, itemId: '533' }, // Box Dishpack
@@ -352,25 +383,25 @@ function Inventory() {
       { percent: 0.45, itemId: '535' }, // Box Medium 3 cuft
       { percent: 0.20, itemId: '536' }, // Box Small 1.5 cuft
     ];
-  
+
     // Calculate boxes to add
     const boxesToAdd = distribution.map((dist) => {
       const count = Math.round(totalBoxesNeeded * dist.percent);
       return { itemId: dist.itemId, count };
     });
-  
+
     // Update the "Boxes" room
     setRoomItemSelections((prevSelections) => {
       const updatedSelections = { ...prevSelections };
       const boxesRoomId = '13';
       const currentBoxes = updatedSelections[boxesRoomId] || [];
-  
+
       // Remove existing auto-added boxes
       const nonAutoBoxes = currentBoxes.filter((item) => !item.autoAdded);
-  
+
       // Generate new auto-added boxes
       const newBoxItems = [];
-  
+
       boxesToAdd.forEach((box) => {
         for (let i = 0; i < box.count; i++) {
           const itemData = getItemById(box.itemId);
@@ -382,10 +413,9 @@ function Inventory() {
                 packingNeedsCounts[pack.type] = pack.quantity;
               });
             }
-  
+
             const newItemInstance = {
               id: uuidv4(),
-              groupId: uuidv4(),
               itemId: box.itemId,
               item: { ...itemData },
               tags: [...itemData.tags], // Assign default tags
@@ -394,18 +424,22 @@ function Inventory() {
               lbs: itemData.lbs || '',
               packingNeedsCounts: packingNeedsCounts, // Initialize packing needs
               autoAdded: true, // Mark as auto-added
+              groupingKey: '', // Will be set below
             };
+
+            // Generate groupingKey
+            newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
+
             newBoxItems.push(newItemInstance);
           }
         }
       });
-  
+
       // Update the "Boxes" room items
       updatedSelections[boxesRoomId] = [...nonAutoBoxes, ...newBoxItems];
       return updatedSelections;
     });
   }, [isToggled, roomItemSelections]);
-  
 
   return (
     <div className={styles.inventoryContainer}>
@@ -425,7 +459,7 @@ function Inventory() {
           />
         ) : (
           <HouseHeader
-            onToggleRoom={handleToggleRoom} // Correctly pass onToggleRoom
+            onToggleRoom={handleToggleRoom}
             rooms={rooms}
             displayedRooms={displayedRooms}
           />
@@ -450,8 +484,10 @@ function Inventory() {
             isDeleteActive={isDeleteActive} // Pass the state to ItemSelection for delete functionality
             itemInstances={roomItemSelections[selectedRoom.id] || []}
             onUpdateItem={handleUpdateItem} // Pass the onUpdateItem function
+            onAddItem={handleAddItem} // Pass the handleAddItem function
             isToggled={isToggled}
             setIsToggled={setIsToggled} // Pass the toggle state and setter
+            onStartFresh={handleStartFresh}
           />
         ) : (
           <RoomList

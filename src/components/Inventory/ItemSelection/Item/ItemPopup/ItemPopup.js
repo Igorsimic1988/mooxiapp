@@ -332,7 +332,9 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       // We're adding a new item
       onAddItem(updatedItemInstance);
     }
-    // Do not close the popup
+  
+    // Update the currentItemInstance state to reflect the changes
+    setCurrentItemInstance(updatedItemInstance);
   };
 
   

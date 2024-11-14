@@ -39,7 +39,7 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
     if (selectedOption === 'itemTags') {
       setSelectedSubOption('packing');
     } else if (selectedOption === 'locationTags') {
-      setSelectedSubOption('handlingInfo');
+      setSelectedSubOption('loadPoints');
     } else {
       setSelectedSubOption('');
     }
@@ -277,15 +277,15 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
                 <input
                   type="radio"
                   name="locationTagsOption"
-                  value="handlingInfo"
-                  checked={selectedSubOption === 'handlingInfo'}
+                  value="loadPoints"
+                  checked={selectedSubOption === 'loadPoints'}
                   onChange={(e) => {
                     setSelectedSubOption(e.target.value);
                     // No need to reset currentTag
                   }}
                   className={styles.radioButtonInput}
                 />
-                <span className={styles.radioButtonText}>Handling Info</span>
+                <span className={styles.radioButtonText}>Load Points</span>
               </label>
 
               {/* Drop Points Option */}

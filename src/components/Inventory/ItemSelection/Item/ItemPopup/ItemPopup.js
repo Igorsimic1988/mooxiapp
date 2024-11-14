@@ -34,7 +34,9 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
     const cuftKey = instance.cuft || '';
     const lbsKey = instance.lbs || '';
     const packingNeedsEntries = Object.entries(instance.packingNeedsCounts || {}).sort();
-    const packingNeedsKey = packingNeedsEntries.map(([key, value]) => `${key}:${value}`).join(',');
+    const packingNeedsKey = packingNeedsEntries
+      .map(([key, value]) => `${key}:${value}`)
+      .join(',');
 
     return `${instance.itemId}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}`;
   };
@@ -45,7 +47,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   // State to manage selected options
   const [selectedPackingTags, setSelectedPackingTags] = useState([]);
   const [extraAttentionOptions, setExtraAttentionOptions] = useState([]);
-  const [handlingInfoOptions, setHandlingInfoOptions] = useState([]);
+  const [loadPointsOptions, setloadPointsOptions] = useState([]);
   const [dropPointsOptions, setDropPointsOptions] = useState([]);
   const [cuft, setCuft] = useState('');
   const [lbs, setLbs] = useState('');
@@ -53,7 +55,10 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   // State for item count and notes
   const [itemCount, setItemCount] = useState(1);
   const [notes, setNotes] = useState('');
-  const [isNewItem, setIsNewItem] = useState(false);
+
+  // Animation state variables
+  const [isSlidingOut, setIsSlidingOut] = useState(false);
+  const [isSlidingIn, setIsSlidingIn] = useState(false);
 
   // State for packing needs counts
   const [packingNeedsCounts, setPackingNeedsCounts] = useState({});
@@ -78,7 +83,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       const allOptions = [
         ...optionsData.itemTags.packing,
         ...optionsData.itemTags.extraAttention,
-        ...optionsData.locationTags.handlingInfo,
+        ...optionsData.locationTags.loadPoints,
         ...optionsData.locationTags.dropPoints,
       ];
 
@@ -96,9 +101,9 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
           optionsData.itemTags.extraAttention.some((o) => o.value === opt.value)
         )
       );
-      setHandlingInfoOptions(
+      setloadPointsOptions(
         selectedOptions.filter((opt) =>
-          optionsData.locationTags.handlingInfo.some((o) => o.value === opt.value)
+          optionsData.locationTags.loadPoints.some((o) => o.value === opt.value)
         )
       );
       setDropPointsOptions(
@@ -111,7 +116,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       const allOptions = [
         ...optionsData.itemTags.packing,
         ...optionsData.itemTags.extraAttention,
-        ...optionsData.locationTags.handlingInfo,
+        ...optionsData.locationTags.loadPoints,
         ...optionsData.locationTags.dropPoints,
       ];
 
@@ -129,9 +134,9 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
           optionsData.itemTags.extraAttention.some((o) => o.value === opt.value)
         )
       );
-      setHandlingInfoOptions(
+      setloadPointsOptions(
         selectedOptions.filter((opt) =>
-          optionsData.locationTags.handlingInfo.some((o) => o.value === opt.value)
+          optionsData.locationTags.loadPoints.some((o) => o.value === opt.value)
         )
       );
       setDropPointsOptions(
@@ -143,7 +148,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       // Reset options if no currentItemInstance or item tags
       setSelectedPackingTags([]);
       setExtraAttentionOptions([]);
-      setHandlingInfoOptions([]);
+      setloadPointsOptions([]);
       setDropPointsOptions([]);
     }
 
@@ -164,7 +169,9 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
     // Initialize other fields
     setCuft(currentItemInstance?.cuft || item.cuft || '');
     setLbs(currentItemInstance?.lbs || item.lbs || '');
-    setItemCount(currentItemInstance?.count !== undefined ? currentItemInstance.count : 1);
+    setItemCount(
+      currentItemInstance?.count !== undefined ? currentItemInstance.count : 1
+    );
     setNotes(currentItemInstance?.notes || '');
   }, [currentItemInstance, item]);
 
@@ -179,7 +186,12 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   // Define incompatible and required tags
   const incompatibleTags = {
     cp_packed_by_movers: ['pbo_packed_by_customer'],
-    pbo_packed_by_customer: ['cp_packed_by_movers', 'crating', 'unpacking', 'pack_and_leave_behind'],
+    pbo_packed_by_customer: [
+      'cp_packed_by_movers',
+      'crating',
+      'unpacking',
+      'pack_and_leave_behind',
+    ],
     paper_blanket_wrapped: ['purchased_blankets'],
     purchased_blankets: ['paper_blanket_wrapped'],
     pack_and_leave_behind: ['pbo_packed_by_customer'],
@@ -196,7 +208,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
     return [
       ...selectedPackingTags.map((opt) => opt.value),
       ...extraAttentionOptions.map((opt) => opt.value),
-      ...handlingInfoOptions.map((opt) => opt.value),
+      ...loadPointsOptions.map((opt) => opt.value),
       ...dropPointsOptions.map((opt) => opt.value),
     ];
   };
@@ -210,7 +222,9 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
     const lastChangedTag =
       updatedOptions.length > allSelectedTags.length
         ? updatedOptions.find((opt) => !allSelectedTags.includes(opt.value))
-        : allSelectedTags.find((tag) => !updatedOptions.map((opt) => opt.value).includes(tag));
+        : allSelectedTags.find(
+            (tag) => !updatedOptions.map((opt) => opt.value).includes(tag)
+          );
 
     if (!lastChangedTag) {
       setOptions(updatedOptions);
@@ -224,10 +238,18 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
     if (updatedOptions.length > allSelectedTags.length) {
       // Tag was added
       // Remove incompatible tags from other categories
-      setSelectedPackingTags((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
-      setExtraAttentionOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
-      setHandlingInfoOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
-      setDropPointsOptions((prev) => prev.filter((opt) => !incompatible.includes(opt.value)));
+      setSelectedPackingTags((prev) =>
+        prev.filter((opt) => !incompatible.includes(opt.value))
+      );
+      setExtraAttentionOptions((prev) =>
+        prev.filter((opt) => !incompatible.includes(opt.value))
+      );
+      setloadPointsOptions((prev) =>
+        prev.filter((opt) => !incompatible.includes(opt.value))
+      );
+      setDropPointsOptions((prev) =>
+        prev.filter((opt) => !incompatible.includes(opt.value))
+      );
 
       // Add required tags
       const required = requiredTags[tagValue] || [];
@@ -247,7 +269,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
     const allOptions = [
       ...optionsData.itemTags.packing,
       ...optionsData.itemTags.extraAttention,
-      ...optionsData.locationTags.handlingInfo,
+      ...optionsData.locationTags.loadPoints,
       ...optionsData.locationTags.dropPoints,
     ];
     return allOptions.find((opt) => opt.value === value);
@@ -286,7 +308,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   const handleSaveItem = () => {
     // Collect all selected tags
     const selectedTags = getAllSelectedTags();
-
+  
     // Create updated item instance
     const updatedItemInstance = {
       id: currentItemInstance ? currentItemInstance.id : uuidv4(),
@@ -299,10 +321,10 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       lbs: lbs,
       packingNeedsCounts: packingNeedsCounts,
     };
-
+  
     // Generate and store the new groupingKey
     updatedItemInstance.groupingKey = generateGroupingKey(updatedItemInstance);
-
+  
     if (currentItemInstance) {
       // We're updating an existing item
       onUpdateItem(updatedItemInstance, currentItemInstance);
@@ -310,9 +332,10 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       // We're adding a new item
       onAddItem(updatedItemInstance);
     }
-
-    onClose(); // Close the popup after saving
+    // Do not close the popup
   };
+
+  
 
   // Handlers for item count
   const handleIncrement = () => {
@@ -372,13 +395,16 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   // Prepare options with disabled incompatible options
   const allSelectedTags = getAllSelectedTags();
 
-  const filteredPackingOptions = filterOptions(optionsData.itemTags.packing, allSelectedTags);
+  const filteredPackingOptions = filterOptions(
+    optionsData.itemTags.packing,
+    allSelectedTags
+  );
   const filteredExtraAttentionOptions = filterOptions(
     optionsData.itemTags.extraAttention,
     allSelectedTags
   );
-  const filteredHandlingInfoOptions = filterOptions(
-    optionsData.locationTags.handlingInfo,
+  const filteredloadPointsOptions = filterOptions(
+    optionsData.locationTags.loadPoints,
     allSelectedTags
   );
   const filteredDropPointsOptions = filterOptions(
@@ -393,29 +419,43 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
   // Handle the "Start Fresh as New Item" functionality
   const handleStartFreshClick = () => {
-    // Set currentItemInstance to null to indicate we're creating a new item
-    setCurrentItemInstance(null);
-    // Set isNewItem to true to trigger the animation
-    setIsNewItem(true);
+    setIsSlidingOut(true);
   };
 
-  const animationDuration = 1000; // Duration in milliseconds
 
+
+  // Handle the slide-out animation completion
   useEffect(() => {
     let timer;
-    if (isNewItem) {
+    if (isSlidingOut) {
       timer = setTimeout(() => {
-        setIsNewItem(false);
-      }, animationDuration);
+        setCurrentItemInstance(null);
+        setIsSlidingOut(false);
+        setIsSlidingIn(true);
+      }, 300); // Match the animation duration
     }
     return () => clearTimeout(timer);
-  }, [isNewItem]);
+  }, [isSlidingOut]);
+
+  // Handle the slide-in animation completion
+  useEffect(() => {
+    let timer;
+    if (isSlidingIn) {
+      timer = setTimeout(() => {
+        setIsSlidingIn(false);
+      }, 300); // Match the animation duration
+    }
+    return () => clearTimeout(timer);
+  }, [isSlidingIn]);
 
   return (
-    <div className={styles.popup}>
-      <div
-        className={`${styles.popupContent} ${isNewItem ? styles.newItemAnimation : ''}`}
-      >
+    <div className={styles.popup} onClick={onClose}>
+  <div
+    className={`${styles.popupContent} ${isSlidingOut ? styles.slideOut : ''} ${
+      isSlidingIn ? styles.slideIn : ''
+    }`}
+    onClick={(e) => e.stopPropagation()}
+  >
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
@@ -592,14 +632,14 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
                 isClearable={false} // Remove 'Clear All' button
                 className={styles.selectInput}
                 classNamePrefix={selectClassNamePrefix}
-                name="handlingInfo"
-                options={filteredHandlingInfoOptions}
-                placeholder="Handling Info"
-                value={handlingInfoOptions}
+                name="loadPoints"
+                options={filteredloadPointsOptions}
+                placeholder="Load Points"
+                value={loadPointsOptions}
                 onChange={(selectedOptions) =>
-                  handleTagChange(selectedOptions, setHandlingInfoOptions)
+                  handleTagChange(selectedOptions, setloadPointsOptions)
                 }
-                aria-label="Location Tags - Handling Info"
+                aria-label="Location Tags - loadPoints"
                 components={{ Input: CustomInput }}
                 styles={customSelectStyles}
                 isOptionDisabled={(option) => option.isDisabled}
@@ -670,12 +710,14 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
         </div>
 
         {/* Save and Start Fresh Buttons */}
-        <div
-        className={`${styles.saveButtonContainer} ${
-          isNewItem ? styles.newItemAnimation : ''
-        }`}
-      >
-          <button className={styles.saveButton} onClick={handleSaveItem}>
+        <div className={styles.saveButtonContainer}>
+  <button
+    className={styles.saveButton}
+    onClick={(e) => {
+      e.stopPropagation(); // Prevent the click from reaching the overlay
+      handleSaveItem();    // Save the item without closing the popup
+    }}
+  >
             Save
           </button>
           <button className={styles.newItemButton} onClick={handleStartFreshClick}>

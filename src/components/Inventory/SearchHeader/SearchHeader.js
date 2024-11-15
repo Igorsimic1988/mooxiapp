@@ -20,6 +20,12 @@ function SearchHeader({ roomName, searchQuery, onSearch, onSearchClick, onSearch
     }
   };
 
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.target.blur(); // This will hide the keyboard on mobile devices
+    }
+  };
+
   return (
     <header className={styles.searchHeader}>
       <div className={styles.searchContainer}>
@@ -31,6 +37,7 @@ function SearchHeader({ roomName, searchQuery, onSearch, onSearchClick, onSearch
           value={searchQuery}
           onChange={handleSearch}
           onFocus={handleFocus} // Handle focus to deactivate "My Items" and select all text
+          onKeyDown={handleKeyDown}
           ref={inputRef} // Attach reference to input for selecting text
         />
         <SearchIcon

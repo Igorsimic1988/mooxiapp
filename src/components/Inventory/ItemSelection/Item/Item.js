@@ -18,40 +18,75 @@ function Item({
 }) {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const timerRef = useRef(null);
+  const eventRef = useRef(null);
 
-  // Handlers for long press
+  const [startX, setStartX] = useState(null);
+  const [startY, setStartY] = useState(null);
+  const moveThreshold = 10; // Adjust as needed
+
+  // Handlers for long press with movement detection
   const handleMouseDown = (e) => {
-    if (!isMyItemsActive) return; // Only activate if isMyItemsActive is true
-    e.preventDefault();
+    if (!isMyItemsActive) return;
+    eventRef.current = e;
     timerRef.current = setTimeout(() => {
+      eventRef.current.preventDefault();
       setIsPopupVisible(true);
-    }, 500); // Long press duration
+    }, 500);
+    setStartX(e.clientX);
+    setStartY(e.clientY);
+  };
+
+  const handleMouseMove = (e) => {
+    if (startX !== null && startY !== null) {
+      const deltaX = Math.abs(e.clientX - startX);
+      const deltaY = Math.abs(e.clientY - startY);
+      if (deltaX > moveThreshold || deltaY > moveThreshold) {
+        clearTimeout(timerRef.current);
+      }
+    }
   };
 
   const handleMouseUp = () => {
     clearTimeout(timerRef.current);
-  };
-
-  const handleMouseLeave = () => {
-    clearTimeout(timerRef.current);
+    setStartX(null);
+    setStartY(null);
+    eventRef.current = null;
   };
 
   const handleTouchStart = (e) => {
     if (!isMyItemsActive) return;
-    e.preventDefault(); // Prevents default selection behavior on mobile
+    eventRef.current = e;
     timerRef.current = setTimeout(() => {
+      eventRef.current.preventDefault();
       setIsPopupVisible(true);
     }, 500);
+    const touch = e.touches[0];
+    setStartX(touch.clientX);
+    setStartY(touch.clientY);
+  };
+
+  const handleTouchMove = (e) => {
+    if (startX !== null && startY !== null) {
+      const touch = e.touches[0];
+      const deltaX = Math.abs(touch.clientX - startX);
+      const deltaY = Math.abs(touch.clientY - startY);
+      if (deltaX > moveThreshold || deltaY > moveThreshold) {
+        clearTimeout(timerRef.current);
+      }
+    }
   };
 
   const handleTouchEnd = () => {
     clearTimeout(timerRef.current);
+    setStartX(null);
+    setStartY(null);
+    eventRef.current = null;
   };
 
   // Handle menu icon click
   const handleMenuIconClick = (e) => {
     e.stopPropagation();
-    if (!isMyItemsActive) return; // Only activate if isMyItemsActive is true
+    if (!isMyItemsActive) return;
     setIsPopupVisible(true);
   };
 
@@ -66,9 +101,11 @@ function Item({
         className={styles.card}
         onClick={onItemClick}
         onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
+        onMouseLeave={handleMouseUp}
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {clickCount > 0 && (

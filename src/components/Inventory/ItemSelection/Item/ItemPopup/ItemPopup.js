@@ -1,6 +1,6 @@
 // src/components/Inventory/ItemSelection/Item/ItemPopup.js
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import styles from './ItemPopup.module.css';
 import { ReactComponent as CloseIcon } from '../../../../../assets/icons/Close.svg';
 import { ReactComponent as CameraIcon } from '../../../../../assets/icons/cameraroll.svg';
@@ -29,7 +29,7 @@ const MultiValue = (props) => {
 function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   // Define generateGroupingKey inside the component
   const generateGroupingKey = (instance) => {
-    const tagsKey = instance.tags.sort().join(',');
+    const tagsKey = (instance.tags || []).sort().join(',');
     const notesKey = instance.notes || '';
     const cuftKey = instance.cuft || '';
     const lbsKey = instance.lbs || '';
@@ -47,7 +47,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   // State to manage selected options
   const [selectedPackingTags, setSelectedPackingTags] = useState([]);
   const [extraAttentionOptions, setExtraAttentionOptions] = useState([]);
-  const [loadPointsOptions, setloadPointsOptions] = useState([]);
+  const [loadPointsOptions, setLoadPointsOptions] = useState([]);
   const [dropPointsOptions, setDropPointsOptions] = useState([]);
   const [cuft, setCuft] = useState('');
   const [lbs, setLbs] = useState('');
@@ -62,6 +62,31 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
   // State for packing needs counts
   const [packingNeedsCounts, setPackingNeedsCounts] = useState({});
+
+  // State for images
+  const [cameraImages, setCameraImages] = useState([]);
+  const [uploadedImages, setUploadedImages] = useState([]);
+
+  // State for link management
+  const [link, setLink] = useState('');
+  const [isLinkOptionsVisible, setIsLinkOptionsVisible] = useState(false);
+  const [isEditingLink, setIsEditingLink] = useState(false);
+  const [linkInput, setLinkInput] = useState('');
+
+  // Refs for Link element and popups
+  const linkRef = useRef(null);
+  const linkOptionsRef = useRef(null);
+  const linkInputRef = useRef(null);
+
+  // Ref for Upload input
+  const uploadInputRef = useRef(null);
+
+  // State for Image Preview Popup
+  const [previewImage, setPreviewImage] = useState(null); // Holds the image data
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false); // Controls popup visibility
+
+  // Reference to the Delete Image button for focus management
+  const deleteImageButtonRef = useRef(null);
 
   // Convert packingNeedsCounts to array for Select component
   const selectedPackingNeeds = Object.keys(packingNeedsCounts).map((key) => {
@@ -101,7 +126,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
           optionsData.itemTags.extraAttention.some((o) => o.value === opt.value)
         )
       );
-      setloadPointsOptions(
+      setLoadPointsOptions(
         selectedOptions.filter((opt) =>
           optionsData.locationTags.loadPoints.some((o) => o.value === opt.value)
         )
@@ -134,7 +159,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
           optionsData.itemTags.extraAttention.some((o) => o.value === opt.value)
         )
       );
-      setloadPointsOptions(
+      setLoadPointsOptions(
         selectedOptions.filter((opt) =>
           optionsData.locationTags.loadPoints.some((o) => o.value === opt.value)
         )
@@ -148,7 +173,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       // Reset options if no currentItemInstance or item tags
       setSelectedPackingTags([]);
       setExtraAttentionOptions([]);
-      setloadPointsOptions([]);
+      setLoadPointsOptions([]);
       setDropPointsOptions([]);
     }
 
@@ -173,8 +198,16 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       currentItemInstance?.count !== undefined ? currentItemInstance.count : 1
     );
     setNotes(currentItemInstance?.notes || '');
+
+    // Initialize link
+    setLink(currentItemInstance?.link || '');
+
+    // Initialize images if present
+    setUploadedImages(currentItemInstance?.uploadedImages || []);
+    setCameraImages(currentItemInstance?.cameraImages || []);
   }, [currentItemInstance, item]);
 
+  // Handlers for Cuft and Lbs
   const handleCuftChange = (e) => {
     setCuft(e.target.value);
   };
@@ -244,7 +277,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       setExtraAttentionOptions((prev) =>
         prev.filter((opt) => !incompatible.includes(opt.value))
       );
-      setloadPointsOptions((prev) =>
+      setLoadPointsOptions((prev) =>
         prev.filter((opt) => !incompatible.includes(opt.value))
       );
       setDropPointsOptions((prev) =>
@@ -308,7 +341,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   const handleSaveItem = () => {
     // Collect all selected tags
     const selectedTags = getAllSelectedTags();
-  
+
     // Create updated item instance
     const updatedItemInstance = {
       id: currentItemInstance ? currentItemInstance.id : uuidv4(),
@@ -320,11 +353,14 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       cuft: cuft,
       lbs: lbs,
       packingNeedsCounts: packingNeedsCounts,
+      link: link, // Include link in the item instance
+      uploadedImages: uploadedImages, // Include uploaded images
+      cameraImages: cameraImages, // Include camera images
     };
-  
+
     // Generate and store the new groupingKey
     updatedItemInstance.groupingKey = generateGroupingKey(updatedItemInstance);
-  
+
     if (currentItemInstance) {
       // We're updating an existing item
       onUpdateItem(updatedItemInstance, currentItemInstance);
@@ -332,12 +368,10 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       // We're adding a new item
       onAddItem(updatedItemInstance);
     }
-  
+
     // Update the currentItemInstance state to reflect the changes
     setCurrentItemInstance(updatedItemInstance);
   };
-
-  
 
   // Handlers for item count
   const handleIncrement = () => {
@@ -405,7 +439,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
     optionsData.itemTags.extraAttention,
     allSelectedTags
   );
-  const filteredloadPointsOptions = filterOptions(
+  const filteredLoadPointsOptions = filterOptions(
     optionsData.locationTags.loadPoints,
     allSelectedTags
   );
@@ -422,9 +456,8 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   // Handle the "Start Fresh as New Item" functionality
   const handleStartFreshClick = () => {
     setIsSlidingOut(true);
+    console.log('Start Fresh as New Item clicked.');
   };
-
-
 
   // Handle the slide-out animation completion
   useEffect(() => {
@@ -450,21 +483,221 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
     return () => clearTimeout(timer);
   }, [isSlidingIn]);
 
+  // Handlers for Camera Roll and Upload
+  const handleCameraRoll = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageData = reader.result;
+        setCameraImages((prevImages) => [...prevImages, imageData]);
+        console.log('Camera Roll Image Added:', imageData);
+        setPreviewImage(imageData);
+        setIsPreviewVisible(true);
+        handleSaveItem(); // Save the changes
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageData = reader.result;
+        setUploadedImages((prevImages) => [...prevImages, imageData]);
+        console.log('Uploaded Image Added:', imageData);
+        setPreviewImage(imageData);
+        setIsPreviewVisible(true);
+        handleSaveItem(); // Save the changes
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  // Handlers for Link
+  const handleLinkClick = () => {
+    if (link) {
+      // Toggle the visibility of the popup options
+      setIsLinkOptionsVisible((prev) => !prev);
+    } else {
+      // Start editing to add a new link
+      setIsEditingLink(true);
+    }
+  };
+
+  const handleViewLink = () => {
+    console.log('handleViewLink triggered');
+    window.open(link, '_blank');
+    setIsLinkOptionsVisible(false);
+  };
+
+  const handleClearLink = () => {
+    console.log('handleClearLink triggered');
+    setLink('');
+    setIsLinkOptionsVisible(false);
+    console.log('Link cleared.');
+  };
+
+  const handleReplaceLink = () => {
+    console.log('handleReplaceLink triggered');
+    setIsLinkOptionsVisible(false);
+    setIsEditingLink(true);
+  };
+
+  const handleLinkInputChange = (e) => {
+    setLinkInput(e.target.value);
+  };
+
+  const handleSaveLink = () => {
+    console.log('handleSaveLink triggered'); // Confirm handler invocation
+    if (validateURL(linkInput)) {
+      setLink(linkInput);
+      setLinkInput('');
+      setIsEditingLink(false);
+      setIsLinkOptionsVisible(false); // Hide Link Options Popup
+      console.log('Link saved:', linkInput);
+    } else {
+      alert('Please enter a valid URL.');
+    }
+  };
+
+  const handleCancelEditLink = () => {
+    console.log('handleCancelEditLink triggered'); // Confirm handler invocation
+    setLinkInput('');
+    setIsEditingLink(false);
+    setIsLinkOptionsVisible(false); // Hide Link Options Popup
+    console.log('Link editing cancelled.');
+  };
+
+  // Utility function to validate URLs
+  const validateURL = (url) => {
+    const pattern = new RegExp(
+      '^(https?:\\/\\/)' + // protocol
+        '((([a-zA-Z\\d]([a-zA-Z\\d-]*[a-zA-Z\\d])*)\\.)+[a-zA-Z]{2,})' + // domain name
+        '(\\:\\d+)?(\\/[-a-zA-Z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-zA-Z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-zA-Z\\d_]*)?$',
+      'i'
+    );
+    return !!pattern.test(url);
+  };
+
+  // Click outside handling using refs
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        (linkRef.current && linkRef.current.contains(event.target)) ||
+        (linkOptionsRef.current && linkOptionsRef.current.contains(event.target)) ||
+        (linkInputRef.current && linkInputRef.current.contains(event.target)) ||
+        (uploadInputRef.current && uploadInputRef.current.contains(event.target))
+      ) {
+        // Click inside, do nothing
+        return;
+      }
+      // Click outside, close both popups
+      if (isLinkOptionsVisible || isEditingLink) {
+        setIsLinkOptionsVisible(false);
+        setIsEditingLink(false);
+        console.log('Clicked outside, popups closed.');
+      }
+      // Close image preview if open
+      if (isPreviewVisible) {
+        closePreview();
+      }
+    };
+
+    if (isLinkOptionsVisible || isEditingLink || isPreviewVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isLinkOptionsVisible, isEditingLink, isPreviewVisible]);
+
+  // Function to close the image preview popup
+  const closePreview = () => {
+    setIsPreviewVisible(false);
+    setPreviewImage(null);
+  };
+
+  // Handler for Upload Click
+  const handleUploadClick = () => {
+    if (uploadedImages.length === 0 && cameraImages.length === 0) {
+      // Trigger the file input dialog
+      if (uploadInputRef.current) {
+        uploadInputRef.current.click();
+      }
+    } else {
+      // Open the image preview popup
+      // For simplicity, we'll preview the first uploaded image or camera image
+      if (uploadedImages.length > 0) {
+        setPreviewImage(uploadedImages[0]);
+      } else if (cameraImages.length > 0) {
+        setPreviewImage(cameraImages[0]);
+      }
+      setIsPreviewVisible(true);
+    }
+  };
+
+  // Handler to delete the currently previewed image
+  const handleDeleteImage = () => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this image?');
+    if (!confirmDelete) return;
+
+    let newUploadedImages = [...uploadedImages];
+    let newCameraImages = [...cameraImages];
+
+    if (uploadedImages.includes(previewImage)) {
+      newUploadedImages = uploadedImages.filter((img) => img !== previewImage);
+      setUploadedImages(newUploadedImages);
+      console.log('Deleted from uploadedImages:', previewImage);
+    } else if (cameraImages.includes(previewImage)) {
+      newCameraImages = cameraImages.filter((img) => img !== previewImage);
+      setCameraImages(newCameraImages);
+      console.log('Deleted from cameraImages:', previewImage);
+    } else {
+      console.log('Image not found in any array.');
+      return;
+    }
+
+    // Update the previewImage
+    if (newUploadedImages.length > 0) {
+      setPreviewImage(newUploadedImages[0]);
+    } else if (newCameraImages.length > 0) {
+      setPreviewImage(newCameraImages[0]);
+    } else {
+      setPreviewImage(null);
+      setIsPreviewVisible(false);
+    }
+
+    // Save the updated item instance to propagate changes to the parent
+    handleSaveItem();
+  };
+
+  // Focus management for the Delete Image button
+  useEffect(() => {
+    if (isPreviewVisible && deleteImageButtonRef.current) {
+      deleteImageButtonRef.current.focus();
+    }
+  }, [isPreviewVisible]);
+
   return (
     <div className={styles.popup} onClick={onClose}>
-  <div
-    className={`${styles.popupContent} ${isSlidingOut ? styles.slideOut : ''} ${
-      isSlidingIn ? styles.slideIn : ''
-    }`}
-    onClick={(e) => e.stopPropagation()}
-  >
+      <div
+        className={`${styles.popupContent} ${isSlidingOut ? styles.slideOut : ''} ${
+          isSlidingIn ? styles.slideIn : ''
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
             <p>Item</p>
           </div>
           <div className={styles.closeButton}>
-            <button onClick={onClose} aria-label="Close">
+            <button type="button" onClick={onClose} aria-label="Close">
               <CloseIcon className={styles.closeIcon} />
             </button>
           </div>
@@ -484,6 +717,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
               <div className={styles.numberInputWrapper}>
                 <div className={styles.numberInput}>
                   <button
+                    type="button" // Ensure button type is set
                     className={`${styles.button} ${styles.decrement}`}
                     onClick={handleDecrement}
                     aria-label="Decrease count"
@@ -500,6 +734,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
                     aria-label="Item count"
                   />
                   <button
+                    type="button" // Ensure button type is set
                     className={`${styles.button} ${styles.increment}`}
                     onClick={handleIncrement}
                     aria-label="Increase count"
@@ -556,31 +791,175 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
           {/* Action Buttons */}
           <div className={styles.container}>
-            {/* First Element */}
+            {/* Camera Roll */}
             <label className={styles.element}>
               <input
                 type="file"
                 accept="image/*"
-                capture="camera"
+                capture="environment" /* Use "environment" for rear camera; "user" for front */
                 className={styles.hiddenInput}
+                onChange={handleCameraRoll}
               />
               <CameraIcon className={styles.icon} />
               <div>Camera Roll</div>
             </label>
 
-            {/* Second Element */}
-            <label className={styles.element}>
-              <input type="file" accept="image/*" className={styles.hiddenInput} />
+            {/* Upload */}
+            <div
+              className={`${styles.element} ${
+                uploadedImages.length > 0 ? styles.uploadActive : ''
+              }`}
+              onClick={handleUploadClick}
+              style={{ cursor: 'pointer', position: 'relative' }}
+            >
               <UploadIcon className={styles.icon} />
-              <div>Upload</div>
-            </label>
-
-            {/* Third Element */}
-            <div className={styles.element}>
-              <LinkIcon className={styles.icon} />
-              <div>Link</div>
+              <div>{uploadedImages.length > 0 ? 'View Upload' : 'Upload'}</div>
             </div>
+            {/* Hidden Upload Input */}
+            <input
+              type="file"
+              accept="image/*"
+              ref={uploadInputRef}
+              className={styles.hiddenInput}
+              onChange={handleUpload}
+            />
+
+            {/* Link Element with Popup */}
+            <div
+              ref={linkRef} // Assigned ref
+              className={`${styles.element} ${link ? styles.linkActive : ''}`}
+              onClick={handleLinkClick}
+              style={{ cursor: 'pointer', position: 'relative' }}
+            >
+              <LinkIcon className={styles.icon} />
+              <div>{link ? 'Link Added' : 'Add Link'}</div>
+
+              {/* Popup Options */}
+              {isLinkOptionsVisible && link && (
+                <div ref={linkOptionsRef} className={styles.linkOptionsPopup}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevents the click from bubbling up
+                      handleViewLink();
+                    }}
+                    className={styles.linkOptionButton}
+                  >
+                    View Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevents the click from bubbling up
+                      handleClearLink();
+                    }}
+                    className={styles.linkOptionButton}
+                  >
+                    Clear Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevents the click from bubbling up
+                      handleReplaceLink();
+                    }}
+                    className={styles.linkOptionButton}
+                  >
+                    Replace Link
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Link Input Popup */}
+            {isEditingLink && (
+              <div ref={linkInputRef} className={styles.linkInputPopup}>
+                <input
+                  type="url"
+                  value={linkInput}
+                  onChange={handleLinkInputChange}
+                  placeholder="Paste your link here"
+                  className={styles.linkInputField}
+                  aria-label="Link Input"
+                />
+                <div className={styles.linkInputButtons}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSaveLink();
+                    }}
+                    className={styles.saveLinkButton}
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCancelEditLink();
+                    }}
+                    className={styles.cancelLinkButton}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Image Gallery */}
+          {/* 
+            If you prefer not to display thumbnails at the bottom, you can comment out or remove this section.
+            Uncomment the following block if you want to keep the image gallery.
+          */}
+          {/* {(cameraImages.length > 0 || uploadedImages.length > 0) && (
+            <div className={styles.imageGallery}>
+              {cameraImages.map((imgSrc, index) => (
+                <img
+                  key={`camera-${index}`}
+                  src={imgSrc}
+                  alt={`Camera Upload ${index + 1}`}
+                  className={styles.thumbnail}
+                />
+              ))}
+              {uploadedImages.map((imgSrc, index) => (
+                <img
+                  key={`upload-${index}`}
+                  src={imgSrc}
+                  alt={`Uploaded Image ${index + 1}`}
+                  className={styles.thumbnail}
+                />
+              ))}
+            </div>
+          )} */}
+
+          {/* Image Preview Popup */}
+          {isPreviewVisible && previewImage && (
+            <div className={styles.imagePreviewOverlay} onClick={closePreview}>
+              <div className={styles.imagePreviewModal} onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className={styles.closePreviewButton}
+                  onClick={closePreview}
+                  aria-label="Close Preview"
+                >
+                  &times;
+                </button>
+                <img src={previewImage} alt="Preview" className={styles.previewImage} />
+                {/* Delete Image Button */}
+                <button
+                  type="button"
+                  className={styles.deleteImageButton}
+                  onClick={handleDeleteImage}
+                  aria-label="Delete Image"
+                  ref={deleteImageButtonRef} // Assign ref here
+                >
+                  Delete Image
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* First Section: Item Tags */}
           <div className={styles.section}>
@@ -588,7 +967,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
             <div className={styles.inputGroup}>
               <Select
                 isMulti
-                isClearable={false} // Remove 'Clear All' button
+                isClearable={false} /* Remove 'Clear All' button */
                 className={styles.selectInput}
                 classNamePrefix={selectClassNamePrefix}
                 name="packing"
@@ -607,7 +986,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
             <div className={styles.inputGroup}>
               <Select
                 isMulti
-                isClearable={false} // Remove 'Clear All' button
+                isClearable={false} /* Remove 'Clear All' button */
                 className={styles.selectInput}
                 classNamePrefix={selectClassNamePrefix}
                 name="extraAttention"
@@ -631,17 +1010,17 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
             <div className={styles.inputGroup}>
               <Select
                 isMulti
-                isClearable={false} // Remove 'Clear All' button
+                isClearable={false} /* Remove 'Clear All' button */
                 className={styles.selectInput}
                 classNamePrefix={selectClassNamePrefix}
                 name="loadPoints"
-                options={filteredloadPointsOptions}
+                options={filteredLoadPointsOptions}
                 placeholder="Load Points"
                 value={loadPointsOptions}
                 onChange={(selectedOptions) =>
-                  handleTagChange(selectedOptions, setloadPointsOptions)
+                  handleTagChange(selectedOptions, setLoadPointsOptions)
                 }
-                aria-label="Location Tags - loadPoints"
+                aria-label="Location Tags - Load Points"
                 components={{ Input: CustomInput }}
                 styles={customSelectStyles}
                 isOptionDisabled={(option) => option.isDisabled}
@@ -650,7 +1029,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
             <div className={styles.inputGroup}>
               <Select
                 isMulti
-                isClearable={false} // Remove 'Clear All' button
+                isClearable={false} /* Remove 'Clear All' button */
                 className={styles.selectInput}
                 classNamePrefix={selectClassNamePrefix}
                 name="dropPoints"
@@ -691,7 +1070,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
                   value={selectedPackingNeeds}
                   onChange={handlePackingNeedsChange}
                   aria-label="Packing Needs"
-                  getOptionLabel={(option) => option.name} // Use 'name' for labels
+                  getOptionLabel={(option) => option.name} /* Use 'name' for labels */
                   getOptionValue={(option) => option.value}
                   components={{
                     DropdownIndicator: () => null,
@@ -713,16 +1092,21 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
         {/* Save and Start Fresh Buttons */}
         <div className={styles.saveButtonContainer}>
-  <button
-    className={styles.saveButton}
-    onClick={(e) => {
-      e.stopPropagation(); // Prevent the click from reaching the overlay
-      handleSaveItem();    // Save the item without closing the popup
-    }}
-  >
+          <button
+            type="button" // Ensure button type is set
+            className={styles.saveButton}
+            onClick={(e) => {
+              e.stopPropagation(); /* Prevent the click from reaching the overlay */
+              handleSaveItem(); /* Save the item without closing the popup */
+            }}
+          >
             Save
           </button>
-          <button className={styles.newItemButton} onClick={handleStartFreshClick}>
+          <button
+            type="button" // Ensure button type is set
+            className={styles.newItemButton}
+            onClick={handleStartFreshClick}
+          >
             Start Fresh as New Item
           </button>
         </div>

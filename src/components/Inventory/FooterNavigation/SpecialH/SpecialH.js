@@ -7,6 +7,8 @@ import ItemCard from './ItemCard/ItemCard'; // Ensure the path is correct
 import { ReactComponent as SpecialHPopupIcon } from "../../../../assets/icons/SpecialHPopupIcon.svg";
 import { ReactComponent as CloseIcon } from "../../../../assets/icons/Close.svg";
 
+import { generateGroupingKey } from '../../utils/generateGroupingKey';
+
 import CustomSelect from './CustomSelect/CustomSelect'; // Ensure the path is correct
 import { optionsData } from '../../../../data/constants/optionsData'; // Ensure the path is correct
 import rooms from '../../../../data/constants/AllRoomsList'; // Import rooms data
@@ -157,14 +159,16 @@ function SpecialH({ setIsSpecialHVisible, roomItemSelections, setRoomItemSelecti
             }
           }
 
-          return {
+          const updatedItemInstance = {
             ...itemInstance,
             tags,
           };
+          updatedItemInstance.groupingKey = generateGroupingKey(updatedItemInstance);
+          return updatedItemInstance;
         }
         return itemInstance;
       });
-
+  
       updatedSelections[roomId] = updatedRoomItems;
       return updatedSelections;
     });

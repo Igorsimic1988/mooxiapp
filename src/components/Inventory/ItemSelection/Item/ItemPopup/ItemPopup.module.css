@@ -632,6 +632,22 @@
   transition: color 0.3s ease; /* Smooth transition */
 }
 
+
+.cameraRollActive {
+  background-color: #90A4B7; /* Same as linkActive and uploadActive */
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.cameraRollActive .icon {
+  filter: brightness(0) invert(1); /* Change icon color to white */
+  transition: filter 0.3s ease; /* Smooth transition */
+}
+
+.cameraRollActive div {
+  color: white; /* Change the text color to white */
+  transition: color 0.3s ease; /* Smooth transition */
+}
+
 /* Popup Animations */
 @keyframes slideIn {
   0% {

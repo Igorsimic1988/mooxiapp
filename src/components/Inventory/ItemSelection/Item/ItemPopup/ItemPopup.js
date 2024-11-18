@@ -69,6 +69,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
   // Ref for Upload input
   const uploadInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   // **Ref for Image Preview Modal**
   const imagePreviewModalRef = useRef(null); // Added this line
@@ -499,6 +500,17 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
     }
   };
 
+  const handleCameraRollClick = () => {
+    if (cameraImages.length === 0) {
+      if (cameraInputRef.current) {
+        cameraInputRef.current.click();
+      }
+    } else {
+      setPreviewImage(cameraImages[0]);
+      setIsPreviewVisible(true);
+    }
+  };
+
   const handleUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -635,56 +647,47 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
   // Handler for Upload Click
   const handleUploadClick = () => {
-    if (uploadedImages.length === 0 && cameraImages.length === 0) {
-      // Trigger the file input dialog
+    if (uploadedImages.length === 0) {
+      // No uploaded images, open the file dialog
       if (uploadInputRef.current) {
         uploadInputRef.current.click();
       }
     } else {
-      // Open the image preview popup
-      // For simplicity, we'll preview the first uploaded image or camera image
-      if (uploadedImages.length > 0) {
-        setPreviewImage(uploadedImages[0]);
-      } else if (cameraImages.length > 0) {
-        setPreviewImage(cameraImages[0]);
-      }
+      // Uploaded images exist, open the image preview
+      setPreviewImage(uploadedImages[0]); // Show the first uploaded image
       setIsPreviewVisible(true);
     }
   };
 
   // Handler to delete the currently previewed image
   const handleDeleteImage = () => {
-    let newUploadedImages = [...uploadedImages];
-    let newCameraImages = [...cameraImages];
-  
     if (uploadedImages.includes(previewImage)) {
-      newUploadedImages = uploadedImages.filter((img) => img !== previewImage);
+      // Deleting an uploaded image
+      const newUploadedImages = uploadedImages.filter((img) => img !== previewImage);
       setUploadedImages(newUploadedImages);
-      console.log('Deleted from uploadedImages:', previewImage);
+  
+      if (newUploadedImages.length > 0) {
+        setPreviewImage(newUploadedImages[0]);
+      } else {
+        setPreviewImage(null);
+        setIsPreviewVisible(false);
+      }
+  
+      handleSaveItem({ uploadedImages: newUploadedImages });
     } else if (cameraImages.includes(previewImage)) {
-      newCameraImages = cameraImages.filter((img) => img !== previewImage);
+      // Deleting a camera image
+      const newCameraImages = cameraImages.filter((img) => img !== previewImage);
       setCameraImages(newCameraImages);
-      console.log('Deleted from cameraImages:', previewImage);
-    } else {
-      console.log('Image not found in any array.');
-      return;
-    }
   
-    // Update the previewImage
-    if (newUploadedImages.length > 0) {
-      setPreviewImage(newUploadedImages[0]);
-    } else if (newCameraImages.length > 0) {
-      setPreviewImage(newCameraImages[0]);
-    } else {
-      setPreviewImage(null);
-      setIsPreviewVisible(false);
-    }
+      if (newCameraImages.length > 0) {
+        setPreviewImage(newCameraImages[0]);
+      } else {
+        setPreviewImage(null);
+        setIsPreviewVisible(false);
+      }
   
-    // Save the updated item instance to propagate changes to the parent
-    handleSaveItem({
-      uploadedImages: newUploadedImages,
-      cameraImages: newCameraImages,
-    });
+      handleSaveItem({ cameraImages: newCameraImages });
+    }
   };
 
   // Focus management for the Delete Image button
@@ -803,17 +806,25 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
           {/* Action Buttons */}
           <div className={styles.container}>
             {/* Camera Roll */}
-            <label className={styles.element}>
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment" /* Use "environment" for rear camera; "user" for front */
-                className={styles.hiddenInput}
-                onChange={handleCameraRoll}
-              />
-              <CameraIcon className={styles.icon} />
-              <div>Camera Roll</div>
-            </label>
+            <div
+  className={`${styles.element} ${
+    cameraImages.length > 0 ? styles.cameraRollActive : ''
+  }`}
+  onClick={handleCameraRollClick}
+  style={{ cursor: 'pointer', position: 'relative' }}
+>
+  <CameraIcon className={styles.icon} />
+  <div>{cameraImages.length > 0 ? 'View Camera Roll' : 'Camera Roll'}</div>
+</div>
+{/* Hidden Camera Input */}
+<input
+  type="file"
+  accept="image/*"
+  capture="environment"
+  ref={cameraInputRef}
+  className={styles.hiddenInput}
+  onChange={handleCameraRoll}
+/>
 
             {/* Upload */}
             <div

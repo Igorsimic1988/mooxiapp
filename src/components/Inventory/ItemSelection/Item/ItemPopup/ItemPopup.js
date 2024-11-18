@@ -953,13 +953,13 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
-                  type="button"
-                  className={styles.closePreviewButton}
-                  onClick={closePreview}
-                  aria-label="Close Preview"
-                >
-                  &times;
-                </button>
+  type="button"
+  className={styles.closePreviewButton}
+  onClick={closePreview}
+  aria-label="Close Preview"
+>
+  <CloseIcon className={styles.closeIconPreview} />
+</button>
                 <img
                   src={previewImage}
                   alt="Preview"

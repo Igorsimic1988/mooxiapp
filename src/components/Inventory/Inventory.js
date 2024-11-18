@@ -12,6 +12,9 @@ import rooms from '../../data/constants/AllRoomsList'; // Import rooms data
 import allItems from '../../data/constants/funitureItems'; // Import allItems
 import { v4 as uuidv4 } from 'uuid'; // Import UUID library for generating unique IDs
 
+// Adjust the import path based on your project structure
+import { generateGroupingKey } from './utils/generateGroupingKey';
+
 // Set IDs of the rooms that will be shown by default initially
 const defaultRoomIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
@@ -112,47 +115,32 @@ function Inventory() {
     }
   };
 
-  // Helper function to generate the grouping key
-  const generateGroupingKey = (instance) => {
-    const tagsKey = instance.tags.sort().join(',');
-    const notesKey = instance.notes || '';
-    const cuftKey = instance.cuft || '';
-    const lbsKey = instance.lbs || '';
-    const packingNeedsEntries = Object.entries(instance.packingNeedsCounts || {}).sort();
-    const packingNeedsKey = packingNeedsEntries.map(([key, value]) => `${key}:${value}`).join(',');
-
-    return `${instance.itemId}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}`;
-  };
-
-  // Function to handle item selection
   const handleItemSelection = (clickedItem) => {
     if (!selectedRoom) return;
-  
+
     setRoomItemSelections((prevSelections) => {
       const currentRoomSelections = prevSelections[selectedRoom.id] || [];
       let updatedRoomSelections = [...currentRoomSelections];
-  
+
       if (isDeleteActive) {
+        // Deletion logic: delete one instance
+        let indexToDelete = -1;
+
         if (isMyItemsActive) {
-          // clickedItem is a grouped item with groupingKey
-          const groupingKeyToDelete = clickedItem.groupingKey;
-          // Remove one item matching the groupingKey
-          const indexToRemove = updatedRoomSelections.findIndex(
-            (itemInstance) => itemInstance.groupingKey === groupingKeyToDelete
+          // Find the index of one instance matching the groupingKey
+          indexToDelete = updatedRoomSelections.findIndex(
+            (itemInstance) => itemInstance.groupingKey === clickedItem.groupingKey
           );
-          if (indexToRemove !== -1) {
-            updatedRoomSelections.splice(indexToRemove, 1);
-          }
         } else {
-          // clickedItem is a regular item
+          // clickedItem is from allItems
           const itemIdToDelete = clickedItem.id.toString();
-          // Remove one instance of this item
-          const indexToRemove = updatedRoomSelections.findIndex(
+          indexToDelete = updatedRoomSelections.findIndex(
             (itemInstance) => itemInstance.itemId === itemIdToDelete
           );
-          if (indexToRemove !== -1) {
-            updatedRoomSelections.splice(indexToRemove, 1);
-          }
+        }
+
+        if (indexToDelete !== -1) {
+          updatedRoomSelections.splice(indexToDelete, 1);
         }
       } else {
         // Existing logic to add items
@@ -168,6 +156,9 @@ function Inventory() {
             cuft: clickedItem.cuft || '',
             lbs: clickedItem.lbs || '',
             packingNeedsCounts: { ...clickedItem.packingNeedsCounts },
+            link: clickedItem.link || '',
+            uploadedImages: [...(clickedItem.uploadedImages || [])],
+            cameraImages: [...(clickedItem.cameraImages || [])],
             groupingKey: clickedItem.groupingKey,
           };
         } else {
@@ -178,7 +169,7 @@ function Inventory() {
               defaultPackingNeedsCounts[pack.type] = pack.quantity;
             });
           }
-  
+
           newItemInstance = {
             id: uuidv4(),
             itemId: clickedItem.id.toString(),
@@ -188,22 +179,24 @@ function Inventory() {
             cuft: clickedItem.cuft || '',
             lbs: clickedItem.lbs || '',
             packingNeedsCounts: defaultPackingNeedsCounts,
+            link: '', // Initialize link
+            uploadedImages: [], // Initialize uploadedImages
+            cameraImages: [], // Initialize cameraImages
           };
-  
-          // Generate and store the groupingKey
+
+          // Generate and store the groupingKey using the imported function
           newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
         }
-  
+
         updatedRoomSelections.push(newItemInstance);
       }
-  
+
       return {
         ...prevSelections,
         [selectedRoom.id]: updatedRoomSelections,
       };
     });
   };
-  
 
   // Function to toggle room visibility
   const handleToggleRoom = (roomId) => {
@@ -244,62 +237,83 @@ function Inventory() {
   const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
     setRoomItemSelections((prevSelections) => {
       const updatedSelections = { ...prevSelections };
-      const roomItems = updatedSelections[selectedRoom.id] || [];
-
-      // Use the stored groupingKey to find items to update
-      const originalKey = originalItemInstance.groupingKey;
-
-      // Generate the updated grouping key
-      const updatedKey = generateGroupingKey(updatedItemInstance);
-
-      // Update the groupingKey on the updatedItemInstance
-      updatedItemInstance.groupingKey = updatedKey;
-
-      // Find indices of items to update based on the stored groupingKey
+      let roomItems = updatedSelections[selectedRoom.id] || [];
+  
+      // Find all instances with the original ID
       const indicesToUpdate = roomItems.reduce((indices, itemInstance, index) => {
-        if (itemInstance.groupingKey === originalKey) {
+        if (itemInstance.id === originalItemInstance.id) {
           indices.push(index);
         }
         return indices;
       }, []);
-
-      const oldCount = indicesToUpdate.length;
-      const newCount = updatedItemInstance.count !== undefined ? updatedItemInstance.count : 1;
-
+  
+      if (indicesToUpdate.length === 0) {
+        console.error('Item instance not found for update.');
+        return updatedSelections;
+      }
+  
+      const index = indicesToUpdate[0];
+      const oldGroupingKey = roomItems[index].groupingKey;
+  
+      // Generate the updated grouping key
+      const updatedKey = generateGroupingKey(updatedItemInstance);
+      updatedItemInstance.groupingKey = updatedKey;
+  
+      // Update the item instance
+      roomItems[index] = {
+        ...updatedItemInstance,
+        id: originalItemInstance.id,
+      };
+  
+      // Remove instances with old groupingKey except the updated one
+      roomItems = roomItems.filter(
+        (itemInstance) =>
+          itemInstance.groupingKey !== oldGroupingKey || itemInstance.id === updatedItemInstance.id
+      );
+  
+      // Handle item count
+      const newCount =
+        updatedItemInstance.count !== undefined ? updatedItemInstance.count : 1;
+  
       if (newCount === 0) {
-        // Remove all instances matching the grouping key
-        for (let i = indicesToUpdate.length - 1; i >= 0; i--) {
-          roomItems.splice(indicesToUpdate[i], 1);
-        }
+        // Remove all instances with the updated groupingKey
+        roomItems = roomItems.filter(
+          (itemInstance) => itemInstance.groupingKey !== updatedKey
+        );
       } else {
-        // Update existing instances
-        for (let i = 0; i < Math.min(oldCount, newCount); i++) {
-          const index = indicesToUpdate[i];
-          roomItems[index] = {
-            ...roomItems[index],
-            ...updatedItemInstance,
-            id: roomItems[index].id, // Keep existing id
-          };
-        }
-
-        // Add or remove instances as needed
-        if (newCount > oldCount) {
-          // Add new instances
-          for (let i = oldCount; i < newCount; i++) {
+        const existingInstances = roomItems.filter(
+          (itemInstance) =>
+            itemInstance.groupingKey === updatedKey && itemInstance.id !== updatedItemInstance.id
+        );
+  
+        if (existingInstances.length > newCount - 1) {
+          // Remove extra instances
+          let excess = existingInstances.length - (newCount - 1);
+          roomItems = roomItems.filter((itemInstance) => {
+            if (
+              itemInstance.groupingKey === updatedKey &&
+              itemInstance.id !== updatedItemInstance.id &&
+              excess > 0
+            ) {
+              excess--;
+              return false;
+            }
+            return true;
+          });
+        } else if (existingInstances.length < newCount - 1) {
+          // Add missing instances
+          const toAdd = newCount - 1 - existingInstances.length;
+          for (let i = 0; i < toAdd; i++) {
             roomItems.push({
               ...updatedItemInstance,
               id: uuidv4(),
             });
           }
-        } else if (newCount < oldCount) {
-          // Remove extra instances
-          for (let i = oldCount - 1; i >= newCount; i--) {
-            roomItems.splice(indicesToUpdate[i], 1);
-          }
         }
       }
-
+  
       updatedSelections[selectedRoom.id] = roomItems;
+  
       return updatedSelections;
     });
   };
@@ -312,13 +326,16 @@ function Inventory() {
       const currentRoomSelections = prevSelections[selectedRoom.id] || [];
       const updatedRoomSelections = [...currentRoomSelections];
   
-      // Add as many instances as specified by newItemInstance.count
-      const itemCount = newItemInstance.count || 1;
+      // Generate groupingKey for the new item instance
+      newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
+  
+      const itemCount =
+        newItemInstance.count !== undefined ? newItemInstance.count : 1;
+  
       for (let i = 0; i < itemCount; i++) {
-        // Create a new instance with a unique id
         updatedRoomSelections.push({
           ...newItemInstance,
-          id: uuidv4(),
+          id: i === 0 ? newItemInstance.id : uuidv4(), // Retain the original id for the first instance
         });
       }
   

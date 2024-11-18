@@ -11,6 +11,9 @@ import Select, { components } from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import packingOptions from '../../../../../data/constants/packingOptions';
 
+// Import the generateGroupingKey function from the utils directory
+import { generateGroupingKey } from '../../../utils/generateGroupingKey';
+
 // Custom Input component to prevent mobile keyboard from opening
 const CustomInput = (props) => {
   return <components.Input {...props} readOnly />;
@@ -27,20 +30,6 @@ const MultiValue = (props) => {
 };
 
 function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
-  // Define generateGroupingKey inside the component
-  const generateGroupingKey = (instance) => {
-    const tagsKey = (instance.tags || []).sort().join(',');
-    const notesKey = instance.notes || '';
-    const cuftKey = instance.cuft || '';
-    const lbsKey = instance.lbs || '';
-    const packingNeedsEntries = Object.entries(instance.packingNeedsCounts || {}).sort();
-    const packingNeedsKey = packingNeedsEntries
-      .map(([key, value]) => `${key}:${value}`)
-      .join(',');
-
-    return `${instance.itemId}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}`;
-  };
-
   // Initialize local state for itemInstance
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
 
@@ -80,6 +69,9 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
   // Ref for Upload input
   const uploadInputRef = useRef(null);
+
+  // **Ref for Image Preview Modal**
+  const imagePreviewModalRef = useRef(null); // Added this line
 
   // State for Image Preview Popup
   const [previewImage, setPreviewImage] = useState(null); // Holds the image data
@@ -338,29 +330,35 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   };
 
   // Function to handle saving the item
-  const handleSaveItem = () => {
+  const handleSaveItem = (overrides = {}) => {
     // Collect all selected tags
     const selectedTags = getAllSelectedTags();
-
+  
     // Create updated item instance
     const updatedItemInstance = {
       id: currentItemInstance ? currentItemInstance.id : uuidv4(),
       itemId: item.id.toString(),
       item: { ...item },
       tags: selectedTags,
-      count: itemCount,
+      count: itemCount, // Ensure itemCount is correctly assigned
       notes: notes,
       cuft: cuft,
       lbs: lbs,
       packingNeedsCounts: packingNeedsCounts,
-      link: link, // Include link in the item instance
-      uploadedImages: uploadedImages, // Include uploaded images
-      cameraImages: cameraImages, // Include camera images
+      link: overrides.link !== undefined ? overrides.link : link,
+      uploadedImages:
+        overrides.uploadedImages !== undefined
+          ? overrides.uploadedImages
+          : uploadedImages,
+      cameraImages:
+        overrides.cameraImages !== undefined
+          ? overrides.cameraImages
+          : cameraImages,
     };
-
+  
     // Generate and store the new groupingKey
     updatedItemInstance.groupingKey = generateGroupingKey(updatedItemInstance);
-
+  
     if (currentItemInstance) {
       // We're updating an existing item
       onUpdateItem(updatedItemInstance, currentItemInstance);
@@ -368,7 +366,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       // We're adding a new item
       onAddItem(updatedItemInstance);
     }
-
+  
     // Update the currentItemInstance state to reflect the changes
     setCurrentItemInstance(updatedItemInstance);
   };
@@ -490,11 +488,12 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageData = reader.result;
-        setCameraImages((prevImages) => [...prevImages, imageData]);
+        const newCameraImages = [...cameraImages, imageData];
+        setCameraImages(newCameraImages);
         console.log('Camera Roll Image Added:', imageData);
         setPreviewImage(imageData);
         setIsPreviewVisible(true);
-        handleSaveItem(); // Save the changes
+        handleSaveItem({ cameraImages: newCameraImages }); // Pass updated images
       };
       reader.readAsDataURL(file);
     }
@@ -506,15 +505,17 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageData = reader.result;
-        setUploadedImages((prevImages) => [...prevImages, imageData]);
+        const newUploadedImages = [...uploadedImages, imageData];
+        setUploadedImages(newUploadedImages);
         console.log('Uploaded Image Added:', imageData);
         setPreviewImage(imageData);
         setIsPreviewVisible(true);
-        handleSaveItem(); // Save the changes
+        handleSaveItem({ uploadedImages: newUploadedImages }); // Pass updated images
       };
       reader.readAsDataURL(file);
     }
   };
+
   // Handlers for Link
   const handleLinkClick = () => {
     if (link) {
@@ -534,9 +535,13 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
   const handleClearLink = () => {
     console.log('handleClearLink triggered');
-    setLink('');
+    const newLink = '';
+    setLink(newLink);
     setIsLinkOptionsVisible(false);
     console.log('Link cleared.');
+
+    // Pass the updated link directly to handleSaveItem
+    handleSaveItem({ link: newLink });
   };
 
   const handleReplaceLink = () => {
@@ -550,13 +555,17 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   };
 
   const handleSaveLink = () => {
-    console.log('handleSaveLink triggered'); // Confirm handler invocation
+    console.log('handleSaveLink triggered');
     if (validateURL(linkInput)) {
-      setLink(linkInput);
+      const newLink = linkInput; // Save the link value
+      setLink(newLink);
       setLinkInput('');
       setIsEditingLink(false);
-      setIsLinkOptionsVisible(false); // Hide Link Options Popup
-      console.log('Link saved:', linkInput);
+      setIsLinkOptionsVisible(false);
+      console.log('Link saved:', newLink);
+
+      // Since setLink is asynchronous, pass the newLink directly to handleSaveItem
+      handleSaveItem({ link: newLink });
     } else {
       alert('Please enter a valid URL.');
     }
@@ -590,7 +599,9 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
         (linkRef.current && linkRef.current.contains(event.target)) ||
         (linkOptionsRef.current && linkOptionsRef.current.contains(event.target)) ||
         (linkInputRef.current && linkInputRef.current.contains(event.target)) ||
-        (uploadInputRef.current && uploadInputRef.current.contains(event.target))
+        (uploadInputRef.current && uploadInputRef.current.contains(event.target)) ||
+        // **Include imagePreviewModalRef in the condition**
+        (imagePreviewModalRef.current && imagePreviewModalRef.current.contains(event.target))
       ) {
         // Click inside, do nothing
         return;
@@ -643,12 +654,9 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
   // Handler to delete the currently previewed image
   const handleDeleteImage = () => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this image?');
-    if (!confirmDelete) return;
-
     let newUploadedImages = [...uploadedImages];
     let newCameraImages = [...cameraImages];
-
+  
     if (uploadedImages.includes(previewImage)) {
       newUploadedImages = uploadedImages.filter((img) => img !== previewImage);
       setUploadedImages(newUploadedImages);
@@ -661,7 +669,7 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       console.log('Image not found in any array.');
       return;
     }
-
+  
     // Update the previewImage
     if (newUploadedImages.length > 0) {
       setPreviewImage(newUploadedImages[0]);
@@ -671,9 +679,12 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
       setPreviewImage(null);
       setIsPreviewVisible(false);
     }
-
+  
     // Save the updated item instance to propagate changes to the parent
-    handleSaveItem();
+    handleSaveItem({
+      uploadedImages: newUploadedImages,
+      cameraImages: newCameraImages,
+    });
   };
 
   // Focus management for the Delete Image button
@@ -836,7 +847,11 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
               {/* Popup Options */}
               {isLinkOptionsVisible && link && (
-                <div ref={linkOptionsRef} className={styles.linkOptionsPopup}>
+               <div
+               ref={linkOptionsRef}
+               className={styles.linkOptionsPopup}
+               onClick={(e) => e.stopPropagation()}
+             >
                   <button
                     type="button"
                     onClick={(e) => {
@@ -873,7 +888,11 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
 
             {/* Link Input Popup */}
             {isEditingLink && (
-              <div ref={linkInputRef} className={styles.linkInputPopup}>
+              <div
+              ref={linkInputRef}
+              className={styles.linkInputPopup}
+              onClick={(e) => e.stopPropagation()}
+            >
                 <input
                   type="url"
                   value={linkInput}
@@ -908,36 +927,20 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
             )}
           </div>
 
-          {/* Image Gallery */}
-          {/* 
-            If you prefer not to display thumbnails at the bottom, you can comment out or remove this section.
-            Uncomment the following block if you want to keep the image gallery.
-          */}
-          {/* {(cameraImages.length > 0 || uploadedImages.length > 0) && (
-            <div className={styles.imageGallery}>
-              {cameraImages.map((imgSrc, index) => (
-                <img
-                  key={`camera-${index}`}
-                  src={imgSrc}
-                  alt={`Camera Upload ${index + 1}`}
-                  className={styles.thumbnail}
-                />
-              ))}
-              {uploadedImages.map((imgSrc, index) => (
-                <img
-                  key={`upload-${index}`}
-                  src={imgSrc}
-                  alt={`Uploaded Image ${index + 1}`}
-                  className={styles.thumbnail}
-                />
-              ))}
-            </div>
-          )} */}
-
           {/* Image Preview Popup */}
           {isPreviewVisible && previewImage && (
-            <div className={styles.imagePreviewOverlay} onClick={closePreview}>
-              <div className={styles.imagePreviewModal} onClick={(e) => e.stopPropagation()}>
+            <div
+            className={styles.imagePreviewOverlay}
+            onClick={(e) => {
+              e.stopPropagation();
+              closePreview();
+            }}
+          >
+              <div
+                className={styles.imagePreviewModal}
+                ref={imagePreviewModalRef} // **Assign ref here**
+                onClick={(e) => e.stopPropagation()}
+              >
                 <button
                   type="button"
                   className={styles.closePreviewButton}
@@ -946,15 +949,23 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
                 >
                   &times;
                 </button>
-                <img src={previewImage} alt="Preview" className={styles.previewImage} />
+                <img
+                  src={previewImage}
+                  alt="Preview"
+                  className={styles.previewImage}
+                  // **Removed unnecessary onClick handler**
+                />
                 {/* Delete Image Button */}
                 <button
-                  type="button"
-                  className={styles.deleteImageButton}
-                  onClick={handleDeleteImage}
-                  aria-label="Delete Image"
-                  ref={deleteImageButtonRef} // Assign ref here
-                >
+  type="button"
+  className={styles.deleteImageButton}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleDeleteImage();
+  }}
+  aria-label="Delete Image"
+  ref={deleteImageButtonRef}
+>
                   Delete Image
                 </button>
               </div>

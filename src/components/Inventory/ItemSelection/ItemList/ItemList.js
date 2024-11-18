@@ -26,13 +26,14 @@ function ItemList({
         if (isMyItemsActive) {
           key = itemData.groupingKey; // Use groupingKey as the key
           item = itemData.item;
-          count = itemData.count;
+          count = itemData.count || 1; // Use itemData.count
           itemInstance = itemData; // The grouped item data
         } else {
-          key = itemData.id;
+          const itemIdStr = itemData.id.toString(); // Ensure key is a string
+          key = itemIdStr;
           item = itemData;
-          count = itemClickCounts[itemData.id.toString()] || 0;
-          itemInstance = null; // No itemInstance when not in My Items
+          count = itemClickCounts[itemIdStr] || 0;
+          itemInstance = null;
         }
 
         return (

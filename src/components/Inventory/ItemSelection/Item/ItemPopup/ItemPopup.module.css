@@ -668,7 +668,7 @@
 .linkOptionsPopup {
   position: absolute;
   top: 110%; /* Position below the Link element */
-  left: 50%;
+  left: 10%;
   transform: translateX(-50%);
   background-color: #ffffff;
   border: 1px solid #ccc;
@@ -705,7 +705,7 @@
 .linkInputPopup {
   position: absolute; /* Adjust as needed */
   top: 50%;
-  left: 50%;
+  left: 40%;
   transform: translate(-50%, -50%);
   z-index: 1000; /* Ensure it's above other elements */
   background-color: #fff;

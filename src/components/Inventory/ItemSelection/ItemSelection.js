@@ -7,6 +7,9 @@ import ItemList from './ItemList/ItemList';
 import BcalculatorMyitems from './BcalculatorMyitems/BcalculatorMyitems';
 import AlphabetFilter from './AlphabetFilter/AlphabetFilter';
 
+// Import the generateGroupingKey function from the utils directory
+import { generateGroupingKey } from '../utils/generateGroupingKey';
+
 function ItemSelection({
   room,
   searchQuery,
@@ -60,27 +63,10 @@ function ItemSelection({
     onSubButtonSelect(letter, subButton);
   };
 
-  // Helper function to generate the grouping key
-  const generateGroupingKey = (instance) => {
-    const tagsKey = instance.tags.sort().join(',');
-    const notesKey = instance.notes || '';
-    const cuftKey = instance.cuft || '';
-    const lbsKey = instance.lbs || '';
-    const packingNeedsEntries = Object.entries(instance.packingNeedsCounts || {}).sort();
-    const packingNeedsKey = packingNeedsEntries.map(([key, value]) => `${key}:${value}`).join(',');
-
-    return `${instance.itemId}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}`;
-  };
-
   // Compute itemCounts based on isMyItemsActive
   const itemCounts = itemInstances.reduce((counts, instance) => {
-    if (isMyItemsActive) {
-      const key = generateGroupingKey(instance);
-      counts[key] = (counts[key] || 0) + 1;
-    } else {
-      const key = instance.itemId;
-      counts[key] = (counts[key] || 0) + 1;
-    }
+    const key = instance.itemId.toString(); // Ensure key is a string
+    counts[key] = (counts[key] || 0) + 1; // Each instance represents a count of 1
     return counts;
   }, {});
 
@@ -91,6 +77,8 @@ function ItemSelection({
           const key = generateGroupingKey(instance);
           if (!groups[key]) {
             groups[key] = {
+              // Assign a stable id to use as a key
+              id: instance.id, // Use the existing id
               groupingKey: key,
               itemId: instance.itemId,
               item: instance.item,
@@ -99,11 +87,13 @@ function ItemSelection({
               cuft: instance.cuft,
               lbs: instance.lbs,
               packingNeedsCounts: { ...instance.packingNeedsCounts },
+              link: instance.link || '',
+              uploadedImages: [...(instance.uploadedImages || [])],
+              cameraImages: [...(instance.cameraImages || [])],
               count: 1,
-              id: instance.id,
             };
           } else {
-            groups[key].count += 1;
+            groups[key].count += 1; // Aggregate counts
           }
           return groups;
         }, {})

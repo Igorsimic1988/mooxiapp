@@ -8,6 +8,7 @@ import { ReactComponent as CreateQuote } from '../../../assets/icons/createquote
 import { ReactComponent as MyInventory } from '../../../assets/icons/myinventory.svg';
 import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.svg';
 import { ReactComponent as DeleteIcon } from '../../../assets/icons/deletemobile.svg'; // Corrected icon import
+import { ReactComponent as BackArrow } from '../../../assets/icons/arrowforward.svg';
 
 function FooterNavigation({
   inRoom,
@@ -31,18 +32,26 @@ function FooterNavigation({
 
   return (
     <footer className={styles.footerNavigation}>
+      {/* First Navigation Item */}
       <div
         className={styles.navItem}
-        onClick={inRoom ? onBackToRooms : null}
+        onClick={inRoom ? onBackToRooms : null} // Keep existing functionality
         role="button"
         tabIndex={0}
       >
         <div className={styles.iconWrapper}>
-          <CreateQuote className={styles.navIcon} />
+          {/* Conditionally render the icon based on `inRoom` */}
+          {inRoom ? (
+            <CreateQuote className={styles.navIcon} />
+          ) : (
+            <BackArrow className={styles.navIcon} />
+          )}
         </div>
+        {/* Conditionally render the text based on `inRoom` */}
         <p className={styles.navText}>{inRoom ? 'Rooms' : 'Create Quote'}</p>
       </div>
 
+      {/* Second Navigation Item */}
       <div className={styles.navItem}>
         <div className={styles.iconWrapper}>
           <MyInventory className={styles.navIcon} />

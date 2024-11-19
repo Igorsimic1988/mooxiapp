@@ -1,11 +1,12 @@
 // src/components/Inventory/FooterNavigation/FooterNavigation.js
 
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './FooterNavigation.module.css';
 import SpecialH from './SpecialH/SpecialH';
+import MyInventory from './MyInventory/MyInventory';
 
 import { ReactComponent as CreateQuote } from '../../../assets/icons/createquoteicon.svg';
-import { ReactComponent as MyInventory } from '../../../assets/icons/myinventory.svg';
+import { ReactComponent as MyInventoryIcon } from '../../../assets/icons/myinventory.svg';
 import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.svg';
 import { ReactComponent as DeleteIcon } from '../../../assets/icons/deletemobile.svg'; // Corrected icon import
 import { ReactComponent as BackArrow } from '../../../assets/icons/arrowforward.svg';
@@ -22,6 +23,9 @@ function FooterNavigation({
   selectedRoom,
   displayedRooms,
 }) {
+
+  const [isMyInventoryVisible, setIsMyInventoryVisible] = useState(false);
+
   const handleDeleteClick = () => {
     setIsDeleteActive((prevState) => !prevState);
   };
@@ -52,12 +56,17 @@ function FooterNavigation({
       </div>
 
       {/* Second Navigation Item */}
-      <div className={styles.navItem}>
-        <div className={styles.iconWrapper}>
-          <MyInventory className={styles.navIcon} />
-        </div>
-        <p className={styles.navText}>My Inventory</p>
-      </div>
+      <div
+  className={styles.navItem}
+  onClick={() => setIsMyInventoryVisible(true)}
+  role="button"
+  tabIndex={0}
+>
+  <div className={styles.iconWrapper}>
+    <MyInventoryIcon className={styles.navIcon} />
+  </div>
+  <p className={styles.navText}>My Inventory</p>
+</div>
 
       {/* Special Handling */}
       <div
@@ -95,6 +104,17 @@ function FooterNavigation({
           displayedRooms={displayedRooms}
         />
       )}
+
+      {/* Render MyInventory Popup */}
+{isMyInventoryVisible && (
+  <MyInventory
+    setIsMyInventoryVisible={setIsMyInventoryVisible}
+    roomItemSelections={roomItemSelections}
+    setRoomItemSelections={setRoomItemSelections}
+    selectedRoom={selectedRoom}
+    displayedRooms={displayedRooms}
+  />
+)}
     </footer>
   );
 }

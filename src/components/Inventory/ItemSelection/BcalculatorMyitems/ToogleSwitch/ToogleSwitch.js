@@ -37,7 +37,7 @@ function ToggleSwitch({ isToggled, onToggle }) {
           width="47"
           height="23"
           rx="11.5"
-          fill="white"
+          fill={isToggled ? "#C5E5FC" : "white"}
           stroke="#D8DCE0"
         />
         <circle

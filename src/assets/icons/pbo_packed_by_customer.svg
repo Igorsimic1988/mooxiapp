@@ -1,9 +1,26 @@
-<svg width="24px" height="24px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <path 
-    fill="#90A4B7" 
-    stroke="#FFFFFF" 
-    stroke-width="2" 
-    stroke-linecap="round" 
-    d="M256 73.32L74.6 155.1l82.3 37.1 173.2-85.5L256 73.32zm95.4 42.98l-173.2 85.5 77.8 35.1 181.4-81.8-86-38.8zM61.7 169v182L247 434.6v-182L61.7 169zm388.6 0L265 252.6v182L450.3 351V169z"
-  />
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg fill="#90A4B7" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	 viewBox="0 0 512 512" xml:space="preserve">
+<g>
+	<g>
+		<polygon points="425.755,101.912 425.755,458.415 512,410.064 512,53.56 		"/>
+	</g>
+</g>
+<g>
+	<g>
+		<polygon points="106.879,44.405 40.568,81.38 409.426,81.38 475.377,44.405 		"/>
+	</g>
+</g>
+<g>
+	<g>
+		<path d="M251.703,107.275v75.863c0,7.151-5.798,12.948-12.948,12.948H137.658c-7.15,0-12.948-5.797-12.948-12.948v-75.863H0
+			v360.32h399.86v-360.32H251.703z"/>
+	</g>
+</g>
+<g>
+	<g>
+		<rect x="150.605" y="107.27" width="75.199" height="62.916"/>
+	</g>
+</g>
 </svg>

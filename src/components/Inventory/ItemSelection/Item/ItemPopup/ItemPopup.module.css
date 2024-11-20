@@ -409,11 +409,9 @@
   border-radius: 12px;
   cursor: pointer;
   width: 100%; /* Make the button full width */
+  -webkit-tap-highlight-color: transparent;
 }
 
-.saveButton:hover {
-  background-color: #358dc4;
-}
 
 /* Start Fresh as New Item Button */
 .newItemButton {
@@ -774,11 +772,18 @@
   border-radius: 12px;
   cursor: pointer;
   width: 100%; /* Make the button full width */
+
+}
+
+.saving {
+  background-color: #C5E5FC; 
+
 }
 
 .saveLinkButton:hover {
   background-color: #358dc4;
 }
+
 
 .cancelLinkButton {
   background-color: white;

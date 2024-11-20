@@ -33,6 +33,8 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
   // Initialize local state for itemInstance
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
 
+  const [isSaving, setIsSaving] = useState(false);
+
   // State to manage selected options
   const [selectedPackingTags, setSelectedPackingTags] = useState([]);
   const [extraAttentionOptions, setExtraAttentionOptions] = useState([]);
@@ -1116,10 +1118,14 @@ function ItemPopup({ item, onClose, onUpdateItem, onAddItem, itemInstance }) {
         <div className={styles.saveButtonContainer}>
           <button
             type="button" // Ensure button type is set
-            className={styles.saveButton}
+            className={`${styles.saveButton} ${isSaving ? styles.saving : ''}`}
             onClick={(e) => {
-              e.stopPropagation(); /* Prevent the click from reaching the overlay */
-              handleSaveItem(); /* Save the item without closing the popup */
+              e.stopPropagation(); // Prevent the click from reaching the overlay
+              handleSaveItem(); // Save the item without closing the popup
+              setIsSaving(true);
+              setTimeout(() => {
+                setIsSaving(false);
+              }, 300); // Duration of the animation in milliseconds
             }}
           >
             Save

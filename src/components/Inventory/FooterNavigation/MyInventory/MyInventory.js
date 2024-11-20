@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from "./MyInventory.module.css";
 import rooms from '../../../../data/constants/AllRoomsList';
 
+import { optionsData } from '../../../../data/constants/optionsData';
+
 import { ReactComponent as MyInventoryPopupIcon } from "../../../../assets/icons/MyInventoryPopupIcon.svg";
 import { ReactComponent as CloseIcon } from "../../../../assets/icons/Close.svg";
 
@@ -88,221 +90,284 @@ const tagIcons = {
     post_storage_third_drop: PostStorageThirdDropIcon,
   };
 
-function MyInventory({ setIsMyInventoryVisible, roomItemSelections }) {
-  const handleClose = useCallback(() => {
-    setIsMyInventoryVisible(false);
-  }, [setIsMyInventoryVisible]);
+  function MyInventory({ setIsMyInventoryVisible, roomItemSelections, displayedRooms }) {
+    const handleClose = useCallback(() => {
+      setIsMyInventoryVisible(false);
+    }, [setIsMyInventoryVisible]);
+  
+    const popupContentRef = useRef(null);
+  
+    // State for main options ('listOfItems' or 'descriptiveSymbols')
+    const [selectedOption, setSelectedOption] = useState('listOfItems');
+  
+    const getGroupedItemsByRoom = useCallback(() => {
+      // Initialize grand totals
+      let grandTotalItems = 0;
+      let grandTotalLbs = 0;
+      let grandTotalCuft = 0;
+  
+      // Get rooms with items
+      const roomsWithItems = Object.keys(roomItemSelections)
+        .filter(
+          (roomId) =>
+            displayedRooms.some((room) => room.id.toString() === roomId) && // Only include visible rooms
+            roomItemSelections[roomId].length > 0
+        )
+        .sort((a, b) => {
+          // Place roomId '13' (Boxes room) last
+          if (a === '13') return 1;
+          if (b === '13') return -1;
+          // Otherwise, sort numerically
+          return parseInt(a) - parseInt(b);
+        })
+        .map((roomId) => {
+          const roomItems = roomItemSelections[roomId];
+          const room = rooms.find((r) => r.id.toString() === roomId);
+  
+          // Group items by groupingKey
+          const groupedItems = roomItems.reduce((acc, itemInstance) => {
+            const key = itemInstance.groupingKey;
+            if (!acc[key]) {
+              acc[key] = {
+                itemId: itemInstance.itemId,
+                itemName: itemInstance.item.name,
+                tags: itemInstance.tags,
+                cuft: parseFloat(itemInstance.cuft) || 0,
+                lbs: parseFloat(itemInstance.lbs) || 0,
+                count: 1,
+              };
+            } else {
+              acc[key].count += 1;
+            }
+            return acc;
+          }, {});
+  
+          const groupedItemsArray = Object.values(groupedItems);
+  
+          // Calculate room totals
+          const totalItems = groupedItemsArray.reduce((sum, item) => sum + item.count, 0);
+          const totalLbs = groupedItemsArray.reduce(
+            (sum, item) => sum + item.count * item.lbs,
+            0
+          );
+          const totalCuft = groupedItemsArray.reduce(
+            (sum, item) => sum + item.count * item.cuft,
+            0
+          );
+  
+          // Accumulate grand totals
+          grandTotalItems += totalItems;
+          grandTotalLbs += totalLbs;
+          grandTotalCuft += totalCuft;
+  
+          return {
+            roomId,
+            roomName: room ? room.name : 'Unknown Room',
+            groupedItems: groupedItemsArray,
+            totalItems,
+            totalLbs,
+            totalCuft,
+          };
+        });
+  
+      return {
+        roomsWithItems,
+        grandTotalItems,
+        grandTotalLbs,
+        grandTotalCuft,
+      };
+    }, [roomItemSelections, displayedRooms]);
+  
+    const mainOptions = [
+      { value: 'listOfItems', label: 'List of items' },
+      { value: 'descriptiveSymbols', label: 'Descriptive Symbols' },
+    ];
+  
+    // Click outside handler
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (
+          popupContentRef.current &&
+          !popupContentRef.current.contains(event.target)
+        ) {
+          handleClose();
+        }
+      };
+  
+      document.addEventListener('mousedown', handleClickOutside);
+  
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [handleClose]);
 
-  const popupContentRef = useRef(null);
-
-  // State for main options ('listOfItems' or 'descriptiveSymbols')
-  const [selectedOption, setSelectedOption] = useState('listOfItems');
-
-  const getGroupedItemsByRoom = useCallback(() => {
-    // Initialize grand totals
-    let grandTotalItems = 0;
-    let grandTotalLbs = 0;
-    let grandTotalCuft = 0;
-
-    // Get rooms with items
-    const roomsWithItems = Object.keys(roomItemSelections)
-      .filter((roomId) => roomItemSelections[roomId].length > 0)
-      .map((roomId) => {
-        const roomItems = roomItemSelections[roomId];
-        const room = rooms.find((r) => r.id.toString() === roomId);
-
-        // Group items by groupingKey
-        const groupedItems = roomItems.reduce((acc, itemInstance) => {
-          const key = itemInstance.groupingKey;
-          if (!acc[key]) {
-            acc[key] = {
-              itemId: itemInstance.itemId,
-              itemName: itemInstance.item.name,
-              tags: itemInstance.tags,
-              cuft: parseFloat(itemInstance.cuft) || 0,
-              lbs: parseFloat(itemInstance.lbs) || 0,
-              count: 1,
-            };
-          } else {
-            acc[key].count += 1;
-          }
-          return acc;
-        }, {});
-
-        const groupedItemsArray = Object.values(groupedItems);
-
-        // Calculate room totals
-        const totalItems = groupedItemsArray.reduce((sum, item) => sum + item.count, 0);
-        const totalLbs = groupedItemsArray.reduce(
-          (sum, item) => sum + item.count * item.lbs,
-          0
-        );
-        const totalCuft = groupedItemsArray.reduce(
-          (sum, item) => sum + item.count * item.cuft,
-          0
-        );
-
-        // Accumulate grand totals
-        grandTotalItems += totalItems;
-        grandTotalLbs += totalLbs;
-        grandTotalCuft += totalCuft;
-
-        return {
-          roomId,
-          roomName: room ? room.name : 'Unknown Room',
-          groupedItems: groupedItemsArray,
-          totalItems,
-          totalLbs,
-          totalCuft,
-        };
-      });
-
-    return {
-      roomsWithItems,
-      grandTotalItems,
-      grandTotalLbs,
-      grandTotalCuft,
-    };
-  }, [roomItemSelections]);
-
-  const mainOptions = [
-    { value: 'listOfItems', label: 'List of items' },
-    { value: 'descriptiveSymbols', label: 'Descriptive Symbols' },
-  ];
-
-  // Click outside handler
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        popupContentRef.current &&
-        !popupContentRef.current.contains(event.target)
-      ) {
-        handleClose();
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [handleClose]);
-
-  return (
-    <div className={styles.popup}>
-      <div className={styles.popupContent} ref={popupContentRef}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.title}>
-            <MyInventoryPopupIcon className={styles.icon} />
-            <p>My Inventory</p>
-          </div>
-          <div className={styles.closeButton}>
-            <button onClick={handleClose} aria-label="Close">
-              <CloseIcon className={styles.closeIcon} />
-            </button>
-          </div>
-        </div>
-
-        {/* Main Options */}
-        <div className={styles.radioGroup}>
-          {mainOptions.map((option) => (
-            <label key={option.value} className={styles.radioLabel}>
-              <input
-                type="radio"
-                name="inventoryOption"
-                value={option.value}
-                checked={selectedOption === option.value}
-                onChange={(e) => setSelectedOption(e.target.value)}
-                className={styles.radioInput}
-              />
-              <span className={styles.radioText}>{option.label}</span>
-            </label>
-          ))}
-        </div>
-
-        {/* Table Headers */}
-        {selectedOption === 'listOfItems' && (
-          <>
-            <div className={styles.tableHeader}>
-              <div className={styles.descriptionHeader}>Description</div>
-              <div className={styles.qtyHeader}>Qty</div>
-              <div className={styles.tagsHeader}>Tags</div>
+    const allTags = [
+      ...optionsData.itemTags.packing,
+      ...optionsData.itemTags.extraAttention,
+      ...optionsData.locationTags.loadPoints,
+      ...optionsData.locationTags.dropPoints,
+    ].map(tag => ({
+      value: tag.value,
+      label: tag.label,
+      IconComponent: tagIcons[tag.value],
+    }));
+  
+    return (
+      <div className={styles.popup}>
+        <div className={styles.popupContent} ref={popupContentRef}>
+          {/* Header */}
+          <div className={styles.header}>
+            <div className={styles.title}>
+              <MyInventoryPopupIcon className={styles.icon} />
+              <p>My Inventory</p>
             </div>
-
-            {/* Scrollable Content */}
-            <div className={styles.content}>
-              {/* Render Rooms with Items */}
-              {getGroupedItemsByRoom().roomsWithItems.map((room, roomIndex) => (
-                <div
-                  key={room.roomId}
-                  className={`${styles.roomSection} ${
-                    roomIndex === 0 ? styles.firstRoom : ''
-                  }`}
-                >
-                  {/* Room Name */}
-                  <h3 className={styles.roomName}>{room.roomName}</h3>
-
-                  {/* Items Table */}
-                  <div className={styles.itemsTable}>
-                    {room.groupedItems.map((item, index) => (
-                      <div key={index} className={styles.itemRow}>
-                        <div className={styles.descriptionCell}>
-                          {item.itemName}
-                        </div>
-                        <div className={styles.qtyCell}>{item.count}</div>
-                        <div className={styles.tagsCell}>
-                          {item.tags.map((tag, idx) => {
-                            const TagIcon = tagIcons[tag];
-                            return (
-                              <span key={idx} className={styles.tag}>
-                                {TagIcon ? (
-                                  <TagIcon width={24} height={24} />
-                                ) : (
-                                  tag
+            <div className={styles.closeButton}>
+              <button onClick={handleClose} aria-label="Close">
+                <CloseIcon className={styles.closeIcon} />
+              </button>
+            </div>
+          </div>
+  
+          {/* Main Options */}
+          <div className={styles.radioGroup}>
+            {mainOptions.map((option) => (
+              <label key={option.value} className={styles.radioLabel}>
+                <input
+                  type="radio"
+                  name="inventoryOption"
+                  value={option.value}
+                  checked={selectedOption === option.value}
+                  onChange={(e) => setSelectedOption(e.target.value)}
+                  className={styles.radioInput}
+                />
+                <span className={styles.radioText}>{option.label}</span>
+              </label>
+            ))}
+          </div>
+  
+          {/* Table Headers */}
+          {selectedOption === 'listOfItems' && (
+            <>
+              <div className={styles.tableHeader}>
+                <div className={styles.descriptionHeader}>Description</div>
+                <div className={styles.qtyHeader}>Qty</div>
+                <div className={styles.tagsHeader}>Tags</div>
+              </div>
+  
+              {/* Scrollable Content */}
+              <div className={styles.content}>
+                {/* Render Rooms with Items */}
+                {getGroupedItemsByRoom().roomsWithItems.map((room, roomIndex) => (
+                  <div
+                    key={room.roomId}
+                    className={`${styles.roomSection} ${
+                      roomIndex === 0 ? styles.firstRoom : ''
+                    }`}
+                  >
+                    {/* Room Name */}
+                    <h3 className={styles.roomName}>{room.roomName}</h3>
+  
+                    {/* Items Table */}
+                    <div className={styles.itemsTable}>
+                      {room.groupedItems.map((item, index) => {
+                        // Determine if item has 'excluded' or 'may_not_ship' tags
+                        const hasExcludedTag = item.tags.includes('excluded');
+                        const hasMayNotShipTag = item.tags.includes('may_not_ship');
+  
+                        // Remove 'excluded' and 'may_not_ship' from tags to display
+                        const displayTags = item.tags.filter(
+                          (tag) => tag !== 'excluded' && tag !== 'may_not_ship'
+                        );
+  
+                        return (
+                          <div key={index} className={styles.itemRow}>
+                            <div className={styles.descriptionCell}>
+                              {/* Use flex container for alignment */}
+                              <div className={styles.descriptionContent}>
+                                {hasExcludedTag && (
+                                  <span className={styles.symbol}>
+                                    <strong>X</strong>
+                                  </span>
                                 )}
-                              </span>
-                            );
-                          })}
+                                {hasMayNotShipTag && !hasExcludedTag && (
+                                  <span className={styles.symbol}>
+                                    <strong>?</strong>
+                                  </span>
+                                )}
+                                <span
+                                  className={
+                                    hasExcludedTag ? styles.strikethrough : ''
+                                  }
+                                >
+                                  {item.itemName}
+                                </span>
+                              </div>
+                            </div>
+                            <div className={styles.qtyCell}>{item.count}</div>
+                            <div className={styles.tagsCell}>
+                              {displayTags.map((tag, idx) => {
+                                const TagIcon = tagIcons[tag];
+                                return (
+                                  <span key={idx} className={styles.tag}>
+                                    {TagIcon ? (
+                                      <TagIcon width={24} height={24} />
+                                    ) : (
+                                      tag
+                                    )}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+  
+                      {/* Room Totals */}
+                      <div className={`${styles.itemRow} ${styles.totalRow}`}>
+                        <div className={styles.descriptionCell}>Total:</div>
+                        <div className={styles.qtyCell}>{room.totalItems}</div>
+                        <div className={styles.tagsCell}>
+                          {Math.round(room.totalLbs)} lbs&nbsp;&nbsp;
+                          {Math.round(room.totalCuft)} Cuft
                         </div>
-                      </div>
-                    ))}
-
-                    {/* Room Totals */}
-                    <div className={`${styles.itemRow} ${styles.totalRow}`}>
-                      <div className={styles.descriptionCell}>Total:</div>
-                      <div className={styles.qtyCell}>{room.totalItems}</div>
-                      <div className={styles.tagsCell}>
-                        {Math.round(room.totalLbs)} lbs&nbsp;&nbsp;
-                        {Math.round(room.totalCuft)} Cuft
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-
-              {/* Grand Total */}
-              <div className={styles.grandTotalSection}>
-                <div className={`${styles.itemRow} ${styles.grandTotalRow}`}>
-                  <div className={styles.descriptionCell}>Grand Total:</div>
-                  <div className={styles.qtyCell}>
-                    {getGroupedItemsByRoom().grandTotalItems}
-                  </div>
-                  <div className={styles.tagsCell}>
-                    {Math.round(getGroupedItemsByRoom().grandTotalLbs)} lbs&nbsp;&nbsp;
-                    {Math.round(getGroupedItemsByRoom().grandTotalCuft)} Cuft
+                ))}
+  
+                {/* Grand Total */}
+                <div className={styles.grandTotalSection}>
+                  <div className={`${styles.itemRow} ${styles.grandTotalRow}`}>
+                    <div className={styles.descriptionCell}>Grand Total:</div>
+                    <div className={styles.qtyCell}>
+                      {getGroupedItemsByRoom().grandTotalItems}
+                    </div>
+                    <div className={styles.tagsCell}>
+                      {Math.round(getGroupedItemsByRoom().grandTotalLbs)} lbs&nbsp;&nbsp;
+                      {Math.round(getGroupedItemsByRoom().grandTotalCuft)} Cuft
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
-
-        {selectedOption === 'descriptiveSymbols' && (
+            </>
+          )}
+  
+  {selectedOption === 'descriptiveSymbols' && (
           <>
-            {/* Content for Descriptive Symbols */}
-            <div className={styles.content}>
-              {/* Descriptive Symbols content */}
+            {/* Scrollable Content with different background */}
+            <div className={`${styles.content} ${styles.descriptiveContent}`}>
+              <div className={styles.descriptiveSymbolsContainer}>
+                {allTags.map(({ value, label, IconComponent }) => (
+                  <div key={value} className={styles.tagRow}>
+                    <div className={styles.tagIcon}>
+                      {IconComponent && <IconComponent width={24} height={24} />}
+                    </div>
+                    <div className={styles.tagName}>
+                      {label}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}

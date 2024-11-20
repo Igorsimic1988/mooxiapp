@@ -134,7 +134,7 @@
 /* Table Header */
 .tableHeader {
   display: grid;
-  grid-template-columns: 3fr 1fr 3fr;
+  grid-template-columns: 3fr 1fr 4fr;
   background-color: #fff;
   position: sticky;
   top: 120px; /* Height of header + radioGroup */
@@ -199,7 +199,7 @@
 
 .itemRow {
   display: grid;
-  grid-template-columns: 3fr 1fr 3fr;
+  grid-template-columns: 3fr 1fr 4fr;
   align-items: center;
   padding: 10px 0;
   border: 1px solid #C5E5FC;

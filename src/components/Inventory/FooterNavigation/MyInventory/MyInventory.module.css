@@ -1,7 +1,5 @@
 /* src/components/MyInventory/MyInventory.module.css */
 
-/* Existing styles remain unchanged */
-
 /* Popup styles */
 .popup {
   position: fixed;
@@ -136,7 +134,7 @@
 /* Table Header */
 .tableHeader {
   display: grid;
-  grid-template-columns: 3fr 1fr 3fr; /* Same as itemRow */
+  grid-template-columns: 3fr 1fr 3fr;
   background-color: #fff;
   position: sticky;
   top: 120px; /* Height of header + radioGroup */
@@ -201,17 +199,18 @@
 
 .itemRow {
   display: grid;
-  grid-template-columns: 3fr 1fr 3fr; /* Adjust column widths as needed */
+  grid-template-columns: 3fr 1fr 3fr;
   align-items: center;
   padding: 10px 0;
   border: 1px solid #C5E5FC;
 }
 
-.itemsTable .itemRow:nth-child(odd) {
+/* Adjusted nth-child selectors to exclude total rows */
+.itemsTable .itemRow:not(.totalRow):not(.grandTotalRow):nth-child(odd) {
   background: #FFF;
 }
 
-.itemsTable .itemRow:nth-child(even) {
+.itemsTable .itemRow:not(.totalRow):not(.grandTotalRow):nth-child(even) {
   background: #F5FBFF;
 }
 
@@ -265,14 +264,9 @@
 }
 
 /* Total Row */
-.totalRow,
-.grandTotalRow {
-  background: #FFF;
-  font-weight: bold;
-  border: 1px solid #C5E5FC;
-}
-
 .totalRow {
+  background: #FFF !important;
+  font-weight: bold;
   border-top: 1px solid #C5E5FC;
   border-left: none;
   border-right: none;
@@ -292,8 +286,18 @@
   font-weight: 700;
 }
 
+/* Grand Total Section */
 .grandTotalSection {
   margin-top: 20px;
+}
+
+.grandTotalRow {
+  background: #FFF !important;
+  font-weight: bold;
+  border: 1px solid #C5E5FC;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
 }
 
 .grandTotalRow .descriptionCell,
@@ -302,21 +306,15 @@
   color: #3FA9F5;
 }
 
-.grandTotalRow {
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
-}
-
 /* Adjustments for alignment */
 .roomTotals,
 .grandTotals {
-  display: none; /* Hide old totals if they are still in the JSX */
+  display: none;
 }
 
 .tagPlaceholder {
   display: inline-block;
-  width: 8px; /* Adjust width as needed for alignment */
+  width: 8px;
   text-align: center;
   margin-right: 5px;
 }

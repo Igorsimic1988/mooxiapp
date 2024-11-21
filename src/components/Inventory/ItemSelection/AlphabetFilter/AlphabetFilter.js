@@ -14,7 +14,7 @@ const LETTERS_WITH_SUBBUTTONS = {
 
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onSubButtonClick }) {
+function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onSubButtonClick, isMyItemsActive }) {
   // Letter selection logic
   const handleLetterClick = (letter) => {
     if (selectedLetter === letter) {
@@ -67,7 +67,9 @@ function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onS
         })}
       </div>
       <div className={styles.alphabetFilterBanner}>
-        <p>COMMON ITEMS FOR THIS ROOM</p>
+      <p>
+          {isMyItemsActive ? 'MY INVENTORY IN THIS ROOM' : 'COMMON ITEMS FOR THIS ROOM'}
+        </p>
       </div>
     </div>
   );
@@ -81,6 +83,7 @@ AlphabetFilter.propTypes = {
   }),
   onLetterSelect: PropTypes.func.isRequired,
   onSubButtonClick: PropTypes.func.isRequired,
+  isMyItemsActive: PropTypes.bool.isRequired,
 };
 
 export default AlphabetFilter;

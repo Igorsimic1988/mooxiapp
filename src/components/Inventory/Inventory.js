@@ -60,7 +60,7 @@ function Inventory() {
   };
 
   const handleRoomSelect = (room) => {
-    setSelectedRoom(room);
+    setSelectedRoom( room );
   };
 
   const handleBackToRooms = () => {

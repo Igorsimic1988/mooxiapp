@@ -101,31 +101,38 @@ function ItemSelection({
     : [];
 
   // Filter items based on "My Items" button state
-  const filteredItems = isMyItemsActive
-    ? groupedItems
-    : allItems.filter((item) => {
-        const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+  let filteredItems = isMyItemsActive
+  ? groupedItems
+  : allItems.filter((item) => {
+      const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-        if (searchQuery.trim() !== '') {
-          // Search through all items but exclude items where search is 'N'
-          return matchesQuery && item.search !== 'N';
-        }
+      if (searchQuery.trim() !== '') {
+        // Search through all items but exclude items where search is 'N'
+        return matchesQuery && item.search !== 'N';
+      }
 
-        if (selectedSubButton.subButton) {
-          // Show items that have the selected sub-button, regardless of room
-          return item.letters.includes(selectedSubButton.subButton);
-        }
+      if (selectedSubButton.subButton) {
+        // Show items that have the selected sub-button, regardless of room
+        return item.letters.includes(selectedSubButton.subButton);
+      }
 
-        if (selectedLetter) {
-          // Show items that have the selected letter, regardless of room
-          return item.letters.includes(selectedLetter);
-        }
+      if (selectedLetter) {
+        // Show items that have the selected letter, regardless of room
+        return item.letters.includes(selectedLetter);
+      }
 
-        // No search query, letter, or sub-button selected
-        // Display default items for the current room
-        return item.rooms.includes(room.id);
-      });
+      // No search query, letter, or sub-button selected
+      // Display default items for the current room
+      return item.rooms.includes(Number(room.id));
+    });
 
+// Include "Custom Item" when no other items match the search
+if (!isMyItemsActive && filteredItems.length === 0 && searchQuery.trim() !== '') {
+  const customItem = allItems.find((item) => item.name === 'Custom Item');
+  if (customItem) {
+    filteredItems = [customItem]; // Reassign filteredItems
+  }
+}
   return (
     <div className={styles.itemSelectionContainer}>
       <BcalculatorMyitems
@@ -142,6 +149,7 @@ function ItemSelection({
         selectedSubButton={selectedSubButton}
         onLetterSelect={handleLetterSelection}
         onSubButtonClick={handleSubButtonSelection}
+        isMyItemsActive={isMyItemsActive}
       />
 
       <main className={styles.mainContent}>

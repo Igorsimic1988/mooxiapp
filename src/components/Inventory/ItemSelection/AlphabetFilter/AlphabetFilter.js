@@ -14,7 +14,7 @@ const LETTERS_WITH_SUBBUTTONS = {
 
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onSubButtonClick, isMyItemsActive }) {
+function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onSubButtonClick, isMyItemsActive, roomName }) {
   // Letter selection logic
   const handleLetterClick = (letter) => {
     if (selectedLetter === letter) {
@@ -28,6 +28,10 @@ function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onS
   const handleSubButtonClickInternal = (subButton, letter) => {
     onSubButtonClick(letter, subButton);
   };
+
+  // Convert roomName to uppercase
+  const upperCaseRoomName = roomName ? roomName.toUpperCase() : 'THIS ROOM';
+
 
   return (
     <div>
@@ -68,7 +72,9 @@ function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onS
       </div>
       <div className={styles.alphabetFilterBanner}>
       <p>
-          {isMyItemsActive ? 'MY INVENTORY IN THIS ROOM' : 'COMMON ITEMS FOR THIS ROOM'}
+      {isMyItemsActive
+            ? `MY INVENTORY IN ${upperCaseRoomName}`
+            : `COMMON ITEMS FOR ${upperCaseRoomName}`}
         </p>
       </div>
     </div>

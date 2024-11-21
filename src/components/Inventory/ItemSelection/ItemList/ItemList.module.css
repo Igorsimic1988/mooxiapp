@@ -13,4 +13,13 @@
     padding-bottom: 144px;
   }
 
+  .noItems {
+    color:#2F3236;
+font-family: Satoshi;
+font-size: 0.93rem;
+font-weight: 700;
+line-height: normal;
+padding: 15px 0;
+  }
+
   

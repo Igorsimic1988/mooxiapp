@@ -150,6 +150,7 @@ if (!isMyItemsActive && filteredItems.length === 0 && searchQuery.trim() !== '')
         onLetterSelect={handleLetterSelection}
         onSubButtonClick={handleSubButtonSelection}
         isMyItemsActive={isMyItemsActive}
+        roomName={room.name}
       />
 
       <main className={styles.mainContent}>

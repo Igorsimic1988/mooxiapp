@@ -15,7 +15,7 @@ function ItemList({
   onStartFresh,
 }) {
   if (!Array.isArray(items) || items.length === 0) {
-    return <p className={styles.noItems}>No items found.</p>;
+    return <p className={styles.noItems}>Add items to see them here.</p>;
   }
 
   return (

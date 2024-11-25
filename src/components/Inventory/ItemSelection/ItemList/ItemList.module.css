@@ -10,7 +10,7 @@
     margin: 0;               /* Removes default margin */
     list-style: none;        /* Removes default list bullets */
     margin-bottom: 64px;
-    padding-bottom: 144px;
+    padding-bottom: 300px;
   }
 
   .noItems {
@@ -20,6 +20,7 @@ font-size: 0.93rem;
 font-weight: 700;
 line-height: normal;
 padding: 15px 0;
+padding-bottom: 600px;
   }
 
   

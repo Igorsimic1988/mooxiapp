@@ -29,6 +29,7 @@ function ItemSelection({
   isToggled,
   setIsToggled,
   onStartFresh,
+  onBackToRooms,
 }) {
   const handleToggle = () => {
     setIsToggled((prev) => !prev);
@@ -164,6 +165,8 @@ if (!isMyItemsActive && filteredItems.length === 0 && searchQuery.trim() !== '')
             onUpdateItem={onUpdateItem}
             onAddItem={onAddItem}
             onStartFresh={onStartFresh}
+            setIsMyItemsActive={setIsMyItemsActive}
+            onBackToRooms={onBackToRooms}
           />
         </div>
       </main>

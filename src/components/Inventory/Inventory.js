@@ -505,6 +505,7 @@ function Inventory() {
             isToggled={isToggled}
             setIsToggled={setIsToggled} // Pass the toggle state and setter
             onStartFresh={handleStartFresh}
+            onBackToRooms={handleBackToRooms}
           />
         ) : (
           <RoomList

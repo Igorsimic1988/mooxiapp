@@ -99,6 +99,7 @@ const tagIcons = {
   
     // State for main options ('listOfItems' or 'descriptiveSymbols')
     const [selectedOption, setSelectedOption] = useState('listOfItems');
+
   
     const getGroupedItemsByRoom = useCallback(() => {
       // Initialize grand totals
@@ -177,6 +178,9 @@ const tagIcons = {
         grandTotalCuft,
       };
     }, [roomItemSelections, displayedRooms]);
+
+    const { roomsWithItems, grandTotalItems, grandTotalLbs, grandTotalCuft } = getGroupedItemsByRoom();
+
   
     const mainOptions = [
       { value: 'listOfItems', label: 'List of items' },
@@ -245,135 +249,143 @@ const tagIcons = {
             ))}
           </div>
   
-          {/* Table Headers */}
+          {/* Conditional Rendering Based on Items */}
           {selectedOption === 'listOfItems' && (
             <>
-              <div className={styles.tableHeader}>
-                <div className={styles.descriptionHeader}>Description</div>
-                <div className={styles.qtyHeader}>Qty</div>
-                <div className={styles.tagsHeader}>Tags</div>
-              </div>
+              {roomsWithItems.length > 0 ? (
+                <>
+                  <div className={styles.tableHeader}>
+                    <div className={styles.descriptionHeader}>Description</div>
+                    <div className={styles.qtyHeader}>Qty</div>
+                    <div className={styles.tagsHeader}>Tags</div>
+                  </div>
   
-              {/* Scrollable Content */}
-              <div className={styles.content}>
-                {/* Render Rooms with Items */}
-                {getGroupedItemsByRoom().roomsWithItems.map((room, roomIndex) => (
-                  <div
-                    key={room.roomId}
-                    className={`${styles.roomSection} ${
-                      roomIndex === 0 ? styles.firstRoom : ''
-                    }`}
-                  >
-                    {/* Room Name */}
-                    <h3 className={styles.roomName}>{room.roomName}</h3>
+                  {/* Scrollable Content */}
+                  <div className={styles.content}>
+                    {/* Render Rooms with Items */}
+                    {roomsWithItems.map((room, roomIndex) => (
+                      <div
+                        key={room.roomId}
+                        className={`${styles.roomSection} ${
+                          roomIndex === 0 ? styles.firstRoom : ''
+                        }`}
+                      >
+                        {/* Room Name */}
+                        <h3 className={styles.roomName}>{room.roomName}</h3>
   
-                    {/* Items Table */}
-                    <div className={styles.itemsTable}>
-                      {room.groupedItems.map((item, index) => {
-                        // Determine if item has 'excluded' or 'may_not_ship' tags
-                        const hasExcludedTag = item.tags.includes('excluded');
-                        const hasMayNotShipTag = item.tags.includes('may_not_ship');
+                        {/* Items Table */}
+                        <div className={styles.itemsTable}>
+                          {room.groupedItems.map((item, index) => {
+                            // Determine if item has 'excluded' or 'may_not_ship' tags
+                            const hasExcludedTag = item.tags.includes('excluded');
+                            const hasMayNotShipTag = item.tags.includes('may_not_ship');
   
-                        // Remove 'excluded' and 'may_not_ship' from tags to display
-                        const displayTags = item.tags.filter(
-                          (tag) => tag !== 'excluded' && tag !== 'may_not_ship'
-                        );
+                            // Remove 'excluded' and 'may_not_ship' from tags to display
+                            const displayTags = item.tags.filter(
+                              (tag) => tag !== 'excluded' && tag !== 'may_not_ship'
+                            );
   
-                        return (
-                          <div key={index} className={styles.itemRow}>
-                            <div className={styles.descriptionCell}>
-                              {/* Use flex container for alignment */}
-                              <div className={styles.descriptionContent}>
-                                {hasExcludedTag && (
-                                  <span className={styles.symbol}>
-                                    <strong>X</strong>
-                                  </span>
-                                )}
-                                {hasMayNotShipTag && !hasExcludedTag && (
-                                  <span className={styles.symbol}>
-                                    <strong>?</strong>
-                                  </span>
-                                )}
-                                <span
-                                  className={
-                                    hasExcludedTag ? styles.strikethrough : ''
-                                  }
-                                >
-                                  {item.itemName}
-                                </span>
-                              </div>
-                            </div>
-                            <div className={styles.qtyCell}>{item.count}</div>
-                            <div className={styles.tagsCell}>
-                              {displayTags.map((tag, idx) => {
-                                const TagIcon = tagIcons[tag];
-                                return (
-                                  <span key={idx} className={styles.tag}>
-                                    {TagIcon ? (
-                                      <TagIcon width={24} height={24} />
-                                    ) : (
-                                      tag
+                            return (
+                              <div key={index} className={styles.itemRow}>
+                                <div className={styles.descriptionCell}>
+                                  {/* Use flex container for alignment */}
+                                  <div className={styles.descriptionContent}>
+                                    {hasExcludedTag && (
+                                      <span className={styles.symbol}>
+                                        <strong>X</strong>
+                                      </span>
                                     )}
-                                  </span>
-                                );
-                              })}
+                                    {hasMayNotShipTag && !hasExcludedTag && (
+                                      <span className={styles.symbol}>
+                                        <strong>?</strong>
+                                      </span>
+                                    )}
+                                    <span
+                                      className={
+                                        hasExcludedTag ? styles.strikethrough : ''
+                                      }
+                                    >
+                                      {item.itemName}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className={styles.qtyCell}>{item.count}</div>
+                                <div className={styles.tagsCell}>
+                                  {displayTags.map((tag, idx) => {
+                                    const TagIcon = tagIcons[tag];
+                                    return (
+                                      <span key={idx} className={styles.tag}>
+                                        {TagIcon ? (
+                                          <TagIcon width={24} height={24} />
+                                        ) : (
+                                          tag
+                                        )}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+  
+                          {/* Room Totals */}
+                          <div className={`${styles.itemRow} ${styles.totalRow}`}>
+                            <div className={styles.descriptionCell}>Total:</div>
+                            <div className={styles.qtyCell}>{room.totalItems}</div>
+                            <div className={styles.tagsCell}>
+                              {Math.round(room.totalLbs)} lbs&nbsp;&nbsp;
+                              {Math.round(room.totalCuft)} Cuft
                             </div>
                           </div>
-                        );
-                      })}
+                        </div>
+                      </div>
+                    ))}
   
-                      {/* Room Totals */}
-                      <div className={`${styles.itemRow} ${styles.totalRow}`}>
-                        <div className={styles.descriptionCell}>Total:</div>
-                        <div className={styles.qtyCell}>{room.totalItems}</div>
+                    {/* Grand Total */}
+                    <div className={styles.grandTotalSection}>
+                      <div className={`${styles.itemRow} ${styles.grandTotalRow}`}>
+                        <div className={styles.descriptionCell}>Grand Total:</div>
+                        <div className={styles.qtyCell}>
+                          {grandTotalItems}
+                        </div>
                         <div className={styles.tagsCell}>
-                          {Math.round(room.totalLbs)} lbs&nbsp;&nbsp;
-                          {Math.round(room.totalCuft)} Cuft
+                          {Math.round(grandTotalLbs)} lbs&nbsp;&nbsp;
+                          {Math.round(grandTotalCuft)} Cuft
                         </div>
                       </div>
                     </div>
                   </div>
-                ))}
+                </>
+              ) : (
+                <div className={styles.noItemsMessage}>
+                  Add items to see them here.
+                </div>
+              )}
+            </>
+          )}
   
-                {/* Grand Total */}
-                <div className={styles.grandTotalSection}>
-                  <div className={`${styles.itemRow} ${styles.grandTotalRow}`}>
-                    <div className={styles.descriptionCell}>Grand Total:</div>
-                    <div className={styles.qtyCell}>
-                      {getGroupedItemsByRoom().grandTotalItems}
+          {selectedOption === 'descriptiveSymbols' && (
+            <>
+              {/* Scrollable Content with different background */}
+              <div className={`${styles.content} ${styles.descriptiveContent}`}>
+                <div className={styles.descriptiveSymbolsContainer}>
+                  {allTags.map(({ value, label, IconComponent }) => (
+                    <div key={value} className={styles.tagRow}>
+                      <div className={styles.tagIcon}>
+                        {IconComponent && <IconComponent width={24} height={24} />}
+                      </div>
+                      <div className={styles.tagName}>
+                        {label}
+                      </div>
                     </div>
-                    <div className={styles.tagsCell}>
-                      {Math.round(getGroupedItemsByRoom().grandTotalLbs)} lbs&nbsp;&nbsp;
-                      {Math.round(getGroupedItemsByRoom().grandTotalCuft)} Cuft
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </>
           )}
-  
-  {selectedOption === 'descriptiveSymbols' && (
-          <>
-            {/* Scrollable Content with different background */}
-            <div className={`${styles.content} ${styles.descriptiveContent}`}>
-              <div className={styles.descriptiveSymbolsContainer}>
-                {allTags.map(({ value, label, IconComponent }) => (
-                  <div key={value} className={styles.tagRow}>
-                    <div className={styles.tagIcon}>
-                      {IconComponent && <IconComponent width={24} height={24} />}
-                    </div>
-                    <div className={styles.tagName}>
-                      {label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
+        </div>
       </div>
-    </div>
-  );
-}
-
-export default MyInventory;
+    );
+  }
+  
+  export default MyInventory;

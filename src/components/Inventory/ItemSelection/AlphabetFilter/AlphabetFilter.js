@@ -1,4 +1,6 @@
-import React from 'react';
+// src/components/Inventory/ItemSelection/AlphabetFilter/AlphabetFilter.js
+
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from './AlphabetFilter.module.css';
 
@@ -14,7 +16,19 @@ const LETTERS_WITH_SUBBUTTONS = {
 
 const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onSubButtonClick, isMyItemsActive, roomName }) {
+function AlphabetFilter({
+  selectedLetter,
+  selectedSubButton,
+  onLetterSelect,
+  onSubButtonClick,
+  isMyItemsActive,
+  roomName,
+}) {
+  const scrollContainerRef = useRef(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
   // Letter selection logic
   const handleLetterClick = (letter) => {
     if (selectedLetter === letter) {
@@ -32,20 +46,57 @@ function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onS
   // Convert roomName to uppercase
   const upperCaseRoomName = roomName ? roomName.toUpperCase() : 'THIS ROOM';
 
+  // Mouse event handlers for desktop click-and-drag scrolling
+  const handleMouseDown = (e) => {
+    isDragging.current = true;
+    startX.current = e.pageX - scrollContainerRef.current.offsetLeft;
+    scrollLeft.current = scrollContainerRef.current.scrollLeft;
+  };
+
+  const handleMouseLeave = () => {
+    isDragging.current = false;
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX.current) * 1; // Adjust scrolling speed as needed
+    scrollContainerRef.current.scrollLeft = scrollLeft.current - walk;
+  };
 
   return (
     <div>
-      <div className={styles.alphabetFilter}>
+      <div
+        className={styles.alphabetFilter}
+        ref={scrollContainerRef}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+      >
         {ALPHABETS.map((letter) => {
-          const isMainActive = selectedLetter === letter && (!selectedSubButton || selectedSubButton.letter !== letter);
+          const isMainActive =
+            selectedLetter === letter &&
+            (!selectedSubButton || selectedSubButton.letter !== letter);
 
           return (
             <React.Fragment key={letter}>
               <button
-                className={`${styles.alphabetButton} ${isMainActive ? styles.active : ''}`}
+                className={`${styles.alphabetButton} ${
+                  isMainActive ? styles.active : ''
+                }`}
                 onClick={() => handleLetterClick(letter)}
                 aria-haspopup="true"
-                aria-expanded={selectedLetter === letter && LETTERS_WITH_SUBBUTTONS[letter] ? 'true' : 'false'}
+                aria-expanded={
+                  selectedLetter === letter && LETTERS_WITH_SUBBUTTONS[letter]
+                    ? 'true'
+                    : 'false'
+                }
                 aria-controls={`subButtons-${letter}`}
               >
                 {letter}
@@ -54,12 +105,16 @@ function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onS
               {selectedLetter === letter &&
                 Array.isArray(LETTERS_WITH_SUBBUTTONS[letter]) &&
                 LETTERS_WITH_SUBBUTTONS[letter].map((subButton) => {
-                  const isSubButtonActive = selectedSubButton.letter === letter && selectedSubButton.subButton === subButton;
+                  const isSubButtonActive =
+                    selectedSubButton.letter === letter &&
+                    selectedSubButton.subButton === subButton;
 
                   return (
                     <button
                       key={subButton}
-                      className={`${styles.subButton} ${isSubButtonActive ? styles.activeSubButton : ''}`}
+                      className={`${styles.subButton} ${
+                        isSubButtonActive ? styles.activeSubButton : ''
+                      }`}
                       onClick={() => handleSubButtonClickInternal(subButton, letter)}
                     >
                       {subButton}
@@ -71,8 +126,8 @@ function AlphabetFilter({ selectedLetter, selectedSubButton, onLetterSelect, onS
         })}
       </div>
       <div className={styles.alphabetFilterBanner}>
-      <p>
-      {isMyItemsActive
+        <p>
+          {isMyItemsActive
             ? `MY INVENTORY IN ${upperCaseRoomName}`
             : `COMMON ITEMS FOR ${upperCaseRoomName}`}
         </p>
@@ -90,6 +145,7 @@ AlphabetFilter.propTypes = {
   onLetterSelect: PropTypes.func.isRequired,
   onSubButtonClick: PropTypes.func.isRequired,
   isMyItemsActive: PropTypes.bool.isRequired,
+  roomName: PropTypes.string.isRequired,
 };
 
 export default AlphabetFilter;

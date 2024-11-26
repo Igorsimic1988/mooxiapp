@@ -100,6 +100,7 @@ const tagIcons = {
     // State for main options ('listOfItems' or 'descriptiveSymbols')
     const [selectedOption, setSelectedOption] = useState('listOfItems');
 
+
   
     const getGroupedItemsByRoom = useCallback(() => {
       // Initialize grand totals

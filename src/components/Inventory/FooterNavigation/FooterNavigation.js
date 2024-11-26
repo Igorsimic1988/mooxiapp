@@ -8,8 +8,9 @@ import MyInventory from './MyInventory/MyInventory';
 import { ReactComponent as CreateQuote } from '../../../assets/icons/createquoteicon.svg';
 import { ReactComponent as MyInventoryIcon } from '../../../assets/icons/myinventory.svg';
 import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.svg';
-import { ReactComponent as DeleteIcon } from '../../../assets/icons/deletemobile.svg'; // Corrected icon import
 import { ReactComponent as BackArrow } from '../../../assets/icons/arrowforward.svg';
+
+import DeleteButton from './DeleteButton/DeleteButton'; // Import the new component
 
 function FooterNavigation({
   inRoom,
@@ -39,34 +40,32 @@ function FooterNavigation({
       {/* First Navigation Item */}
       <div
         className={styles.navItem}
-        onClick={inRoom ? onBackToRooms : null} // Keep existing functionality
+        onClick={inRoom ? onBackToRooms : null}
         role="button"
         tabIndex={0}
       >
         <div className={styles.iconWrapper}>
-          {/* Conditionally render the icon based on `inRoom` */}
           {inRoom ? (
             <CreateQuote className={styles.navIcon} />
           ) : (
             <BackArrow className={styles.navIcon} />
           )}
         </div>
-        {/* Conditionally render the text based on `inRoom` */}
         <p className={styles.navText}>{inRoom ? 'Rooms' : 'Create Quote'}</p>
       </div>
 
       {/* Second Navigation Item */}
       <div
-  className={styles.navItem}
-  onClick={() => setIsMyInventoryVisible(true)}
-  role="button"
-  tabIndex={0}
->
-  <div className={styles.iconWrapper}>
-    <MyInventoryIcon className={styles.navIcon} />
-  </div>
-  <p className={styles.navText}>My Inventory</p>
-</div>
+        className={styles.navItem}
+        onClick={() => setIsMyInventoryVisible(true)}
+        role="button"
+        tabIndex={0}
+      >
+        <div className={styles.iconWrapper}>
+          <MyInventoryIcon className={styles.navIcon} />
+        </div>
+        <p className={styles.navText}>My Inventory</p>
+      </div>
 
       {/* Special Handling */}
       <div
@@ -81,40 +80,33 @@ function FooterNavigation({
         <p className={styles.navText}>Special Handling</p>
       </div>
 
-      {/* Delete */}
-      <div
-        className={`${styles.navItem} ${isDeleteActive ? styles.activeDelete : ''}`}
-        onClick={handleDeleteClick}
-        role="button"
-        tabIndex={0}
-      >
-        <div className={styles.iconWrapper}>
-          <DeleteIcon className={`${styles.navIcon} ${isDeleteActive ? styles.redIcon : ''}`} />
-        </div>
-        <p className={`${styles.navText} ${isDeleteActive ? styles.redText : ''}`}>Delete</p>
-      </div>
+      {/* Delete Button */}
+      <DeleteButton 
+        isActive={isDeleteActive} 
+        onClick={handleDeleteClick} 
+      />
 
       {/* Render SpecialH Popup */}
       {isSpecialHVisible && (
         <SpecialH 
           setIsSpecialHVisible={setIsSpecialHVisible} 
           roomItemSelections={roomItemSelections}
-          setRoomItemSelections={setRoomItemSelections} // Pass the setter
-          selectedRoom={selectedRoom} // Pass the selectedRoom
+          setRoomItemSelections={setRoomItemSelections}
+          selectedRoom={selectedRoom}
           displayedRooms={displayedRooms}
         />
       )}
 
       {/* Render MyInventory Popup */}
-{isMyInventoryVisible && (
-  <MyInventory
-    setIsMyInventoryVisible={setIsMyInventoryVisible}
-    roomItemSelections={roomItemSelections}
-    setRoomItemSelections={setRoomItemSelections}
-    selectedRoom={selectedRoom}
-    displayedRooms={displayedRooms}
-  />
-)}
+      {isMyInventoryVisible && (
+        <MyInventory
+          setIsMyInventoryVisible={setIsMyInventoryVisible}
+          roomItemSelections={roomItemSelections}
+          setRoomItemSelections={setRoomItemSelections}
+          selectedRoom={selectedRoom}
+          displayedRooms={displayedRooms}
+        />
+      )}
     </footer>
   );
 }

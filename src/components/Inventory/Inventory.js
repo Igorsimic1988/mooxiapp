@@ -10,6 +10,7 @@ import ItemSelection from './ItemSelection/ItemSelection';
 import SearchHeader from './SearchHeader/SearchHeader';
 import rooms from '../../data/constants/AllRoomsList'; // Import rooms data
 import allItems from '../../data/constants/funitureItems'; // Import allItems
+import InventoryDesktop from './InventoryDesktop/InventoryDesktop';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID library for generating unique IDs
 
 // Adjust the import path based on your project structure
@@ -31,6 +32,9 @@ function Inventory() {
   );
   const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
   const [isToggled, setIsToggled] = useState(true); // Moved isToggled state here
+
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
 
   const prevTotalLbsRef = useRef(null);
 
@@ -457,6 +461,30 @@ function Inventory() {
       return updatedSelections;
     });
   }, [isToggled, roomItemSelections]);
+
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 3000);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // If it's desktop, render InventoryDesktop component
+  if (isDesktop) {
+    return (
+      <InventoryDesktop
+      roomItemSelections={roomItemSelections}
+      setRoomItemSelections={setRoomItemSelections}
+      displayedRooms={displayedRooms}
+      setDisplayedRooms={setDisplayedRooms}
+      />
+    );
+  }
 
   return (
     <div className={styles.inventoryContainer}>

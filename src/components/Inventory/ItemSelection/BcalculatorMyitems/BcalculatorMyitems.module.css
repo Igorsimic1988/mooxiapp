@@ -1,81 +1,70 @@
+/* src/components/BcalculatorMyitems/BcalculatorMyitems.module.css */
 
 .filterHeader {
-    display: flex;
-    height: 66px;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #D8DCE0;
-    
+  display: flex;
+  height: 66px;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #D8DCE0;
 }
-
-.filterText {
-    display: inline-block;
-    color: #2F3236;
-font-family: Satoshi;
-font-size: 1rem;
-font-style: normal;
-font-weight: 700;
-line-height: normal;
-margin-right: 12px;
-max-width: fit-content;
-}
-
 
 .leftSection {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    margin-right: 20px;
-    max-width: fit-content;
-    flex-grow: 1;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-right: 20px;
+  max-width: fit-content;
+  flex-grow: 1;
 }
+
+/* Removed .filterText styles since it's now in ToggleSwitch */
 
 .actionButton {
-    min-width: max-content;
-    display: flex;
-    padding: 11px 10px 11px 13px;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    color: #6E7882;
-    font-family: Satoshi;
-    font-size: 0.93rem;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-    border-radius: 11px;
-    background-color: white;
-    border: none;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
+  min-width: max-content;
+  display: flex;
+  padding: 11px 10px 11px 13px;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  color: #6E7882;
+  font-family: Satoshi;
+  font-size: 0.93rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  border-radius: 11px;
+  background-color: white;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
-.itemCount > p:first-child { 
-    font-size: 0.68rem;
-    color: #FFF;
-    text-align: center;
-    font-family: Satoshi;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-    border-radius: 60px;
-    background: #59B779;
-    display: flex;
-    width: 30px;
-    height: 30px;
-    padding: 5px 6px;
-    justify-content: center;
-    align-items: center;
-  }
+.itemCount > p:first-child {
+  font-size: 0.68rem;
+  color: #FFF;
+  text-align: center;
+  font-family: Satoshi;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  border-radius: 60px;
+  background: #59B779;
+  display: flex;
+  width: 30px;
+  height: 30px;
+  padding: 5px 6px;
+  justify-content: center;
+  align-items: center;
+}
 
-  .activeButton {
-    border-radius: 11px;
-    background-color: #59B779;
-    color: white;
-  }
+.activeButton {
+  border-radius: 11px;
+  background-color: #59B779;
+  color: white;
+}
 
-  .activeButton > .itemCount {
-    border: 2px solid white;
-    border-radius: 60px;
-  }
+.activeButton > .itemCount {
+  border: 2px solid white;
+  border-radius: 60px;
+}

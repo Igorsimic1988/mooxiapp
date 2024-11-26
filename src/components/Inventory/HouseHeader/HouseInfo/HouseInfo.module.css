@@ -1,0 +1,47 @@
+/* src/components/Inventory/HouseHeader/HouseInfo/HouseInfo.module.css */
+
+.houseInfoContainer {
+    display: flex;
+    align-items: center; /* Add this to vertically center the items */
+}
+
+.iconWrapper {
+    padding-right: 19px;
+    /* Remove padding-top to prevent the icon from being pushed down */
+}
+
+.houseIcon {
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+
+.houseInfo {
+    min-width: max-content;
+}
+
+.houseTitle {
+    color: #90A4B7;
+    font-family: 'Satoshi';
+    font-size: 1.125rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+
+.houseBedrooms {
+    color: #90A4B7;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}
+
+.houseStories {
+    color: #90A4B7;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+}

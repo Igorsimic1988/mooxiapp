@@ -1,25 +1,27 @@
+// src/components/BcalculatorMyitems/BcalculatorMyitems.js
+
 import React from 'react';
 import styles from './BcalculatorMyitems.module.css';
 import ToggleSwitch from './ToogleSwitch/ToogleSwitch';
 
 function BcalculatorMyitems({ isToggled, onToggle, itemCount, onActionClick, isMyItemsActive }) {
-    return (
-        <div className={styles.filterHeader}>
-            <div className={styles.leftSection}>
-                <span className={styles.filterText}>Boxes Auto<br />Calculator</span>
-                <ToggleSwitch isToggled={isToggled} onToggle={onToggle} />
-            </div>
-            <button
-                className={`${styles.actionButton} ${isMyItemsActive ? styles.activeButton : ''}`} // Add active class if button is active
-                onClick={onActionClick}
-            >
-                <p>My Items</p>
-                <div className={styles.itemCount}>
-                    <p>{itemCount}</p> {/* Display dynamic item count here */}
-                </div>
-            </button>
+  return (
+    <div className={styles.filterHeader}>
+      <div className={styles.leftSection}>
+        {/* Removed the text from here */}
+        <ToggleSwitch isToggled={isToggled} onToggle={onToggle} />
+      </div>
+      <button
+        className={`${styles.actionButton} ${isMyItemsActive ? styles.activeButton : ''}`}
+        onClick={onActionClick}
+      >
+        <p>My Items</p>
+        <div className={styles.itemCount}>
+          <p>{itemCount}</p>
         </div>
-    );
+      </button>
+    </div>
+  );
 }
 
 export default BcalculatorMyitems;

@@ -1,0 +1,56 @@
+/* src/components/common/DeleteButton.module.css */
+
+.navItem {
+    min-height: 100%;
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center; 
+    padding-top: 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  
+  .iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .navIcon {
+    width: 24px;
+    height: 24px;
+    filter: invert(58%) sepia(21%) saturate(224%) hue-rotate(174deg) brightness(90%) contrast(85%);
+  }
+  
+  .navText {
+    margin-top: 7px;
+    color: #90A4B7;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.68rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .activeDelete .navText {
+    color: #F65676;
+    font-weight: 900;
+  }
+  
+  .activeDelete .navIcon {
+    filter: drop-shadow(0px 0 0px #F65676);
+  }
+  
+  .redIcon path {
+    fill: #F65676;
+  }
+  
+  .redText {
+    color: #F65676;
+    font-weight: 900;
+  }
+  

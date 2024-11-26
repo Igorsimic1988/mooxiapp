@@ -1,5 +1,23 @@
+/* src/components/BcalculatorMyitems/ToggleSwitch/ToggleSwitch.module.css */
 
-.toggleSwitch {
+.toggleSwitchContainer {
+    display: flex;
+    align-items: center;
+  }
+  
+  .filterText {
+    display: inline-block;
+    color: #2F3236;
+    font-family: Satoshi;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    margin-right: 12px;
+    max-width: fit-content;
+  }
+  
+  .toggleSwitch {
     display: flex;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -7,12 +25,13 @@
     user-select: none;
     position: relative;
     padding: 5px; /* Adds padding around the SVG */
-}
-
-.toggleSwitch:focus {
+  }
+  
+  .toggleSwitch:focus {
     box-shadow: none;
-}
-
-.toggleCircle {
+  }
+  
+  .toggleCircle {
     transition: cx 0.3s ease, fill 0.3s ease;
-}
+  }
+  

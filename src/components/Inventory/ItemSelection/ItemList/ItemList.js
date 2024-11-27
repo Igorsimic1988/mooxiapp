@@ -14,7 +14,7 @@ function ItemList({
   onAddItem,
   onStartFresh,
   setIsMyItemsActive,
-  onBackToRooms, // Add this line
+  onBackToRooms,
 }) {
   const touchStartXRef = useRef(null);
   const touchEndXRef = useRef(null);
@@ -85,7 +85,7 @@ function ItemList({
                 key={key}
                 item={item}
                 clickCount={count}
-                onItemClick={() => onItemClick(itemData)}
+                onItemClick={(action) => onItemClick(itemData, action)}
                 isMyItemsActive={isMyItemsActive}
                 isDeleteActive={isDeleteActive}
                 onUpdateItem={onUpdateItem}

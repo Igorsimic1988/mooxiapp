@@ -35,7 +35,6 @@ function Inventory() {
 
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-
   const prevTotalLbsRef = useRef(null);
 
   useEffect(() => {
@@ -64,7 +63,7 @@ function Inventory() {
   };
 
   const handleRoomSelect = (room) => {
-    setSelectedRoom( room );
+    setSelectedRoom(room);
   };
 
   const handleBackToRooms = () => {
@@ -119,14 +118,19 @@ function Inventory() {
     }
   };
 
-  const handleItemSelection = (clickedItem) => {
+  const handleItemSelection = (clickedItem, action) => {
     if (!selectedRoom) return;
+
+    // Determine the action based on isDeleteActive if action is not provided
+    if (!action) {
+      action = isDeleteActive ? 'decrease' : 'increase';
+    }
 
     setRoomItemSelections((prevSelections) => {
       const currentRoomSelections = prevSelections[selectedRoom.id] || [];
       let updatedRoomSelections = [...currentRoomSelections];
 
-      if (isDeleteActive) {
+      if (action === 'decrease') {
         // Deletion logic: delete one instance
         let indexToDelete = -1;
 
@@ -146,7 +150,7 @@ function Inventory() {
         if (indexToDelete !== -1) {
           updatedRoomSelections.splice(indexToDelete, 1);
         }
-      } else {
+      } else if (action === 'increase') {
         // Existing logic to add items
         let newItemInstance;
         if (isMyItemsActive) {
@@ -242,7 +246,7 @@ function Inventory() {
     setRoomItemSelections((prevSelections) => {
       const updatedSelections = { ...prevSelections };
       let roomItems = updatedSelections[selectedRoom.id] || [];
-  
+
       // Find all instances with the original ID
       const indicesToUpdate = roomItems.reduce((indices, itemInstance, index) => {
         if (itemInstance.id === originalItemInstance.id) {
@@ -250,35 +254,35 @@ function Inventory() {
         }
         return indices;
       }, []);
-  
+
       if (indicesToUpdate.length === 0) {
         console.error('Item instance not found for update.');
         return updatedSelections;
       }
-  
+
       const index = indicesToUpdate[0];
       const oldGroupingKey = roomItems[index].groupingKey;
-  
+
       // Generate the updated grouping key
       const updatedKey = generateGroupingKey(updatedItemInstance);
       updatedItemInstance.groupingKey = updatedKey;
-  
+
       // Update the item instance
       roomItems[index] = {
         ...updatedItemInstance,
         id: originalItemInstance.id,
       };
-  
+
       // Remove instances with old groupingKey except the updated one
       roomItems = roomItems.filter(
         (itemInstance) =>
           itemInstance.groupingKey !== oldGroupingKey || itemInstance.id === updatedItemInstance.id
       );
-  
+
       // Handle item count
       const newCount =
         updatedItemInstance.count !== undefined ? updatedItemInstance.count : 1;
-  
+
       if (newCount === 0) {
         // Remove all instances with the updated groupingKey
         roomItems = roomItems.filter(
@@ -289,7 +293,7 @@ function Inventory() {
           (itemInstance) =>
             itemInstance.groupingKey === updatedKey && itemInstance.id !== updatedItemInstance.id
         );
-  
+
         if (existingInstances.length > newCount - 1) {
           // Remove extra instances
           let excess = existingInstances.length - (newCount - 1);
@@ -315,9 +319,9 @@ function Inventory() {
           }
         }
       }
-  
+
       updatedSelections[selectedRoom.id] = roomItems;
-  
+
       return updatedSelections;
     });
   };
@@ -325,24 +329,24 @@ function Inventory() {
   // Function to handle adding new items
   const handleAddItem = (newItemInstance) => {
     if (!selectedRoom) return;
-  
+
     setRoomItemSelections((prevSelections) => {
       const currentRoomSelections = prevSelections[selectedRoom.id] || [];
       const updatedRoomSelections = [...currentRoomSelections];
-  
+
       // Generate groupingKey for the new item instance
       newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
-  
+
       const itemCount =
         newItemInstance.count !== undefined ? newItemInstance.count : 1;
-  
+
       for (let i = 0; i < itemCount; i++) {
         updatedRoomSelections.push({
           ...newItemInstance,
           id: i === 0 ? newItemInstance.id : uuidv4(), // Retain the original id for the first instance
         });
       }
-  
+
       return {
         ...prevSelections,
         [selectedRoom.id]: updatedRoomSelections,
@@ -462,7 +466,6 @@ function Inventory() {
     });
   }, [isToggled, roomItemSelections]);
 
-
   useEffect(() => {
     const handleResize = () => {
       setIsDesktop(window.innerWidth >= 3000);
@@ -478,10 +481,10 @@ function Inventory() {
   if (isDesktop) {
     return (
       <InventoryDesktop
-      roomItemSelections={roomItemSelections}
-      setRoomItemSelections={setRoomItemSelections}
-      displayedRooms={displayedRooms}
-      setDisplayedRooms={setDisplayedRooms}
+        roomItemSelections={roomItemSelections}
+        setRoomItemSelections={setRoomItemSelections}
+        displayedRooms={displayedRooms}
+        setDisplayedRooms={setDisplayedRooms}
       />
     );
   }

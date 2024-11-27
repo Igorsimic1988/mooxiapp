@@ -1,4 +1,5 @@
 // src/components/Inventory/ItemSelection/Item/Item.js
+
 import React, { useState, useRef } from 'react';
 import styles from './Item.module.css';
 import { ReactComponent as ThreeDots } from '../../../../assets/icons/more.svg';
@@ -95,19 +96,11 @@ function Item({
     setIsPopupVisible(false);
   };
 
-  // New function to handle minus button click (optional)
-  const handleMinusClick = (e) => {
-    e.stopPropagation();
-    // Implement the logic to decrease the item count
-    // For example, you might call a prop function like onItemDecrease()
-    console.log('Minus clicked');
-  };
-
   return (
     <li className={styles.item}>
       <button
         className={styles.card}
-        onClick={onItemClick}
+        onClick={() => onItemClick()}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -131,7 +124,10 @@ function Item({
             {isBadgeExpanded && (
               <button
                 className={styles.minusButton}
-                onClick={handleMinusClick}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onItemClick('decrease'); // Decrease item count
+                }}
               >
                 -
               </button>
@@ -142,7 +138,7 @@ function Item({
                 className={styles.plusButton}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onItemClick(e); // Call onItemClick when plus button is clicked
+                  onItemClick('increase'); // Increase item count
                 }}
               >
                 +

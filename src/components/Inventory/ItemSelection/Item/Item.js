@@ -1,9 +1,8 @@
 // src/components/Inventory/ItemSelection/Item/Item.js
-
 import React, { useState, useRef } from 'react';
 import styles from './Item.module.css';
 import { ReactComponent as ThreeDots } from '../../../../assets/icons/more.svg';
-import ItemPopup from './ItemPopup/ItemPopup'; // Import the popup component
+import ItemPopup from './ItemPopup/ItemPopup';
 
 function Item({
   item,
@@ -17,6 +16,7 @@ function Item({
   onStartFresh,
 }) {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [isBadgeExpanded, setIsBadgeExpanded] = useState(false);
   const timerRef = useRef(null);
   const eventRef = useRef(null);
 
@@ -95,6 +95,14 @@ function Item({
     setIsPopupVisible(false);
   };
 
+  // New function to handle minus button click (optional)
+  const handleMinusClick = (e) => {
+    e.stopPropagation();
+    // Implement the logic to decrease the item count
+    // For example, you might call a prop function like onItemDecrease()
+    console.log('Minus clicked');
+  };
+
   return (
     <li className={styles.item}>
       <button
@@ -112,9 +120,34 @@ function Item({
           <div
             className={`${styles.numberBadge} ${
               isDeleteActive ? styles.numberBadgeRed : ''
-            }`}
+            } ${isBadgeExpanded ? styles.numberBadgeExpanded : ''}`}
+            onMouseEnter={() => setIsBadgeExpanded(true)}
+            onMouseLeave={() => setIsBadgeExpanded(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsBadgeExpanded(true);
+            }}
           >
-            {clickCount}
+            {isBadgeExpanded && (
+              <button
+                className={styles.minusButton}
+                onClick={handleMinusClick}
+              >
+                -
+              </button>
+            )}
+            <span className={styles.badgeNumber}>{clickCount}</span>
+            {isBadgeExpanded && (
+              <button
+                className={styles.plusButton}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onItemClick(e); // Call onItemClick when plus button is clicked
+                }}
+              >
+                +
+              </button>
+            )}
           </div>
         )}
         {isMyItemsActive && (

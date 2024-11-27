@@ -485,6 +485,11 @@ function Inventory() {
         setRoomItemSelections={setRoomItemSelections}
         displayedRooms={displayedRooms}
         setDisplayedRooms={setDisplayedRooms}
+        isToggled={isToggled}
+        setIsToggled={setIsToggled}
+        selectedRoom={selectedRoom}
+        setSelectedRoom={setSelectedRoom}
+        rooms={rooms}  
       />
     );
   }

@@ -1,0 +1,130 @@
+/* src/components/Inventory/InventoryDesktop/InventoryDesktop.module.css */
+
+.inventoryDesktopContainer {
+    display: grid;
+    grid-template-columns: 315px minmax(430px, 1fr) 1fr;
+    grid-template-rows: 90px 1fr 90px;
+    grid-template-areas:
+      "topRowCol1 topRowCol2 topRowCol3"
+      "middleRowCol1 middleRowCol2 middleRowCol3"
+      "bottomRowCol1 bottomRowCol2 bottomRowCol3";
+    height: 100vh;
+    width: 100%;
+    padding: 20px 20px 15px 20px;
+    background-color: #F2F5F8;
+    box-sizing: border-box;
+  }
+  
+  /* Top Row */
+  .topRowCol1 {
+    grid-area: topRowCol1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .topRowCol2 {
+    grid-area: topRowCol2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: lightcoral; /* For testing */
+  }
+  
+  .topRowCol3 {
+    grid-area: topRowCol3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 10px;
+    background-color: lightgoldenrodyellow; /* For testing */
+  }
+  
+  /* Middle Row */
+  .middleRowCol1 {
+    grid-area: middleRowCol1;
+    overflow-y: auto;
+    padding: 10px 12px; /* Add desired padding */
+     box-sizing: border-box;
+
+  }
+
+  .middleRowCol1::-webkit-scrollbar {
+    width: 8px; /* Width of the vertical scrollbar */
+  }
+  
+  .middleRowCol1::-webkit-scrollbar-track {
+    background: #f2f5f8; /* Background of the scrollbar track */
+  }
+  
+  .middleRowCol1::-webkit-scrollbar-thumb {
+    background-color: #c1c7cd; /* Color of the scrollbar thumb */
+    border-radius: 4px; /* Rounded corners on the thumb */
+    border: 2px solid #f2f5f8; /* Space around the thumb */
+  }
+  
+  .middleRowCol1::-webkit-scrollbar-thumb:hover {
+    background-color: #a0a6ac; /* Thumb color on hover */
+  }
+  
+  /* Scrollbar styling for Firefox */
+  .middleRowCol1 {
+    scrollbar-width: thin; /* "auto" or "thin" */
+    scrollbar-color: #c1c7cd #f2f5f8; /* Scrollbar thumb and track color */
+  }
+  
+  .middleRowCol2 {
+    grid-area: middleRowCol2;
+    background-color: lightgray; /* For testing */
+    overflow: auto;
+  }
+  
+  .middleRowCol3 {
+    grid-area: middleRowCol3;
+    background-color: lightyellow; /* For testing */
+    overflow: auto;
+  }
+  
+  /* Bottom Row */
+  .bottomRowCol1 {
+    grid-area: bottomRowCol1;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    background-color: lightsteelblue; /* For testing */
+  }
+  
+  .bottomRowCol2 {
+    grid-area: bottomRowCol2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: lightseagreen; /* For testing */
+  }
+  
+  .bottomRowCol3 {
+    grid-area: bottomRowCol3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 10px;
+    background-color: lightsalmon; /* For testing */
+  }
+  
+  /* Ensure the middle row columns take available height */
+  .middleRowCol1,
+  .middleRowCol2,
+  .middleRowCol3 {
+    height: 100%;
+  }
+  
+  /* First column fixed width, doesn't expand or shrink */
+  .middleRowCol1 {
+    width: 315px;
+  }
+  
+  /* Second column minimum width and flexible expansion */
+  .middleRowCol2 {
+    min-width: 430px;
+  }
+  

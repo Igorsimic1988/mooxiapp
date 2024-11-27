@@ -1,0 +1,27 @@
+/* src/components/Inventory/InventoryDesktop/BackButton/BackButton.module.css */
+
+.backButton {
+    display: inline-flex;
+    padding: 13px 15px;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    border-radius: 12px;
+    background: #E4EAEF;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .arrowIcon {
+    width: 20px;
+    height: 20px;
+    filter: invert(58%) sepia(21%) saturate(224%) hue-rotate(174deg) brightness(90%) contrast(85%);
+  }
+  
+  .buttonText {
+    color: #6E7882;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 0.93rem;
+    font-weight: 700;
+  }
+  

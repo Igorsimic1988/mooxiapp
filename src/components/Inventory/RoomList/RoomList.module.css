@@ -13,6 +13,7 @@
   -ms-overflow-style: none; /* IE and Edge */
   padding-bottom: 10px;
   cursor: pointer;
+  user-select: none; 
 }
 
 .roomListContainer::-webkit-scrollbar {
@@ -95,7 +96,6 @@
 
 .roomButton.active {
   background-color: #90A4B7;
-  cursor: grabbing;
 }
 
 .roomButton.active .roomName {

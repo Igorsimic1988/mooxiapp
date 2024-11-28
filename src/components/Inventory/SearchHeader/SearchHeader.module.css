@@ -50,3 +50,24 @@
     box-shadow: 0 0 0 2px rgba(63, 169, 245, 0.5);
     border-radius: 12px;
 }
+
+@media (min-width: 1024px) {
+  
+    .searchContainer {
+        border-radius: 0px 0px 0px 0px;
+        border-bottom: 0px solid #D8DCE0;
+        margin-top: 0px; /* Use with caution as it can cause overlapping */
+        padding-left: 0px;
+        padding-right: 0px;
+        width: 100%;
+    }
+
+    .searchHeader {
+        width: 100%;
+    }
+
+    .searchInput {
+     box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+    }
+
+  }

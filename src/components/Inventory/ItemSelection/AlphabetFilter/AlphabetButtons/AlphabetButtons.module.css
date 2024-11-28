@@ -1,0 +1,124 @@
+/* src/components/Inventory/ItemSelection/AlphabetButtons/AlphabetButtons.module.css */
+
+.alphabetButtons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    height: 54px;
+    background-color: #F2F5F8;
+    overflow-x: auto;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+  
+  .alphabetButtons::-webkit-scrollbar {
+    height: 0px;
+  }
+  
+  .alphabetButton {
+    width: 39px;
+    height: 44px;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #90A4B7;
+    text-align: center;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 0.81rem;
+    font-weight: 700;
+    line-height: normal;
+    margin-right: 5px;
+    padding: 13px 15px;
+  }
+  
+  .alphabetButton:hover {
+    background-color: #71879C;
+    color: white;
+  }
+  
+  .active {
+    background-color: #71879C;
+    color: white;
+  }
+  
+  .active:hover {
+    background-color: #71879C;
+  }
+  
+  .subButton {
+    width: 39px;
+    height: 36px;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #90A4B7;
+    text-align: center;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 0.81rem;
+    font-weight: 700;
+    line-height: normal;
+    margin-right: 5px;
+    padding: 13px 15px;
+  }
+  
+  .subButton:last-child {
+    margin-right: 0;
+  }
+  
+  .subButton:hover {
+    background-color: #71879C;
+    color: white;
+  }
+  
+  .activeSubButton {
+    background-color: #71879C;
+    color: white;
+  }
+
+  @media (min-width: 1024px) {
+
+    .alphabetButtons {
+        flex-direction: column; /* Change to column */
+        height: 100%;
+        width: 26px;
+        overflow-y: auto; /* Enable vertical scrolling */
+        overflow-x: hidden;
+        margin-left: 12px;
+        margin-right: 20px;
+        white-space: normal;
+      }
+      
+      .alphabetButton,
+      .subButton {
+        width: 24px;
+        height: 24px;
+        padding: 0px;
+        margin-right: 0px;
+      }
+      
+      /* Adjust button margins for vertical layout */
+      .alphabetButton,
+      .subButton {
+        margin-bottom: 5px; /* Use margin-bottom instead of margin-right */
+      }
+      
+
+
+  }
+  

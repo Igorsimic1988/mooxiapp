@@ -481,15 +481,25 @@ function Inventory() {
   if (isDesktop) {
     return (
       <InventoryDesktop
-        roomItemSelections={roomItemSelections}
-        setRoomItemSelections={setRoomItemSelections}
-        displayedRooms={displayedRooms}
-        setDisplayedRooms={setDisplayedRooms}
-        isToggled={isToggled}
-        setIsToggled={setIsToggled}
-        selectedRoom={selectedRoom}
-        setSelectedRoom={setSelectedRoom}
-        rooms={rooms}  
+      roomItemSelections={roomItemSelections}
+      setRoomItemSelections={setRoomItemSelections}
+      displayedRooms={displayedRooms}
+      setDisplayedRooms={setDisplayedRooms}
+      isToggled={isToggled}
+      setIsToggled={setIsToggled}
+      selectedRoom={selectedRoom}
+      setSelectedRoom={setSelectedRoom}
+      rooms={rooms}
+      searchQuery={searchQuery}
+      handleSearch={handleSearch}
+      handleSearchClick={handleSearchClick}
+      selectedLetter={selectedLetter}
+      setSelectedLetter={setSelectedLetter}
+      selectedSubButton={selectedSubButton}
+      setSelectedSubButton={setSelectedSubButton}
+      isMyItemsActive={isMyItemsActive}
+      setIsMyItemsActive={setIsMyItemsActive}
+      setSearchQuery={setSearchQuery}
       />
     );
   }

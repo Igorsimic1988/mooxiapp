@@ -1,0 +1,22 @@
+/* src/components/Inventory/ItemSelection/AlphabetBanner/AlphabetBanner.module.css */
+
+.alphabetBanner {
+    height: 20px;
+    border-radius: 8px;
+    background: #E4EAEF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .alphabetBanner p {
+    color: #90A4B7;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    text-transform: uppercase;
+  }
+  

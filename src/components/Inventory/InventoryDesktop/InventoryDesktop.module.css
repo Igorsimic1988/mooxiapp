@@ -1,4 +1,4 @@
-/* src/components/Inventory/InventoryDesktop/InventoryDesktop.module.css */
+
 
 .inventoryDesktopContainer {
     display: grid;
@@ -11,8 +11,9 @@
     height: 100vh;
     width: 100%;
     padding: 20px 20px 15px 20px;
-    background-color: #F2F5F8;
+    background-color: #f1f4f7;
     box-sizing: border-box;
+    column-gap: 20px;
   }
   
   /* Top Row */
@@ -27,8 +28,8 @@
     grid-area: topRowCol2;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background-color: lightcoral; /* For testing */
+    justify-content: flex-start;
+    width: 100%;
   }
   
   .topRowCol3 {
@@ -43,40 +44,74 @@
   /* Middle Row */
   .middleRowCol1 {
     grid-area: middleRowCol1;
-    overflow-y: auto;
-    padding: 10px 12px; /* Add desired padding */
-     box-sizing: border-box;
-
-  }
-
-  .middleRowCol1::-webkit-scrollbar {
-    width: 8px; /* Width of the vertical scrollbar */
+    display: flex;
+    flex-direction: column; /* Stack HouseInfo and RoomList vertically */
+    box-sizing: border-box;
+    overflow: hidden; /* Hide overflow to prevent scrollbars on this container */
+    filter: drop-shadow(0px 1px 16px rgba(0, 0, 0, 0.08));
+    border-radius: 16px 16px 16px 16px;
   }
   
-  .middleRowCol1::-webkit-scrollbar-track {
-    background: #f2f5f8; /* Background of the scrollbar track */
+  .houseInfo {
+    flex-shrink: 0; /* Prevent HouseInfo from shrinking */
+    background-color: white;
+    height: 60px;
+    border-radius: 16px 16px 0 0;
+    padding-left: 20px;
+    display: flex;
+   align-items: center;
   }
   
-  .middleRowCol1::-webkit-scrollbar-thumb {
-    background-color: #c1c7cd; /* Color of the scrollbar thumb */
-    border-radius: 4px; /* Rounded corners on the thumb */
-    border: 2px solid #f2f5f8; /* Space around the thumb */
+  .roomListContainer {
+    flex-grow: 1; /* Allow RoomList to fill remaining space */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border-top: 1px solid #D8DCE0;
+    background-color: #f2f5f8;
+    padding: 10px 12px;
   }
   
-  .middleRowCol1::-webkit-scrollbar-thumb:hover {
-    background-color: #a0a6ac; /* Thumb color on hover */
+  /* Scrollbar styling for RoomList */
+  .roomListContainer::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .roomListContainer::-webkit-scrollbar-track {
+    background: #f2f5f8;
+  }
+  
+  .roomListContainer::-webkit-scrollbar-thumb {
+    background-color: #c1c7cd;
+    border-radius: 4px;
+    border: 2px solid #f2f5f8;
+  }
+  
+  .roomListContainer::-webkit-scrollbar-thumb:hover {
+    background-color: #a0a6ac;
   }
   
   /* Scrollbar styling for Firefox */
-  .middleRowCol1 {
-    scrollbar-width: thin; /* "auto" or "thin" */
-    scrollbar-color: #c1c7cd #f2f5f8; /* Scrollbar thumb and track color */
+  .roomListContainer {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c7cd #f2f5f8;
+  }
+  
+  /* Ensure the middle row columns take available height */
+  .middleRowCol1,
+  .middleRowCol2,
+  .middleRowCol3 {
+    height: 100%;
   }
   
   .middleRowCol2 {
     grid-area: middleRowCol2;
-    background-color: lightgray; /* For testing */
-    overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Adjust as needed */
+  border-radius: 16px;
+  filter: drop-shadow(0px 1px 16px rgba(0, 0, 0, 0.08));
+  background-color: #f2f5f8;
+  height: 100%;
+  min-height: 0; /* Add this line */
   }
   
   .middleRowCol3 {
@@ -90,8 +125,6 @@
     grid-area: bottomRowCol1;
     display: flex;
     align-items: center;
-    padding: 0 10px;
-    background-color: lightsteelblue; /* For testing */
   }
   
   .bottomRowCol2 {
@@ -127,4 +160,114 @@
   .middleRowCol2 {
     min-width: 430px;
   }
+
+  .itemsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: white;
+    height: 60px;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 1px solid #D8DCE0;
+    padding-left: 20px;
+    padding-right: 15px;
+  }
+  
+  .itemsHeaderText {
+    color: #2F3236;
+    font-family: Satoshi;
+    font-size: 1.12rem;
+    font-weight: 700;
+  }
+  
+  .expandCollapseButton {
+    width: 30px;
+    height: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .expandCollapseButton svg {
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* Spacer */
+  .itemsSpacer {
+    height: 11px;
+  }
+  
+  /* Common Items Banner */
+  .commonItemsBanner {
+    border-radius: 8px;
+    background: #E4EAEF;
+    margin-left: 56px;
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+  }
+  
+  .commonItemsBanner p {
+    color: #90A4B7;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  /* Items Content Container */
+.itemsContentContainer {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  overflow: hidden;
+  height: 100%; /* Add this line */
+  min-height: 0; /* Add this line */
+}
+
+.alphabetButtonsWrapper {
+  /* margin-top: -27px;  */
+  flex-shrink: 1;
+  flex-grow: 0; /* Allow it to grow and fill available space */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding-bottom: 100px;
+}
+/* Item List Placeholder */
+.itemListPlaceholder {
+  flex-grow: 1;
+  padding: 20px 20px 20px 0px;
+  overflow: auto;
+  min-height: 0; /* Add this line */
+}
+
+
+/* Adjust .middleRowCol2 to allow content to expand */
+.middleRowCol2 > * {
+  flex-shrink: 0;
+}
+
+/* Ensure the itemsContentContainer fills available space */
+.itemsContentContainer {
+  flex-grow: 1;
+}
+
+/* Adjust AlphabetButtons within itemsContentContainer */
+.itemsContentContainer .alphabetButtons {
+  flex-shrink: 0;
+  width: auto; /* Let it size based on content */
+}
+
+
+
   

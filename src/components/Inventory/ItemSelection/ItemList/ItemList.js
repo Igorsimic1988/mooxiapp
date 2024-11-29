@@ -15,19 +15,64 @@ function ItemList({
   onStartFresh,
   setIsMyItemsActive,
   onBackToRooms,
+  isDesktop = false,
 }) {
   const touchStartXRef = useRef(null);
   const touchEndXRef = useRef(null);
 
+  const scrollContainerRef = useRef(null);
+  const isDragging = useRef(false);
+  const isMoved = useRef(false);
+  const dragThreshold = 5; // Pixels to consider as drag
+  const startY = useRef(0);
+const scrollTop = useRef(0);
+
+const handleMouseDown = (e) => {
+  if (!isDesktop) return;
+
+  isDragging.current = true;
+  isMoved.current = false;
+  startY.current = e.pageY - scrollContainerRef.current.getBoundingClientRect().top;
+  scrollTop.current = scrollContainerRef.current.scrollTop;
+};
+
+const handleMouseMove = (e) => {
+  if (!isDesktop || !isDragging.current) return;
+  e.preventDefault();
+  const y = e.pageY - scrollContainerRef.current.getBoundingClientRect().top;
+  const walk = (y - startY.current) * 1; // Adjust scroll speed as needed
+  scrollContainerRef.current.scrollTop = scrollTop.current - walk;
+
+  // Check if movement exceeds drag threshold
+  if (!isMoved.current && Math.abs(walk) > dragThreshold) {
+    isMoved.current = true;
+  }
+};
+
+const handleMouseUp = () => {
+  if (!isDesktop) return;
+  isDragging.current = false;
+  isMoved.current = false;
+};
+
+const handleMouseOut = () => {
+  if (!isDesktop) return;
+  isDragging.current = false;
+  isMoved.current = false;
+};
+
   const handleTouchStart = (e) => {
+    if (isDesktop) return;
     touchStartXRef.current = e.touches[0].clientX;
   };
 
   const handleTouchMove = (e) => {
+    if (isDesktop) return;
     touchEndXRef.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = () => {
+    if (isDesktop) return;
     if (touchStartXRef.current === null || touchEndXRef.current === null) return;
 
     const deltaX = touchEndXRef.current - touchStartXRef.current;
@@ -57,11 +102,16 @@ function ItemList({
 
   return (
     <div
-      className={styles.itemListContainer}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+    className={styles.itemListContainer}
+    ref={scrollContainerRef}
+    onMouseDownCapture={handleMouseDown}
+    onMouseMoveCapture={handleMouseMove}
+    onMouseUpCapture={handleMouseUp}
+     onMouseOutCapture={handleMouseOut}
+    onTouchStartCapture={handleTouchStart}
+    onTouchMoveCapture={handleTouchMove}
+    onTouchEndCapture={handleTouchEnd}
+  >
       {Array.isArray(items) && items.length > 0 ? (
         <ul className={styles.itemList}>
           {items.map((itemData) => {
@@ -92,6 +142,8 @@ function ItemList({
                 onAddItem={onAddItem}
                 itemInstance={itemInstance}
                 onStartFresh={onStartFresh}
+                isDesktop={isDesktop}
+                isMoved={isMoved.current}
               />
             );
           })}

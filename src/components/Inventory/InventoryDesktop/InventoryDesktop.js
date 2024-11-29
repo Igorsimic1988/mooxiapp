@@ -9,6 +9,11 @@ import HouseInfo from '../HouseHeader/HouseInfo/HouseInfo';
 import AddRoomButton from '../HouseHeader/AddRoomButton/AddRoomButton';
 import SearchHeader from '../SearchHeader/SearchHeader';
 import AlphabetButtons from '../ItemSelection/AlphabetFilter/AlphabetButtons/AlphabetButtons';
+import ItemList from '../ItemSelection/ItemList/ItemList';
+import allItems from '../../../data/constants/funitureItems';
+import CreateQuoteButton from './CreateQuoteButton/CreateQuoteButton';
+import { v4 as uuidv4 } from 'uuid';
+import { generateGroupingKey } from '../utils/generateGroupingKey';
 
 import { ReactComponent as ExpandIcon } from '../../../assets/icons/expand.svg';
 import { ReactComponent as CollapseIcon } from '../../../assets/icons/collapse.svg';
@@ -95,6 +100,110 @@ function InventoryDesktop({
     }
   };
 
+  const handleItemSelection = (clickedItem, action) => {
+    if (!selectedRoom) return;
+  
+    // For desktop, you may not have isDeleteActive; adjust as needed
+    if (!action) {
+      action = 'increase'; // Default action
+    }
+  
+    setRoomItemSelections((prevSelections) => {
+      const currentRoomSelections = prevSelections[selectedRoom.id] || [];
+      let updatedRoomSelections = [...currentRoomSelections];
+  
+      if (action === 'decrease') {
+        // Deletion logic: delete one instance
+        const itemIdToDelete = clickedItem.id.toString();
+        const indexToDelete = updatedRoomSelections.findIndex(
+          (itemInstance) => itemInstance.itemId === itemIdToDelete
+        );
+  
+        if (indexToDelete !== -1) {
+          updatedRoomSelections.splice(indexToDelete, 1);
+        }
+      } else if (action === 'increase') {
+        // Logic to add items
+        let defaultPackingNeedsCounts = {};
+        if (clickedItem.packing && clickedItem.packing.length > 0) {
+          clickedItem.packing.forEach((pack) => {
+            defaultPackingNeedsCounts[pack.type] = pack.quantity;
+          });
+        }
+  
+        const newItemInstance = {
+          id: uuidv4(),
+          itemId: clickedItem.id.toString(),
+          item: { ...clickedItem },
+          tags: [...clickedItem.tags],
+          notes: '',
+          cuft: clickedItem.cuft || '',
+          lbs: clickedItem.lbs || '',
+          packingNeedsCounts: defaultPackingNeedsCounts,
+          link: '', // Initialize link
+          uploadedImages: [], // Initialize uploadedImages
+          cameraImages: [], // Initialize cameraImages
+        };
+  
+        // Generate and store the groupingKey
+        newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
+  
+        updatedRoomSelections.push(newItemInstance);
+      }
+  
+      return {
+        ...prevSelections,
+        [selectedRoom.id]: updatedRoomSelections,
+      };
+    });
+  };
+  
+  const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
+    // Update item instance logic
+  };
+  
+  const handleAddItem = (newItemInstance) => {
+    // Add new item logic
+  };
+  
+  const handleStartFresh = (newItemInstance) => {
+    // Start fresh logic
+  };
+
+  const getFilteredItems = () => {
+    if (!selectedRoom) return [];
+  
+    if (searchQuery.trim() !== '') {
+      // Filter items whose name includes the search query, and item.search !== 'N'
+      return allItems.filter((item) => {
+        const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const isSearchable = item.search !== 'N';
+        return matchesQuery && isSearchable;
+      });
+    }
+  
+    if (selectedSubButton && selectedSubButton.subButton) {
+      // Show items that have the selected sub-button, regardless of room
+      return allItems.filter((item) => item.letters.includes(selectedSubButton.subButton));
+    }
+  
+    if (selectedLetter) {
+      // Show items that have the selected letter, regardless of room
+      return allItems.filter((item) => item.letters.includes(selectedLetter));
+    }
+  
+    // No search query, letter, or sub-button selected
+    // Display default items for the current room
+    return allItems.filter((item) => item.rooms.includes(Number(selectedRoom.id)));
+  };
+  
+  // Compute item counts for the current room
+  const itemCounts = roomItemSelections[selectedRoom?.id]?.reduce((counts, instance) => {
+    const key = instance.itemId.toString();
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {}) || {};
+
   // Pass the functions to SearchHeader
   const handleSearchFocus = () => {
     handleSearchClick();
@@ -163,7 +272,17 @@ function InventoryDesktop({
             />
           </div>
           <div className={styles.itemListPlaceholder}>
-            <p>Item List</p>
+          <ItemList
+    items={getFilteredItems()}
+    itemClickCounts={itemCounts}
+    onItemClick={handleItemSelection}
+    isMyItemsActive={false} // Always false for desktop
+    isDeleteActive={false} // Adjust based on your desktop logic
+    onUpdateItem={handleUpdateItem}
+    onAddItem={handleAddItem}
+    onStartFresh={handleStartFresh}
+    isDesktop={true} // Indicate that this is the desktop version
+  />
           </div>
         </div>
       </div>
@@ -181,7 +300,7 @@ function InventoryDesktop({
         />
       </div>
       <div className={styles.bottomRowCol2}>
-        <button>Create Quote</button>
+      <CreateQuoteButton />
       </div>
       <div className={styles.bottomRowCol3}>
         <button>Button 1</button>

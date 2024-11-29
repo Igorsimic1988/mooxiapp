@@ -94,29 +94,43 @@
   @media (min-width: 1024px) {
 
     .alphabetButtons {
-        flex-direction: column; /* Change to column */
-        height: 100%;
-        width: 26px;
-        overflow-y: auto; /* Enable vertical scrolling */
-        overflow-x: hidden;
-        margin-left: 12px;
-        margin-right: 20px;
-        white-space: normal;
-      }
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      white-space: normal;
+      box-sizing: border-box;
+      /* padding-bottom: 100px; */
+      padding-left: 10px;
+      padding-right: 15px;
+      border-radius: 0px 0px 0px 16px;
+    }
       
-      .alphabetButton,
-      .subButton {
-        width: 24px;
-        height: 24px;
-        padding: 0px;
-        margin-right: 0px;
-      }
+    .alphabetButton,
+    .subButton {
+      width: 24px;
+      height: auto;
+      padding: 0px;
+      margin: 0;
+      box-sizing: border-box;
+      text-align: center;
+      padding: 5px;
+      margin-bottom: 2px;
+    }
       
+    .alphabetButtons::-webkit-scrollbar {
+      width: 0px;
+      background: transparent;
+    }
+    
+    /* Hide scrollbar for IE, Edge, and Firefox */
+    .alphabetButtons {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
       /* Adjust button margins for vertical layout */
-      .alphabetButton,
-      .subButton {
-        margin-bottom: 5px; /* Use margin-bottom instead of margin-right */
-      }
       
 
 

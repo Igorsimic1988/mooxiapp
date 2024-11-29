@@ -15,6 +15,8 @@ function Item({
   onAddItem,
   itemInstance,
   onStartFresh,
+  isDesktop = false,
+  isMoved = false
 }) {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isBadgeExpanded, setIsBadgeExpanded] = useState(false);
@@ -27,7 +29,7 @@ function Item({
 
   // Handlers for long press with movement detection
   const handleMouseDown = (e) => {
-    if (!isMyItemsActive) return;
+    if (!isMyItemsActive || isDesktop) return;
     eventRef.current = e;
     timerRef.current = setTimeout(() => {
       eventRef.current.preventDefault();
@@ -100,7 +102,10 @@ function Item({
     <li className={styles.item}>
       <button
         className={styles.card}
-        onClick={() => onItemClick()}
+        onClick={(e) => {
+          if (isMoved) return;
+          onItemClick();
+        }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

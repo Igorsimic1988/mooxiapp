@@ -1,5 +1,6 @@
 
 
+
 .inventoryDesktopContainer {
     display: grid;
     grid-template-columns: 315px minmax(430px, 1fr) 1fr;
@@ -14,6 +15,7 @@
     background-color: #f1f4f7;
     box-sizing: border-box;
     column-gap: 20px;
+    overflow: hidden;
   }
   
   /* Top Row */
@@ -96,22 +98,22 @@
   }
   
   /* Ensure the middle row columns take available height */
-  .middleRowCol1,
+  /* .middleRowCol1,
   .middleRowCol2,
   .middleRowCol3 {
-    height: 100%;
-  }
+   height: 100%;
+  } */
   
   .middleRowCol2 {
     grid-area: middleRowCol2;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* Adjust as needed */
-  border-radius: 16px;
-  filter: drop-shadow(0px 1px 16px rgba(0, 0, 0, 0.08));
-  background-color: #f2f5f8;
-  height: 100%;
-  min-height: 0; /* Add this line */
+    display: flex;
+    flex-direction: column;
+    /* overflow: hidden; */
+    border-radius: 16px;
+    filter: drop-shadow(0px 1px 16px rgba(0, 0, 0, 0.08));
+    background-color: #f2f5f8;
+ 
+    min-height: 0;
   }
   
   .middleRowCol3 {
@@ -132,7 +134,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: lightseagreen; /* For testing */
   }
   
   .bottomRowCol3 {
@@ -228,28 +229,55 @@
   display: flex;
   flex-direction: row;
   flex-grow: 1;
-  overflow: hidden;
-  height: 100%; /* Add this line */
-  min-height: 0; /* Add this line */
+  /* overflow: hidden; */
+  height: calc(100% - 97px);
+  min-height: 0;
 }
 
 .alphabetButtonsWrapper {
-  /* margin-top: -27px;  */
-  flex-shrink: 1;
-  flex-grow: 0; /* Allow it to grow and fill available space */
+  flex: 0 0 auto; /* Prevent shrinking and growing */
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: 55px;
+  height: calc(100% + 27px);
   min-height: 0;
-  padding-bottom: 100px;
+  margin-top: -27px;
+  overflow: hidden;
 }
 /* Item List Placeholder */
 .itemListPlaceholder {
   flex-grow: 1;
-  padding: 20px 20px 20px 0px;
-  overflow: auto;
-  min-height: 0; /* Add this line */
+  padding: 0px 7px 10px 0px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
 }
+
+
+.itemListPlaceholder::-webkit-scrollbar {
+  width: 8px;
+}
+
+.itemListPlaceholder::-webkit-scrollbar-track {
+  background: #f2f5f8;
+}
+
+.itemListPlaceholder::-webkit-scrollbar-thumb {
+  background-color: #c1c7cd;
+  border-radius: 4px;
+  border: 2px solid #f2f5f8;
+}
+
+.itemListPlaceholder::-webkit-scrollbar-thumb:hover {
+  background-color: #a0a6ac;
+}
+
+/* Scrollbar styling for Firefox */
+.itemListPlaceholder {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c7cd #f2f5f8;
+}
+
 
 
 /* Adjust .middleRowCol2 to allow content to expand */

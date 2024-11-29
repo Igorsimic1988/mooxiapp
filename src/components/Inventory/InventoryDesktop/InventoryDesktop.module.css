@@ -118,8 +118,23 @@
   
   .middleRowCol3 {
     grid-area: middleRowCol3;
-    background-color: lightyellow; /* For testing */
-    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    filter: drop-shadow(0px 1px 16px rgba(0, 0, 0, 0.08));
+    background-color: #f2f5f8;
+    min-height: 0;
+  }
+
+  .middleRowCol3 .commonItemsBanner {
+    border-radius: 8px;
+    background: #E4EAEF;
+    margin-left: 20px; /* Adjusted margins to match the layout */
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
   }
   
   /* Bottom Row */
@@ -295,6 +310,8 @@
   flex-shrink: 0;
   width: auto; /* Let it size based on content */
 }
+
+
 
 
 

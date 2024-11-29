@@ -286,8 +286,26 @@ function InventoryDesktop({
           </div>
         </div>
       </div>
-      <div className={styles.middleRowCol3}>
-        <p>Selected Items</p>
+     {/* Middle Row Column 3 */}
+     <div className={styles.middleRowCol3}>
+        {/* Items Header */}
+        <div className={styles.itemsHeader}>
+          <div className={styles.itemsHeaderText}>My Items</div>
+          {/* No ExpandIcon button */}
+        </div>
+        {/* Spacer */}
+        <div className={styles.itemsSpacer}></div>
+        {/* Common Items Banner */}
+        <div className={styles.commonItemsBanner}>
+          <p>MY INVENTORY</p>
+        </div>
+        {/* Items Content Container */}
+        <div className={styles.itemsContentContainer}>
+          {/* No AlphabetButtons */}
+          <div className={styles.itemListPlaceholder}>
+            {/* Placeholder content for now */}
+          </div>
+        </div>
       </div>
 
       {/* Bottom Row */}

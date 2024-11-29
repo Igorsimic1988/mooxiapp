@@ -10,6 +10,7 @@
     border-radius: 16px;
     background: #59B779;
     cursor: pointer;
+    max-width: 430px;;
   }
   
   .buttonText {

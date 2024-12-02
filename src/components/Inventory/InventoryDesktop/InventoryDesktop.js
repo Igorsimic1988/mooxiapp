@@ -615,7 +615,7 @@ function InventoryDesktop({
         <ItemPopup
           item={currentItemData}
           onClose={handleCloseItemPopup}
-          onUpdate={handleUpdateItem}
+          onUpdateItem={handleUpdateItem}
           onAddItem={handleAddItem}
           itemInstance={currentItemInstance}
           onStartFresh={handleStartFresh}

@@ -151,7 +151,7 @@ const handleMouseOut = () => {
           })}
         </ul>
       ) : (
-        <p className={styles.noItems}>Add items to see them here.</p>
+        <p className={styles.noItems}>Start adding items to your room.</p>
       )}
     </div>
   );

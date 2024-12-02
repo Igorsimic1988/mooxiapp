@@ -1,6 +1,6 @@
 // src/components/Inventory/InventoryDesktop/InventoryDesktop.js
 
-import React, { useState } from 'react'; 
+import React, { useState, useEffect } from 'react'; 
 import styles from './InventoryDesktop.module.css';
 import BackButton from './BackButton/BackButton';
 import ToggleSwitch from '../ItemSelection/BcalculatorMyitems/ToogleSwitch/ToogleSwitch';
@@ -59,6 +59,12 @@ function InventoryDesktop({
   const [isDeleteActive, setIsDeleteActive] = useState(false);
     // State to control expansion
     const [isExpanded, setIsExpanded] = useState(false);
+
+    useEffect(() => {
+      if (!selectedRoom && displayedRooms && displayedRooms.length > 0) {
+        setSelectedRoom(displayedRooms[0]);
+      }
+    }, [selectedRoom, displayedRooms, setSelectedRoom]);
 
     // Handler for expand/collapse button
     const handleExpandCollapse = () => {

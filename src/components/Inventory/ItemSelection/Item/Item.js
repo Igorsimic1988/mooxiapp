@@ -1,6 +1,6 @@
 // src/components/Inventory/ItemSelection/Item/Item.js
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styles from './Item.module.css';
 import { ReactComponent as ThreeDots } from '../../../../assets/icons/more.svg';
 import ItemPopup from './ItemPopup/ItemPopup';
@@ -16,7 +16,8 @@ function Item({
   itemInstance,
   onStartFresh,
   isDesktop = false,
-  isMoved = false
+  isMoved = false,
+  onOpenPopup, // Added prop
 }) {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isBadgeExpanded, setIsBadgeExpanded] = useState(false);
@@ -27,13 +28,35 @@ function Item({
   const [startY, setStartY] = useState(null);
   const moveThreshold = 10; // Adjust as needed
 
+  // Viewport width state
+  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleItemClick = (e) => {
+    if (isMoved) return;
+    const action = isDeleteActive ? 'decrease' : 'increase'; // Adjusted line
+    onItemClick(action, isMyItemsActive);
+  };
+
   // Handlers for long press with movement detection
   const handleMouseDown = (e) => {
-    if (!isMyItemsActive || isDesktop) return;
+    if (!isMyItemsActive) return;
     eventRef.current = e;
     timerRef.current = setTimeout(() => {
       eventRef.current.preventDefault();
-      setIsPopupVisible(true);
+      if (viewportWidth >= 1024) {
+        // For viewports >= 1024px, request InventoryDesktop to open the popup
+        onOpenPopup(item, itemInstance);
+      } else {
+        setIsPopupVisible(true);
+      }
     }, 500);
     setStartX(e.clientX);
     setStartY(e.clientY);
@@ -61,7 +84,11 @@ function Item({
     eventRef.current = e;
     timerRef.current = setTimeout(() => {
       eventRef.current.preventDefault();
-      setIsPopupVisible(true);
+      if (viewportWidth >= 1024) {
+        onOpenPopup(item, itemInstance);
+      } else {
+        setIsPopupVisible(true);
+      }
     }, 500);
     const touch = e.touches[0];
     setStartX(touch.clientX);
@@ -90,7 +117,11 @@ function Item({
   const handleMenuIconClick = (e) => {
     e.stopPropagation();
     if (!isMyItemsActive) return;
-    setIsPopupVisible(true);
+    if (viewportWidth >= 1024) {
+      onOpenPopup(item, itemInstance);
+    } else {
+      setIsPopupVisible(true);
+    }
   };
 
   // Close popup handler
@@ -102,10 +133,7 @@ function Item({
     <li className={styles.item}>
       <button
         className={styles.card}
-        onClick={(e) => {
-          if (isMoved) return;
-          onItemClick();
-        }}
+        onClick={handleItemClick}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -131,7 +159,7 @@ function Item({
                 className={styles.minusButton}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onItemClick('decrease'); // Decrease item count
+                  onItemClick('decrease');
                 }}
               >
                 -
@@ -143,7 +171,7 @@ function Item({
                 className={styles.plusButton}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onItemClick('increase'); // Increase item count
+                  onItemClick('increase');
                 }}
               >
                 +
@@ -162,7 +190,8 @@ function Item({
         <div className={styles.itemName}>{item.name}</div>
       </button>
 
-      {isPopupVisible && (
+      {/* Render ItemPopup only when viewport width is less than 1024px */}
+      {isPopupVisible && viewportWidth < 1024 && (
         <ItemPopup
           item={item}
           onClose={handleClosePopup}

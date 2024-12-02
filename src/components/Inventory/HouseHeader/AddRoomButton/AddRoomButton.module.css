@@ -9,7 +9,7 @@
     align-items: center;
     gap: 10px;
     border-radius: 12px;
-    background: #E4EAEF;
+    background-color: rgba(144, 164, 183, 0.15);
     border: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;

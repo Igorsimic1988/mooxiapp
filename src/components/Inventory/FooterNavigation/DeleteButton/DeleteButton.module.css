@@ -22,7 +22,7 @@
   .navIcon {
     width: 24px;
     height: 24px;
-    filter: invert(58%) sepia(21%) saturate(224%) hue-rotate(174deg) brightness(90%) contrast(85%);
+    color: #90A4B7;
   }
   
   .navText {
@@ -42,15 +42,44 @@
   }
   
   .activeDelete .navIcon {
-    filter: drop-shadow(0px 0 0px #F65676);
-  }
-  
-  .redIcon path {
-    fill: #F65676;
-  }
-  
-  .redText {
     color: #F65676;
-    font-weight: 900;
   }
+
   
+
+  @media (min-width: 1024px) {
+    .navItem {
+      width: 60px;
+      height: 50px; /* Use height instead of max-height */
+      min-height: unset; /* Override min-height */
+      flex: unset; /* Override flex property */
+      flex-shrink: 0;
+      border-radius: 12px;
+      background: #90A4B7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      padding: 0; /* Reset padding */
+    }
+  
+    .navIcon {
+      width: 24px;
+      height: 24px;
+      color: #FFFFFF; /* Icon is white by default on desktop */
+    }
+  
+    .navText {
+      display: none; /* Hide text on desktop */
+    }
+  
+    /* Active State on Desktop */
+    .activeDelete.navItem {
+      background: #F65676; /* Red background when active */
+    }
+  
+    .activeDelete .navIcon {
+      color: #FFFFFF; /* Keep icon white when active */
+    }
+  }

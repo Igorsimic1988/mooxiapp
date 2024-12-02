@@ -1,0 +1,39 @@
+.counterContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 15px; /* Gap between each counter item */
+  }
+  
+  .counterItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .counterNumber {
+    color: #3FA9F5;
+    text-align: center;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+  
+  .counterLabel {
+    color: #90A4B7;
+    text-align: center;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 1092px) {
+    .counterNumber {
+      font-size: 1.35rem;
+    }
+  
+    .counterLabel {
+      font-size: 0.6rem;
+    }
+  }
+  

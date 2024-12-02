@@ -16,6 +16,7 @@ function ItemList({
   setIsMyItemsActive,
   onBackToRooms,
   isDesktop = false,
+  onOpenPopup,
 }) {
   const touchStartXRef = useRef(null);
   const touchEndXRef = useRef(null);
@@ -104,15 +105,15 @@ const handleMouseOut = () => {
     <div
     className={styles.itemListContainer}
     ref={scrollContainerRef}
-    onMouseDownCapture={handleMouseDown}
-    onMouseMoveCapture={handleMouseMove}
-    onMouseUpCapture={handleMouseUp}
-     onMouseOutCapture={handleMouseOut}
-    onTouchStartCapture={handleTouchStart}
-    onTouchMoveCapture={handleTouchMove}
-    onTouchEndCapture={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseOut={handleMouseOut}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
   >
-      {Array.isArray(items) && items.length > 0 ? (
+   {Array.isArray(items) && items.length > 0 ? (
         <ul className={styles.itemList}>
           {items.map((itemData) => {
             let key, item, count, itemInstance;
@@ -135,7 +136,7 @@ const handleMouseOut = () => {
                 key={key}
                 item={item}
                 clickCount={count}
-                onItemClick={(action) => onItemClick(itemData, action)}
+                onItemClick={(action) => onItemClick(itemData, action, isMyItemsActive)}
                 isMyItemsActive={isMyItemsActive}
                 isDeleteActive={isDeleteActive}
                 onUpdateItem={onUpdateItem}
@@ -144,6 +145,7 @@ const handleMouseOut = () => {
                 onStartFresh={onStartFresh}
                 isDesktop={isDesktop}
                 isMoved={isMoved.current}
+                onOpenPopup={onOpenPopup} // Passed down
               />
             );
           })}

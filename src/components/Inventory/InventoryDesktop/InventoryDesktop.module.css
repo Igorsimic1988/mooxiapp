@@ -19,48 +19,18 @@
   }
 
   .inventoryDesktopContainer.expanded {
-    grid-template-columns: 315px 1fr 0px;
     grid-template-areas:
-      "topRowCol1 topRowCol2 topRowCol2"
+      "topRowCol1 topRowCol2 topRowCol3"
       "middleRowCol1 middleRowCol2 middleRowCol2"
-      "bottomRowCol1 bottomRowCol2 bottomRowCol2";
-    column-gap: 0px; /* Remove the column gap when expanded */
+      "bottomRowCol1 bottomRowCol2 bottomRowCol3";
+    /* Keep the grid-template-columns the same */
+    grid-template-columns: 315px minmax(430px, 1fr) 1fr;
   }
 
   .inventoryDesktopContainer.expanded .middleRowCol3 {
     display: none;
   }
   
-  /* Hide bottomRowCol3 when expanded */
-  .inventoryDesktopContainer.expanded .bottomRowCol3 {
-    display: none;
-  }
-
-  .inventoryDesktopContainer.expanded .topRowCol3 {
-    display: none;
-  }
-
-  .inventoryDesktopContainer.expanded .middleRowCol2 {
-    grid-area: middleRowCol2 / middleRowCol2 / middleRowCol2 / middleRowCol4;
-    margin-left: 20px;
-  }
-
-  .inventoryDesktopContainer.expanded .topRowCol2 {
-    margin-left: 20px; /* Maintain the gap in the top row */
-  }
-  
-  .inventoryDesktopContainer.expanded .bottomRowCol2 {
-    margin-left: 20px; /* Maintain the gap in the bottom row */
-  }
-
-  .inventoryDesktopContainer.expanded .topRowCol2 {
-    width: calc(100% - 20px); /* Adjust for the left margin */
-  }
-  
-  .inventoryDesktopContainer.expanded .middleRowCol2 {
-    width: calc(100% - 20px); /* Adjust for the left margin */
-  }
-
   
   /* Top Row */
   .topRowCol1 {

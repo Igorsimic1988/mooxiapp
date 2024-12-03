@@ -245,90 +245,52 @@ function InventoryDesktop({
   };
 
   const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
-    if (!selectedRoom) return;
-
     setRoomItemSelections((prevSelections) => {
       const updatedSelections = { ...prevSelections };
       let roomItems = updatedSelections[selectedRoom.id] || [];
-
-      // Find all instances with the original ID
-      const indicesToUpdate = roomItems.reduce((indices, itemInstance, index) => {
-        if (itemInstance.id === originalItemInstance.id) {
-          indices.push(index);
-        }
-        return indices;
-      }, []);
-
-      if (indicesToUpdate.length === 0) {
-        console.error('Item instance not found for update.');
+  
+      // Find all items in the same group as the original item
+      const groupItems = roomItems.filter(
+        (itemInstance) => itemInstance.groupingKey === originalItemInstance.groupingKey
+      );
+  
+      if (groupItems.length === 0) {
+        console.error('Group not found for update.');
         return updatedSelections;
       }
-
-      const index = indicesToUpdate[0];
-      const oldGroupingKey = roomItems[index].groupingKey;
-
+  
+      // Remove old group items from roomItems
+      roomItems = roomItems.filter(
+        (itemInstance) => itemInstance.groupingKey !== originalItemInstance.groupingKey
+      );
+  
       // Generate the updated grouping key
       const updatedKey = generateGroupingKey(updatedItemInstance);
       updatedItemInstance.groupingKey = updatedKey;
-
-      // Update the item instance
-      roomItems[index] = {
-        ...updatedItemInstance,
-        id: originalItemInstance.id,
-      };
-
-      // Remove instances with old groupingKey except the updated one
-      roomItems = roomItems.filter(
-        (itemInstance) =>
-          itemInstance.groupingKey !== oldGroupingKey || itemInstance.id === updatedItemInstance.id
-      );
-
+  
       // Handle item count
       const newCount =
         updatedItemInstance.count !== undefined ? updatedItemInstance.count : 1;
-
-      if (newCount === 0) {
-        // Remove all instances with the updated groupingKey
-        roomItems = roomItems.filter(
-          (itemInstance) => itemInstance.groupingKey !== updatedKey
-        );
-      } else {
-        const existingInstances = roomItems.filter(
-          (itemInstance) =>
-            itemInstance.groupingKey === updatedKey && itemInstance.id !== updatedItemInstance.id
-        );
-
-        if (existingInstances.length > newCount - 1) {
-          // Remove extra instances
-          let excess = existingInstances.length - (newCount - 1);
-          roomItems = roomItems.filter((itemInstance) => {
-            if (
-              itemInstance.groupingKey === updatedKey &&
-              itemInstance.id !== updatedItemInstance.id &&
-              excess > 0
-            ) {
-              excess--;
-              return false;
-            }
-            return true;
-          });
-        } else if (existingInstances.length < newCount - 1) {
-          // Add missing instances
-          const toAdd = newCount - 1 - existingInstances.length;
-          for (let i = 0; i < toAdd; i++) {
-            roomItems.push({
-              ...updatedItemInstance,
-              id: uuidv4(),
-            });
-          }
-        }
+  
+      const newGroupItems = [];
+  
+      for (let i = 0; i < newCount; i++) {
+        newGroupItems.push({
+          ...updatedItemInstance,
+          id: i === 0 ? originalItemInstance.id : uuidv4(), // Retain the original id for the first instance
+        });
       }
-
+  
+      // Add the new group items back into roomItems
+      roomItems = roomItems.concat(newGroupItems);
+  
+      // Update the selections
       updatedSelections[selectedRoom.id] = roomItems;
-
+  
       return updatedSelections;
     });
   };
+  
 
   const handleAddItem = (newItemInstance) => {
     if (!selectedRoom) return;
@@ -364,28 +326,43 @@ function InventoryDesktop({
   const getFilteredItems = () => {
     if (!selectedRoom) return [];
 
+    let filteredItems = [];
+
     if (searchQuery.trim() !== '') {
       // Filter items whose name includes the search query, and item.search !== 'N'
-      return allItems.filter((item) => {
+      filteredItems = allItems.filter((item) => {
         const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
         const isSearchable = item.search !== 'N';
         return matchesQuery && isSearchable;
       });
+
+      // **Include "Custom Item" when no other items match the search**
+      if (filteredItems.length === 0) {
+        const customItem = allItems.find((item) => item.name === 'Custom Item');
+        if (customItem) {
+          filteredItems = [customItem];
+        }
+      }
+
+      return filteredItems;
     }
 
     if (selectedSubButton && selectedSubButton.subButton) {
       // Show items that have the selected sub-button, regardless of room
-      return allItems.filter((item) => item.letters.includes(selectedSubButton.subButton));
+      filteredItems = allItems.filter((item) => item.letters.includes(selectedSubButton.subButton));
+      return filteredItems;
     }
 
     if (selectedLetter) {
       // Show items that have the selected letter, regardless of room
-      return allItems.filter((item) => item.letters.includes(selectedLetter));
+      filteredItems = allItems.filter((item) => item.letters.includes(selectedLetter));
+      return filteredItems;
     }
 
     // No search query, letter, or sub-button selected
     // Display default items for the current room
-    return allItems.filter((item) => item.rooms.includes(Number(selectedRoom.id)));
+    filteredItems = allItems.filter((item) => item.rooms.includes(Number(selectedRoom.id)));
+    return filteredItems;
   };
 
   // Compute item counts for the current room

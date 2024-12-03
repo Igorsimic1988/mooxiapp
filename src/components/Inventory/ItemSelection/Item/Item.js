@@ -154,29 +154,47 @@ function Item({
               setIsBadgeExpanded(true);
             }}
           >
-            {isBadgeExpanded && (
-              <button
-                className={styles.minusButton}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onItemClick('decrease');
-                }}
-              >
-                -
-              </button>
-            )}
+           {isBadgeExpanded && (
+  <div
+    className={styles.minusButton}
+    onClick={(e) => {
+      e.stopPropagation();
+      onItemClick('decrease');
+    }}
+    role="button"
+    tabIndex={0}
+    aria-label="Decrease count"
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onItemClick('decrease');
+      }
+    }}
+  >
+    -
+  </div>
+)}
             <span className={styles.badgeNumber}>{clickCount}</span>
             {isBadgeExpanded && (
-              <button
-                className={styles.plusButton}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onItemClick('increase');
-                }}
-              >
-                +
-              </button>
-            )}
+  <div
+    className={styles.plusButton}
+    onClick={(e) => {
+      e.stopPropagation();
+      onItemClick('increase');
+    }}
+    role="button"
+    tabIndex={0}
+    aria-label="Increase count"
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onItemClick('increase');
+      }
+    }}
+  >
+    +
+  </div>
+)}
           </div>
         )}
         {isMyItemsActive && (

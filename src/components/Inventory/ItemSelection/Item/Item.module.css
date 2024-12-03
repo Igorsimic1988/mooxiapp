@@ -138,3 +138,14 @@
   font-weight: 500;
   line-height: normal;
 }
+
+.minusButton:hover,
+.plusButton:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Slight background change on hover */
+  border-radius: 50%; /* Optional: Rounded background on hover */
+}
+
+.minusButton:active,
+.plusButton:active {
+  background-color: rgba(255, 255, 255, 0.2); /* Darker background on click */
+}

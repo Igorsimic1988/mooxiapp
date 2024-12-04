@@ -22,7 +22,8 @@
   .navIcon {
     width: 24px;
     height: 24px;
-    color: #90A4B7;
+    color: #697785;
+    fill: currentColor; 
   }
   
   .navText {

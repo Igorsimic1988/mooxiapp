@@ -47,6 +47,24 @@ function Inventory() {
   const [isMyItemsActive, setIsMyItemsActive] = useState(false); // Track if "My Items" button is active
   const [isDeleteActive, setIsDeleteActive] = useState(false);
 
+  useEffect(() => {
+    const setVh = () => {
+      // Set the value of --vh to 1% of the window height
+      document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+    };
+
+    // Initial execution
+    setVh();
+
+    // Re-execute on window resize
+    window.addEventListener('resize', setVh);
+
+    // Cleanup on component unmount
+    return () => {
+      window.removeEventListener('resize', setVh);
+    };
+  }, []);
+
   // Function to handle starting fresh with a new item
   const handleStartFresh = (newItemInstance) => {
     if (!selectedRoom) return;

@@ -83,7 +83,7 @@ function Item({
     if (!isMyItemsActive) return;
     eventRef.current = e;
     timerRef.current = setTimeout(() => {
-      eventRef.current.preventDefault();
+    
       if (viewportWidth >= 1024) {
         onOpenPopup(item, itemInstance);
       } else {

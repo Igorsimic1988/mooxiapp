@@ -1,7 +1,9 @@
 .itemListContainer {
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   cursor: grab;
+  touch-action: pan-y;
 }
 
 .itemListContainer:active {
@@ -40,7 +42,7 @@ padding-bottom: 600px;
     }
 
     .itemListContainer {
-      touch-action: none; /* Prevent default touch behaviors */
+      touch-action: pan-y;  /* Prevent default touch behaviors */
     }
 
 

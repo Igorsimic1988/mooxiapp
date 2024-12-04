@@ -13,7 +13,8 @@ function HouseInfo() {
       <div className={styles.houseInfo}>
         <h1 className={styles.houseTitle}>House</h1>
         <p className={styles.houseDescription}>
-          <span className={styles.houseBedrooms}>4 bedroom</span>,{' '}
+        <span className={styles.houseBedrooms}>4 bedroom</span>
+          <span className={styles.houseComma}>, </span>
           <span className={styles.houseStories}>two story</span>
         </p>
       </div>

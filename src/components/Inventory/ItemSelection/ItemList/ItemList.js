@@ -30,6 +30,7 @@ const scrollTop = useRef(0);
 
 const handleMouseDown = (e) => {
   if (!isDesktop) return;
+  if (e.type === 'touchstart' || e.pointerType === 'touch') return; // Ignore touch events
 
   isDragging.current = true;
   isMoved.current = false;
@@ -39,25 +40,30 @@ const handleMouseDown = (e) => {
 
 const handleMouseMove = (e) => {
   if (!isDesktop || !isDragging.current) return;
-  e.preventDefault();
+  if (e.type === 'touchmove' || e.pointerType === 'touch') return;
+
+  e.preventDefault(); // Be cautious with preventDefault()
   const y = e.pageY - scrollContainerRef.current.getBoundingClientRect().top;
-  const walk = (y - startY.current) * 1; // Adjust scroll speed as needed
+  const walk = (y - startY.current) * 1;
   scrollContainerRef.current.scrollTop = scrollTop.current - walk;
 
-  // Check if movement exceeds drag threshold
   if (!isMoved.current && Math.abs(walk) > dragThreshold) {
     isMoved.current = true;
   }
 };
 
-const handleMouseUp = () => {
+const handleMouseUp = (e) => {
   if (!isDesktop) return;
+  if (e.type === 'touchend' || e.pointerType === 'touch') return;
+
   isDragging.current = false;
   isMoved.current = false;
 };
 
-const handleMouseOut = () => {
+const handleMouseOut = (e) => {
   if (!isDesktop) return;
+  if (e.type === 'touchcancel' || e.pointerType === 'touch') return;
+
   isDragging.current = false;
   isMoved.current = false;
 };

@@ -77,14 +77,12 @@ function InventoryDesktop({
     setCurrentItemInstance(itemInstance);
     setIsItemPopupVisible(true);
   };
-
   // Function to close ItemPopup
   const handleCloseItemPopup = () => {
     setIsItemPopupVisible(false);
     setCurrentItemData(null);
     setCurrentItemInstance(null);
   };
-
   // Handler function for the toggle switch
   const handleToggle = () => {
     setIsToggled((prev) => !prev);
@@ -517,6 +515,7 @@ function InventoryDesktop({
               onAddItem={handleAddItem}
               onStartFresh={handleStartFresh}
               isDesktop={true} // Indicate that this is the desktop version
+      
             />
           </div>
         </div>

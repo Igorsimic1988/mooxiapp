@@ -12,6 +12,7 @@ import rooms from '../../data/constants/AllRoomsList'; // Import rooms data
 import allItems from '../../data/constants/funitureItems'; // Import allItems
 import InventoryDesktop from './InventoryDesktop/InventoryDesktop';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID library for generating unique IDs
+import ItemPopup from './ItemSelection/Item/ItemPopup/ItemPopup';
 
 // Adjust the import path based on your project structure
 import { generateGroupingKey } from './utils/generateGroupingKey';
@@ -36,6 +37,16 @@ function Inventory() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
   const prevTotalLbsRef = useRef(null);
+
+  const [popupData, setPopupData] = useState(null);
+
+  const handleOpenPopup = (item, itemInstance) => {
+    setPopupData({ item, itemInstance });
+  };
+
+  const handleClosePopup = () => {
+    setPopupData(null);
+  };
 
   useEffect(() => {
     console.log('roomItemSelections:', roomItemSelections);
@@ -534,6 +545,7 @@ function Inventory() {
             setIsToggled={setIsToggled} // Pass the toggle state and setter
             onStartFresh={handleStartFresh}
             onBackToRooms={handleBackToRooms}
+            onOpenPopup={handleOpenPopup}
           />
         ) : (
           <RoomList
@@ -543,6 +555,18 @@ function Inventory() {
           />
         )}
       </main>
+
+       {/* Render ItemPopup at the root level */}
+       {popupData && (
+        <ItemPopup
+          item={popupData.item}
+          itemInstance={popupData.itemInstance}
+          onClose={handleClosePopup}
+          onUpdateItem={handleUpdateItem}
+          onAddItem={handleAddItem}
+          onStartFresh={handleStartFresh}
+        />
+      )}
 
       <FooterNavigation
         inRoom={!!selectedRoom}

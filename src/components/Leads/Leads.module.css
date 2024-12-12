@@ -1,0 +1,5 @@
+.actionsContainer {
+    display: flex;
+    justify-content: space-between; /* puts LeadsActionButtons on left, AddNewLeadButton on right */
+    background: #F2F5F8;
+  }

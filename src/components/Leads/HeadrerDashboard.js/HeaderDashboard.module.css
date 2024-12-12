@@ -1,0 +1,99 @@
+  
+  .topBar {
+    height: 60px;
+    background-color: #3FA9F5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+  }
+
+  .bottomBarBack {
+    height: 20px;
+    background: #3FA9F5;
+  }
+  
+  .bottomBar {
+    height: 20px;
+    background: #F2F5F8;
+    border-radius: 20px 0px 0px 0px;
+  }
+  
+  .leftGroup {
+    display: flex;
+    align-items: center;
+  }
+  
+  .addBarsIcon {
+    /* Icon is vertically centered by default since .leftGroup uses align-items: center */
+    width: 24px;
+    height: 24px;
+  }
+  
+  .verticalDivider {
+    width: 1px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.20);
+    margin-left: 14px; /* 14px to the right of the bars icon */
+  }
+  
+  .homeText {
+    margin-left: 20px; /* 20px right of the vertical line */
+    color: #FFF;
+    font-family: Satoshi, sans-serif;
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: normal;
+  }
+  
+  .rightGroup {
+    display: flex;
+    align-items: center;
+  }
+  
+  .messageGroup {
+    display: flex;
+    align-items: center;
+    /* The next group (notification) is 19px to the right, so we don't need margin here 
+       unless you prefer spacing control from parent. We'll set the notificationGroup margin instead. */
+  }
+  
+  .messageBadge {
+    width: 24px;
+    height: 24px;
+    background: #FAA61A;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFF;
+    font-family: Satoshi, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 7px; /* 7px to the right for the message icon */
+  }
+  
+  .messageIcon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .notificationGroup {
+    display: flex;
+    align-items: center;
+    margin-left: 19px; /* 19px to the right of the message group */
+  }
+  
+  .notificationBadge {
+    width: 10px;
+    height: 10px;
+    background: #FAA61A;
+    border-radius: 50%;
+    margin-right: 7px; /* 7px before the notification icon */
+  }
+  
+  .notificationIcon {
+    width: 20px;
+    height: 20px;
+  }
+  

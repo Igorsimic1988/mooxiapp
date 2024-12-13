@@ -5,7 +5,7 @@ import Leads from './components/Leads/Leads';
 function App() {
   return (
     <div className="App">
-      <Inventory />
+      <Leads />
     </div>
   );
 }

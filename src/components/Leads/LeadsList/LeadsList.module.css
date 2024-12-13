@@ -1,0 +1,228 @@
+.container {
+    background: #F2F5F8;
+    padding: 10px 20px 20px 20px;
+    height: calc(100vh - 200px); /* Example: subtract top sections’ heights */
+    overflow-y: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch; /* Enables smooth scrolling on iOS */
+  }
+  
+  .container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .listContainer {
+    background: #F2F5F8;
+    padding: 10px 20px 20px 20px;
+    flex: 1; /* Make it expand to fill remaining space */
+    overflow-y: auto; /* Scrollable area for the leads */
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    
+  }
+  
+  .listContainer::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .card {
+    border-radius: 16px;
+    background: #FFF;
+    margin-bottom: 10px;
+    padding: 20px;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 3fr 4fr 3fr; /* Always 3 columns */
+    align-items: start;
+    overflow: hidden; /* Prevent horizontal overflow */
+    min-width: 0; /* For proper shrinking of columns */
+  }
+  
+  /* Ensure columns can shrink */
+  .companyInfo, .customerInfo, .leadStatusInfo {
+    min-width: 0;
+  }
+  
+  /* Text truncation */
+  .truncate {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 100%;
+  }
+  
+  /* Column 1: Company Info */
+  .companyInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .companyName,
+  .jobNumber {
+    color: #90A4B7;
+    font-family: Satoshi, sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .dateContainer {
+    /* Fixed width to prevent expansion */
+    width: 90px;
+    max-width: 110px;
+    padding: 6px 9px;
+    display: flex;
+    justify-content: flex-start; /* Align date text to the left */
+    align-items: center;
+    border-radius: 8px;
+    background: #F6F6F6;
+    overflow: hidden; /* Ensure no overflow */
+  }
+  
+  .dateText {
+    color: #90A4B7;
+    text-align: center; /* Left align */
+    font-family: Satoshi, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  /* Column 2: Customer Info */
+  .customerInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  /* Each row in customer info to align items similarly */
+  .customerRow {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  
+  /* Dot indicators */
+  .greenDot {
+    width: 8px;
+    height: 8px;
+    background: #59B779;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  
+  .greenDotPlaceholder {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  
+  /* Customer text styles */
+  .customerName {
+    color: #2F3236;
+    font-family: Satoshi, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .moveType {
+    color: #90A4B7;
+    font-family: Satoshi, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .customerPhone {
+    color: #2F3236;
+    font-family: Satoshi, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  /* Column 3: Lead Status Info */
+  .leadStatusInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: space-between;
+    align-items: flex-end;
+    min-width: 0;
+    /* Overflow hidden to prevent spilling out */
+    overflow: hidden;
+  }
+  
+  .statusRow {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+  
+  .leadStatus {
+    color: #FAA61A;
+    text-align: right;
+    font-family: Satoshi, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .statusIcon {
+    margin-left: 6px; /* space after 'In Progress' text */
+    flex-shrink: 0;
+  }
+  
+  .nextAction {
+    color: #90A4B7;
+    text-align: right;
+    font-family: Satoshi, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .salesName {
+    margin-top: 10px;
+    color: #90A4B7;
+    text-align: right;
+    font-family: Satoshi, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: normal;
+  }
+
+  @media (max-width: 392px) {
+    /* Reduce font-size for date text */
+    .dateText {
+      font-size: 10px; /* Adjust as needed */
+    }
+  
+    /* Reduce padding or scale down the date container */
+    .dateContainer {
+      width: 90px; /* narrower container */
+      padding: 4px 6px;
+    }
+  
+    /* Reduce font-size for leadStatus (In Progress) text */
+    .leadStatus {
+      font-size: 11px; /* smaller text */
+    }
+  
+    /* Optionally reduce the icon size if needed */
+    .statusIcon {
+      transform: scale(0.8); 
+    }
+  
+    /* You could also adjust line-heights or other properties to fit everything more comfortably */
+  }
+  

@@ -1,8 +1,8 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  height: var(--app-height); /* Use the dynamic height instead of 100vh */
+ 
 }
 
 .actionsContainer {

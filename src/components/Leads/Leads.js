@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Leads.module.css'; 
 import HeaderDashboard from './HeadrerDashboard.js/HeaderDashboard';
 import LeadsFilterBar from './LeadsFilterBar/LeadsFilterBar';
@@ -7,7 +7,7 @@ import LeadsActionButtons from './LeadsActionButtons/LeadsActionButtons';
 import AddNewLeadButton from './AddNewLeadButton/AddNewLeadButton';
 import LeadsList from './LeadsList/LeadsList';
 import LeadManagementPanel from './LeadManagementPanel/LeadManagementPanel';
-import actualLeads from '../../data/constants/actualLeads'; // 50 leads total
+import actualLeads from '../../data/constants/actualLeads';
 
 function Leads() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,15 +32,30 @@ function Leads() {
     setSelectedLead(lead);
   };
 
+  // Dynamically set the viewport height to avoid mobile issues
+  useEffect(() => {
+    function setAppHeight() {
+      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+    }
+    window.addEventListener('resize', setAppHeight);
+    setAppHeight(); // initial call
+    return () => window.removeEventListener('resize', setAppHeight);
+  }, []);
+
+  const handleBack = () => {
+    setSelectedLead(null);
+  };
+
   return (
     <div className={styles.container}>
-      <HeaderDashboard />
+      <HeaderDashboard 
+        isLeadSelected={!!selectedLead} 
+        onBack={handleBack} 
+      />
 
       {selectedLead ? (
-        // If a lead is selected, show only LeadManagementPanel
         <LeadManagementPanel lead={selectedLead} onClose={() => setSelectedLead(null)} />
       ) : (
-        // Otherwise, show the original layout
         <>
           <LeadsFilterBar />
           <LeadsSearchBar />

@@ -180,6 +180,7 @@
   .statusIcon {
     margin-left: 6px; /* space after 'In Progress' text */
     flex-shrink: 0;
+    color: #FAA61A;
   }
   
   .nextAction {

@@ -386,7 +386,7 @@
   width: 24px;
   height: 24px;
   flex-shrink: 0;
-  fill: #90A4B7; /* Match the text color */
+  color: #90A4B7; /* Match the text color */
 }
 
 /* Delete Button Adjustments */

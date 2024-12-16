@@ -1,0 +1,393 @@
+.wrapper {
+    /* Make the wrapper fill available space */
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .panelContainer {
+    padding: 0px 20px 46px 20px;
+    display: flex;
+    flex-direction: column;
+    background: #FFFFFF;
+    /* remove horizontal or vertical scroll from here if not needed */
+    /* overflow-x: auto; remove if you only want vertical scroll on the wrapper */
+    scrollbar-width: none; /* Hide scrollbar in Firefox */
+  }
+  
+  .panelContainer::-webkit-scrollbar {
+    display: none; /* Hide scrollbar in Chrome, Safari, Opera */
+  }
+  
+  .topRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Left Section */
+  .leftSection {
+    display: flex;
+    align-items: center;
+  }
+  
+  .customerIcon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  
+  .customerName {
+    margin-left: 13px;
+    color: #2F3236;
+    font-family: Satoshi, sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: normal;
+  }
+  
+  /* Right Section */
+  .rightSection {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Score Container */
+  .scoreContainer {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 9px;
+    border-radius: 8px;
+    background: #F6F6F6;
+  }
+  
+  .scoreLabel {
+    color: #90A4B7;
+    text-align: right;
+    font-family: Satoshi, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .scoreValue {
+    margin-left: 3px; 
+    color: #3FA9F5;
+    font-family: Satoshi, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .moreButton {
+    background: #FFFFFF;
+    border: none;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    margin-left: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  
+  .moreIcon {
+    width: 15px;
+    height: 24px;
+    color: #90A4B7;
+  }
+  
+  /* Contact Row */
+  .contactRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  /* Info chips for phone and email */
+  .infoChip {
+    border-radius: 8px;
+    background: #F2F5F8;
+    padding: 6px 9px;
+    font-family: Satoshi, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #2F3236;
+  }
+  
+  /* Edit Button */
+  .editButton {
+    width: 30px;
+    height: 30px;
+    background: #FFFFFF;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  
+  .editIcon {
+    width: 30px;
+    height: 30px;
+    color: #2F3236;
+  }
+  
+  /* Buttons Row */
+  .buttonsRow {
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    width: 100%;
+    padding: 0px 0px 20px 0px;
+    border-bottom: 1px solid #D8DCE0;
+  }
+  
+  /* First Button - Status */
+  .statusButton {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #F2F5F8;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 0 20px;
+    height: 50px;
+    min-width: 100%;
+  }
+  
+  .statusContent {
+    display: flex;
+    align-items: center;
+  }
+  
+  .statusTextLabel {
+    color: #2F3236;
+    font-family: Satoshi, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .statusTextValue {
+    margin-left: 4px;
+    color: #FAA61A;
+    font-family: Satoshi, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .statusIconContainer {
+    width: 30px;
+    height: 30px;
+    background: #90A4B7;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px; /* gap before the icon container */
+  }
+  
+  .statusIcon {
+    width: 20px;
+    height: 20px;
+    color: #FFF; 
+  }
+  
+  /* Second Button - Activity */
+  .activityButton {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FFFFFF;
+    border: 1px solid #D8DCE0;
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 0 25px 0px 20px;
+    height: 50px;
+    min-width: 100%;
+  }
+  
+  .activityContent {
+    display: flex;
+    align-items: center;
+  }
+  
+  .activityLabel {
+    color: #6E7882;
+    font-family: Satoshi, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: normal;
+  }
+  
+  .activityValue {
+    margin-left: 4px;
+    color: #2F3236;
+    font-family: Satoshi, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .unfoldIcon {
+    width: 20px;
+    height: 20px;
+    color: #2F3236;
+  }
+  
+  /* Third Button - Next Action */
+  .nextActionButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFFFFF;
+    border: 1px solid #D8DCE0;
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 0 20px;
+    height: 50px;
+    min-width: 100%;
+  }
+  
+  .nextActionLabel {
+    color: #6E7882;
+    font-family: Satoshi, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: normal;
+  }
+  
+  .nextActionValue {
+    margin-left: 4px;
+    color: #2F3236;
+    font-family: Satoshi, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  /* Source & Previous Requests Section */
+  .sourceSection {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .sourceLabel {
+    color: #90A4B7;
+    font-family: Satoshi, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: normal;
+  }
+  
+  .sourceValue {
+    color: #2F3236;
+    font-family: Satoshi, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .previousRequestsLabel {
+    margin-top: 10px;
+    color: #90A4B7;
+    font-family: Satoshi, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: normal;
+  }
+  
+  /* Requests Buttons Container */
+  .requestsButtonsContainer {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* Invite Button */
+  .inviteButton {
+    width: 100%;
+    height: 50px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(0deg, rgba(89, 183, 121, 0.20) 0%, rgba(89, 183, 121, 0.20) 100%), #FFF;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0 20px;
+    justify-content: space-between;
+  }
+  
+  .inviteText {
+    color: #59B779;
+    font-family: Satoshi, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .inviteIconContainer {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: #59B779;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .userIcon {
+    width: 16px;
+    height: 16px;
+    color: #FFF;
+  }
+  
+  /* Inventory Button */
+  .inventoryButton {
+    width: 100%;
+    height: 50px;
+    border: none;
+    border-radius: 16px;
+    background: rgba(63, 169, 245, 0.20);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0 20px;
+    justify-content: space-between;
+  }
+  
+  .inventoryText {
+    color: #3FA9F5;
+    font-family: Satoshi, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .inventoryIconContainer {
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: #3FA9F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .specialHIcon {
+    width: 16px;
+    height: 16px;
+    color: #FFF;
+  }
+  

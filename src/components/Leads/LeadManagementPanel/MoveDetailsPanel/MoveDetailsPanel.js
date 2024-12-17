@@ -9,7 +9,7 @@ import SimpleToggle from '../../SimpleToggle/SimpleToggle';
 import OriginDetails from '../OriginDetails/OriginDetails'; 
 import styles from './MoveDetailsPanel.module.css';
 
-function MoveDetailsPanel() {
+function MoveDetailsPanel({ onShowInventory }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isToggled, setIsToggled] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -23,16 +23,12 @@ function MoveDetailsPanel() {
     "All items"
   ];
 
-  // "All items" selected by default
   const [selectedStorage, setSelectedStorage] = useState("All items");
-
-  // For "Tipe promised" toggle
   const [isTimePromisedToggled, setIsTimePromisedToggled] = useState(false);
 
   const isSelected = (idx) => idx === selectedIndex;
 
   const handleDropdownToggle = () => {
-    // Toggle only if toggled is true (Add storage on)
     if (isToggled) {
       setShowDropdown(prev => !prev);
     }
@@ -118,7 +114,7 @@ function MoveDetailsPanel() {
                   key={option} 
                   className={styles.dropdownOption}
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent closing when selecting
+                    e.stopPropagation(); 
                     handleOptionSelect(option);
                   }}
                 >
@@ -130,10 +126,9 @@ function MoveDetailsPanel() {
         </div>
       )}
 
-      {/* 30px vertical space */}
       <div className={styles.spacing30}></div>
 
-      {/* Delivery Date input (like Move Data) */}
+      {/* Delivery Date input */}
       <div className={styles.inputContainer}>
         <span className={styles.inputLabel}>Delivery Date</span>
         <div className={styles.inputIconContainer}>
@@ -141,7 +136,7 @@ function MoveDetailsPanel() {
         </div>
       </div>
 
-      {/* ETA Request input (like Type of Service) */}
+      {/* ETA Request input */}
       <div className={styles.inputContainer}>
         <span className={styles.inputLabel}>
           ETA Request:
@@ -150,13 +145,12 @@ function MoveDetailsPanel() {
         <MoreIcon className={styles.moreIcon} />
       </div>
 
-      {/* Time Promised row: text + toggle */}
+      {/* Time Promised row */}
       <div className={styles.timePromisedRow}>
         <span className={styles.timePromisedText}>Tipe promised</span>
         <SimpleToggle isToggled={isTimePromisedToggled} onToggle={setIsTimePromisedToggled} />
       </div>
 
-      {/* If Time Promised toggled on, show Arrival Time input (like storage dropdown) */}
       {isTimePromisedToggled && (
         <div className={styles.arrivalTimeInput}>
           <span className={styles.inputLabel}>
@@ -169,11 +163,11 @@ function MoveDetailsPanel() {
         </div>
       )}
 
-      {/* 20px vertical space */}
       <div className={styles.spacing20}></div>
 
-      {/* OriginDetails component */}
-      <OriginDetails />
+      {/* Now OriginDetails is included inside MoveDetailsPanel */}
+      {/* Pass onShowInventory so OriginDetails can trigger inventory view */}
+      <OriginDetails onShowInventory={onShowInventory} />
     </div>
   );
 }

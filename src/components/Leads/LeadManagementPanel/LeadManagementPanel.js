@@ -1,18 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ReactComponent as CustomerUserIcon } from '../../../assets/icons/customeruser.svg';
 import { ReactComponent as MoreIcon } from '../../../assets/icons/more.svg';
 import { ReactComponent as EditIcon } from '../../../assets/icons/edit.svg';
 import { ReactComponent as InProgressIcon } from '../../../assets/icons/inProgress.svg';
 import { ReactComponent as UnfoldMoreIcon } from '../../../assets/icons/unfoldmore.svg';
-import { ReactComponent as UserIcon } from '../../../assets/icons/user.svg'; // for Invite Customer
-import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.svg'; // for Detailed Inventory Quote
-import MoveDetailsPanel from './MoveDetailsPanel/MoveDetailsPanel';
-
+import { ReactComponent as UserIcon } from '../../../assets/icons/user.svg';
+import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.svg';
+import MoveDetailsPanel from './MoveDetailsPanel/MoveDetailsPanel'; 
+import Inventory from './OriginDetails/Inventory/Inventory'; 
 import styles from './LeadManagementPanel.module.css';
 
 function LeadManagementPanel({ lead, onClose }) {
+  const [showInventory, setShowInventory] = useState(false);
+
+  const closeInventory = () => {
+    setShowInventory(false);
+  };
+
   const activity = lead.lead_activity || 'Contacting';
   const source = lead.lead_source || 'Yelp';
+
+  if (showInventory) {
+    return <Inventory onCloseInventory={closeInventory} />;
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -35,14 +45,14 @@ function LeadManagementPanel({ lead, onClose }) {
 
         {/* Contact Row */}
         <div className={styles.contactRow}>
-  <div className={styles.infoChip}>{lead.customer_phone_number}</div>
-  <div className={styles.emailRow}>
-    <div className={styles.infoChip}>{lead.customer_email || 'No Email'}</div>
-    <button className={styles.editButton}>
-      <EditIcon className={styles.editIcon} />
-    </button>
-  </div>
-</div>
+          <div className={styles.infoChip}>{lead.customer_phone_number}</div>
+          <div className={styles.emailRow}>
+            <div className={styles.infoChip}>{lead.customer_email || 'No Email'}</div>
+            <button className={styles.editButton}>
+              <EditIcon className={styles.editIcon} />
+            </button>
+          </div>
+        </div>
 
         {/* Buttons Row */}
         <div className={styles.buttonsRow}>
@@ -73,7 +83,6 @@ function LeadManagementPanel({ lead, onClose }) {
           </button>
         </div>
 
-        {/* 20px space below the button row */}
         <div className={styles.sourceSection}>
           <span className={styles.sourceLabel}>Source:</span>
           <span className={styles.sourceValue}>{source}</span>
@@ -81,7 +90,6 @@ function LeadManagementPanel({ lead, onClose }) {
 
         <div className={styles.previousRequestsLabel}>Previous Requests:</div>
 
-        {/* 16px space then two vertically stacked buttons */}
         <div className={styles.requestsButtonsContainer}>
           <button className={styles.inviteButton}>
             <span className={styles.inviteText}>Invite Customer</span>
@@ -97,9 +105,10 @@ function LeadManagementPanel({ lead, onClose }) {
             </div>
           </button>
         </div>
-
       </div>
-      <MoveDetailsPanel />
+
+      {/* Now we render MoveDetailsPanel here and pass onShowInventory */}
+      <MoveDetailsPanel onShowInventory={() => setShowInventory(true)} />
     </div>
   );
 }

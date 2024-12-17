@@ -8,7 +8,7 @@ import { ReactComponent as MyInventoryIcon } from '../../../../assets/icons/myin
 import SimpleToggle from '../../SimpleToggle/SimpleToggle'; 
 import styles from './OriginDetails.module.css';
 
-function OriginDetails() {
+function OriginDetails({ onShowInventory }) {
   const [timeRestrictionsToggled, setTimeRestrictionsToggled] = useState(false);
 
   return (
@@ -128,12 +128,12 @@ function OriginDetails() {
         )}
       </div>
 
-      {/* Inventory Section */}
-      <div className={styles.inventorySection}>
+     {/* Inventory Section */}
+     <div className={styles.inventorySection}>
         <span className={styles.inventoryTitle}>Inventory</span>
 
         <div className={styles.inventoryButtons}>
-          <button className={styles.inventoryButtonPrimary}>
+          <button className={styles.inventoryButtonPrimary} onClick={onShowInventory}>
             <span className={styles.inventoryButtonText}>Inventory</span>
             <MyInventoryIcon className={styles.myInventoryIcon} />
           </button>

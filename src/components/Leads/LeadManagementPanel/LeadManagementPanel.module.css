@@ -2,6 +2,7 @@
     /* Make the wrapper fill available space */
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -102,9 +103,12 @@
   .contactRow {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
     margin-top: 20px;
   }
+
+  
   
   /* Info chips for phone and email */
   .infoChip {
@@ -115,9 +119,16 @@
     font-size: 14px;
     font-weight: 700;
     color: #2F3236;
+    flex: 0 1 auto; /* Allow to shrink and wrap if needed */
+  }
+ 
+  .emailRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 1 auto; /* Also flexible, can wrap to next line */
   }
   
-  /* Edit Button */
   .editButton {
     width: 30px;
     height: 30px;

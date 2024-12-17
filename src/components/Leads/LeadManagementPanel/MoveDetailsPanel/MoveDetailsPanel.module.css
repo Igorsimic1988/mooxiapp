@@ -1,136 +1,215 @@
 .panelContainer {
-    background: #F2F5F8;
-    border-radius: 20px 20px 0px 0px;
-    padding: 0 20px;
-    padding-top: 10px;
-    padding-bottom: 20px;
-  }
-  
+  background: #F2F5F8;
+  border-radius: 20px 20px 0px 0px;
+  padding: 0 20px;
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+
+.sectionsRow {
+  display: flex;
+  justify-content: start;
+  gap: 30px;
+  border-bottom: 1px solid #D8DCE0;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 385px) {
   .sectionsRow {
-    display: flex;
-    justify-content: start;
-    gap: 30px;
-    border-bottom: 1px solid #D8DCE0;
-    /* If you need space below, do it here with margin-bottom */
-    margin-bottom: 24px;
+    gap: 15px;
   }
-  
-  .sectionItem {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    height: 50px; 
-    border-bottom: 3px solid transparent;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  .selected {
-    border-bottom: 3px solid #3FA9F5;
-  }
-  
-  .sectionIcon {
-    width: 18px;
-    height: 18px;
-    color: #90A4B7; 
-    flex-shrink: 0;
-  }
-  
-  .greenDot {
-    width: 8px;
-    height: 8px;
-    background: #59B779;
-    border-radius: 50%;
-  }
-  
-  .sectionText {
-    margin-left: 5px;
-    color: #90A4B7;
-    font-family: Satoshi, sans-serif;
-    font-size: 15px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-  }
-  
-  .textActive {
-    color: #2F3236;
-  }
-  
-  .iconActive {
-    color: #3FA9F5;
-  }
-  
-  /* Input containers */
-  .inputContainer {
-    width: 100%;
-    height: 50px;
-    border-radius: 12px;
-    border: 1px solid #D8DCE0;
-    background: #FFF;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    /* Add spacing between inputs using margin-bottom */
-    margin-bottom: 10px;
-  }
-  
-  /* First input label */
-  .inputLabel {
-    color: #6E7882;
-    font-family: Satoshi, sans-serif;
-    font-size: 16px;
-    font-weight: 500;
-    line-height: normal;
-  }
-  
-  /* Value in second input */
-  .inputValue {
-    color: #2F3236;
-    font-family: Satoshi, sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: normal;
-  }
-  
-  /* Calendar icon container in the first input */
-  .inputIconContainer {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    background: #90A4B7;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .inputIcon {
-    width: 16px;
-    height: 16px;
-    color: #FFF;
-  }
-  
-  /* More icon for second input */
-  .moreIcon {
-    width: 20px;
-    height: 20px;
-    color: #90A4B7;
-  }
-  
-  /* Storage container (Add storage + Toggle) */
-  .storageContainer {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* space between text and toggle */
-    margin-top: 20px; /* add spacing above if needed */
-  }
-  
-  /* Add storage text */
-  .addStorageText {
-    color: #2F3236;
-    font-family: Satoshi, sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    line-height: normal;
-  }
-  
+}
+
+.sectionItem {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  height: 50px; 
+  border-bottom: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.selected {
+  border-bottom: 3px solid #3FA9F5;
+}
+
+.sectionIcon {
+  width: 18px;
+  height: 18px;
+  color: #90A4B7; 
+  flex-shrink: 0;
+}
+
+.greenDot {
+  width: 8px;
+  height: 8px;
+  background: #59B779;
+  border-radius: 50%;
+}
+
+.sectionText {
+  margin-left: 5px;
+  color: #90A4B7;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.textActive {
+  color: #2F3236;
+}
+
+.iconActive {
+  color: #3FA9F5;
+}
+
+/* Input containers (generic) */
+.inputContainer {
+  width: 100%;
+  height: 50px;
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  background: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-bottom: 10px;
+}
+
+.inputLabel {
+  color: #6E7882;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.inputValue {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.inputIconContainer {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #90A4B7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inputIcon {
+  width: 16px;
+  height: 16px;
+  color: #FFF;
+}
+
+.moreIcon {
+  width: 20px;
+  height: 20px;
+  color: #90A4B7;
+}
+
+/* Storage container */
+.storageContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.addStorageText {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* Storage Dropdown (like inputContainer) */
+.storageDropdown {
+  width: 100%;
+  height: 50px;
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  background: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-top: 12px;
+  position: relative; 
+  cursor: pointer;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 60px; 
+  left: 0;
+  right: 0;
+  background: #FFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  z-index: 100; 
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+}
+
+.dropdownOption {
+  padding: 10px 20px;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #2F3236;
+  cursor: pointer;
+}
+
+.dropdownOption:hover {
+  background: #F2F5F8;
+}
+
+/* Spacing elements */
+.spacing30 {
+  height: 30px;
+}
+
+
+
+/* Time Promised row */
+.timePromisedRow {
+  display: flex;
+  align-items: center;
+  gap: 10px; 
+  margin-top: 20px;
+}
+
+.timePromisedText {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* Arrival Time input (like storage dropdown but using clock icon) */
+.arrivalTimeInput {
+  width: 100%;
+  height: 50px;
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  background: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-top: 12px; /* same spacing as storageDropdown */
+}
+
+.spacing20 {
+  height: 20px;
+}

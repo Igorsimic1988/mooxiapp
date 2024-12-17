@@ -35,12 +35,14 @@ function LeadManagementPanel({ lead, onClose }) {
 
         {/* Contact Row */}
         <div className={styles.contactRow}>
-          <div className={styles.infoChip}>{lead.customer_phone_number}</div>
-          <div className={styles.infoChip}>{lead.customer_email || 'No Email'}</div>
-          <button className={styles.editButton}>
-            <EditIcon className={styles.editIcon} />
-          </button>
-        </div>
+  <div className={styles.infoChip}>{lead.customer_phone_number}</div>
+  <div className={styles.emailRow}>
+    <div className={styles.infoChip}>{lead.customer_email || 'No Email'}</div>
+    <button className={styles.editButton}>
+      <EditIcon className={styles.editIcon} />
+    </button>
+  </div>
+</div>
 
         {/* Buttons Row */}
         <div className={styles.buttonsRow}>

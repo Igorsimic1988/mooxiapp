@@ -3,21 +3,50 @@ import { ReactComponent as TruckCouchIcon } from '../../../../assets/icons/truck
 import { ReactComponent as NotebookIcon } from '../../../../assets/icons/notebook.svg';
 import { ReactComponent as EmailWithDotIcon } from '../../../../assets/icons/emailwithdot.svg';
 import { ReactComponent as CalendarIcon } from '../../../../assets/icons/calendar.svg';
-import { ReactComponent as MoreIcon } from '../../../../assets/icons/more.svg';
+import { ReactComponent as MoreIcon } from '../../../../assets/icons/unfoldmore.svg';
+import { ReactComponent as ClockIcon } from '../../../../assets/icons/clock.svg';
 import SimpleToggle from '../../SimpleToggle/SimpleToggle';
+import OriginDetails from '../OriginDetails/OriginDetails'; 
 import styles from './MoveDetailsPanel.module.css';
 
 function MoveDetailsPanel() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isToggled, setIsToggled] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const storageOptions = [
+    "Few items",
+    "Less than half",
+    "Half of the items",
+    "More than half",
+    "Almost all",
+    "All items"
+  ];
+
+  // "All items" selected by default
+  const [selectedStorage, setSelectedStorage] = useState("All items");
+
+  // For "Tipe promised" toggle
+  const [isTimePromisedToggled, setIsTimePromisedToggled] = useState(false);
 
   const isSelected = (idx) => idx === selectedIndex;
+
+  const handleDropdownToggle = () => {
+    // Toggle only if toggled is true (Add storage on)
+    if (isToggled) {
+      setShowDropdown(prev => !prev);
+    }
+  };
+
+  const handleOptionSelect = (option) => {
+    setSelectedStorage(option);
+    setShowDropdown(false);
+  };
 
   return (
     <div className={styles.panelContainer}>
       {/* Sections Row */}
       <div className={styles.sectionsRow}>
-        {/* Move */}
         <div 
           className={`${styles.sectionItem} ${isSelected(0) ? styles.selected : ''}`} 
           onClick={() => setSelectedIndex(0)}
@@ -26,7 +55,6 @@ function MoveDetailsPanel() {
           <span className={`${styles.sectionText} ${isSelected(0) ? styles.textActive : ''}`}>Move</span>
         </div>
 
-        {/* Notes */}
         <div 
           className={`${styles.sectionItem} ${isSelected(1) ? styles.selected : ''}`} 
           onClick={() => setSelectedIndex(1)}
@@ -35,7 +63,6 @@ function MoveDetailsPanel() {
           <span className={`${styles.sectionText} ${isSelected(1) ? styles.textActive : ''}`}>Notes</span>
         </div>
 
-        {/* Email */}
         <div 
           className={`${styles.sectionItem} ${isSelected(2) ? styles.selected : ''}`} 
           onClick={() => setSelectedIndex(2)}
@@ -44,7 +71,6 @@ function MoveDetailsPanel() {
           <span className={`${styles.sectionText} ${isSelected(2) ? styles.textActive : ''}`}>Email</span>
         </div>
 
-        {/* Availability */}
         <div 
           className={`${styles.sectionItem} ${isSelected(3) ? styles.selected : ''}`} 
           onClick={() => setSelectedIndex(3)}
@@ -54,9 +80,7 @@ function MoveDetailsPanel() {
         </div>
       </div>
 
-      {/* Spacing after sectionsRow handled by CSS (margin) */}
-
-      {/* First input (Move Data) */}
+      {/* Move Date input */}
       <div className={styles.inputContainer}>
         <span className={styles.inputLabel}>Move Data</span>
         <div className={styles.inputIconContainer}>
@@ -64,7 +88,7 @@ function MoveDetailsPanel() {
         </div>
       </div>
 
-      {/* Second input (Type of Service: Moving) */}
+      {/* Type of Service input */}
       <div className={styles.inputContainer}>
         <span className={styles.inputLabel}>
           Type of Service:
@@ -73,11 +97,83 @@ function MoveDetailsPanel() {
         <MoreIcon className={styles.moreIcon} />
       </div>
 
-      {/* Add storage and toggle in one container */}
+      {/* Add storage row */}
       <div className={styles.storageContainer}>
         <span className={styles.addStorageText}>Add storage</span>
         <SimpleToggle isToggled={isToggled} onToggle={setIsToggled} />
       </div>
+
+      {/* Storage dropdown (if toggled on) */}
+      {isToggled && (
+        <div className={styles.storageDropdown} onClick={handleDropdownToggle}>
+          <span className={styles.inputLabel}>
+            Items in storage:
+            <span className={styles.inputValue}> {selectedStorage}</span>
+          </span>
+          <MoreIcon className={styles.moreIcon} />
+          {showDropdown && (
+            <div className={styles.dropdownMenu}>
+              {storageOptions.map((option) => (
+                <div 
+                  key={option} 
+                  className={styles.dropdownOption}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent closing when selecting
+                    handleOptionSelect(option);
+                  }}
+                >
+                  {option}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 30px vertical space */}
+      <div className={styles.spacing30}></div>
+
+      {/* Delivery Date input (like Move Data) */}
+      <div className={styles.inputContainer}>
+        <span className={styles.inputLabel}>Delivery Date</span>
+        <div className={styles.inputIconContainer}>
+          <CalendarIcon className={styles.inputIcon} />
+        </div>
+      </div>
+
+      {/* ETA Request input (like Type of Service) */}
+      <div className={styles.inputContainer}>
+        <span className={styles.inputLabel}>
+          ETA Request:
+          <span className={styles.inputValue}> Morning</span>
+        </span>
+        <MoreIcon className={styles.moreIcon} />
+      </div>
+
+      {/* Time Promised row: text + toggle */}
+      <div className={styles.timePromisedRow}>
+        <span className={styles.timePromisedText}>Tipe promised</span>
+        <SimpleToggle isToggled={isTimePromisedToggled} onToggle={setIsTimePromisedToggled} />
+      </div>
+
+      {/* If Time Promised toggled on, show Arrival Time input (like storage dropdown) */}
+      {isTimePromisedToggled && (
+        <div className={styles.arrivalTimeInput}>
+          <span className={styles.inputLabel}>
+            Arrival Time:
+            <span className={styles.inputValue}> 10:00am - 12:00pm</span>
+          </span>
+          <div className={styles.inputIconContainer}>
+            <ClockIcon className={styles.inputIcon} />
+          </div>
+        </div>
+      )}
+
+      {/* 20px vertical space */}
+      <div className={styles.spacing20}></div>
+
+      {/* OriginDetails component */}
+      <OriginDetails />
     </div>
   );
 }

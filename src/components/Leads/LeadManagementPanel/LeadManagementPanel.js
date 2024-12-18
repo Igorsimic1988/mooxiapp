@@ -7,7 +7,7 @@ import { ReactComponent as UnfoldMoreIcon } from '../../../assets/icons/unfoldmo
 import { ReactComponent as UserIcon } from '../../../assets/icons/user.svg';
 import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.svg';
 import MoveDetailsPanel from './MoveDetailsPanel/MoveDetailsPanel'; 
-import Inventory from './OriginDetails/Inventory/Inventory'; 
+import Inventory from './MoveDetailsPanel/OriginDetails/Inventory/Inventory'; 
 import styles from './LeadManagementPanel.module.css';
 
 function LeadManagementPanel({ lead, onClose }) {

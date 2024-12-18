@@ -6,7 +6,8 @@ import { ReactComponent as CalendarIcon } from '../../../../assets/icons/calenda
 import { ReactComponent as MoreIcon } from '../../../../assets/icons/unfoldmore.svg';
 import { ReactComponent as ClockIcon } from '../../../../assets/icons/clock.svg';
 import SimpleToggle from '../../SimpleToggle/SimpleToggle';
-import OriginDetails from '../OriginDetails/OriginDetails'; 
+import OriginDetails from './OriginDetails/OriginDetails'; 
+import DestinationDetails from './DestinationDetails/DestinationDetails';
 import styles from './MoveDetailsPanel.module.css';
 
 function MoveDetailsPanel({ onShowInventory }) {
@@ -168,6 +169,7 @@ function MoveDetailsPanel({ onShowInventory }) {
       {/* Now OriginDetails is included inside MoveDetailsPanel */}
       {/* Pass onShowInventory so OriginDetails can trigger inventory view */}
       <OriginDetails onShowInventory={onShowInventory} />
+      <DestinationDetails />
     </div>
   );
 }

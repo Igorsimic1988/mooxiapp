@@ -1,3 +1,4 @@
+// src/components/Leads/Leads.js
 import React, { useState, useEffect } from 'react';
 import styles from './Leads.module.css'; 
 import HeaderDashboard from './HeadrerDashboard.js/HeaderDashboard';
@@ -9,16 +10,22 @@ import LeadsList from './LeadsList/LeadsList';
 import LeadManagementPanel from './LeadManagementPanel/LeadManagementPanel';
 import actualLeads from '../../data/constants/actualLeads';
 
+// 1) Import your LeadFormPopup
+import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
+
 function Leads() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedLead, setSelectedLead] = useState(null);
   const leadsPerPage = 20;
-  const totalLeads = actualLeads.length; 
+  const totalLeads = actualLeads.length;
   const totalPages = Math.ceil(totalLeads / leadsPerPage);
 
   const startIndex = (currentPage - 1) * leadsPerPage;
   const endIndex = Math.min(startIndex + leadsPerPage, totalLeads);
   const currentLeads = actualLeads.slice(startIndex, endIndex);
+
+  // 2) Create state to show/hide LeadFormPopup
+  const [showLeadForm, setShowLeadForm] = useState(false);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
@@ -38,7 +45,7 @@ function Leads() {
       document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
     }
     window.addEventListener('resize', setAppHeight);
-    setAppHeight(); // initial call
+    setAppHeight();
     return () => window.removeEventListener('resize', setAppHeight);
   }, []);
 
@@ -48,13 +55,13 @@ function Leads() {
 
   return (
     <div className={styles.container}>
-      <HeaderDashboard 
-        isLeadSelected={!!selectedLead} 
-        onBack={handleBack} 
-      />
+      <HeaderDashboard isLeadSelected={!!selectedLead} onBack={handleBack} />
 
       {selectedLead ? (
-        <LeadManagementPanel lead={selectedLead} onClose={() => setSelectedLead(null)} />
+        <LeadManagementPanel 
+          lead={selectedLead} 
+          onClose={() => setSelectedLead(null)} 
+        />
       ) : (
         <>
           <LeadsFilterBar />
@@ -62,7 +69,11 @@ function Leads() {
 
           <div className={styles.actionsContainer}>
             <LeadsActionButtons />
-            <AddNewLeadButton />
+            {/*
+                3) Pass a callback to AddNewLeadButton 
+                that sets showLeadForm to true
+            */}
+            <AddNewLeadButton onOpenLeadForm={() => setShowLeadForm(true)} />
           </div>
 
           <LeadsList leads={currentLeads} onLeadClick={handleLeadClick} />
@@ -89,6 +100,14 @@ function Leads() {
             </div>
           </div>
         </>
+      )}
+
+      {/*
+        4) Conditionally render LeadFormPopup if showLeadForm is true
+          - Pass onClose callback to hide it again
+      */}
+      {showLeadForm && (
+        <LeadFormPopup onClose={() => setShowLeadForm(false)} />
       )}
     </div>
   );

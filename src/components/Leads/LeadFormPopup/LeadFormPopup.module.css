@@ -2,248 +2,483 @@
 
 /* ========= Popup Overlay ========= */
 .popup {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.15);
-    display: flex;
-    justify-content: flex-end;
-    align-items: stretch;
-    z-index: 1000;
-  }
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  z-index: 1000;
+}
+
+/* ========= Popup Content Container ========= */
+.popupContent {
+  border-radius: 20px 0px 0px 0px;
+  background-color: #fff;
+  width: calc(100% - 16px);
+  max-width: 400px;
+  height: 100%;
+  box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ========= Header (Green Background) ========= */
+.header {
+  width: 100%;
+  min-height: 60px;
+  border-radius: 20px 0px 0px 0px;
+  background: #59B779;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+.title p {
+  color: white;
+  font-family: Satoshi, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-left: 10px;
+}
+
+.customerUserIcon {
+  color: white;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  margin: 0;
+  outline: none;
+}
+
+.closeIcon {
+  width: 24px;
+  height: 24px;
+  color: white;
+}
+
+/* ========= Popup Content Body ========= */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px;
+}
+
+/* ===== Common Input Fields (Customer Name, Phone, Email, etc.) ===== */
+.inputSet {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  height: 50px;
+  min-width: 100%;
+  padding: 0 20px;
+  cursor: text;
+}
+
+.activityInput {
+  border: none;
+  background: transparent;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700; /* typed text is bold */
+  color: #2F3236;
+  width: 100%;
+  outline: none;
+}
+
+.activityInput::placeholder {
+  color: #6E7882;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* ====== Wrappers for dropdowns (Company Name, Source) ====== */
+.companySelectWrapper {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.sourceSelectWrapper {
+  position: relative;
+}
+
+/* 
+  Buttons for "Company Name" / "Source" 
+  We'll call them .dropdownButton for a more generic naming.
+*/
+.dropdownButton {
+  width: 100%;
+  height: 50px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #FFF;
+  color: #2F3236;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  margin-bottom: 5px; 
+}
+
+/* Container for prefix + placeholder/selected text */
+.dropdownLabel {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dropdownPrefix {
+  font-weight: 500;
+  color: #6E7882;
+  font-size: 16px;
+}
+
+.dropdownPlaceholder {
+  font-weight: 700;
+  color: #2F3236;
+  font-size: 16px;
+}
+
+.dropdownSelected {
+  font-weight: 700;
+  color: #2F3236;
+  font-size: 16px;
+}
+
+/* The unfold icon (chevron) */
+.dropdownIcon {
+  width: 20px;
+  height: 20px;
+  color: #2F3236;
+  transition: transform 0.3s ease;
+}
+
+/* The dropdown list (for Company Name & Source) */
+.optionsList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 500px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  margin-top: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 2000;
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+  padding-bottom: 25px;
+}
+
+.option {
+  padding: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2F3236;
+}
+
+.option:hover,
+.option:focus {
+  background-color: rgba(63, 169, 245, 0.1);
+}
+
+/* Highlight for a selected option in the list */
+.selected {
+  background-color: #59B779;
+  color: #fff;
+}
+
+/* ====== SERVICE SET (Type of Service / Zips / Move Date) ====== */
+.serviceSet {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.serviceButton {
+  width: 100%;
+  height: 50px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #FFF;
+  color: #2F3236;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.serviceContent {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.serviceLabel {
+  font-weight: 500;
+  color: #6E7882;
+  font-size: 16px;
+}
+
+.serviceValue {
+  margin-left: 4px;
+  font-weight: 700;
+  color: #2F3236;
+  font-size: 16px;
+}
+
+/* ====== Move Date & Calendar ====== */
+.moveDateWrapper {
+  position: relative;
+}
+
+.moveDateButton {
+  width: 100%;
+  height: 50px;
+  padding-left: 20px;
+  padding-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #FFF;
+  color: #2F3236;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700; 
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* If no date => weight 500, color #6E7882; 
+   if chosen => weight 700, color #2F3236 */
+.moveDatePlaceholderText {
+  font-weight: 500;
+  color: #6E7882;
+  font-size: 16px;
+}
+
+.moveDateSelectedText {
+  font-weight: 700;
+  color: #2F3236;
+  font-size: 16px;
+}
+
+/* Calendar icon on the right side */
+.calendarIconWrapper {
+  width: 30px;
+  height: 30px;
+  background-color: #90A4B7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Icon inside is 16×16 */
+.calendarIcon {
+  width: 16px;
+  height: 16px;
+  color: #fff; /* or #2F3236, up to you */
+}
+
+/* Calendar popup container */
+.calendarPopup {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  z-index: 2100;
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.calendarHeader button {
+  background: #eee;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: 'Satoshi', sans-serif;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.calendarDay {
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 8px;
+  height: 40px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #2F3236;
+  transition: background 0.2s ease;
+}
+
+.calendarDay:hover {
+  background: #f2f5f8;
+}
+
+/* Past days are disabled */
+.dayDisabled {
+  background: #f9f9f9;
+  color: #bcbcbc;
+  cursor: not-allowed;
+  border: 1px dashed #ccc;
+}
+
+/* Highlight for the currently selected date */
+.daySelected {
+  background-color: #59B779;
+  color: #fff;
+  border: 1px solid #59B779;
+}
+
+/* ===== Assign Sales Rep Toggle Container ===== */
+.assignSalesToggleContainer {
+  margin-top: 25px; /* 25px from the Move Date input */
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 10px between the label and the toggle */
+}
+
+/* The text "Assign Sales Rep" */
+.assignSalesToggleLabel {
+  color: #2F3236;   /* var(--Black, #2F3236) */
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* If the toggle is ON, we show the sales rep dropdown at 12px below the toggle */
+.salesRepSelectWrapper {
+  margin-top: 12px;
+  position: relative; /* So that the dropdown can appear here */
+}
+
+
+.stickyFooter {
+  /* Sticks to the bottom, always visible */
+  position: sticky;
+  bottom: 0;
+  /* Some padding for nice spacing */
+  padding: 20px 30px;
+  background-color: #fff;
+  /* Optional border-top to separate from scroll content */
+  border-top: 1px solid #D8DCE0;
   
-  /* ========= Popup Content Container ========= */
-  .popupContent {
-    border-radius: 20px 0px 0px 0px;
-    background-color: #fff;
-    width: calc(100% - 16px);
-    max-width: 400px;
-    height: 100%;
-    box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-  }
+  /* Because it’s sticky, make sure it's above other content */
+  z-index: 1100; 
   
-  /* ========= Header (Green Background) ========= */
-  .header {
-    width: 100%;
-    min-height: 60px;
-    border-radius: 20px 0px 0px 0px;
-    background: #59B779;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 10px;
-  }
-  
-  /* Title Section in Header */
-  .title {
-    display: flex;
-    align-items: center;
-    margin-left: 20px;
-  }
-  
-  .title p {
-    color: white;
-    font-family: Satoshi, sans-serif;
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-left: 10px;
-  }
-  
-  /* "customeruser" icon in the header */
-  .customerUserIcon {
-    color: white;
-  }
-  
-  /* Close Button (top-right corner) */
-  .closeButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .closeButton button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    width: 50px;
-    height: 50px;
-    padding: 0;
-    margin: 0;
-    outline: none;
-  }
-  
-  .closeIcon {
-    width: 24px;
-    height: 24px;
-    color: white;
-  }
-  
-  /* ========= Popup Content Body ========= */
-  .content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 30px;
-  }
-  
-  /* Container for the text inputs */
-  .inputSet {
-    margin-top: 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* 10px vertical spacing */
-  }
-  
-  /* ========== TEXT INPUT FIELDS (Customer Name, Phone, Email) ========== */
-  .inputContainer {
-    display: flex;
-    align-items: center;
-    background: #FFFFFF;
-    border: 1px solid #D8DCE0;
-    border-radius: 12px;
-    height: 50px;
-    min-width: 100%;
-    padding: 0 20px;
-    cursor: text;
-  }
-  
-  .activityInput {
-    border: none;
-    background: transparent;
-    font-family: Satoshi, sans-serif;
-    font-size: 16px;
-    font-weight: 700; /* typed text is bold */
-    color: #2F3236;
-    width: 100%;
-    outline: none;
-  }
-  
-  /* Placeholder for those text inputs */
-  .activityInput::placeholder {
-    color: #6E7882;
-    font-size: 16px;
-    font-weight: 500;
-  }
-  
-  /* ========== COMPANY NAME + SOURCE: same approach ========== */
-  
-  /* 
-    .companySelectWrapper wraps "Company Name" dropdown,
-    .sourceSelectWrapper wraps "Source" dropdown.
-    They are identical for positioning, so we can reuse the same styling.
-  */
-  .companySelectWrapper,
-  .sourceSelectWrapper {
-    position: relative;
-    margin-bottom: 15px; /* optional spacing from next elements */
-  }
-  
-  /* 
-    .companyNameButton is used for both "Company Name" and "Source" 
-    so they look identical.
-  */
-  .companyNameButton {
-    width: 100%;
-    height:50px;
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: white;
-    color: #2F3236;
-    font-family: 'Satoshi', sans-serif;
-    font-size: 1rem;
-    font-weight: 700; /* overall button text is bold by default */
-    border-radius: 12px;
-    border: 1px solid #D8DCE0;
-    background: #FFF;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    margin-bottom: 5px; /* small gap from the dropdown */
-  }
-  
-  /* Focus outline if you want it */
-  .companyNameButton:focus {
-    outline: 1px solid #59B779; /* optional */
-  }
-  
-  /* Container for "Company Name:" + "Select" (or "Source:" + "Select") */
-  .companyNameContent {
-    display: flex;
-    align-items: center;
-    flex-grow: 1;
-  }
-  
-  /* "Company Name:" or "Source:" => weight 500 */
-  .companyNameLabel {
-    color: #6E7882;
-    font-size: 16px;
-    font-weight: 500;
-  }
-  
-  /* "Select" or chosen name => weight 700 */
-  .companyNameValue {
-    margin-left: 4px;
-    color: #2F3236;
-    font-size: 16px;
-    font-weight: 700;
-  }
-  
-  /* Icon on the right side (unfold arrow) */
-  .dropdownIcon {
-    width: 20px;
-    height: 20px;
-    color: #2F3236;
-    transition: transform 0.3s ease;
-  }
-  
-  /* =========== The Dropdown List (like CustomSelect) =========== */
-  .optionsList {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    max-height: 500px;
-    overflow-y: auto;
-    background: #fff;
-    border: 1px solid #ccc; /* or #D8DCE0 if you prefer */
-    border-radius: 12px;
-    margin-top: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-  
-    list-style: none; /* remove bullet points */
-    margin: 0;        /* remove default margin */
-    padding-left: 0;
-    padding-bottom: 25px;
-  }
-  
-  /* Each list item in the dropdown */
-  .option {
-    padding: 10px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    font-family: 'Satoshi', sans-serif;
-    font-size: 1rem;
-    font-weight: 700; /* keep them bold if you like */
-    color: #2F3236;
-  }
-  
-  /* Hover/focus style for the list items */
-  .option:hover,
-  .option:focus {
-    background-color: rgba(63, 169, 245, 0.1);
-  }
-  
-  /* If an item is selected, highlight it */
-  .selected {
-    background-color: #59B779; /* or #3FA9F5 if you prefer */
-    color: #fff;
-  }
-  
+  /* Display them in a column */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* The Save button at the bottom (green #59B779) */
+.saveButton {
+  width: 100%;
+  background-color: #59B779;  /* The requested green color */
+  color: #fff;
+  font-family: Satoshi, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 14px 20px;  /* Adjust as desired */
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  text-align: center;
+}
+
+/* Add a hover effect if you like */
+.saveButton:hover {
+  background-color: #4da268; /* slightly darker or lighten if desired */
+}
+
+/* "Previous requests" text, 21px margin from the button */
+.previousRequests {
+  margin-top: 21px;  /* exactly 21px as requested */
+  color: #2F3236;    /* var(--Black) */
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  /* center it horizontally if you like: */
+  text-align: left;
+}

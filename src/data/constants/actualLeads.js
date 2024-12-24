@@ -1,6 +1,6 @@
 // actualLeads.js
-// A list of 50 leads with varied names, dates, and sales names.
-// Each lead now has a lead_id, tenant_id, a customer_email field, and a lead_activity field set to "Contacting".
+// A list of 50 leads with varied names, dates, etc.
+// Now we rename "move_type" -> "rate_type" and add a "service_type": "Moving"
 
 const actualLeads = [
   {
@@ -12,11 +12,12 @@ const actualLeads = [
     customer_name: "John Doe",
     customer_phone_number: "(678) 909-1876",
     customer_email: "john.doe@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "Cynthia Lin",  // randomly chosen
     is_new: true
   },
   {
@@ -28,11 +29,12 @@ const actualLeads = [
     customer_name: "Jane Smith",
     customer_phone_number: "(404) 555-1234",
     customer_email: "jane.smith@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "David Perry",  // randomly chosen
     is_new: false
   },
   {
@@ -44,11 +46,12 @@ const actualLeads = [
     customer_name: "Michael Johnson",
     customer_phone_number: "(770) 222-4532",
     customer_email: "michael.johnson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "Alice Morgan",
     is_new: true
   },
   {
@@ -60,11 +63,12 @@ const actualLeads = [
     customer_name: "Emily Davis",
     customer_phone_number: "(678) 909-1876",
     customer_email: "emily.davis@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "Brian White",
     is_new: false
   },
   {
@@ -76,11 +80,12 @@ const actualLeads = [
     customer_name: "Robert Brown",
     customer_phone_number: "(470) 777-9999",
     customer_email: "robert.brown@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Erika Martinez",
     is_new: true
   },
   {
@@ -92,11 +97,12 @@ const actualLeads = [
     customer_name: "Sophia Martinez",
     customer_phone_number: "(404) 123-9876",
     customer_email: "sophia.martinez@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "Cynthia Lin",
     is_new: false
   },
   {
@@ -108,11 +114,12 @@ const actualLeads = [
     customer_name: "James Wilson",
     customer_phone_number: "(678) 222-1122",
     customer_email: "james.wilson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "Frank Delgado",
     is_new: true
   },
   {
@@ -124,11 +131,12 @@ const actualLeads = [
     customer_name: "Olivia Clark",
     customer_phone_number: "(770) 333-4444",
     customer_email: "olivia.clark@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "David Perry",
     is_new: false
   },
   {
@@ -140,11 +148,12 @@ const actualLeads = [
     customer_name: "David Miller",
     customer_phone_number: "(678) 909-1876",
     customer_email: "david.miller@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "Gina Sanders",
     is_new: true
   },
   {
@@ -156,11 +165,12 @@ const actualLeads = [
     customer_name: "Emma Anderson",
     customer_phone_number: "(404) 987-6543",
     customer_email: "emma.anderson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Cynthia Lin",
     is_new: false
   },
   {
@@ -172,11 +182,12 @@ const actualLeads = [
     customer_name: "John Doe Jr.",
     customer_phone_number: "(678) 111-2233",
     customer_email: "john.doejr@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "Frank Delgado",
     is_new: true
   },
   {
@@ -188,11 +199,12 @@ const actualLeads = [
     customer_name: "Jane S. Smith",
     customer_phone_number: "(404) 555-0000",
     customer_email: "jane.s.smith@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "Gina Sanders",
     is_new: false
   },
   {
@@ -204,11 +216,12 @@ const actualLeads = [
     customer_name: "Michael J. Johnson",
     customer_phone_number: "(470) 555-1212",
     customer_email: "michael.j.johnson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "Alice Morgan",
     is_new: true
   },
   {
@@ -220,11 +233,12 @@ const actualLeads = [
     customer_name: "Emily R. Davis",
     customer_phone_number: "(770) 555-1111",
     customer_email: "emily.r.davis@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "Brian White",
     is_new: false
   },
   {
@@ -236,11 +250,12 @@ const actualLeads = [
     customer_name: "Robert T. Brown",
     customer_phone_number: "(678) 999-0000",
     customer_email: "robert.t.brown@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Brian White",
     is_new: true
   },
   {
@@ -252,11 +267,12 @@ const actualLeads = [
     customer_name: "Sophia M. Martinez",
     customer_phone_number: "(404) 222-3333",
     customer_email: "sophia.m.martinez@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "David Perry",
     is_new: false
   },
   {
@@ -268,11 +284,12 @@ const actualLeads = [
     customer_name: "James K. Wilson",
     customer_phone_number: "(678) 909-1876",
     customer_email: "james.k.wilson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "Gina Sanders",
     is_new: true
   },
   {
@@ -284,11 +301,12 @@ const actualLeads = [
     customer_name: "Olivia P. Clark",
     customer_phone_number: "(770) 123-1111",
     customer_email: "olivia.p.clark@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "Cynthia Lin",
     is_new: false
   },
   {
@@ -300,11 +318,12 @@ const actualLeads = [
     customer_name: "David G. Miller",
     customer_phone_number: "(470) 999-9876",
     customer_email: "david.g.miller@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "Alice Morgan",
     is_new: true
   },
   {
@@ -316,11 +335,12 @@ const actualLeads = [
     customer_name: "Emma L. Anderson",
     customer_phone_number: "(404) 444-1212",
     customer_email: "emma.l.anderson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Frank Delgado",
     is_new: false
   },
   {
@@ -332,11 +352,12 @@ const actualLeads = [
     customer_name: "John D. Paul",
     customer_phone_number: "(678) 555-0001",
     customer_email: "john.d.paul@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "Brian White",
     is_new: true
   },
   {
@@ -348,11 +369,12 @@ const actualLeads = [
     customer_name: "Jane W. Smith",
     customer_phone_number: "(404) 555-2345",
     customer_email: "jane.w.smith@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "Erika Martinez",
     is_new: false
   },
   {
@@ -364,11 +386,12 @@ const actualLeads = [
     customer_name: "Michael A. Jordan",
     customer_phone_number: "(470) 222-3333",
     customer_email: "michael.a.jordan@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "David Perry",
     is_new: true
   },
   {
@@ -380,11 +403,12 @@ const actualLeads = [
     customer_name: "Emily K. Davis",
     customer_phone_number: "(770) 567-7890",
     customer_email: "emily.k.davis@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "Cynthia Lin",
     is_new: false
   },
   {
@@ -396,11 +420,12 @@ const actualLeads = [
     customer_name: "Robert L. Brown",
     customer_phone_number: "(678) 000-1111",
     customer_email: "robert.l.brown@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Frank Delgado",
     is_new: true
   },
   {
@@ -412,11 +437,12 @@ const actualLeads = [
     customer_name: "Sophia J. Martinez",
     customer_phone_number: "(404) 777-8888",
     customer_email: "sophia.j.martinez@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "Alice Morgan",
     is_new: false
   },
   {
@@ -428,11 +454,12 @@ const actualLeads = [
     customer_name: "James R. Wilson",
     customer_phone_number: "(678) 999-2222",
     customer_email: "james.r.wilson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "Brian White",
     is_new: true
   },
   {
@@ -444,11 +471,12 @@ const actualLeads = [
     customer_name: "Olivia D. Clark",
     customer_phone_number: "(770) 444-5555",
     customer_email: "olivia.d.clark@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "Erika Martinez",
     is_new: false
   },
   {
@@ -460,11 +488,12 @@ const actualLeads = [
     customer_name: "David E. Miller",
     customer_phone_number: "(470) 111-7777",
     customer_email: "david.e.miller@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "David Perry",
     is_new: true
   },
   {
@@ -476,11 +505,12 @@ const actualLeads = [
     customer_name: "Emma T. Anderson",
     customer_phone_number: "(404) 888-9999",
     customer_email: "emma.t.anderson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Cynthia Lin",
     is_new: false
   },
   {
@@ -492,11 +522,12 @@ const actualLeads = [
     customer_name: "John Q. Public",
     customer_phone_number: "(678) 555-2222",
     customer_email: "john.q.public@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "Frank Delgado",
     is_new: true
   },
   {
@@ -508,11 +539,12 @@ const actualLeads = [
     customer_name: "Jane L. Smythe",
     customer_phone_number: "(404) 666-7777",
     customer_email: "jane.l.smythe@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "Gina Sanders",
     is_new: false
   },
   {
@@ -524,11 +556,12 @@ const actualLeads = [
     customer_name: "Michael V. Jenson",
     customer_phone_number: "(470) 333-8888",
     customer_email: "michael.v.jenson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "Alice Morgan",
     is_new: true
   },
   {
@@ -540,11 +573,12 @@ const actualLeads = [
     customer_name: "Emily U. Davids",
     customer_phone_number: "(770) 999-0000",
     customer_email: "emily.u.davids@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "Brian White",
     is_new: false
   },
   {
@@ -556,11 +590,12 @@ const actualLeads = [
     customer_name: "Robert Z. Brown",
     customer_phone_number: "(678) 345-6789",
     customer_email: "robert.z.brown@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Cynthia Lin",
     is_new: true
   },
   {
@@ -572,11 +607,12 @@ const actualLeads = [
     customer_name: "Sophia Y. Martinez",
     customer_phone_number: "(404) 222-9999",
     customer_email: "sophia.y.martinez@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "Erika Martinez",
     is_new: false
   },
   {
@@ -588,11 +624,12 @@ const actualLeads = [
     customer_name: "James H. Wilson",
     customer_phone_number: "(678) 101-2020",
     customer_email: "james.h.wilson@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "David Perry",
     is_new: true
   },
   {
@@ -604,11 +641,12 @@ const actualLeads = [
     customer_name: "Olivia B. Clarke",
     customer_phone_number: "(770) 212-3434",
     customer_email: "olivia.b.clarke@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "Gina Sanders",
     is_new: false
   },
   {
@@ -620,11 +658,12 @@ const actualLeads = [
     customer_name: "David W. Milley",
     customer_phone_number: "(470) 454-5555",
     customer_email: "david.w.milley@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "Cynthia Lin",
     is_new: true
   },
   {
@@ -636,11 +675,12 @@ const actualLeads = [
     customer_name: "Emma G. Anders",
     customer_phone_number: "(404) 121-1313",
     customer_email: "emma.g.anders@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Brian White",
     is_new: false
   },
   {
@@ -652,11 +692,12 @@ const actualLeads = [
     customer_name: "John R. Doe",
     customer_phone_number: "(678) 222-3333",
     customer_email: "john.r.doe@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "Erika Martinez",
     is_new: true
   },
   {
@@ -668,11 +709,12 @@ const actualLeads = [
     customer_name: "Jane A. Smithy",
     customer_phone_number: "(404) 999-8888",
     customer_email: "jane.a.smithy@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "Alice Morgan",
     is_new: false
   },
   {
@@ -684,11 +726,12 @@ const actualLeads = [
     customer_name: "Michael X. Jon",
     customer_phone_number: "(470) 101-2021",
     customer_email: "michael.x.jon@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "Frank Delgado",
     is_new: true
   },
   {
@@ -700,11 +743,12 @@ const actualLeads = [
     customer_name: "Emily O. Daves",
     customer_phone_number: "(770) 131-4141",
     customer_email: "emily.o.daves@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "David Perry",
     is_new: false
   },
   {
@@ -716,11 +760,12 @@ const actualLeads = [
     customer_name: "Robert M. Browning",
     customer_phone_number: "(678) 555-1313",
     customer_email: "robert.m.browning@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Gina Sanders",
     is_new: true
   },
   {
@@ -732,11 +777,12 @@ const actualLeads = [
     customer_name: "Sophia R. Martines",
     customer_phone_number: "(404) 141-5151",
     customer_email: "sophia.r.martines@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "David Novak",
+    sales_name: "Cynthia Lin",
     is_new: false
   },
   {
@@ -748,11 +794,12 @@ const actualLeads = [
     customer_name: "James O. Wilsen",
     customer_phone_number: "(678) 909-1876",
     customer_email: "james.o.wilsen@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Sarah Quinn",
+    sales_name: "Brian White",
     is_new: true
   },
   {
@@ -764,11 +811,12 @@ const actualLeads = [
     customer_name: "Olivia F. Clarks",
     customer_phone_number: "(770) 232-4343",
     customer_email: "olivia.f.clarks@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Mark Schultz",
+    sales_name: "Alice Morgan",
     is_new: false
   },
   {
@@ -780,11 +828,12 @@ const actualLeads = [
     customer_name: "David Q. Millers",
     customer_phone_number: "(470) 242-5252",
     customer_email: "david.q.millers@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "Anna Lee",
+    sales_name: "Gina Sanders",
     is_new: true
   },
   {
@@ -796,11 +845,12 @@ const actualLeads = [
     customer_name: "Emma H. Andersen",
     customer_phone_number: "(404) 252-6262",
     customer_email: "emma.h.andersen@example.com",
-    move_type: "Hourly Rate",
+    rate_type: "Hourly Rate",
+    service_type: "Moving",
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
-    sales_name: "John Williams",
+    sales_name: "Erika Martinez",
     is_new: false
   }
 ];

@@ -16,8 +16,17 @@ import SimpleToggle from '../SimpleToggle/SimpleToggle';
 import CompanyChoices from '../../../data/constants/CompanyChoices';
 import LeadSourceChoices from '../../../data/constants/LeadSourceChoices';
 import PossibleSalesReps from '../../../data/constants/PossibleSalesReps';
+import typeOfServiceChoices from '../../../data/constants/typeOfServiceChoices';
 
-function LeadFormPopup({ onClose }) {
+// Import your createLead service function
+import { createLead } from '../../../services/leadService';
+
+/**
+ * Props:
+ *   onClose        - function to close the popup
+ *   onLeadCreated  - function the parent uses to add the new lead to state
+ */
+function LeadFormPopup({ onClose, onLeadCreated }) {
   // ---------- Basic text fields ----------
   const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -47,6 +56,19 @@ function LeadFormPopup({ onClose }) {
   const handleSelectSource = (sourceName) => {
     setSelectedSource(sourceName);
     setShowSourceDropdown(false);
+  };
+
+  // ---------- TYPE OF SERVICE ----------
+  const [showTypeOfServiceDropdown, setShowTypeOfServiceDropdown] = useState(false);
+  const [selectedTypeOfService, setSelectedTypeOfService] = useState('');
+
+  const handleToggleTypeOfServiceDropdown = () => {
+    setShowTypeOfServiceDropdown((prev) => !prev);
+  };
+
+  const handleSelectTypeOfService = (serviceName) => {
+    setSelectedTypeOfService(serviceName);
+    setShowTypeOfServiceDropdown(false);
   };
 
   // ---------- MOVE DATE ----------
@@ -127,22 +149,56 @@ function LeadFormPopup({ onClose }) {
     setShowSalesRepDropdown(false);
   };
 
-  // ---------- Saving (Placeholder: can attach logic) ----------
-  const handleSave = () => {
-    // Insert actual "Save" logic here:
-    // e.g., send fields to API or Redux store
-    console.log('Save clicked:', {
-      customerName,
-      phoneNumber,
-      email,
-      selectedCompany,
-      selectedSource,
-      selectedMoveDate,
-      assignSalesRep,
-      selectedSalesRep,
-    });
+  // ---------- Save: integrate createLead here ----------
+  const handleSave = async () => {
+    try {
+      // Gather the fields from your form.
+      const newLeadData = {
+        // Basic user inputs
+        customer_name: customerName,
+        customer_phone_number: phoneNumber,
+        customer_email: email,
+
+        // Company name (optional field, or place in leadData if you want)
+        company_name: selectedCompany,
+
+        // Source
+        source: selectedSource, // If you want to store it or rename it
+
+        // We use the selectedTypeOfService state
+        service_type: selectedTypeOfService || 'Moving',
+
+        // Example placeholders for logic-driven fields:
+        rate_type: 'Hourly Rate', 
+        lead_status: 'New Lead',
+        lead_activity: '',
+        next_action: '',
+
+        // Assign Sales Rep from dropdown
+        sales_name: selectedSalesRep,
+
+        // is_new can be set from your own logic
+        is_new: true,
+      };
+
+      // Actually create the lead (push into actualLeads):
+      const createdLead = await createLead(newLeadData);
+
+      console.log('Lead created successfully:', createdLead);
+
+      // (Important) Notify parent so that UI can refresh
+      if (onLeadCreated) {
+        onLeadCreated(createdLead);
+      }
+
+      // Optionally close popup or show a success message
+      onClose();
+    } catch (err) {
+      console.error('Failed to create lead:', err);
+    }
   };
 
+  // ---------- Render ----------
   return (
     <div className={styles.popup} onClick={onClose}>
       <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
@@ -292,13 +348,51 @@ function LeadFormPopup({ onClose }) {
 
           {/* SERVICE SET */}
           <div className={styles.serviceSet}>
-            <button type="button" className={styles.serviceButton}>
-              <div className={styles.dropdownLabel}>
-                <span className={styles.dropdownPrefix}>Type of Service:</span>
-                <span className={styles.dropdownPlaceholder}>Moving</span>
-              </div>
-              <UnfoldMoreIcon className={styles.dropdownIcon} />
-            </button>
+
+            {/* ---------- Type of Service Wrapper ---------- */}
+            <div className={styles.typeOfServiceSelectWrapper}>
+              <button
+                type="button"
+                className={styles.dropdownButton}
+                onClick={handleToggleTypeOfServiceDropdown}
+              >
+                <div className={styles.dropdownLabel}>
+                  <span className={styles.dropdownPrefix}>Type of Service:</span>
+                  {selectedTypeOfService ? (
+                    <span className={styles.dropdownSelected}>
+                      {selectedTypeOfService}
+                    </span>
+                  ) : (
+                    <span className={styles.dropdownPlaceholder}>
+                      Select
+                    </span>
+                  )}
+                </div>
+                <UnfoldMoreIcon className={styles.dropdownIcon} />
+              </button>
+
+              {showTypeOfServiceDropdown && (
+                <ul className={styles.optionsList} role="listbox">
+                  {typeOfServiceChoices.map((service) => {
+                    const isSelected = selectedTypeOfService === service.name;
+                    return (
+                      <li
+                        key={service.id}
+                        className={`${styles.option} ${
+                          isSelected ? styles.selected : ''
+                        }`}
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => handleSelectTypeOfService(service.name)}
+                        tabIndex={0}
+                      >
+                        {service.name}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
 
             <div className={styles.inputContainer}>
               <input

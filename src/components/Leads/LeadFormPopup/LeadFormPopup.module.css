@@ -87,7 +87,7 @@
   padding: 30px;
 }
 
-/* ===== Common Input Fields (Customer Name, Phone, Email, etc.) ===== */
+/* ===== Common Input Fields (Customer Name, Phone, Email, Source, etc.) ===== */
 .inputSet {
   margin-top: 25px;
   display: flex;
@@ -124,7 +124,7 @@
   font-weight: 500;
 }
 
-/* ====== Wrappers for dropdowns (Company Name, Source) ====== */
+/* ========== Wrappers for dropdowns (Company Name, Source, SalesRep, TypeOfService) ========== */
 .companySelectWrapper {
   position: relative;
   margin-bottom: 15px;
@@ -134,10 +134,18 @@
   position: relative;
 }
 
-/* 
-  Buttons for "Company Name" / "Source" 
-  We'll call them .dropdownButton for a more generic naming.
-*/
+/* NEW: Type of Service wrapper, so the .optionsList can appear */
+.typeOfServiceSelectWrapper {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.salesRepSelectWrapper {
+  margin-top: 12px;
+  position: relative;
+}
+
+/* ========== The generic .dropdownButton styling ========== */
 .dropdownButton {
   width: 100%;
   height: 50px;
@@ -155,10 +163,9 @@
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  margin-bottom: 5px; 
+  margin-bottom: 5px;
 }
 
-/* Container for prefix + placeholder/selected text */
 .dropdownLabel {
   display: flex;
   align-items: center;
@@ -191,7 +198,7 @@
   transition: transform 0.3s ease;
 }
 
-/* The dropdown list (for Company Name & Source) */
+/* The dropdown list (for all dropdowns) */
 .optionsList {
   position: absolute;
   top: 100%;
@@ -204,7 +211,7 @@
   border-radius: 12px;
   margin-top: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 2000;
+  z-index: 2000; /* Ensure it appears above other content */
   list-style: none;
   margin: 0;
   padding-left: 0;
@@ -233,7 +240,7 @@
   color: #fff;
 }
 
-/* ====== SERVICE SET (Type of Service / Zips / Move Date) ====== */
+/* ===== SERVICE SET (Type of Service / Zips / Move Date) ===== */
 .serviceSet {
   margin-top: 20px;
   display: flex;
@@ -242,6 +249,8 @@
 }
 
 .serviceButton {
+  /* not used here anymore; replaced by .typeOfServiceSelectWrapper, 
+     but you can keep if you want a separate style for the button itself. */
   width: 100%;
   height: 50px;
   padding: 0 20px;
@@ -260,26 +269,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.serviceContent {
-  display: flex;
-  align-items: center;
-  flex-grow: 1;
-}
-
-.serviceLabel {
-  font-weight: 500;
-  color: #6E7882;
-  font-size: 16px;
-}
-
-.serviceValue {
-  margin-left: 4px;
-  font-weight: 700;
-  color: #2F3236;
-  font-size: 16px;
-}
-
-/* ====== Move Date & Calendar ====== */
 .moveDateWrapper {
   position: relative;
 }
@@ -296,7 +285,7 @@
   color: #2F3236;
   font-family: 'Satoshi', sans-serif;
   font-size: 1rem;
-  font-weight: 700; 
+  font-weight: 700;
   border-radius: 12px;
   border: 1px solid #D8DCE0;
   cursor: pointer;
@@ -333,7 +322,7 @@
 .calendarIcon {
   width: 16px;
   height: 16px;
-  color: #fff; /* or #2F3236, up to you */
+  color: #fff;
 }
 
 /* Calendar popup container */
@@ -406,56 +395,43 @@
 
 /* ===== Assign Sales Rep Toggle Container ===== */
 .assignSalesToggleContainer {
-  margin-top: 25px; /* 25px from the Move Date input */
+  margin-top: 25px;
   display: flex;
   align-items: center;
-  gap: 10px; /* 10px between the label and the toggle */
+  gap: 10px;
 }
 
 /* The text "Assign Sales Rep" */
 .assignSalesToggleLabel {
-  color: #2F3236;   /* var(--Black, #2F3236) */
+  color: #2F3236;
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   font-weight: 700;
   line-height: normal;
 }
 
-/* If the toggle is ON, we show the sales rep dropdown at 12px below the toggle */
-.salesRepSelectWrapper {
-  margin-top: 12px;
-  position: relative; /* So that the dropdown can appear here */
-}
-
-
+/* Sticky footer with Save button, always visible. */
 .stickyFooter {
-  /* Sticks to the bottom, always visible */
   position: sticky;
   bottom: 0;
-  /* Some padding for nice spacing */
   padding: 20px 30px;
   background-color: #fff;
-  /* Optional border-top to separate from scroll content */
   border-top: 1px solid #D8DCE0;
-  
-  /* Because it’s sticky, make sure it's above other content */
-  z-index: 1100; 
-  
-  /* Display them in a column */
+  z-index: 1100;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-/* The Save button at the bottom (green #59B779) */
+/* The Save button (green) */
 .saveButton {
   width: 100%;
-  background-color: #59B779;  /* The requested green color */
+  background-color: #59B779;
   color: #fff;
   font-family: Satoshi, sans-serif;
   font-size: 1rem;
   font-weight: 700;
-  padding: 14px 20px;  /* Adjust as desired */
+  padding: 14px 20px;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -465,20 +441,18 @@
   text-align: center;
 }
 
-/* Add a hover effect if you like */
 .saveButton:hover {
-  background-color: #4da268; /* slightly darker or lighten if desired */
+  background-color: #4da268;
 }
 
 /* "Previous requests" text, 21px margin from the button */
 .previousRequests {
-  margin-top: 21px;  /* exactly 21px as requested */
-  color: #2F3236;    /* var(--Black) */
+  margin-top: 21px;
+  color: #2F3236;
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   font-style: normal;
   font-weight: 700;
   line-height: normal;
-  /* center it horizontally if you like: */
   text-align: left;
 }

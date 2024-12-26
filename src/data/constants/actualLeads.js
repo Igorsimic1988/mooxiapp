@@ -1,6 +1,9 @@
 // actualLeads.js
+
 // A list of 50 leads with varied names, dates, etc.
-// Now we rename "move_type" -> "rate_type" and add a "service_type": "Moving"
+// We have removed any lead_status of "Completed" and replaced them with other statuses + matching activities.
+// Also includes a "source" field (Google, Yelp, or Instagram).
+// next_action remains "Attempt 1"
 
 const actualLeads = [
   {
@@ -14,10 +17,13 @@ const actualLeads = [
     customer_email: "john.doe@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Quoted", // previously Quoted
+    lead_activity: "Awaiting Decision", // from getActivityOptions("Quoted")
     next_action: "Attempt 1",
-    sales_name: "Cynthia Lin",  // randomly chosen
+
+    sales_name: "Cynthia Lin",
     is_new: true
   },
   {
@@ -31,10 +37,15 @@ const actualLeads = [
     customer_email: "jane.smith@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    // Previously: lead_status: "Completed", lead_activity: "Pending Review"
+    // Remove "Completed" => set to e.g. "Quoted" with a matching activity
+    lead_status: "Quoted",
+    lead_activity: "Awaiting Decision",
     next_action: "Attempt 1",
-    sales_name: "David Perry",  // randomly chosen
+
+    sales_name: "David Perry",
     is_new: false
   },
   {
@@ -48,9 +59,13 @@ const actualLeads = [
     customer_email: "michael.johnson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Move on Hold",
+    // getActivityOptions("Move on Hold") => []
+    lead_activity: "",
     next_action: "Attempt 1",
+
     sales_name: "Alice Morgan",
     is_new: true
   },
@@ -65,9 +80,12 @@ const actualLeads = [
     customer_email: "emily.davis@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Booked",
+    lead_activity: "Regular Booked", // from getActivityOptions("Booked")
     next_action: "Attempt 1",
+
     sales_name: "Brian White",
     is_new: false
   },
@@ -82,9 +100,12 @@ const actualLeads = [
     customer_email: "robert.brown@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
+    source: "Google",
+
+    lead_status: "New Lead",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
+
     sales_name: "Erika Martinez",
     is_new: true
   },
@@ -99,9 +120,12 @@ const actualLeads = [
     customer_email: "sophia.martinez@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Bad Lead",
+    lead_activity: "Spam",
     next_action: "Attempt 1",
+
     sales_name: "Cynthia Lin",
     is_new: false
   },
@@ -116,9 +140,12 @@ const actualLeads = [
     customer_email: "james.wilson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Cancaled",
+    lead_activity: "Company Canceled", // from getActivityOptions("Cancaled")
     next_action: "Attempt 1",
+
     sales_name: "Frank Delgado",
     is_new: true
   },
@@ -133,9 +160,12 @@ const actualLeads = [
     customer_email: "olivia.clark@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Declined",
+    lead_activity: "Service Not Needed",
     next_action: "Attempt 1",
+
     sales_name: "David Perry",
     is_new: false
   },
@@ -150,9 +180,12 @@ const actualLeads = [
     customer_email: "david.miller@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Quoted",
+    lead_activity: "Quote Follow Up",
     next_action: "Attempt 1",
+
     sales_name: "Gina Sanders",
     is_new: true
   },
@@ -167,9 +200,12 @@ const actualLeads = [
     customer_email: "emma.anderson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Bad Lead",
+    lead_activity: "Duplicate Lead",
     next_action: "Attempt 1",
+
     sales_name: "Cynthia Lin",
     is_new: false
   },
@@ -184,9 +220,12 @@ const actualLeads = [
     customer_email: "john.doejr@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Move on Hold",
+    lead_activity: "",
     next_action: "Attempt 1",
+
     sales_name: "Frank Delgado",
     is_new: true
   },
@@ -201,9 +240,12 @@ const actualLeads = [
     customer_email: "jane.s.smith@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
+    source: "Google",
+
+    lead_status: "New Lead",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
+
     sales_name: "Gina Sanders",
     is_new: false
   },
@@ -218,9 +260,12 @@ const actualLeads = [
     customer_email: "michael.j.johnson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Bad Lead",
+    lead_activity: "Invalid Contact",
     next_action: "Attempt 1",
+
     sales_name: "Alice Morgan",
     is_new: true
   },
@@ -235,9 +280,12 @@ const actualLeads = [
     customer_email: "emily.r.davis@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
+    source: "Yelp",
+
     lead_status: "In Progress",
-    lead_activity: "Contacting",
+    lead_activity: "In Home Estimate",
     next_action: "Attempt 1",
+
     sales_name: "Brian White",
     is_new: false
   },
@@ -252,9 +300,15 @@ const actualLeads = [
     customer_email: "robert.t.brown@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    // Previously: "Completed", with lead_activity: "Awaiting Payment"
+    // Replaced "Completed" => choose "Booked" or "Declined" or etc. 
+    // Let's pick "Booked" => e.g. "Regular Booked"
+    lead_status: "Booked",
+    lead_activity: "Regular Booked",
     next_action: "Attempt 1",
+
     sales_name: "Brian White",
     is_new: true
   },
@@ -269,9 +323,12 @@ const actualLeads = [
     customer_email: "sophia.m.martinez@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
+    source: "Instagram",
+
     lead_status: "In Progress",
-    lead_activity: "Contacting",
+    lead_activity: "Virtual Estimate",
     next_action: "Attempt 1",
+
     sales_name: "David Perry",
     is_new: false
   },
@@ -286,9 +343,12 @@ const actualLeads = [
     customer_email: "james.k.wilson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Booked",
+    lead_activity: "Booked on 1st Call",
     next_action: "Attempt 1",
+
     sales_name: "Gina Sanders",
     is_new: true
   },
@@ -303,9 +363,12 @@ const actualLeads = [
     customer_email: "olivia.p.clark@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Cancaled",
+    lead_activity: "Customer Canceled",
     next_action: "Attempt 1",
+
     sales_name: "Cynthia Lin",
     is_new: false
   },
@@ -320,9 +383,12 @@ const actualLeads = [
     customer_email: "david.g.miller@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
+    source: "Instagram",
+
     lead_status: "In Progress",
-    lead_activity: "Contacting",
+    lead_activity: "Info Gathering",
     next_action: "Attempt 1",
+
     sales_name: "Alice Morgan",
     is_new: true
   },
@@ -337,9 +403,12 @@ const actualLeads = [
     customer_email: "emma.l.anderson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Declined",
+    lead_activity: "Timing Conflict",
     next_action: "Attempt 1",
+
     sales_name: "Frank Delgado",
     is_new: false
   },
@@ -354,9 +423,12 @@ const actualLeads = [
     customer_email: "john.d.paul@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Bad Lead",
+    lead_activity: "Spam",
     next_action: "Attempt 1",
+
     sales_name: "Brian White",
     is_new: true
   },
@@ -371,9 +443,12 @@ const actualLeads = [
     customer_email: "jane.w.smith@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Quoted",
+    lead_activity: "Negotiation",
     next_action: "Attempt 1",
+
     sales_name: "Erika Martinez",
     is_new: false
   },
@@ -388,9 +463,12 @@ const actualLeads = [
     customer_email: "michael.a.jordan@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Declined",
+    lead_activity: "Chose Competitor",
     next_action: "Attempt 1",
+
     sales_name: "David Perry",
     is_new: true
   },
@@ -405,9 +483,12 @@ const actualLeads = [
     customer_email: "emily.k.davis@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
+    source: "Google",
+
+    lead_status: "New Lead",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
+
     sales_name: "Cynthia Lin",
     is_new: false
   },
@@ -422,9 +503,13 @@ const actualLeads = [
     customer_email: "robert.l.brown@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    // Misspelling "Canceled" => "Cancaled" in the original. We'll keep it consistent.
+    lead_status: "Cancaled",
+    lead_activity: "Customer Canceled",
     next_action: "Attempt 1",
+
     sales_name: "Frank Delgado",
     is_new: true
   },
@@ -439,9 +524,12 @@ const actualLeads = [
     customer_email: "sophia.j.martinez@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
+    source: "Google",
+
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
+
     sales_name: "Alice Morgan",
     is_new: false
   },
@@ -456,9 +544,12 @@ const actualLeads = [
     customer_email: "james.r.wilson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
+    source: "Yelp",
+
     lead_status: "In Progress",
-    lead_activity: "Contacting",
+    lead_activity: "Virtual Estimate",
     next_action: "Attempt 1",
+
     sales_name: "Brian White",
     is_new: true
   },
@@ -473,9 +564,14 @@ const actualLeads = [
     customer_email: "olivia.d.clark@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    // Previously: "Completed" => "Closed"
+    // Remove "Completed" => let's pick "Bad Lead" => activity "Duplicate Lead"
+    lead_status: "Bad Lead",
+    lead_activity: "Duplicate Lead",
     next_action: "Attempt 1",
+
     sales_name: "Erika Martinez",
     is_new: false
   },
@@ -490,9 +586,12 @@ const actualLeads = [
     customer_email: "david.e.miller@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Bad Lead",
+    lead_activity: "Not Qulified",
     next_action: "Attempt 1",
+
     sales_name: "David Perry",
     is_new: true
   },
@@ -507,9 +606,12 @@ const actualLeads = [
     customer_email: "emma.t.anderson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Booked",
+    lead_activity: "Booked Online",
     next_action: "Attempt 1",
+
     sales_name: "Cynthia Lin",
     is_new: false
   },
@@ -524,9 +626,12 @@ const actualLeads = [
     customer_email: "john.q.public@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
+    source: "Instagram",
+
     lead_status: "In Progress",
-    lead_activity: "Contacting",
+    lead_activity: "Info Gathering",
     next_action: "Attempt 1",
+
     sales_name: "Frank Delgado",
     is_new: true
   },
@@ -541,9 +646,12 @@ const actualLeads = [
     customer_email: "jane.l.smythe@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
+    source: "Google",
+
+    lead_status: "New Lead",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
+
     sales_name: "Gina Sanders",
     is_new: false
   },
@@ -558,9 +666,12 @@ const actualLeads = [
     customer_email: "michael.v.jenson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Declined",
+    lead_activity: "Pricing Issue",
     next_action: "Attempt 1",
+
     sales_name: "Alice Morgan",
     is_new: true
   },
@@ -575,9 +686,12 @@ const actualLeads = [
     customer_email: "emily.u.davids@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Quoted",
+    lead_activity: "Negotiation",
     next_action: "Attempt 1",
+
     sales_name: "Brian White",
     is_new: false
   },
@@ -592,9 +706,12 @@ const actualLeads = [
     customer_email: "robert.z.brown@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Quoted",
+    lead_activity: "Quote Follow Up",
     next_action: "Attempt 1",
+
     sales_name: "Cynthia Lin",
     is_new: true
   },
@@ -609,9 +726,12 @@ const actualLeads = [
     customer_email: "sophia.y.martinez@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Cancaled",
+    lead_activity: "Company Canceled",
     next_action: "Attempt 1",
+
     sales_name: "Erika Martinez",
     is_new: false
   },
@@ -626,9 +746,12 @@ const actualLeads = [
     customer_email: "james.h.wilson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Bad Lead",
+    lead_activity: "Invalid Contact",
     next_action: "Attempt 1",
+
     sales_name: "David Perry",
     is_new: true
   },
@@ -643,9 +766,12 @@ const actualLeads = [
     customer_email: "olivia.b.clarke@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Declined",
+    lead_activity: "Service Not Needed",
     next_action: "Attempt 1",
+
     sales_name: "Gina Sanders",
     is_new: false
   },
@@ -660,9 +786,12 @@ const actualLeads = [
     customer_email: "david.w.milley@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Quoted",
+    lead_activity: "Negotiation",
     next_action: "Attempt 1",
+
     sales_name: "Cynthia Lin",
     is_new: true
   },
@@ -677,9 +806,12 @@ const actualLeads = [
     customer_email: "emma.g.anders@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
+    source: "Yelp",
+
     lead_status: "In Progress",
-    lead_activity: "Contacting",
+    lead_activity: "Virtual Estimate",
     next_action: "Attempt 1",
+
     sales_name: "Brian White",
     is_new: false
   },
@@ -694,9 +826,12 @@ const actualLeads = [
     customer_email: "john.r.doe@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
+    source: "Instagram",
+
+    lead_status: "New Lead",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
+
     sales_name: "Erika Martinez",
     is_new: true
   },
@@ -711,9 +846,13 @@ const actualLeads = [
     customer_email: "jane.a.smithy@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    // Previously "Declined"
+    lead_status: "Declined",
+    lead_activity: "Pricing Issue",
     next_action: "Attempt 1",
+
     sales_name: "Alice Morgan",
     is_new: false
   },
@@ -728,9 +867,12 @@ const actualLeads = [
     customer_email: "michael.x.jon@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
+    source: "Google",
+
     lead_status: "In Progress",
     lead_activity: "Contacting",
     next_action: "Attempt 1",
+
     sales_name: "Frank Delgado",
     is_new: true
   },
@@ -745,9 +887,12 @@ const actualLeads = [
     customer_email: "emily.o.daves@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Quoted",
+    lead_activity: "Awaiting Decision",
     next_action: "Attempt 1",
+
     sales_name: "David Perry",
     is_new: false
   },
@@ -762,9 +907,12 @@ const actualLeads = [
     customer_email: "robert.m.browning@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Declined",
+    lead_activity: "Service Not Needed",
     next_action: "Attempt 1",
+
     sales_name: "Gina Sanders",
     is_new: true
   },
@@ -779,9 +927,12 @@ const actualLeads = [
     customer_email: "sophia.r.martines@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Yelp",
+
+    lead_status: "Bad Lead",
+    lead_activity: "Spam",
     next_action: "Attempt 1",
+
     sales_name: "Cynthia Lin",
     is_new: false
   },
@@ -796,9 +947,12 @@ const actualLeads = [
     customer_email: "james.o.wilsen@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    lead_status: "Booked",
+    lead_activity: "Booked Online",
     next_action: "Attempt 1",
+
     sales_name: "Brian White",
     is_new: true
   },
@@ -813,9 +967,12 @@ const actualLeads = [
     customer_email: "olivia.f.clarks@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Google",
+
+    lead_status: "Quoted",
+    lead_activity: "Quote Follow Up",
     next_action: "Attempt 1",
+
     sales_name: "Alice Morgan",
     is_new: false
   },
@@ -830,9 +987,14 @@ const actualLeads = [
     customer_email: "david.q.millers@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
-    lead_status: "In Progress",
-    lead_activity: "Contacting",
+    source: "Instagram",
+
+    // Previously: lead_status: "Completed", lead_activity: "Closed"
+    // Replacing with e.g. "Declined" => "Chose Competitor"
+    lead_status: "Declined",
+    lead_activity: "Chose Competitor",
     next_action: "Attempt 1",
+
     sales_name: "Gina Sanders",
     is_new: true
   },
@@ -847,9 +1009,12 @@ const actualLeads = [
     customer_email: "emma.h.andersen@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
+    source: "Yelp",
+
     lead_status: "In Progress",
-    lead_activity: "Contacting",
+    lead_activity: "In Home Estimate",
     next_action: "Attempt 1",
+
     sales_name: "Erika Martinez",
     is_new: false
   }

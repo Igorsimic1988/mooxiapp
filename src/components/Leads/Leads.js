@@ -10,26 +10,26 @@ import AddNewLeadButton from './AddNewLeadButton/AddNewLeadButton';
 import LeadsList from './LeadsList/LeadsList';
 import LeadManagementPanel from './LeadManagementPanel/LeadManagementPanel';
 
-// Instead of using `actualLeads` directly for rendering,
-// we store them in local state:
+// local leads data
 import actualLeads from '../../data/constants/actualLeads';
 
-// Import the LeadFormPopup
+// Popup
 import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
 
 function Leads() {
-  // 1) Put the actualLeads array into local state
   const [leads, setLeads] = useState([...actualLeads]);
 
-  // Pagination:
+  // For pagination:
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 20;
 
-  // 2) State for selected lead & showing form
+  // For selection & form
   const [selectedLead, setSelectedLead] = useState(null);
   const [showLeadForm, setShowLeadForm] = useState(false);
 
-  // This effect sets --app-height for mobile responsiveness
+  // If we are editing an existing lead, store it here
+  const [editingLead, setEditingLead] = useState(null);
+
   useEffect(() => {
     function setAppHeight() {
       document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -39,8 +39,7 @@ function Leads() {
     return () => window.removeEventListener('resize', setAppHeight);
   }, []);
 
-  // Sort the entire leads array in descending order (newest first).
-  // Then apply pagination to that sorted array.
+  // Sort leads newest first
   const sortedLeads = [...leads].sort(
     (a, b) => new Date(b.creation_date_time) - new Date(a.creation_date_time)
   );
@@ -52,7 +51,6 @@ function Leads() {
   const endIndex = Math.min(startIndex + leadsPerPage, totalLeads);
   const currentLeads = sortedLeads.slice(startIndex, endIndex);
 
-  // Pagination handlers
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
@@ -69,12 +67,26 @@ function Leads() {
     setSelectedLead(null);
   };
 
-  // Callback that the form calls after creating a new lead
+  // Creating a brand new lead
   const handleLeadCreated = (newLead) => {
-    // Insert new lead, then let the array remain sorted by date.
-    // Because we'll sort them again on each render (in sortedLeads).
     setLeads((prev) => [...prev, newLead]);
-    // We do NOT reset `currentPage` => You stay where you are.
+  };
+
+  // Updating an existing lead
+  const handleLeadUpdated = (updatedLead) => {
+    setLeads((prevLeads) =>
+      prevLeads.map((ld) => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
+    );
+    // Also update the currently selected lead if that’s the one we edited
+    if (selectedLead && selectedLead.lead_id === updatedLead.lead_id) {
+      setSelectedLead(updatedLead);
+    }
+  };
+
+  // This triggers "edit mode"
+  const handleEditLead = (lead) => {
+    setEditingLead(lead);
+    setShowLeadForm(true);  // open the popup
   };
 
   return (
@@ -82,9 +94,10 @@ function Leads() {
       <HeaderDashboard isLeadSelected={!!selectedLead} onBack={handleBack} />
 
       {selectedLead ? (
-        <LeadManagementPanel 
-          lead={selectedLead} 
-          onClose={() => setSelectedLead(null)} 
+        <LeadManagementPanel
+          lead={selectedLead}
+          onClose={() => setSelectedLead(null)}
+          onEditLead={handleEditLead}    // pass the callback
         />
       ) : (
         <>
@@ -93,7 +106,13 @@ function Leads() {
 
           <div className={styles.actionsContainer}>
             <LeadsActionButtons />
-            <AddNewLeadButton onOpenLeadForm={() => setShowLeadForm(true)} />
+            {/* For a brand new lead, we ensure editingLead is null */}
+            <AddNewLeadButton
+              onOpenLeadForm={() => {
+                setEditingLead(null); // brand new
+                setShowLeadForm(true);
+              }}
+            />
           </div>
 
           <LeadsList leads={currentLeads} onLeadClick={handleLeadClick} />
@@ -103,16 +122,16 @@ function Leads() {
               {`${startIndex + 1}-${endIndex} of ${totalLeads} leads`}
             </span>
             <div className={styles.paginationButtons}>
-              <button 
-                className={styles.pageButton} 
-                onClick={handlePrevPage} 
+              <button
+                className={styles.pageButton}
+                onClick={handlePrevPage}
                 disabled={currentPage === 1}
               >
                 &lt;
               </button>
-              <button 
-                className={styles.pageButton} 
-                onClick={handleNextPage} 
+              <button
+                className={styles.pageButton}
+                onClick={handleNextPage}
                 disabled={currentPage === totalPages}
               >
                 &gt;
@@ -123,9 +142,11 @@ function Leads() {
       )}
 
       {showLeadForm && (
-        <LeadFormPopup 
-          onClose={() => setShowLeadForm(false)} 
+        <LeadFormPopup
+          onClose={() => setShowLeadForm(false)}
           onLeadCreated={handleLeadCreated}
+          editingLead={editingLead}            // Pass it here
+          onLeadUpdated={handleLeadUpdated}    // so we can update
         />
       )}
     </div>

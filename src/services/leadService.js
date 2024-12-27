@@ -9,12 +9,15 @@ import leadsData from '../data/constants/actualLeads';
 export async function createLead(leadData) {
   const newLeadId = uuidv4();
 
+  // Find the highest existing job_number to generate a new job_number
   const lastJobNumber = leadsData.reduce((max, lead) => {
     return lead.job_number > max ? lead.job_number : max;
   }, 0);
   const nextJobNumber = lastJobNumber + 1;
 
+  // We'll just hard-code tenant_id
   const tenantId = 'tenant_1';
+  // creation_date_time is the current date/time
   const creationDateTime = new Date().toISOString();
 
   const newLead = {
@@ -33,13 +36,17 @@ export async function createLead(leadData) {
     service_type: leadData.service_type || 'Moving',
     lead_status: leadData.lead_status || 'New Lead',
     lead_activity: leadData.lead_activity || '',
-    next_action: leadData.next_action || '',
-    sales_name: leadData.sales_name || '',
 
+    // Force 'Attempt 1' if no next_action is provided
+    next_action: leadData.next_action || 'Attempt 1',
+
+    sales_name: leadData.sales_name || '',
     is_new: leadData.is_new !== undefined ? leadData.is_new : true,
   };
 
+  // Add the newLead to our local array
   leadsData.push(newLead);
+
   return newLead;
 }
 
@@ -51,11 +58,12 @@ export async function updateLead(leadId, updates) {
   if (existingIndex === -1) {
     throw new Error(`Lead with id ${leadId} not found`);
   }
+
   const existingLead = leadsData[existingIndex];
 
   const updatedLead = {
     ...existingLead,
-    // Only user-changeable fields:
+    // Only user-changeable fields (we keep job_number, creation_date_time, etc. intact)
     customer_name: updates.customer_name,
     customer_phone_number: updates.customer_phone_number,
     customer_email: updates.customer_email,
@@ -63,8 +71,10 @@ export async function updateLead(leadId, updates) {
     source: updates.source,
     service_type: updates.service_type,
     sales_name: updates.sales_name,
+    // If you wanted to allow editing lead_status or lead_activity, you'd include them here as well
   };
 
+  // Replace the old lead with the updated one
   leadsData[existingIndex] = updatedLead;
   return updatedLead;
 }

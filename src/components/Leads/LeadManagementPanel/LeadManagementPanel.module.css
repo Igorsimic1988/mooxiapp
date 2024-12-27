@@ -15,7 +15,6 @@
   background: #FFFFFF;
   scrollbar-width: none; /* Hide scrollbar in Firefox */
 }
-
 .panelContainer::-webkit-scrollbar {
   display: none; /* Hide scrollbar in Chrome, Safari, Opera */
 }
@@ -27,7 +26,6 @@
   align-items: center;
 }
 
-/* Left Section */
 .leftSection {
   display: flex;
   align-items: center;
@@ -49,13 +47,11 @@
   line-height: normal;
 }
 
-/* Right Section */
 .rightSection {
   display: flex;
   align-items: center;
 }
 
-/* Score Container */
 .scoreContainer {
   display: inline-flex;
   align-items: center;
@@ -147,16 +143,17 @@
   color: #2F3236;
 }
 
-/* ===== Buttons Row (Status + Activity + Next Action) ===== */
+/* ===== Buttons Row (Status + Activity) ===== 
+   (We removed Next Action from here so it's placed after the Time input)
+*/
 .buttonsRow {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; 
   align-items: center;
   gap: 10px;
   margin-top: 15px;
   width: 100%;
-  padding: 0px 0px 20px 0px;
-  border-bottom: 1px solid #D8DCE0;
+  padding: 0px 0px 10px 0px;
 }
 
 /* --- Status Button + Dropdown --- */
@@ -190,7 +187,7 @@
 
 .statusTextValue {
   margin-left: 4px;
-  /* Default color is In Progress (orange) but we override inline if needed */
+  /* default color for In Progress (#FAA61A) overridden inline if needed */
   color: #FAA61A;
   font-family: Satoshi, sans-serif;
   font-size: 16px;
@@ -220,7 +217,7 @@
 .statusDropdown {
   position: absolute;
   left: 0;
-  top: 48px; /* just below the button */
+  top: 48px;
   width: 100%;
   background: #FFFFFF;
   border: 1px solid #ccc;
@@ -228,12 +225,11 @@
   margin-top: 5px;
   list-style: none;
   padding: 8px 0;
-  max-height: 300px;
+  max-height: 312px;
   overflow-y: auto;
   z-index: 3000;
 }
 
-/* Each status option */
 .statusOption {
   padding: 10px 15px;
   cursor: pointer;
@@ -242,18 +238,13 @@
   font-weight: 700;
   background: #FFF;
 }
-
 .statusOption:hover {
   background: rgba(0,0,0,0.05);
 }
-
-/* If the option is disabled (e.g. New Lead), style differently */
 .disabledOption {
   opacity: 0.4;
   cursor: not-allowed;
 }
-
-/* Indicate if it's selected (for example, highlight or something) */
 .selectedOption {
   background: rgba(0,0,0,0.1);
 }
@@ -267,7 +258,7 @@
   border: 1px solid #D8DCE0;
   border-radius: 12px;
   cursor: pointer;
-  padding: 0 25px 0px 20px;
+  padding: 0 25px 0 20px;
   height: 50px;
   min-width: 100%;
   -webkit-tap-highlight-color: transparent;
@@ -301,7 +292,40 @@
   color: #2F3236;
 }
 
-/* --- Next Action Button --- */
+/* The activity dropdown */
+.activityDropdown {
+  position: absolute;
+  left: 0;
+  top: 48px;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  margin-top: 5px;
+  list-style: none;
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 3000;
+}
+
+.activityOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  background: #FFF;
+}
+.activityOption:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* 
+   --- Next Action Button --- 
+   We'll keep the style but we place it in the "estimateExtraContainer" 
+   under the Time input now.
+*/
 .nextActionButton {
   display: flex;
   align-items: center;
@@ -330,6 +354,235 @@
   font-size: 16px;
   font-weight: 700;
   line-height: normal;
+}
+
+/* ===== For the new Estimator / Date / Time inputs ===== */
+.estimateExtraContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estimator button */
+.estimatorButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  height: 50px;
+  width: 100%;
+  padding: 0 20px;
+  font-family: Satoshi, sans-serif;
+  color: #2F3236;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* This container for "Estimator: " + "Select" left aligned. */
+.estimatorLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* "Estimator:" => font-weight: 500; "Select" => 700 */
+.estimatorLabel {
+  font-weight: 500;
+  color: #6e7882;
+}
+.estimatorValue {
+  font-weight: 700;
+  color: #2F3236;
+}
+
+.estimatorDropdown {
+  position: absolute;
+  top: 55px; 
+  left: 0;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  list-style: none;
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 3100;
+}
+
+.estimatorOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2F3236;
+}
+.estimatorOption:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Date button with icon on the right */
+.estimatorDateButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  height: 50px;
+  width: 100%;
+  cursor: pointer;
+  padding: 0 20px;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #6e7882;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* We'll define placeholder vs. selected for date/time */
+.datePlaceholder {
+  font-weight: 500;
+  color: #6E7882;
+}
+.dateSelected {
+  font-weight: 700;
+  color: #2F3236;
+}
+
+/* Icon container on the RIGHT for date */
+.calendarRightIconWrapper {
+  width: 30px;
+  height: 30px;
+  background: #90A4B7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendarIcon {
+  width: 16px;
+  height: 16px;
+  color: #fff;
+}
+
+/* Calendar popup */
+.calendarPopup {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 10px;
+  z-index: 3100;
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.calendarHeader button {
+  background: #eee;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.calendarDay {
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 8px;
+  height: 35px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2F3236;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendarDay:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Time button - single dropdown approach */
+.estimatorTimeButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  height: 50px;
+  width: 100%;
+  cursor: pointer;
+  padding: 0 20px;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #6e7882;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* placeholders vs. selected for time. */
+.timePlaceholder {
+  font-weight: 500;
+  color: #6E7882;
+}
+.timeSelected {
+  font-weight: 700;
+  color: #2F3236;
+}
+
+/* The time dropdown (single list) */
+.timeDropdown {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  list-style: none;
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 3100;
+}
+
+.timeOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2F3236;
+}
+.timeOption:hover {
+  background: rgba(0,0,0,0.05);
 }
 
 /* ===== Source & Previous Requests ===== */
@@ -447,34 +700,4 @@
   width: 16px;
   height: 16px;
   color: #FFF;
-}
-
-
-.activityDropdown {
-  position: absolute;
-  left: 0;
-  top: 48px; /* or however you want to position it relative to .activityButton */
-  width: 100%;
-  background: #FFFFFF;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  margin-top: 5px;
-  list-style: none;
-  padding: 8px 0;
-  max-height: 300px;
-  overflow-y: auto;
-  z-index: 3000;
-}
-
-.activityOption {
-  padding: 10px 15px;
-  cursor: pointer;
-  font-family: Satoshi, sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  background: #FFF;
-}
-
-.activityOption:hover {
-  background: rgba(0,0,0,0.05);
 }

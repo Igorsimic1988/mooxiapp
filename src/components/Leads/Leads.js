@@ -16,12 +16,71 @@ import actualLeads from '../../data/constants/actualLeads';
 // Popup
 import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
 
+/**
+ * Filter leads by the current activeTab:
+ * - "Active Leads" => status in ["New Lead", "In Progress", "Quoted", "Move on Hold"]
+ *                     BUT if status="In Progress" => exclude leads where next_action="Survey Completed"
+ * - "Closed Leads" => status in ["Bad Lead", "Declined"]
+ * - "My Appointments" => status="In Progress", activity="In Home Estimate", next_action="Survey Completed"
+ * - "Pending" => status="New Lead"  (example assumption)
+ * - "Booked" => status in ["Booked", "Cancaled"]
+ */
+function filterLeadsByTab(leads, activeTab) {
+  switch (activeTab) {
+    case 'Active Leads':
+      return leads.filter((ld) => {
+        const st = ld.lead_status;
+        const na = ld.next_action;
+        // Must be one of [New Lead, In Progress, Quoted, Move on Hold].
+        const isActiveStatus =
+          st === 'New Lead' ||
+          st === 'In Progress' ||
+          st === 'Quoted' ||
+          st === 'Move on Hold';
+        // If In Progress, exclude if next_action=Survey Completed
+        if (st === 'In Progress' && na === 'Survey Completed') {
+          return false;
+        }
+        return isActiveStatus;
+      });
+
+    case 'Closed Leads':
+      return leads.filter(
+        (ld) => ld.lead_status === 'Bad Lead' || ld.lead_status === 'Declined'
+      );
+
+    case 'My Appointments':
+      return leads.filter(
+        (ld) =>
+          ld.lead_status === 'In Progress' &&
+          ld.lead_activity === 'In Home Estimate' &&
+          ld.next_action === 'Survey Completed'
+      );
+
+    case 'Pending':
+      // THIS PART NEED TO BE UPDATED WITH THE DEPOSIT OR SIGNITURE AWAITING
+      return leads.filter((ld) => ld.lead_status === '');
+
+    case 'Booked':
+      return leads.filter(
+        (ld) => ld.lead_status === 'Booked' || ld.lead_status === 'Cancaled'
+      );
+
+    default:
+      // If unknown => return all leads
+      return leads;
+  }
+}
+
 function Leads() {
   const [leads, setLeads] = useState([...actualLeads]);
 
   // For pagination:
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 20;
+
+  // The tab from the filter bar
+  const [activeTab, setActiveTab] = useState('Active Leads');
 
   // For selection & form
   const [selectedLead, setSelectedLead] = useState(null);
@@ -39,26 +98,36 @@ function Leads() {
     return () => window.removeEventListener('resize', setAppHeight);
   }, []);
 
-  // Sort leads newest first
+  // 1) Sort leads newest-first
   const sortedLeads = [...leads].sort(
     (a, b) => new Date(b.creation_date_time) - new Date(a.creation_date_time)
   );
 
-  const totalLeads = sortedLeads.length;
+  // 2) Filter leads based on activeTab
+  const filteredLeads = filterLeadsByTab(sortedLeads, activeTab);
+
+  // 3) Apply pagination on the already-filtered leads
+  const totalLeads = filteredLeads.length;
   const totalPages = Math.ceil(totalLeads / leadsPerPage);
 
   const startIndex = (currentPage - 1) * leadsPerPage;
   const endIndex = Math.min(startIndex + leadsPerPage, totalLeads);
-  const currentLeads = sortedLeads.slice(startIndex, endIndex);
+  const currentLeads = filteredLeads.slice(startIndex, endIndex);
+
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
   };
 
   const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
   };
 
+  // If user clicks a lead => show that lead's details
   const handleLeadClick = (lead) => {
     setSelectedLead(lead);
   };
@@ -77,16 +146,21 @@ function Leads() {
     setLeads((prevLeads) =>
       prevLeads.map((ld) => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
     );
-    // Also update the currently selected lead if that’s the one we edited
     if (selectedLead && selectedLead.lead_id === updatedLead.lead_id) {
       setSelectedLead(updatedLead);
     }
   };
 
-  // This triggers "edit mode"
+  // Trigger "edit" mode
   const handleEditLead = (lead) => {
     setEditingLead(lead);
     setShowLeadForm(true);  // open the popup
+  };
+
+  // When user changes tabs in the filter bar => reset page to 1
+  const handleChangeTab = (newTab) => {
+    setActiveTab(newTab);
+    setCurrentPage(1);
   };
 
   return (
@@ -97,26 +171,35 @@ function Leads() {
         <LeadManagementPanel
           lead={selectedLead}
           onClose={() => setSelectedLead(null)}
-          onEditLead={handleEditLead}    // pass the callback
+          onEditLead={handleEditLead}
+          onLeadUpdated={handleLeadUpdated}
         />
       ) : (
         <>
-          <LeadsFilterBar />
+          {/* Provide the currently-active tab + a callback so we can track it */}
+          <LeadsFilterBar activeTab={activeTab} onTabChange={handleChangeTab} />
+
           <LeadsSearchBar />
 
           <div className={styles.actionsContainer}>
             <LeadsActionButtons />
-            {/* For a brand new lead, we ensure editingLead is null */}
+            {/* For a brand new lead, ensure editingLead is null */}
             <AddNewLeadButton
               onOpenLeadForm={() => {
-                setEditingLead(null); // brand new
+                setEditingLead(null);
                 setShowLeadForm(true);
               }}
             />
           </div>
 
-          <LeadsList leads={currentLeads} onLeadClick={handleLeadClick} />
+          {/* Pass just the currentLeads to the LeadsList */}
+          <LeadsList
+  leads={currentLeads}
+  onLeadClick={handleLeadClick}
+  activeTab={activeTab}   // NEW: pass the active tab here
+/>
 
+          {/* Pagination for the filtered leads only */}
           <div className={styles.paginationContainer}>
             <span className={styles.paginationText}>
               {`${startIndex + 1}-${endIndex} of ${totalLeads} leads`}
@@ -145,8 +228,8 @@ function Leads() {
         <LeadFormPopup
           onClose={() => setShowLeadForm(false)}
           onLeadCreated={handleLeadCreated}
-          editingLead={editingLead}            // Pass it here
-          onLeadUpdated={handleLeadUpdated}    // so we can update
+          editingLead={editingLead}
+          onLeadUpdated={handleLeadUpdated}
         />
       )}
     </div>

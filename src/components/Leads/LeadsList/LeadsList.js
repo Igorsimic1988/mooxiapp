@@ -3,7 +3,7 @@
 import React from 'react';
 import styles from './LeadsList.module.css';
 
-// Import all the status icons we need:
+// Import status icons
 import { ReactComponent as InProgressIcon } from '../../../assets/icons/inProgress.svg';
 import { ReactComponent as QuotedIcon } from '../../../assets/icons/quoted.svg';
 import { ReactComponent as BadLeadIcon } from '../../../assets/icons/badlead.svg';
@@ -12,78 +12,49 @@ import { ReactComponent as BookedIcon } from '../../../assets/icons/booked.svg';
 import { ReactComponent as OnHoldIcon } from '../../../assets/icons/onhold.svg';
 import { ReactComponent as CanceledIcon } from '../../../assets/icons/canceled.svg';
 
-/**
- * Helper to format date as MM/DD/YYYY
- */
 function formatDate(isoString) {
   if (!isoString) return '';
-  const dateObj = new Date(isoString);
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  const year = dateObj.getFullYear();
-  return `${month}/${day}/${year}`;
+  const d = new Date(isoString);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const yy = d.getFullYear();
+  return `${mm}/${dd}/${yy}`;
 }
 
-/**
- * Helper to format phone as (XXX) XXX-XXXX
- * If it's not exactly 10 digits, return original string
- */
 function formatPhone(phone) {
   if (!phone) return '';
   const raw = phone.replace(/\D/g, '');
   if (raw.length === 10) {
-    return `(${raw.slice(0, 3)}) ${raw.slice(3, 6)}-${raw.slice(6)}`;
+    return `(${raw.slice(0,3)}) ${raw.slice(3,6)}-${raw.slice(6)}`;
   }
   return phone;
 }
 
-/**
- * A small map from lead_status to color + Icon component
- */
 const statusMapping = {
-  'New Lead': {
-    color: '#59B779',
-    Icon: null
-  },
-  'In Progress': {
-    color: '#FAA61A',
-    Icon: InProgressIcon
-  },
-  'Quoted': {
-    color: '#FFC61E',
-    Icon: QuotedIcon
-  },
-  'Bad Lead': {
-    color: '#f65676',
-    Icon: BadLeadIcon
-  },
-  'Declined': {
-    color: '#D9534F',
-    Icon: DeclinedIcon
-  },
-  'Booked': {
-    color: '#3fa9f5',
-    Icon: BookedIcon
-  },
-  'Move on Hold': {
-    color: '#616161',
-    Icon: OnHoldIcon
-  },
-  'Cancaled': {
-    color: '#2f3236',
-    Icon: CanceledIcon
-  }
+  'New Lead':     { color: '#59B779', Icon: null },
+  'In Progress':  { color: '#FAA61A', Icon: InProgressIcon },
+  'Quoted':       { color: '#FFC61E', Icon: QuotedIcon },
+  'Bad Lead':     { color: '#f65676', Icon: BadLeadIcon },
+  'Declined':     { color: '#D9534F', Icon: DeclinedIcon },
+  'Booked':       { color: '#3fa9f5', Icon: BookedIcon },
+  'Move on Hold': { color: '#616161', Icon: OnHoldIcon },
+  'Cancaled':     { color: '#2f3236', Icon: CanceledIcon },
 };
 
-function LeadsList({ leads, onLeadClick }) {
+function LeadsList({ leads, onLeadClick, activeTab }) {
   return (
     <div className={styles.listContainer}>
       {leads.map((lead) => {
-        // Figure out the color & icon for the current lead_status
         const { color, Icon } = statusMapping[lead.lead_status] || {
-          color: '#FAA61A', // fallback
-          Icon: InProgressIcon // fallback
+          color: '#FAA61A',
+          Icon: InProgressIcon,
         };
+
+        // Decide which text to show on the middle line of the 3rd column:
+        // If "Active Leads" => show lead.next_action
+        // else => show lead.lead_activity
+        const middleLineText =
+          activeTab === 'Active Leads' ? lead.next_action : lead.lead_activity;
 
         return (
           <div
@@ -91,6 +62,7 @@ function LeadsList({ leads, onLeadClick }) {
             key={lead.job_number}
             onClick={() => onLeadClick(lead)}
           >
+            {/* Column 1: Company + JobNum + Date */}
             <div className={styles.companyInfo}>
               <div className={`${styles.truncate} ${styles.companyName}`}>
                 {lead.company_name}
@@ -105,6 +77,7 @@ function LeadsList({ leads, onLeadClick }) {
               </div>
             </div>
 
+            {/* Column 2: Customer info */}
             <div className={styles.customerInfo}>
               <div className={styles.customerRow}>
                 {lead.is_new ? (
@@ -130,26 +103,26 @@ function LeadsList({ leads, onLeadClick }) {
               </div>
             </div>
 
+            {/* Column 3: lead status + (next action OR activity) + sales rep */}
             <div className={styles.leadStatusInfo}>
               <div className={styles.statusRow}>
-                {/* Apply dynamic color to the status text */}
                 <span
                   className={`${styles.truncate} ${styles.leadStatus}`}
                   style={{ color }}
                 >
                   {lead.lead_status}
                 </span>
-                {/* If there's an icon, render it with the same color */}
                 {Icon && (
-                  <Icon
-                    className={styles.statusIcon}
-                    style={{ color }}
-                  />
+                  <Icon className={styles.statusIcon} style={{ color }}/>
                 )}
               </div>
+
+              {/* Middle line: depends on Active Tab */}
               <div className={`${styles.truncate} ${styles.nextAction}`}>
-                {lead.next_action}
+                {middleLineText}
               </div>
+
+              {/* Third line: Sales Rep */}
               <div className={`${styles.truncate} ${styles.salesName}`}>
                 {lead.sales_name}
               </div>

@@ -1,4 +1,4 @@
-// src/components/Leads/LeadFormPopup.js
+// src/components/Leads/LeadFormPopup/LeadFormPopup.js
 
 import React, { useState, useEffect } from 'react';
 import styles from './LeadFormPopup.module.css';
@@ -34,7 +34,7 @@ function LeadFormPopup({
   editingLead,
   onLeadUpdated
 }) {
-  // ---------- Local state for form fields ----------
+  // ---------- Local state for basic form fields ----------
   const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -44,15 +44,21 @@ function LeadFormPopup({
   const [selectedTypeOfService, setSelectedTypeOfService] = useState('');
   const [selectedSalesRep, setSelectedSalesRep] = useState('');
 
-  // Move date (if you want to store it)
+  // ---------- Additional fields for Survey / Estimator ----------
+  const [estimator, setEstimator] = useState('');       // e.g. "Bob Smith"
+  const [surveyDate, setSurveyDate] = useState('');     // e.g. "2024-12-25" or some string
+  const [surveyTime, setSurveyTime] = useState('');     // e.g. "10:00 AM"
+
+  // ---------- Move date (optional) ----------
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedMoveDate, setSelectedMoveDate] = useState('');
   const [daysArray, setDaysArray] = useState([]);
 
+  // ---------- Assign Sales Rep toggle ----------
   const [assignSalesRep, setAssignSalesRep] = useState(false);
 
-  // ---------- Pre-populate if editingLead is provided ----------
+  // ---------- If editingLead is provided, pre-populate ----------
   useEffect(() => {
     if (editingLead) {
       setCustomerName(editingLead.customer_name || '');
@@ -62,11 +68,17 @@ function LeadFormPopup({
       setSelectedSource(editingLead.source || '');
       setSelectedTypeOfService(editingLead.service_type || 'Moving');
       setSelectedSalesRep(editingLead.sales_name || '');
-      // If there's a sales rep, we might enable the toggle
       setAssignSalesRep(!!editingLead.sales_name);
-      // For moveDate or additional fields => replicate logic if you have them
+
+      // Additional fields from the lead (if present):
+      setEstimator(editingLead.estimator || '');
+      setSurveyDate(editingLead.survey_date || '');
+      setSurveyTime(editingLead.survey_time || '');
+
+      setSelectedMoveDate(''); // If you store a date, do it here
+      console.log('[LeadFormPopup] Editing existing lead:', editingLead);
     } else {
-      // If brand new => clear everything
+      // If brand-new => reset everything
       setCustomerName('');
       setPhoneNumber('');
       setEmail('');
@@ -75,39 +87,22 @@ function LeadFormPopup({
       setSelectedTypeOfService('');
       setSelectedSalesRep('');
       setAssignSalesRep(false);
+
+      // Additional fields reset to empty for new leads:
+      setEstimator('');
+      setSurveyDate('');
+      setSurveyTime('');
+
       setSelectedMoveDate('');
+      console.log('[LeadFormPopup] Creating a brand new lead');
     }
   }, [editingLead]);
 
-  // ---------- Company Dropdown Handlers ----------
-  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
-  const handleToggleCompanyDropdown = () => setShowCompanyDropdown((prev) => !prev);
-  const handleSelectCompany = (companyName) => {
-    setSelectedCompany(companyName);
-    setShowCompanyDropdown(false);
-  };
-
-  // ---------- Source Dropdown Handlers ----------
-  const [showSourceDropdown, setShowSourceDropdown] = useState(false);
-  const handleToggleSourceDropdown = () => setShowSourceDropdown((prev) => !prev);
-  const handleSelectSource = (sourceName) => {
-    setSelectedSource(sourceName);
-    setShowSourceDropdown(false);
-  };
-
-  // ---------- Type of Service Dropdown Handlers ----------
-  const [showTypeOfServiceDropdown, setShowTypeOfServiceDropdown] = useState(false);
-  const handleToggleTypeOfServiceDropdown = () => setShowTypeOfServiceDropdown((prev) => !prev);
-  const handleSelectTypeOfService = (serviceName) => {
-    setSelectedTypeOfService(serviceName);
-    setShowTypeOfServiceDropdown(false);
-  };
-
-  // ---------- Calendar / Move Date ----------
-  const today = new Date();
-  const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
-
+  // ---------- build days array whenever currentMonth changes ----------
   useEffect(() => {
+    function getDaysInMonth(month, year) {
+      return new Date(year, month + 1, 0).getDate();
+    }
     const month = currentMonth.getMonth();
     const year = currentMonth.getFullYear();
     const daysInMonth = getDaysInMonth(month, year);
@@ -119,13 +114,40 @@ function LeadFormPopup({
     setDaysArray(temp);
   }, [currentMonth]);
 
+  // ---------- Dropdown toggles ----------
+  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
+  const [showSourceDropdown, setShowSourceDropdown] = useState(false);
+  const [showTypeOfServiceDropdown, setShowTypeOfServiceDropdown] = useState(false);
+  const [showSalesRepDropdown, setShowSalesRepDropdown] = useState(false);
+
+  const handleToggleCompanyDropdown = () => setShowCompanyDropdown((prev) => !prev);
+  const handleSelectCompany = (companyName) => {
+    setSelectedCompany(companyName);
+    setShowCompanyDropdown(false);
+  };
+
+  const handleToggleSourceDropdown = () => setShowSourceDropdown((prev) => !prev);
+  const handleSelectSource = (sourceName) => {
+    setSelectedSource(sourceName);
+    setShowSourceDropdown(false);
+  };
+
+  const handleToggleTypeOfServiceDropdown = () => setShowTypeOfServiceDropdown((prev) => !prev);
+  const handleSelectTypeOfService = (serviceName) => {
+    setSelectedTypeOfService(serviceName);
+    setShowTypeOfServiceDropdown(false);
+  };
+
+  // ---------- Calendar for move date ----------
+  const today = new Date();
+  const handleToggleCalendar = () => setShowCalendar((prev) => !prev);
+
   const handlePrevMonth = () => {
     setCurrentMonth((prevDate) => {
       const newMonth = prevDate.getMonth() - 1;
       return new Date(prevDate.getFullYear(), newMonth, 1);
     });
   };
-
   const handleNextMonth = () => {
     setCurrentMonth((prevDate) => {
       const newMonth = prevDate.getMonth() + 1;
@@ -140,8 +162,6 @@ function LeadFormPopup({
     setShowCalendar(false);
   };
 
-  const handleToggleCalendar = () => setShowCalendar((prev) => !prev);
-
   const moveDateTextClass = selectedMoveDate
     ? styles.moveDateSelectedText
     : styles.moveDatePlaceholderText;
@@ -149,22 +169,19 @@ function LeadFormPopup({
   // ---------- Sales Rep Toggle + Dropdown ----------
   const handleToggleSalesRep = (newValue) => {
     setAssignSalesRep(newValue);
-    if (!newValue) {
-      setSelectedSalesRep('');
-    }
+    if (!newValue) setSelectedSalesRep('');
   };
 
-  const [showSalesRepDropdown, setShowSalesRepDropdown] = useState(false);
   const handleToggleSalesRepDropdown = () => setShowSalesRepDropdown((prev) => !prev);
   const handleSelectSalesRep = (repName) => {
     setSelectedSalesRep(repName);
     setShowSalesRepDropdown(false);
   };
 
-  // ---------- Save Handler: create or update ----------
+  // ---------- Save Handler ----------
   const handleSave = async () => {
     try {
-      // Gather user-changeable fields
+      // Build the object of user-changeable fields
       const updates = {
         customer_name: customerName,
         customer_phone_number: phoneNumber,
@@ -173,18 +190,27 @@ function LeadFormPopup({
         source: selectedSource,
         service_type: selectedTypeOfService || 'Moving',
         sales_name: selectedSalesRep,
+
+        // Additional fields for the lead
+        estimator,
+        survey_date: surveyDate,
+        survey_time: surveyTime,
+
+        // If you want to store the "move date", add it here
+        // move_date: selectedMoveDate ? new Date(selectedMoveDate).toISOString() : null,
       };
 
-      // If editingLead => update, else create
+      // If editing an existing lead => update
       if (editingLead) {
-        // do not modify IDs or read-only fields
+        console.log('[LeadFormPopup] Attempting update with lead_id:', editingLead.lead_id);
         const updatedLead = await updateLead(editingLead.lead_id, updates);
+        console.log('[LeadFormPopup] updateLead result:', updatedLead);
         if (onLeadUpdated) {
           onLeadUpdated(updatedLead);
         }
-        console.log('Lead updated successfully:', updatedLead);
-      } else {
-        // brand new lead => create
+      }
+      // Otherwise create a brand-new lead
+      else {
         const newLeadData = {
           ...updates,
           rate_type: 'Hourly Rate',
@@ -194,16 +220,18 @@ function LeadFormPopup({
           is_new: true,
         };
         const createdLead = await createLead(newLeadData);
+        console.log('[LeadFormPopup] createLead result:', createdLead);
         if (onLeadCreated) {
           onLeadCreated(createdLead);
         }
-        console.log('Lead created successfully:', createdLead);
       }
 
-      // Close the popup
+      // Finally, close the popup
       onClose();
     } catch (err) {
       console.error('Failed to save lead:', err);
+      // Could be: "Error: Lead with id X not found"
+      // or an issue with multiple versions of @emotion/react, etc.
     }
   };
 
@@ -227,7 +255,7 @@ function LeadFormPopup({
         {/* ---------- MAIN CONTENT ---------- */}
         <div className={styles.content}>
 
-          {/* COMPANY NAME */}
+          {/* COMPANY NAME dropdown */}
           <div className={styles.companySelectWrapper}>
             <button
               type="button"
@@ -250,7 +278,7 @@ function LeadFormPopup({
             {showCompanyDropdown && (
               <ul className={styles.optionsList} role="listbox">
                 {CompanyChoices.map((company) => {
-                  const isSelected = selectedCompany === company.name;
+                  const isSelected = (selectedCompany === company.name);
                   return (
                     <li
                       key={company.id}
@@ -270,6 +298,7 @@ function LeadFormPopup({
 
           {/* BASIC INPUT FIELDS */}
           <div className={styles.inputSet}>
+            {/* Customer Name */}
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
@@ -280,6 +309,7 @@ function LeadFormPopup({
               />
             </div>
 
+            {/* Phone Number */}
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
@@ -290,6 +320,7 @@ function LeadFormPopup({
               />
             </div>
 
+            {/* Email */}
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
@@ -300,7 +331,7 @@ function LeadFormPopup({
               />
             </div>
 
-            {/* SOURCE */}
+            {/* SOURCE Dropdown */}
             <div className={styles.sourceSelectWrapper}>
               <button
                 type="button"
@@ -322,18 +353,18 @@ function LeadFormPopup({
 
               {showSourceDropdown && (
                 <ul className={styles.optionsList} role="listbox">
-                  {LeadSourceChoices.map((source) => {
-                    const isSelected = selectedSource === source.name;
+                  {LeadSourceChoices.map((src) => {
+                    const isSelected = (selectedSource === src.name);
                     return (
                       <li
-                        key={source.id}
+                        key={src.id}
                         className={`${styles.option} ${isSelected ? styles.selected : ''}`}
                         role="option"
                         aria-selected={isSelected}
-                        onClick={() => handleSelectSource(source.name)}
+                        onClick={() => handleSelectSource(src.name)}
                         tabIndex={0}
                       >
-                        {source.name}
+                        {src.name}
                       </li>
                     );
                   })}
@@ -342,8 +373,10 @@ function LeadFormPopup({
             </div>
           </div>
 
-          {/* SERVICE SET */}
+          {/* SERVICE SET (Type of Service, fromZip, toZip, etc.) */}
           <div className={styles.serviceSet}>
+
+            {/* Type of Service dropdown */}
             <div className={styles.typeOfServiceSelectWrapper}>
               <button
                 type="button"
@@ -366,7 +399,7 @@ function LeadFormPopup({
               {showTypeOfServiceDropdown && (
                 <ul className={styles.optionsList} role="listbox">
                   {typeOfServiceChoices.map((service) => {
-                    const isSelected = selectedTypeOfService === service.name;
+                    const isSelected = (selectedTypeOfService === service.name);
                     return (
                       <li
                         key={service.id}
@@ -384,6 +417,7 @@ function LeadFormPopup({
               )}
             </div>
 
+            {/* From Zip */}
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
@@ -392,6 +426,7 @@ function LeadFormPopup({
               />
             </div>
 
+            {/* To Zip */}
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
@@ -400,7 +435,7 @@ function LeadFormPopup({
               />
             </div>
 
-            {/* MOVE DATE (OPTIONAL) */}
+            {/* Optional: Move Date */}
             <div className={styles.moveDateWrapper}>
               <button
                 type="button"
@@ -418,27 +453,18 @@ function LeadFormPopup({
               {showCalendar && (
                 <div className={styles.calendarPopup}>
                   <div className={styles.calendarHeader}>
-                    <button type="button" onClick={handlePrevMonth}>
-                      Prev
-                    </button>
+                    <button type="button" onClick={handlePrevMonth}>Prev</button>
                     <span>
                       {currentMonth.toLocaleString('default', { month: 'long' })}{' '}
                       {currentMonth.getFullYear()}
                     </span>
-                    <button type="button" onClick={handleNextMonth}>
-                      Next
-                    </button>
+                    <button type="button" onClick={handleNextMonth}>Next</button>
                   </div>
                   <div className={styles.calendarGrid}>
                     {daysArray.map((day) => {
-                      const dayDate = new Date(
-                        currentMonth.getFullYear(),
-                        currentMonth.getMonth(),
-                        day
-                      );
-                      const disabled = dayDate < today.setHours(0, 0, 0, 0);
-                      const isSelectedDay =
-                        dayDate.toDateString() === selectedMoveDate;
+                      const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                      const disabled = (dayDate < today.setHours(0, 0, 0, 0));
+                      const isSelectedDay = (dayDate.toDateString() === selectedMoveDate);
 
                       return (
                         <button
@@ -475,7 +501,7 @@ function LeadFormPopup({
             />
           </div>
 
-          {/* Sales Rep dropdown if toggled ON */}
+          {/* If toggled ON => Sales Rep dropdown */}
           {assignSalesRep && (
             <div className={styles.salesRepSelectWrapper}>
               <button
@@ -499,7 +525,7 @@ function LeadFormPopup({
               {showSalesRepDropdown && (
                 <ul className={styles.optionsList} role="listbox">
                   {PossibleSalesReps.map((rep) => {
-                    const isSelected = selectedSalesRep === rep.name;
+                    const isSelected = (selectedSalesRep === rep.name);
                     return (
                       <li
                         key={rep.id}
@@ -517,9 +543,12 @@ function LeadFormPopup({
               )}
             </div>
           )}
+
+    
+
         </div>
 
-        {/* STICKY FOOTER */}
+        {/* ---------- FOOTER ---------- */}
         <div className={styles.stickyFooter}>
           <button
             type="button"
@@ -532,6 +561,7 @@ function LeadFormPopup({
             Previous requests:
           </div>
         </div>
+
       </div>
     </div>
   );

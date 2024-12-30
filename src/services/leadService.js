@@ -42,6 +42,10 @@ export async function createLead(leadData) {
 
     sales_name: leadData.sales_name || '',
     is_new: leadData.is_new !== undefined ? leadData.is_new : true,
+
+    estimator: leadData.estimator || null,      // or null if you prefer
+    survey_date: leadData.survey_date || null,
+    survey_time: leadData.survey_time || null,
   };
 
   // Add the newLead to our local array
@@ -63,7 +67,7 @@ export async function updateLead(leadId, updates) {
 
   const updatedLead = {
     ...existingLead,
-    // Only user-changeable fields (we keep job_number, creation_date_time, etc. intact)
+    // Only user-changeable fields:
     customer_name: updates.customer_name,
     customer_phone_number: updates.customer_phone_number,
     customer_email: updates.customer_email,
@@ -71,10 +75,17 @@ export async function updateLead(leadId, updates) {
     source: updates.source,
     service_type: updates.service_type,
     sales_name: updates.sales_name,
-    // If you wanted to allow editing lead_status or lead_activity, you'd include them here as well
+
+    // ADD these lines so changes from LeadManagementPanel are saved:
+    lead_status: updates.lead_status ?? existingLead.lead_status,
+    lead_activity: updates.lead_activity ?? existingLead.lead_activity,
+    next_action: updates.next_action ?? existingLead.next_action,
+
+    estimator: updates.estimator ?? existingLead.estimator,
+  survey_date: updates.survey_date ?? existingLead.survey_date,
+  survey_time: updates.survey_time ?? existingLead.survey_time,
   };
 
-  // Replace the old lead with the updated one
   leadsData[existingIndex] = updatedLead;
   return updatedLead;
 }

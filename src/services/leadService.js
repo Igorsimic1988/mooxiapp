@@ -17,7 +17,6 @@ export async function createLead(leadData) {
 
   // We'll just hard-code tenant_id
   const tenantId = 'tenant_1';
-  // creation_date_time is the current date/time
   const creationDateTime = new Date().toISOString();
 
   const newLead = {
@@ -43,14 +42,13 @@ export async function createLead(leadData) {
     sales_name: leadData.sales_name || '',
     is_new: leadData.is_new !== undefined ? leadData.is_new : true,
 
-    estimator: leadData.estimator || null,      // or null if you prefer
-    survey_date: leadData.survey_date || null,
-    survey_time: leadData.survey_time || null,
+    // NEW FIELDS
+    estimator: leadData.estimator || '',
+    survey_date: leadData.survey_date || '',
+    survey_time: leadData.survey_time || '',
   };
 
-  // Add the newLead to our local array
   leadsData.push(newLead);
-
   return newLead;
 }
 
@@ -68,22 +66,23 @@ export async function updateLead(leadId, updates) {
   const updatedLead = {
     ...existingLead,
     // Only user-changeable fields:
-    customer_name: updates.customer_name,
-    customer_phone_number: updates.customer_phone_number,
-    customer_email: updates.customer_email,
-    company_name: updates.company_name,
-    source: updates.source,
-    service_type: updates.service_type,
-    sales_name: updates.sales_name,
+    customer_name: updates.customer_name ?? existingLead.customer_name,
+    customer_phone_number: updates.customer_phone_number ?? existingLead.customer_phone_number,
+    customer_email: updates.customer_email ?? existingLead.customer_email,
+    company_name: updates.company_name ?? existingLead.company_name,
+    source: updates.source ?? existingLead.source,
+    service_type: updates.service_type ?? existingLead.service_type,
+    sales_name: updates.sales_name ?? existingLead.sales_name,
 
-    // ADD these lines so changes from LeadManagementPanel are saved:
+    // So changes from LeadManagementPanel are saved:
     lead_status: updates.lead_status ?? existingLead.lead_status,
     lead_activity: updates.lead_activity ?? existingLead.lead_activity,
     next_action: updates.next_action ?? existingLead.next_action,
 
+    // NEW FIELDS for estimator / date / time
     estimator: updates.estimator ?? existingLead.estimator,
-  survey_date: updates.survey_date ?? existingLead.survey_date,
-  survey_time: updates.survey_time ?? existingLead.survey_time,
+    survey_date: updates.survey_date ?? existingLead.survey_date,
+    survey_time: updates.survey_time ?? existingLead.survey_time,
   };
 
   leadsData[existingIndex] = updatedLead;

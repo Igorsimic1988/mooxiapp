@@ -86,7 +86,6 @@ const timeSlots = generateTimeSlots();
 
 /**
  * The statuses that must hide NextAction AND also set next_action to empty.
- * So if we ever change to one of these statuses, we override next_action = "".
  */
 const HIDDEN_STATUSES = ['Bad Lead', 'Declined', 'Booked', 'Move on Hold', 'Cancaled'];
 
@@ -102,33 +101,44 @@ const HIDDEN_STATUSES = ['Bad Lead', 'Declined', 'Booked', 'Move on Hold', 'Canc
 function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
   const [showInventory, setShowInventory] = useState(false);
 
-  // Local states
-  const [leadStatus, setLeadStatus]   = useState(lead.lead_status);
+  // Local states for status, activity, nextAction
+  const [leadStatus, setLeadStatus]     = useState(lead.lead_status);
   const [leadActivity, setLeadActivity] = useState(lead.lead_activity || 'Contacting');
-  const [nextAction, setNextAction]   = useState(lead.next_action || '—');
+  const [nextAction, setNextAction]     = useState(lead.next_action || '—');
   const [hideNextActionAfterSurvey, setHideNextActionAfterSurvey] = useState(false);
+
+  // [NEW] Always parse `lead.survey_date` into `.toDateString()`
+  //       If it fails, we fallback to an empty string.
+  function convertToDateString(possibleDate) {
+    if (!possibleDate) return '';
+    const d = new Date(possibleDate);
+    return isNaN(d) ? '' : d.toDateString();
+  }
+
+  const [selectedEstimator, setSelectedEstimator] = useState(lead.estimator || '');
+  const [selectedDate, setSelectedDate]           = useState(
+    convertToDateString(lead.survey_date)  // [NEW]
+  );
+  const [selectedTime, setSelectedTime]           = useState(lead.survey_time || '');
 
   // show/hide dropdowns
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showActivityDropdown, setShowActivityDropdown] = useState(false);
+  const [showEstimatorDropdown, setShowEstimatorDropdown] = useState(false);
 
   // Refs for outside-click detection
-  const statusContainerRef = useRef(null);
+  const statusContainerRef   = useRef(null);
   const activityContainerRef = useRef(null);
 
-  // Estimator/Date/Time
-  const [showEstimatorDropdown, setShowEstimatorDropdown] = useState(false);
-  const [selectedEstimator, setSelectedEstimator] = useState('');
-
-  const [showCalendar, setShowCalendar] = useState(false);
+  // Calendar states
+  const [showCalendar, setShowCalendar]   = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [daysInMonth, setDaysInMonth] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('');
+  const [daysInMonth, setDaysInMonth]     = useState([]);
 
+  // Time dropdown
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
-  const [selectedTime, setSelectedTime] = useState('');
 
-  // Build days array whenever `calendarMonth` changes
+  // build days array whenever `calendarMonth` changes
   useEffect(() => {
     const y = calendarMonth.getFullYear();
     const m = calendarMonth.getMonth();
@@ -143,10 +153,18 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
   // Outside click => close dropdowns
   useEffect(() => {
     function handleClickOutside(e) {
-      if (showStatusDropdown && statusContainerRef.current && !statusContainerRef.current.contains(e.target)) {
+      if (
+        showStatusDropdown &&
+        statusContainerRef.current &&
+        !statusContainerRef.current.contains(e.target)
+      ) {
         setShowStatusDropdown(false);
       }
-      if (showActivityDropdown && activityContainerRef.current && !activityContainerRef.current.contains(e.target)) {
+      if (
+        showActivityDropdown &&
+        activityContainerRef.current &&
+        !activityContainerRef.current.contains(e.target)
+      ) {
         setShowActivityDropdown(false);
       }
     }
@@ -183,18 +201,16 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
 
     const newStatus = option.label;
     let newActivity = getActivityOptions(newStatus)[0] || '';
-    let newNextAction = nextAction; // might be overridden
+    let newNextAction = nextAction;
 
     // If we are picking a "hidden" status => nextAction = ""
     if (HIDDEN_STATUSES.includes(newStatus)) {
       newNextAction = '';
     }
-    // If user picks "In Progress" => nextAction="Attempt 1"
     else if (newStatus === 'In Progress') {
       newNextAction = 'Attempt 1';
       setHideNextActionAfterSurvey(false);
     }
-    // If "Quoted" => nextAction="Follow up 1"
     else if (newStatus === 'Quoted') {
       newNextAction = 'Follow up 1';
       setHideNextActionAfterSurvey(false);
@@ -211,6 +227,10 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         lead_status: newStatus,
         lead_activity: newActivity,
         next_action: newNextAction,
+
+        estimator: selectedEstimator,
+        survey_date: selectedDate,
+        survey_time: selectedTime,
       });
     }
   };
@@ -221,7 +241,6 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
   const handleSelectActivity = (activityValue) => {
     setShowActivityDropdown(false);
 
-    // If (In Progress + "In Home Estimate"/"Virtual Estimate") => nextAction="Schedule Survey"
     let newNextAction = nextAction;
     if (
       leadStatus === 'In Progress' &&
@@ -241,13 +260,16 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         lead_status: leadStatus,
         lead_activity: activityValue,
         next_action: newNextAction,
+
+        estimator: selectedEstimator,
+        survey_date: selectedDate,
+        survey_time: selectedTime,
       });
     }
   };
 
   /**
    * handle Next Action click => cycle Attempt or Follow up
-   * or handle "Schedule Survey" => "Survey Completed"
    */
   const handleNextActionClick = () => {
     // If nextAction is "Schedule Survey" => next => "Survey Completed"
@@ -259,12 +281,14 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
           lead_status: leadStatus,
           lead_activity: leadActivity,
           next_action: 'Survey Completed',
+
+          estimator: selectedEstimator,
+          survey_date: selectedDate,
+          survey_time: selectedTime,
         });
       }
       return;
     }
-
-    // If nextAction is "Survey Completed" => hide
     if (nextAction === 'Survey Completed') {
       setHideNextActionAfterSurvey(true);
       if (onLeadUpdated) {
@@ -273,12 +297,15 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
           lead_status: leadStatus,
           lead_activity: leadActivity,
           next_action: 'Survey Completed',
+
+          estimator: selectedEstimator,
+          survey_date: selectedDate,
+          survey_time: selectedTime,
         });
       }
       return;
     }
 
-    // Otherwise handle standard logic
     let newStatus = leadStatus;
     let newActivity = leadActivity;
     let newNextAction = nextAction;
@@ -291,7 +318,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       } else if (nextAction.startsWith('Attempt')) {
         const attemptNum = parseInt(nextAction.replace('Attempt ', ''), 10);
         if (attemptNum >= 6) {
-          newStatus = 'Bad Lead'; // sets nextAction = ""
+          newStatus = 'Bad Lead';
           newActivity = getActivityOptions('Bad Lead')[0] || '';
           newNextAction = '—';
         } else {
@@ -307,7 +334,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       } else {
         const attemptNum = parseInt(nextAction.replace('Attempt ', ''), 10);
         if (attemptNum >= 6) {
-          newStatus = 'Bad Lead'; // sets nextAction = ""
+          newStatus = 'Bad Lead';
           newActivity = getActivityOptions('Bad Lead')[0] || '';
           newNextAction = '—';
         } else {
@@ -321,7 +348,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       } else {
         const fuNum = parseInt(nextAction.replace('Follow up ', ''), 10);
         if (fuNum >= 6) {
-          newStatus = 'Declined'; // sets nextAction = ""
+          newStatus = 'Declined';
           newActivity = getActivityOptions('Declined')[0] || '';
           newNextAction = '—';
         } else {
@@ -333,7 +360,6 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     setLeadStatus(newStatus);
     setLeadActivity(newActivity);
 
-    // If the new status is in hidden statuses => nextAction = ""
     if (HIDDEN_STATUSES.includes(newStatus)) {
       newNextAction = '';
       setNextAction('');
@@ -348,6 +374,10 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         lead_status: newStatus,
         lead_activity: newActivity,
         next_action: newNextAction,
+
+        estimator: selectedEstimator,
+        survey_date: selectedDate,
+        survey_time: selectedTime,
       });
     }
   };
@@ -359,10 +389,25 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
   const handleSelectEstimator = (repName) => {
     setSelectedEstimator(repName);
     setShowEstimatorDropdown(false);
+
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        lead_status: leadStatus,
+        lead_activity: leadActivity,
+        next_action: nextAction,
+
+        estimator: repName,
+        survey_date: selectedDate,
+        survey_time: selectedTime,
+      });
+    }
   };
 
   /** Calendar toggles */
-  const handleToggleCalendar = () => setShowCalendar((prev) => !prev);
+  const handleToggleCalendar = () => {
+    setShowCalendar((prev) => !prev);
+  };
   const goPrevMonth = () => {
     setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   };
@@ -371,8 +416,22 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
   };
   const handleDayClick = (dayNum) => {
     const dateObj = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNum);
-    setSelectedDate(dateObj.toDateString());
+    const newDateString = dateObj.toDateString(); // always "Sat Jan 18 2025"
+    setSelectedDate(newDateString);
     setShowCalendar(false);
+
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        lead_status: leadStatus,
+        lead_activity: leadActivity,
+        next_action: nextAction,
+
+        estimator: selectedEstimator,
+        survey_date: newDateString,
+        survey_time: selectedTime,
+      });
+    }
   };
 
   /** Time toggle */
@@ -382,28 +441,39 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
   const handleSelectTime = (timeStr) => {
     setSelectedTime(timeStr);
     setShowTimeDropdown(false);
+
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        lead_status: leadStatus,
+        lead_activity: leadActivity,
+        next_action: nextAction,
+
+        estimator: selectedEstimator,
+        survey_date: selectedDate,
+        survey_time: timeStr,
+      });
+    }
   };
 
-  // Derive color/icon for the current status
+  // figure out color/icon
   const currentStatusObj = statusOptions.find((opt) => opt.label === leadStatus);
   const statusColor = currentStatusObj ? currentStatusObj.color : '#59B779';
-  const statusIcon = currentStatusObj ? currentStatusObj.icon : null;
+  const statusIcon  = currentStatusObj ? currentStatusObj.icon : null;
 
-  // Hide Next Action if the status is in HIDDEN_STATUSES or user has pressed "Survey Completed"
-  const hideNextAction =
-    HIDDEN_STATUSES.includes(leadStatus) || hideNextActionAfterSurvey;
+  // Hide Next Action if status is in HIDDEN_STATUSES or "Survey Completed"
+  const hideNextAction = HIDDEN_STATUSES.includes(leadStatus) || hideNextActionAfterSurvey;
 
-  // Hide activity button if "Move on Hold"
+  // Hide activity if "Move on Hold"
   const hideActivityButton = (leadStatus === 'Move on Hold');
 
-  // The available activities for current leadStatus
+  // The list of possible activities
   const activityOptions = getActivityOptions(leadStatus);
 
-  // Show Estimator/Date/Time fields if status=In Progress + activity=In Home/Virtual
+  // Show Estimator/Date/Time if status=In Progress + "In Home/Virtual"
   const showEstimatorDateTimeInputs =
     leadStatus === 'In Progress' &&
     (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate');
-
 
   return (
     <div className={styles.wrapper}>
@@ -527,10 +597,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
           )}
         </div>
 
-        {/* 
-          If (status=In Progress + activity=In Home Estimate/Virtual Estimate):
-          show Estimator + Date + Time + Next Action.
-        */}
+        {/* If (status=In Progress + "In Home"/"Virtual") => show Estimator + Date + Time */}
         {showEstimatorDateTimeInputs && (
           <div className={styles.estimateExtraContainer}>
 
@@ -644,7 +711,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
           </div>
         )}
 
-        {/* If not in "In Home/Virtual" but still have a Next Action => show button here */}
+        {/* If not in "In Home/Virtual" but still have Next Action => show button */}
         {!showEstimatorDateTimeInputs && !hideNextAction && (
           <button
             className={styles.nextActionButton}

@@ -38,7 +38,7 @@ const statusOptions = [
   { label: 'Cancaled',    color: '#2f3236', icon: <CanceledIcon />,    isDisabled: false },
 ];
 
-/** Activity options by status */
+/** Activities by status */
 function getActivityOptions(status) {
   switch (status) {
     case 'New Lead':
@@ -61,7 +61,7 @@ function getActivityOptions(status) {
   }
 }
 
-/** Generate 15-min time slots from 7:00 AM to 9:00 PM */
+/** Time slots from 7:00 AM to 9:00 PM */
 function generateTimeSlots() {
   const slots = [];
   let hour = 7;
@@ -84,42 +84,65 @@ function generateTimeSlots() {
 }
 const timeSlots = generateTimeSlots();
 
-/**
- * The statuses that must hide NextAction AND also set next_action to empty.
- */
+/** HIDDEN_STATUSES => hide NextAction */
 const HIDDEN_STATUSES = ['Bad Lead', 'Declined', 'Booked', 'Move on Hold', 'Cancaled'];
+
+/** The inventory dropdown options */
+const inventoryDropdownOptions = [
+  {
+    label: 'Detailed Inventory Quote',
+    textColor: '#3FA9F5',
+    iconBg: '#3FA9F5',
+  },
+  {
+    label: 'Quick Estimate',
+    textColor: '#faa612',
+    iconBg: '#faa612',
+  },
+  {
+    label: 'I Know My Shipment Size',
+    textColor: '#616161',
+    iconBg: '#90a4b7',
+  },
+];
 
 /**
  * LeadManagementPanel
- * 
+ *
  * Props:
  *  - lead: the current lead object
  *  - onClose: (optional) close the panel
  *  - onEditLead: invoked if user clicks the Edit icon
- *  - onLeadUpdated: invoked whenever lead's status/activity/nextAction changes
+ *  - onLeadUpdated: invoked whenever the lead is updated
  */
 function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
   const [showInventory, setShowInventory] = useState(false);
 
-  // Local states for status, activity, nextAction
+  // status, activity, nextAction
   const [leadStatus, setLeadStatus]     = useState(lead.lead_status);
   const [leadActivity, setLeadActivity] = useState(lead.lead_activity || 'Contacting');
   const [nextAction, setNextAction]     = useState(lead.next_action || '—');
   const [hideNextActionAfterSurvey, setHideNextActionAfterSurvey] = useState(false);
 
-  // [NEW] Always parse `lead.survey_date` into `.toDateString()`
-  //       If it fails, we fallback to an empty string.
+  // [ANIMATION] nextAction bounce
+  const [animateNextAction, setAnimateNextAction] = useState(false);
+
+  // parse date/time
   function convertToDateString(possibleDate) {
     if (!possibleDate) return '';
     const d = new Date(possibleDate);
     return isNaN(d) ? '' : d.toDateString();
   }
-
   const [selectedEstimator, setSelectedEstimator] = useState(lead.estimator || '');
-  const [selectedDate, setSelectedDate]           = useState(
-    convertToDateString(lead.survey_date)  // [NEW]
-  );
+  const [selectedDate, setSelectedDate]           = useState(convertToDateString(lead.survey_date));
   const [selectedTime, setSelectedTime]           = useState(lead.survey_time || '');
+
+  // inventory option => read from lead.inventory_option
+  const [inventoryOption, setInventoryOption] = useState(
+    lead.inventory_option || 'Detailed Inventory Quote'
+  );
+  const [showInventoryDropdown, setShowInventoryDropdown] = useState(false);
+  const inventoryRef = useRef(null);
 
   // show/hide dropdowns
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -130,15 +153,14 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
   const statusContainerRef   = useRef(null);
   const activityContainerRef = useRef(null);
 
-  // Calendar states
+  // Calendar
   const [showCalendar, setShowCalendar]   = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [daysInMonth, setDaysInMonth]     = useState([]);
 
-  // Time dropdown
+  // Time
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
 
-  // build days array whenever `calendarMonth` changes
   useEffect(() => {
     const y = calendarMonth.getFullYear();
     const m = calendarMonth.getMonth();
@@ -150,7 +172,6 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     setDaysInMonth(arr);
   }, [calendarMonth]);
 
-  // Outside click => close dropdowns
   useEffect(() => {
     function handleClickOutside(e) {
       if (
@@ -167,34 +188,36 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       ) {
         setShowActivityDropdown(false);
       }
+      if (
+        showInventoryDropdown &&
+        inventoryRef.current &&
+        !inventoryRef.current.contains(e.target)
+      ) {
+        setShowInventoryDropdown(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showStatusDropdown, showActivityDropdown]);
+  }, [
+    showStatusDropdown,
+    showActivityDropdown,
+    showInventoryDropdown,
+  ]);
 
-  // If we show Inventory
+  // If user opens Inventory overlay
   if (showInventory) {
     return <Inventory onCloseInventory={() => setShowInventory(false)} />;
   }
 
-  /** handle clicking "Edit" => onEditLead(...) */
+  // "Edit" => pop up form
   const handleEditClick = () => {
     if (onEditLead) onEditLead(lead);
   };
 
-  /** Status dropdown toggle */
+  // Status
   const handleToggleStatusDropdown = () => {
     setShowStatusDropdown((prev) => !prev);
   };
-
-  /** Activity dropdown toggle */
-  const handleToggleActivityDropdown = () => {
-    setShowActivityDropdown((prev) => !prev);
-  };
-
-  /**
-   * handle user picking a new status
-   */
   const handleSelectStatus = (option) => {
     if (option.isDisabled) return;
     setShowStatusDropdown(false);
@@ -203,15 +226,12 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     let newActivity = getActivityOptions(newStatus)[0] || '';
     let newNextAction = nextAction;
 
-    // If we are picking a "hidden" status => nextAction = ""
     if (HIDDEN_STATUSES.includes(newStatus)) {
       newNextAction = '';
-    }
-    else if (newStatus === 'In Progress') {
+    } else if (newStatus === 'In Progress') {
       newNextAction = 'Attempt 1';
       setHideNextActionAfterSurvey(false);
-    }
-    else if (newStatus === 'Quoted') {
+    } else if (newStatus === 'Quoted') {
       newNextAction = 'Follow up 1';
       setHideNextActionAfterSurvey(false);
     }
@@ -220,24 +240,24 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     setLeadActivity(newActivity);
     setNextAction(newNextAction);
 
-    // call onLeadUpdated
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
         lead_status: newStatus,
         lead_activity: newActivity,
         next_action: newNextAction,
-
         estimator: selectedEstimator,
         survey_date: selectedDate,
         survey_time: selectedTime,
+        inventory_option: inventoryOption,
       });
     }
   };
 
-  /**
-   * handle user picking a new activity
-   */
+  // Activity
+  const handleToggleActivityDropdown = () => {
+    setShowActivityDropdown((prev) => !prev);
+  };
   const handleSelectActivity = (activityValue) => {
     setShowActivityDropdown(false);
 
@@ -253,26 +273,26 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     setLeadActivity(activityValue);
     setNextAction(newNextAction);
 
-    // call onLeadUpdated
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
         lead_status: leadStatus,
         lead_activity: activityValue,
         next_action: newNextAction,
-
         estimator: selectedEstimator,
         survey_date: selectedDate,
         survey_time: selectedTime,
+        inventory_option: inventoryOption,
       });
     }
   };
 
-  /**
-   * handle Next Action click => cycle Attempt or Follow up
-   */
+  // Next Action => short bounce animation
   const handleNextActionClick = () => {
-    // If nextAction is "Schedule Survey" => next => "Survey Completed"
+    setAnimateNextAction(true);
+    setTimeout(() => setAnimateNextAction(false), 600);
+
+    // Then standard logic
     if (nextAction === 'Schedule Survey') {
       setNextAction('Survey Completed');
       if (onLeadUpdated) {
@@ -281,10 +301,10 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
           lead_status: leadStatus,
           lead_activity: leadActivity,
           next_action: 'Survey Completed',
-
           estimator: selectedEstimator,
           survey_date: selectedDate,
           survey_time: selectedTime,
+          inventory_option: inventoryOption,
         });
       }
       return;
@@ -297,10 +317,10 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
           lead_status: leadStatus,
           lead_activity: leadActivity,
           next_action: 'Survey Completed',
-
           estimator: selectedEstimator,
           survey_date: selectedDate,
           survey_time: selectedTime,
+          inventory_option: inventoryOption,
         });
       }
       return;
@@ -327,8 +347,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       } else {
         newNextAction = 'Attempt 1';
       }
-    }
-    else if (leadStatus === 'In Progress') {
+    } else if (leadStatus === 'In Progress') {
       if (!nextAction.startsWith('Attempt')) {
         newNextAction = 'Attempt 2';
       } else {
@@ -341,8 +360,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
           newNextAction = `Attempt ${attemptNum + 1}`;
         }
       }
-    }
-    else if (leadStatus === 'Quoted') {
+    } else if (leadStatus === 'Quoted') {
       if (!nextAction.startsWith('Follow up')) {
         newNextAction = 'Follow up 1';
       } else {
@@ -367,22 +385,21 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       setNextAction(newNextAction);
     }
 
-    // call onLeadUpdated
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
         lead_status: newStatus,
         lead_activity: newActivity,
         next_action: newNextAction,
-
         estimator: selectedEstimator,
         survey_date: selectedDate,
         survey_time: selectedTime,
+        inventory_option: inventoryOption,
       });
     }
   };
 
-  /** Estimator dropdown toggle */
+  // Estimator
   const handleToggleEstimatorDropdown = () => {
     setShowEstimatorDropdown((prev) => !prev);
   };
@@ -396,15 +413,15 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         lead_status: leadStatus,
         lead_activity: leadActivity,
         next_action: nextAction,
-
         estimator: repName,
         survey_date: selectedDate,
         survey_time: selectedTime,
+        inventory_option: inventoryOption,
       });
     }
   };
 
-  /** Calendar toggles */
+  // Calendar
   const handleToggleCalendar = () => {
     setShowCalendar((prev) => !prev);
   };
@@ -416,7 +433,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
   };
   const handleDayClick = (dayNum) => {
     const dateObj = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNum);
-    const newDateString = dateObj.toDateString(); // always "Sat Jan 18 2025"
+    const newDateString = dateObj.toDateString();
     setSelectedDate(newDateString);
     setShowCalendar(false);
 
@@ -426,15 +443,15 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         lead_status: leadStatus,
         lead_activity: leadActivity,
         next_action: nextAction,
-
         estimator: selectedEstimator,
         survey_date: newDateString,
         survey_time: selectedTime,
+        inventory_option: inventoryOption,
       });
     }
   };
 
-  /** Time toggle */
+  // Time
   const handleToggleTimeDropdown = () => {
     setShowTimeDropdown((prev) => !prev);
   };
@@ -448,32 +465,55 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         lead_status: leadStatus,
         lead_activity: leadActivity,
         next_action: nextAction,
-
         estimator: selectedEstimator,
         survey_date: selectedDate,
         survey_time: timeStr,
+        inventory_option: inventoryOption,
       });
     }
   };
 
-  // figure out color/icon
+  // figure out lead status color/icon
   const currentStatusObj = statusOptions.find((opt) => opt.label === leadStatus);
   const statusColor = currentStatusObj ? currentStatusObj.color : '#59B779';
   const statusIcon  = currentStatusObj ? currentStatusObj.icon : null;
 
-  // Hide Next Action if status is in HIDDEN_STATUSES or "Survey Completed"
+  // hide nextAction if status in HIDDEN_STATUSES or "Survey Completed"
   const hideNextAction = HIDDEN_STATUSES.includes(leadStatus) || hideNextActionAfterSurvey;
+  const hideActivityButton = leadStatus === 'Move on Hold';
 
-  // Hide activity if "Move on Hold"
-  const hideActivityButton = (leadStatus === 'Move on Hold');
-
-  // The list of possible activities
+  // possible activity options
   const activityOptions = getActivityOptions(leadStatus);
 
-  // Show Estimator/Date/Time if status=In Progress + "In Home/Virtual"
+  // show estimator/date/time if needed
   const showEstimatorDateTimeInputs =
     leadStatus === 'In Progress' &&
     (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate');
+
+  // handle inventory dropdown
+  const handleSelectInventoryOption = (opt) => {
+    setInventoryOption(opt.label);
+    setShowInventoryDropdown(false);
+
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        inventory_option: opt.label,
+        lead_status: leadStatus,
+        lead_activity: leadActivity,
+        next_action: nextAction,
+        estimator: selectedEstimator,
+        survey_date: selectedDate,
+        survey_time: selectedTime,
+      });
+    }
+  };
+
+  // figure out color for the text + icon container
+  const selectedInvObj = inventoryDropdownOptions.find(o => o.label === inventoryOption)
+    || inventoryDropdownOptions[0];
+  const inventoryTextColor = selectedInvObj.textColor;
+  const inventoryIconBg    = selectedInvObj.iconBg;
 
   return (
     <div className={styles.wrapper}>
@@ -540,7 +580,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
                 {statusOptions
                   .filter((opt) => opt.label !== 'New Lead')
                   .map((option) => {
-                    const isSelected = (option.label === leadStatus);
+                    const isSelected = option.label === leadStatus;
                     return (
                       <li
                         key={option.label}
@@ -577,7 +617,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
               {showActivityDropdown && (
                 <ul className={styles.activityDropdown}>
                   {activityOptions.map((act) => {
-                    const isSelected = (act === leadActivity);
+                    const isSelected = act === leadActivity;
                     return (
                       <li
                         key={act}
@@ -701,7 +741,9 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
             {/* Next Action if not hidden */}
             {!hideNextAction && (
               <button
-                className={styles.nextActionButton}
+                className={`${styles.nextActionButton} ${
+                  animateNextAction ? styles.animateNextAction : ''
+                }`}
                 onClick={handleNextActionClick}
               >
                 <span className={styles.nextActionLabel}>Next Action:</span>
@@ -714,7 +756,9 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         {/* If not in "In Home/Virtual" but still have Next Action => show button */}
         {!showEstimatorDateTimeInputs && !hideNextAction && (
           <button
-            className={styles.nextActionButton}
+            className={`${styles.nextActionButton} ${
+              animateNextAction ? styles.animateNextAction : ''
+            }`}
             style={{ marginTop: '10px' }}
             onClick={handleNextActionClick}
           >
@@ -723,7 +767,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
           </button>
         )}
 
-        {/* ---- Source & Previous Requests ---- */}
+        {/* Source & Previous Requests */}
         <div className={styles.sourceSection}>
           <span className={styles.sourceLabel}>Source:</span>
           <span className={styles.sourceValue}>
@@ -733,19 +777,77 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         <div className={styles.previousRequestsLabel}>Previous Requests:</div>
 
         <div className={styles.requestsButtonsContainer}>
-          <button className={styles.inviteButton}>
+
+          {/* Hide "Invite Customer" via CSS */}
+          <button className={`${styles.inviteButton} ${styles.hiddenButton}`}>
             <span className={styles.inviteText}>Invite Customer</span>
             <div className={styles.inviteIconContainer}>
               <UserIcon className={styles.userIcon} />
             </div>
           </button>
 
-          <button className={styles.inventoryButton}>
-            <span className={styles.inventoryText}>Detailed Inventory Quote</span>
-            <div className={styles.inventoryIconContainer}>
+          {/* Inventory Button => small dropdown for 3 options */}
+          <div
+            className={styles.inventoryButton}
+            style={{ position: 'relative' }}
+            ref={inventoryRef}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowInventoryDropdown(!showInventoryDropdown);
+            }}
+          >
+            <span
+              className={styles.inventoryText}
+              style={{ color: inventoryTextColor }}
+            >
+              {inventoryOption}
+            </span>
+            <div
+              className={styles.inventoryIconContainer}
+              style={{ backgroundColor: inventoryIconBg }}
+            >
               <SpecialHIcon className={styles.specialHIcon} />
             </div>
-          </button>
+
+            {showInventoryDropdown && (
+              <ul
+                style={{
+                  position: 'absolute',
+                  top: '55px',
+                  left: 0,
+                  width: '100%',
+                  background: '#fff',
+                  border: '1px solid #ccc',
+                  borderRadius: '12px',
+                  padding: '8px 0',
+                  maxHeight: '220px',
+                  overflowY: 'auto',
+                  zIndex: 3100,
+                }}
+              >
+                {inventoryDropdownOptions.map((opt) => {
+                  const isSelected = opt.label === inventoryOption;
+                  return (
+                    <li
+                      key={opt.label}
+                      style={{
+                        padding: '10px 15px',
+                        cursor: 'pointer',
+                        fontFamily: 'Satoshi, sans-serif',
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        background: isSelected ? 'rgba(0,0,0,0.05)' : '#FFF',
+                        color: '#2F3236',
+                      }}
+                      onClick={() => handleSelectInventoryOption(opt)}
+                    >
+                      {opt.label}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
 

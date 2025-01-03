@@ -46,6 +46,9 @@ export async function createLead(leadData) {
     estimator: leadData.estimator || '',
     survey_date: leadData.survey_date || '',
     survey_time: leadData.survey_time || '',
+
+    // NEW: track quote_type (inventory_option)
+    inventory_option: leadData.inventory_option || 'Detailed Inventory Quote',
   };
 
   leadsData.push(newLead);
@@ -74,15 +77,17 @@ export async function updateLead(leadId, updates) {
     service_type: updates.service_type ?? existingLead.service_type,
     sales_name: updates.sales_name ?? existingLead.sales_name,
 
-    // So changes from LeadManagementPanel are saved:
+    // changes from LeadManagementPanel
     lead_status: updates.lead_status ?? existingLead.lead_status,
     lead_activity: updates.lead_activity ?? existingLead.lead_activity,
     next_action: updates.next_action ?? existingLead.next_action,
 
-    // NEW FIELDS for estimator / date / time
     estimator: updates.estimator ?? existingLead.estimator,
     survey_date: updates.survey_date ?? existingLead.survey_date,
     survey_time: updates.survey_time ?? existingLead.survey_time,
+
+    // NEW: store the inventory_option
+    inventory_option: updates.inventory_option ?? existingLead.inventory_option,
   };
 
   leadsData[existingIndex] = updatedLead;

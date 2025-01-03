@@ -17,13 +17,12 @@ import actualLeads from '../../data/constants/actualLeads';
 import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
 
 /**
- * Based on current activeTab, filter the leads.
- * - "Active Leads" => status in ["New Lead", "In Progress", "Quoted", "Move on Hold"],
- *                     excluding In-Progress leads whose next_action="Survey Completed"
- * - "Closed Leads" => status in ["Bad Lead", "Declined"]
+ * Filter leads based on current activeTab
+ * - "Active Leads" => statuses in ["New Lead", "In Progress", "Quoted", "Move on Hold"], excluding In-Progress leads whose next_action="Survey Completed"
+ * - "Closed Leads" => statuses in ["Bad Lead", "Declined"]
  * - "My Appointments" => status="In Progress", activity="In Home Estimate", next_action="Survey Completed"
  * - "Pending" => status="New Lead" (example assumption)
- * - "Booked" => status in ["Booked", "Cancaled"]
+ * - "Booked" => statuses in ["Booked", "Cancaled"]
  */
 function filterLeadsByTab(leads, activeTab) {
   switch (activeTab) {
@@ -31,13 +30,12 @@ function filterLeadsByTab(leads, activeTab) {
       return leads.filter((ld) => {
         const st = ld.lead_status;
         const na = ld.next_action;
-        // Must be one of [New Lead, In Progress, Quoted, Move on Hold].
-        const isActiveStatus =
+        const isActiveStatus = (
           st === 'New Lead' ||
           st === 'In Progress' ||
           st === 'Quoted' ||
-          st === 'Move on Hold';
-
+          st === 'Move on Hold'
+        );
         // If In Progress => exclude if next_action=Survey Completed
         if (st === 'In Progress' && na === 'Survey Completed') {
           return false;
@@ -51,6 +49,7 @@ function filterLeadsByTab(leads, activeTab) {
       );
 
     case 'My Appointments':
+      // status="In Progress", activity="In Home Estimate", next_action="Survey Completed"
       return leads.filter(
         (ld) =>
           ld.lead_status === 'In Progress' &&
@@ -59,6 +58,7 @@ function filterLeadsByTab(leads, activeTab) {
       );
 
     case 'Pending':
+      // For example, leads with lead_status === ''
       return leads.filter((ld) => ld.lead_status === '');
 
     case 'Booked':
@@ -72,21 +72,18 @@ function filterLeadsByTab(leads, activeTab) {
 }
 
 /**
- * Helper to parse lead's survey_date + survey_time into a JS Date (or null if invalid).
- * 
- * Example:
- *   lead.survey_date = "Sat Jan 18 2025"
- *   lead.survey_time = "10:30 AM"
+ * Parse lead.survey_date + survey_time into a JS Date.
+ * If invalid, returns null => so we can sort "My Appointments".
  */
 function parseSurveyDateTime(lead) {
-  if (!lead.survey_date) return null; // no date => can't parse
-  const d = new Date(lead.survey_date); // e.g. "Sat Jan 18 2025"
-  if (isNaN(d)) return null; // invalid date string
+  if (!lead.survey_date) return null;
+  const d = new Date(lead.survey_date);
+  if (isNaN(d)) return null;
 
-  // If there's a time string like "10:30 AM", parse it:
+  // parse "07:30 AM" or similar
   if (lead.survey_time) {
-    const timeRegex = /^(\d{1,2}):(\d{2})\s?(AM|PM)$/i;
-    const match = lead.survey_time.match(timeRegex);
+    const regex = /^(\d{1,2}):(\d{2})\s?(AM|PM)$/i;
+    const match = lead.survey_time.match(regex);
     if (match) {
       let hour = parseInt(match[1], 10);
       const minute = parseInt(match[2], 10);
@@ -104,20 +101,21 @@ function parseSurveyDateTime(lead) {
 function Leads() {
   const [leads, setLeads] = useState([...actualLeads]);
 
-  // For pagination
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 20;
 
-  // The tab from the filter bar
+  // The current tab
   const [activeTab, setActiveTab] = useState('Active Leads');
 
-  // If a lead is selected => show its details (LeadManagementPanel)
+  // If a lead is selected => show its details
   const [selectedLead, setSelectedLead] = useState(null);
 
-  // For the popup (creating/editing leads)
+  // Popup for creating/editing leads
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
 
+  // On mount/resize => set app height
   useEffect(() => {
     function setAppHeight() {
       document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -132,27 +130,22 @@ function Leads() {
     (a, b) => new Date(b.creation_date_time) - new Date(a.creation_date_time)
   );
 
-  // 2) Filter leads based on activeTab
+  // 2) Filter by activeTab
   let filteredLeads = filterLeadsByTab(sortedLeads, activeTab);
 
-  // 2.5) If My Appointments => further sort ascending by (survey_date + survey_time),
-  //      so soonest appointment is at the top
+  // 2.5) If My Appointments => further sort ascending by (survey_date + survey_time)
   if (activeTab === 'My Appointments') {
     filteredLeads.sort((a, b) => {
       const dateA = parseSurveyDateTime(a);
       const dateB = parseSurveyDateTime(b);
-
-      // If missing date => put them last
       if (!dateA && !dateB) return 0;
-      if (!dateA) return 1; // a goes after b
-      if (!dateB) return -1; // a goes before b
-
-      // otherwise ascending
-      return dateA - dateB;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+      return dateA - dateB; // ascending
     });
   }
 
-  // 3) Apply pagination
+  // 3) Pagination
   const totalLeads = filteredLeads.length;
   const totalPages = Math.ceil(totalLeads / leadsPerPage);
   const startIndex = (currentPage - 1) * leadsPerPage;
@@ -161,27 +154,23 @@ function Leads() {
 
   // Pagination handlers
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
   const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  // If user clicks a lead => open that lead in the LeadManagementPanel
+  // Selecting a lead => show LeadManagementPanel
   const handleLeadClick = (lead) => {
     setSelectedLead(lead);
   };
 
-  // If user clicks "Back" => close the details panel
+  // Closing panel
   const handleBack = () => {
     setSelectedLead(null);
   };
 
-  // Creating a brand new lead
+  // Creating a new lead => push to array
   const handleLeadCreated = (newLead) => {
     setLeads((prev) => [...prev, newLead]);
   };
@@ -191,19 +180,19 @@ function Leads() {
     setLeads((prevLeads) =>
       prevLeads.map((ld) => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
     );
-    // If we are showing that lead => update it there too
+    // If that lead is currently selected => update it
     if (selectedLead && selectedLead.lead_id === updatedLead.lead_id) {
       setSelectedLead(updatedLead);
     }
   };
 
-  // "Edit" => open popup
+  // Editing existing => open popup
   const handleEditLead = (lead) => {
     setEditingLead(lead);
     setShowLeadForm(true);
   };
 
-  // If user changes tabs => reset page to 1
+  // Changing tabs => reset page
   const handleChangeTab = (newTab) => {
     setActiveTab(newTab);
     setCurrentPage(1);
@@ -214,7 +203,6 @@ function Leads() {
       <HeaderDashboard isLeadSelected={!!selectedLead} onBack={handleBack} />
 
       {selectedLead ? (
-        // If a lead is selected => show details
         <LeadManagementPanel
           lead={selectedLead}
           onClose={() => setSelectedLead(null)}
@@ -222,7 +210,6 @@ function Leads() {
           onLeadUpdated={handleLeadUpdated}
         />
       ) : (
-        // Otherwise => normal list view
         <>
           <LeadsFilterBar activeTab={activeTab} onTabChange={handleChangeTab} />
           <LeadsSearchBar />
@@ -231,7 +218,7 @@ function Leads() {
             <LeadsActionButtons />
             <AddNewLeadButton
               onOpenLeadForm={() => {
-                setEditingLead(null); // new lead
+                setEditingLead(null);
                 setShowLeadForm(true);
               }}
             />
@@ -240,7 +227,7 @@ function Leads() {
           <LeadsList
             leads={currentLeads}
             onLeadClick={handleLeadClick}
-            activeTab={activeTab} 
+            activeTab={activeTab}
           />
 
           <div className={styles.paginationContainer}>

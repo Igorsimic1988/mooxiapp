@@ -1,5 +1,3 @@
-// src/components/Leads/LeadFormPopup/LeadFormPopup.js
-
 import React, { useState, useEffect } from 'react';
 import styles from './LeadFormPopup.module.css';
 
@@ -36,46 +34,52 @@ function LeadFormPopup({
 }) {
   // ---------- Local state for basic form fields ----------
   const [customerName, setCustomerName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber]   = useState('');
+  const [email, setEmail]               = useState('');
 
-  const [selectedCompany, setSelectedCompany] = useState('');
-  const [selectedSource, setSelectedSource] = useState('');
+  const [selectedCompany, setSelectedCompany]         = useState('');
+  const [selectedSource, setSelectedSource]           = useState('');
   const [selectedTypeOfService, setSelectedTypeOfService] = useState('');
-  const [selectedSalesRep, setSelectedSalesRep] = useState('');
+  const [selectedSalesRep, setSelectedSalesRep]       = useState('');
 
   // ---------- Additional fields for Survey / Estimator ----------
-  const [estimator, setEstimator] = useState('');       // e.g. "Bob Smith"
-  const [surveyDate, setSurveyDate] = useState('');     // e.g. "2024-12-25" or some string
-  const [surveyTime, setSurveyTime] = useState('');     // e.g. "10:00 AM"
+  const [estimator, setEstimator]   = useState('');
+  const [surveyDate, setSurveyDate] = useState('');
+  const [surveyTime, setSurveyTime] = useState('');
 
   // ---------- Move date (optional) ----------
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showCalendar, setShowCalendar]         = useState(false);
+  const [currentMonth, setCurrentMonth]         = useState(new Date());
   const [selectedMoveDate, setSelectedMoveDate] = useState('');
-  const [daysArray, setDaysArray] = useState([]);
+  const [daysArray, setDaysArray]               = useState([]);
 
   // ---------- Assign Sales Rep toggle ----------
   const [assignSalesRep, setAssignSalesRep] = useState(false);
 
-  // ---------- If editingLead is provided, pre-populate ----------
+  // If editing => label says "Reassign Sales Rep"
+  const salesRepLabel = editingLead ? 'Reassign Sales Rep' : 'Assign Sales Rep';
+
+  // =========================
+  // 1) Pre-populate if editing
+  // =========================
   useEffect(() => {
     if (editingLead) {
       setCustomerName(editingLead.customer_name || '');
-      setPhoneNumber(editingLead.customer_phone_number || '');
+      // Because editingLead.phone might be stored as digits,
+      //   we can format it for display here:
+      setPhoneNumber(formatPhoneForDisplay(editingLead.customer_phone_number || ''));
       setEmail(editingLead.customer_email || '');
       setSelectedCompany(editingLead.company_name || '');
       setSelectedSource(editingLead.source || '');
       setSelectedTypeOfService(editingLead.service_type || 'Moving');
       setSelectedSalesRep(editingLead.sales_name || '');
-      setAssignSalesRep(!!editingLead.sales_name);
+      setAssignSalesRep(false);
 
-      // Additional fields from the lead (if present):
       setEstimator(editingLead.estimator || '');
       setSurveyDate(editingLead.survey_date || '');
       setSurveyTime(editingLead.survey_time || '');
 
-      setSelectedMoveDate(''); // If you store a date, do it here
+      setSelectedMoveDate('');
       console.log('[LeadFormPopup] Editing existing lead:', editingLead);
     } else {
       // If brand-new => reset everything
@@ -88,7 +92,6 @@ function LeadFormPopup({
       setSelectedSalesRep('');
       setAssignSalesRep(false);
 
-      // Additional fields reset to empty for new leads:
       setEstimator('');
       setSurveyDate('');
       setSurveyTime('');
@@ -98,13 +101,15 @@ function LeadFormPopup({
     }
   }, [editingLead]);
 
-  // ---------- build days array whenever currentMonth changes ----------
+  // =========================
+  // 2) Build days array
+  // =========================
   useEffect(() => {
     function getDaysInMonth(month, year) {
       return new Date(year, month + 1, 0).getDate();
     }
     const month = currentMonth.getMonth();
-    const year = currentMonth.getFullYear();
+    const year  = currentMonth.getFullYear();
     const daysInMonth = getDaysInMonth(month, year);
 
     const temp = [];
@@ -115,11 +120,121 @@ function LeadFormPopup({
   }, [currentMonth]);
 
   // ---------- Dropdown toggles ----------
-  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
-  const [showSourceDropdown, setShowSourceDropdown] = useState(false);
+  const [showCompanyDropdown, setShowCompanyDropdown]         = useState(false);
+  const [showSourceDropdown, setShowSourceDropdown]           = useState(false);
   const [showTypeOfServiceDropdown, setShowTypeOfServiceDropdown] = useState(false);
-  const [showSalesRepDropdown, setShowSalesRepDropdown] = useState(false);
+  const [showSalesRepDropdown, setShowSalesRepDropdown]       = useState(false);
 
+  // ==============
+  //  PHONE LOGIC
+  // ==============
+  // As the user types, we update phoneNumber in a formatted style => (xxx) xxx-xxxx
+  // If user typed 1 or +1, we remove it and only store the next 10 digits (US only).
+  function handlePhoneChange(e) {
+    const raw  = e.target.value;
+    const nums = raw.replace(/\D/g, ''); // strip all non-digits
+
+    let trimmed = nums;
+    // If it starts with '1' and has more than 10 digits, remove the leading '1'
+    if (trimmed.startsWith('1') && trimmed.length > 10) {
+      trimmed = trimmed.slice(1);
+    }
+    // If there's still more than 10 => slice
+    if (trimmed.length > 10) {
+      trimmed = trimmed.slice(0, 10);
+    }
+
+    const display = formatPhoneForDisplay(trimmed);
+    setPhoneNumber(display);
+  }
+
+  // Helper => format "6789091876" => "(678) 909-1876"
+  function formatPhoneForDisplay(digits) {
+    if (!digits) return '';
+
+    let result = '';
+    // area code
+    if (digits.length <= 3) {
+      result = `(${digits}`;
+    } else {
+      result = `(${digits.slice(0, 3)})`;
+    }
+    // next 3
+    if (digits.length > 3) {
+      result += ` ${digits.slice(3, 6)}`;
+    }
+    // last 4
+    if (digits.length > 6) {
+      result += `-${digits.slice(6)}`;
+    }
+    return result;
+  }
+
+  // ==============
+  //  Save Handler
+  // ==============
+  const handleSave = async () => {
+    try {
+      // Before storing, convert the phoneNumber (which is in display format)
+      //   to raw digits only. E.g. "(678) 909-1876" => "6789091876"
+      let finalPhoneDigits = phoneNumber.replace(/\D/g, '');
+      // If it starts with '1' and is > 10 => remove leading '1'
+      if (finalPhoneDigits.startsWith('1') && finalPhoneDigits.length > 10) {
+        finalPhoneDigits = finalPhoneDigits.slice(1);
+      }
+
+      const updates = {
+        customer_name: customerName,
+        // store the digits only
+        customer_phone_number: finalPhoneDigits,
+        customer_email: email,
+        company_name: selectedCompany,
+        source: selectedSource,
+        service_type: selectedTypeOfService || 'Moving',
+        sales_name: selectedSalesRep,
+
+        // Additional fields for the lead
+        estimator,
+        survey_date: surveyDate,
+        survey_time: surveyTime,
+      };
+
+      // If editing => update
+      if (editingLead) {
+        console.log('[LeadFormPopup] Attempting update with lead_id:', editingLead.lead_id);
+        const updatedLead = await updateLead(editingLead.lead_id, updates);
+        console.log('[LeadFormPopup] updateLead result:', updatedLead);
+        if (onLeadUpdated) {
+          onLeadUpdated(updatedLead);
+        }
+      }
+      // Else create new
+      else {
+        const newLeadData = {
+          ...updates,
+          rate_type: 'Hourly Rate',
+          lead_status: 'New Lead',
+          lead_activity: '',
+          next_action: '',
+          is_new: true,
+        };
+        const createdLead = await createLead(newLeadData);
+        console.log('[LeadFormPopup] createLead result:', createdLead);
+        if (onLeadCreated) {
+          onLeadCreated(createdLead);
+        }
+      }
+
+      // close popup
+      onClose();
+    } catch (err) {
+      console.error('Failed to save lead:', err);
+    }
+  };
+
+  // ================
+  //  Company, Source, TypeOfService, SalesRep, etc.
+  // ================
   const handleToggleCompanyDropdown = () => setShowCompanyDropdown((prev) => !prev);
   const handleSelectCompany = (companyName) => {
     setSelectedCompany(companyName);
@@ -138,8 +253,19 @@ function LeadFormPopup({
     setShowTypeOfServiceDropdown(false);
   };
 
-  // ---------- Calendar for move date ----------
-  const today = new Date();
+  const handleToggleSalesRep = (newValue) => {
+    setAssignSalesRep(newValue);
+    if (!newValue) setSelectedSalesRep('');
+  };
+  const handleToggleSalesRepDropdown = () => setShowSalesRepDropdown((prev) => !prev);
+  const handleSelectSalesRep = (repName) => {
+    setSelectedSalesRep(repName);
+    setShowSalesRepDropdown(false);
+  };
+
+  // ================
+  //  Move Date Calendar
+  // ================
   const handleToggleCalendar = () => setShowCalendar((prev) => !prev);
 
   const handlePrevMonth = () => {
@@ -154,10 +280,11 @@ function LeadFormPopup({
       return new Date(prevDate.getFullYear(), newMonth, 1);
     });
   };
-
   const handleDayClick = (day) => {
     const chosenDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-    if (chosenDate < today.setHours(0, 0, 0, 0)) return;
+    const today = new Date();
+    if (chosenDate < new Date(today.setHours(0,0,0,0))) return;
+
     setSelectedMoveDate(chosenDate.toDateString());
     setShowCalendar(false);
   };
@@ -166,79 +293,10 @@ function LeadFormPopup({
     ? styles.moveDateSelectedText
     : styles.moveDatePlaceholderText;
 
-  // ---------- Sales Rep Toggle + Dropdown ----------
-  const handleToggleSalesRep = (newValue) => {
-    setAssignSalesRep(newValue);
-    if (!newValue) setSelectedSalesRep('');
-  };
-
-  const handleToggleSalesRepDropdown = () => setShowSalesRepDropdown((prev) => !prev);
-  const handleSelectSalesRep = (repName) => {
-    setSelectedSalesRep(repName);
-    setShowSalesRepDropdown(false);
-  };
-
-  // ---------- Save Handler ----------
-  const handleSave = async () => {
-    try {
-      // Build the object of user-changeable fields
-      const updates = {
-        customer_name: customerName,
-        customer_phone_number: phoneNumber,
-        customer_email: email,
-        company_name: selectedCompany,
-        source: selectedSource,
-        service_type: selectedTypeOfService || 'Moving',
-        sales_name: selectedSalesRep,
-
-        // Additional fields for the lead
-        estimator,
-        survey_date: surveyDate,
-        survey_time: surveyTime,
-
-        // If you want to store the "move date", add it here
-        // move_date: selectedMoveDate ? new Date(selectedMoveDate).toISOString() : null,
-      };
-
-      // If editing an existing lead => update
-      if (editingLead) {
-        console.log('[LeadFormPopup] Attempting update with lead_id:', editingLead.lead_id);
-        const updatedLead = await updateLead(editingLead.lead_id, updates);
-        console.log('[LeadFormPopup] updateLead result:', updatedLead);
-        if (onLeadUpdated) {
-          onLeadUpdated(updatedLead);
-        }
-      }
-      // Otherwise create a brand-new lead
-      else {
-        const newLeadData = {
-          ...updates,
-          rate_type: 'Hourly Rate',
-          lead_status: 'New Lead',
-          lead_activity: '',
-          next_action: '',
-          is_new: true,
-        };
-        const createdLead = await createLead(newLeadData);
-        console.log('[LeadFormPopup] createLead result:', createdLead);
-        if (onLeadCreated) {
-          onLeadCreated(createdLead);
-        }
-      }
-
-      // Finally, close the popup
-      onClose();
-    } catch (err) {
-      console.error('Failed to save lead:', err);
-      // Could be: "Error: Lead with id X not found"
-      // or an issue with multiple versions of @emotion/react, etc.
-    }
-  };
-
   return (
     <div className={styles.popup} onClick={onClose}>
       <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
-        
+
         {/* ---------- HEADER ---------- */}
         <div className={styles.header}>
           <div className={styles.title}>
@@ -309,14 +367,14 @@ function LeadFormPopup({
               />
             </div>
 
-            {/* Phone Number */}
+            {/* Phone Number (formatted) */}
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
                 type="text"
                 placeholder="Phone Number"
                 value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
+                onChange={handlePhoneChange}
               />
             </div>
 
@@ -463,7 +521,7 @@ function LeadFormPopup({
                   <div className={styles.calendarGrid}>
                     {daysArray.map((day) => {
                       const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-                      const disabled = (dayDate < today.setHours(0, 0, 0, 0));
+                      const disabled = (dayDate < new Date().setHours(0, 0, 0, 0));
                       const isSelectedDay = (dayDate.toDateString() === selectedMoveDate);
 
                       return (
@@ -494,7 +552,7 @@ function LeadFormPopup({
 
           {/* ASSIGN SALES REP TOGGLE */}
           <div className={styles.assignSalesToggleContainer}>
-            <span className={styles.assignSalesToggleLabel}>Assign Sales Rep</span>
+            <span className={styles.assignSalesToggleLabel}>{salesRepLabel}</span>
             <SimpleToggle
               isToggled={assignSalesRep}
               onToggle={handleToggleSalesRep}
@@ -543,9 +601,6 @@ function LeadFormPopup({
               )}
             </div>
           )}
-
-    
-
         </div>
 
         {/* ---------- FOOTER ---------- */}
@@ -561,7 +616,6 @@ function LeadFormPopup({
             Previous requests:
           </div>
         </div>
-
       </div>
     </div>
   );

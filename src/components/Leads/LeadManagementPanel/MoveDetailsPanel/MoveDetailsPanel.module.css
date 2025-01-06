@@ -6,6 +6,7 @@
   padding-bottom: 20px;
 }
 
+/* ----- TABS (Move / Notes / Email / Availability) ----- */
 .sectionsRow {
   display: flex;
   justify-content: start;
@@ -13,58 +14,49 @@
   border-bottom: 1px solid #D8DCE0;
   margin-bottom: 24px;
 }
-
 @media (max-width: 385px) {
   .sectionsRow {
     gap: 15px;
   }
 }
-
 .sectionItem {
   display: flex;
   align-items: center;
   cursor: pointer;
-  height: 50px; 
+  height: 50px;
   border-bottom: 3px solid transparent;
-  -webkit-tap-highlight-color: transparent;
 }
-
 .selected {
   border-bottom: 3px solid #3FA9F5;
 }
-
 .sectionIcon {
   width: 18px;
   height: 18px;
-  color: #90A4B7; 
+  color: #90A4B7;
   flex-shrink: 0;
 }
-
 .greenDot {
   width: 8px;
   height: 8px;
   background: #59B779;
   border-radius: 50%;
+  margin-right: 5px;
 }
-
 .sectionText {
   margin-left: 5px;
   color: #90A4B7;
   font-family: Satoshi, sans-serif;
   font-size: 15px;
   font-weight: 700;
-  line-height: normal;
 }
-
 .textActive {
   color: #2F3236;
 }
-
 .iconActive {
   color: #3FA9F5;
 }
 
-/* Input containers (generic) */
+/* Generic input container for Move/Delivery Date, etc. */
 .inputContainer {
   width: 100%;
   height: 50px;
@@ -77,23 +69,18 @@
   padding: 0 20px;
   margin-bottom: 10px;
 }
-
 .inputLabel {
   color: #6E7882;
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   font-weight: 500;
-  line-height: normal;
 }
-
 .inputValue {
   color: #2F3236;
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   font-weight: 700;
-  line-height: normal;
 }
-
 .inputIconContainer {
   width: 30px;
   height: 30px;
@@ -102,37 +89,127 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
-
 .inputIcon {
   width: 16px;
   height: 16px;
   color: #FFF;
 }
-
 .moreIcon {
   width: 20px;
   height: 20px;
   color: #90A4B7;
 }
 
-/* Storage container */
+/* The date button for Move/Delivery Date */
+.dateButton {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  height: 50px;
+  width: 100%;
+  cursor: pointer;
+  padding: 0;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  gap: 10px;
+  color: #6e7882;
+}
+.dateLabelPrefix {
+  font-weight: 500;
+  color: #6E7882;
+}
+.datePlaceholder {
+  font-weight: 500;
+  color: #6E7882;
+}
+.dateSelected {
+  font-weight: 700;
+  color: #2F3236;
+}
+.calendarRightIconWrapper {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  background: #90A4B7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendarIcon {
+  width: 16px;
+  height: 16px;
+  color: #FFF;
+}
+
+/* Calendar popup */
+.calendarPopup {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 10px;
+  z-index: 3100;
+}
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.calendarHeader button {
+  background: #eee;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+}
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.calendarDay {
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 8px;
+  height: 35px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2F3236;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendarDay:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Storage container/toggle */
 .storageContainer {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 20px;
 }
-
 .addStorageText {
   color: #2F3236;
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   font-weight: 700;
-  line-height: normal;
 }
-
-/* Storage Dropdown (like inputContainer) */
 .storageDropdown {
   width: 100%;
   height: 50px;
@@ -144,62 +221,57 @@
   justify-content: space-between;
   padding: 0 20px;
   margin-top: 12px;
-  position: relative; 
+  position: relative;
   cursor: pointer;
 }
-
 .dropdownMenu {
   position: absolute;
-  top: 60px; 
+  top: 60px;
   left: 0;
   right: 0;
   background: #FFF;
   border: 1px solid #D8DCE0;
   border-radius: 12px;
-  z-index: 100; 
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+  z-index: 3000;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
-
 .dropdownOption {
   padding: 10px 20px;
   font-family: Satoshi, sans-serif;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 700;
   color: #2F3236;
   cursor: pointer;
 }
-
 .dropdownOption:hover {
   background: #F2F5F8;
 }
 
-/* Spacing elements */
 .spacing30 {
   height: 30px;
 }
-
-
+.spacing20 {
+  height: 20px;
+}
 
 /* Time Promised row */
 .timePromisedRow {
   display: flex;
   align-items: center;
-  gap: 10px; 
+  gap: 10px;
   margin-top: 20px;
 }
-
 .timePromisedText {
   color: #2F3236;
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   font-weight: 700;
-  line-height: normal;
 }
 
-/* Arrival Time input (like storage dropdown but using clock icon) */
+/* Arrival Time input => user picks start + increments */
 .arrivalTimeInput {
   width: 100%;
-  height: 50px;
+  min-height: 50px;
   border-radius: 12px;
   border: 1px solid #D8DCE0;
   background: #FFF;
@@ -207,9 +279,61 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  margin-top: 12px; /* same spacing as storageDropdown */
+  margin-top: 12px;
+  position: relative;
+}
+.timeDropdown {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background: #FFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 3100;
+}
+.timeOption {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: Satoshi, sans-serif;
+  color: #2F3236;
+  cursor: pointer;
+}
+.timeOption:hover {
+  background: #F2F5F8;
 }
 
-.spacing20 {
-  height: 20px;
+/* 2x2 grid => +2h, +4h, +6h, +8h */
+.addHoursGrid {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background: #FFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 50px 50px;
+  gap: 5px;
+  padding: 20px;
+  z-index: 3100;
+}
+.addHoursButton {
+  background: #F2F5F8;
+  border: none;
+  border-radius: 8px;
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+.addHoursButton:hover {
+  background: #E6EBEF;
 }

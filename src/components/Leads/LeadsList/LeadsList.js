@@ -12,6 +12,9 @@ import { ReactComponent as BookedIcon } from '../../../assets/icons/booked.svg';
 import { ReactComponent as OnHoldIcon } from '../../../assets/icons/onhold.svg';
 import { ReactComponent as CanceledIcon } from '../../../assets/icons/canceled.svg';
 
+/**
+ * Format creation_date_time as mm/dd/yyyy
+ */
 function formatDate(isoString) {
   if (!isoString) return '';
   const d = new Date(isoString);
@@ -21,15 +24,34 @@ function formatDate(isoString) {
   return `${mm}/${dd}/${yy}`;
 }
 
+/**
+ * Format phone number, e.g. (555) 123-4567
+ */
 function formatPhone(phone) {
   if (!phone) return '';
   const raw = phone.replace(/\D/g, '');
   if (raw.length === 10) {
-    return `(${raw.slice(0,3)}) ${raw.slice(3,6)}-${raw.slice(6)}`;
+    return `(${raw.slice(0, 3)}) ${raw.slice(3, 6)}-${raw.slice(6)}`;
   }
   return phone;
 }
 
+/**
+ * Format survey_date as "Jul 23" (month + day, no year).
+ */
+function formatMonthDay(isoString) {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  if (isNaN(d)) return ''; 
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const month = monthNames[d.getMonth()];
+  const day   = d.getDate();
+  return `${month} ${day}`;
+}
+
+/**
+ * Color/icon for each lead_status
+ */
 const statusMapping = {
   'New Lead':     { color: '#59B779', Icon: null },
   'In Progress':  { color: '#FAA61A', Icon: InProgressIcon },
@@ -45,16 +67,34 @@ function LeadsList({ leads, onLeadClick, activeTab }) {
   return (
     <div className={styles.listContainer}>
       {leads.map((lead) => {
+        // Default color/icon if not found
         const { color, Icon } = statusMapping[lead.lead_status] || {
           color: '#FAA61A',
           Icon: InProgressIcon,
         };
 
-        // Decide which text to show on the middle line of the 3rd column:
-        // If "Active Leads" => show lead.next_action
-        // else => show lead.lead_activity
-        const middleLineText =
-          activeTab === 'Active Leads' ? lead.next_action : lead.lead_activity;
+        // By default:
+        //  - top line => lead_status + icon
+        //  - middle line => next_action if "Active Leads", else lead_activity
+        //  - bottom line => sales_name
+        let topLineText     = lead.lead_status;
+        let showTopLineIcon = true;
+        let middleLineText  = (activeTab === 'Active Leads') 
+                                ? lead.next_action 
+                                : lead.lead_activity;
+        let bottomLineText  = lead.sales_name;
+
+        // For "My Appointments":
+        //  - top line => lead_activity (NO ICON).
+        //    => This can be "In Home Estimate" or "Virtual Estimate" or anything else your data might have.
+        //  - middle line => "Jul 23 10:00 AM" => formatMonthDay + survey_time
+        //  - bottom line => lead.estimator
+        if (activeTab === 'My Appointments') {
+          topLineText     = lead.lead_activity || '';
+          showTopLineIcon = false;
+          middleLineText  = `${formatMonthDay(lead.survey_date)} ${lead.survey_time || ''}`.trim();
+          bottomLineText  = lead.estimator || '';
+        }
 
         return (
           <div
@@ -62,7 +102,7 @@ function LeadsList({ leads, onLeadClick, activeTab }) {
             key={lead.job_number}
             onClick={() => onLeadClick(lead)}
           >
-            {/* Column 1: Company + JobNum + Date */}
+            {/* ---- Column 1: Company + JobNum + Date ---- */}
             <div className={styles.companyInfo}>
               <div className={`${styles.truncate} ${styles.companyName}`}>
                 {lead.company_name}
@@ -77,7 +117,7 @@ function LeadsList({ leads, onLeadClick, activeTab }) {
               </div>
             </div>
 
-            {/* Column 2: Customer info */}
+            {/* ---- Column 2: Customer info ---- */}
             <div className={styles.customerInfo}>
               <div className={styles.customerRow}>
                 {lead.is_new ? (
@@ -103,28 +143,29 @@ function LeadsList({ leads, onLeadClick, activeTab }) {
               </div>
             </div>
 
-            {/* Column 3: lead status + (next action OR activity) + sales rep */}
+            {/* ---- Column 3: Top / Middle / Bottom lines ---- */}
             <div className={styles.leadStatusInfo}>
+              {/* top line => either lead_status + icon, or lead_activity alone */}
               <div className={styles.statusRow}>
                 <span
                   className={`${styles.truncate} ${styles.leadStatus}`}
                   style={{ color }}
                 >
-                  {lead.lead_status}
+                  {topLineText}
                 </span>
-                {Icon && (
+                {showTopLineIcon && Icon && (
                   <Icon className={styles.statusIcon} style={{ color }}/>
                 )}
               </div>
 
-              {/* Middle line: depends on Active Tab */}
+              {/* middle line => depends on tab */}
               <div className={`${styles.truncate} ${styles.nextAction}`}>
                 {middleLineText}
               </div>
 
-              {/* Third line: Sales Rep */}
+              {/* bottom line => either sales_name or estimator */}
               <div className={`${styles.truncate} ${styles.salesName}`}>
-                {lead.sales_name}
+                {bottomLineText}
               </div>
             </div>
           </div>

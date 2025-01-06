@@ -1,5 +1,3 @@
-// services/leadService.js
-
 import { v4 as uuidv4 } from 'uuid';
 import leadsData from '../data/constants/actualLeads';
 
@@ -26,6 +24,7 @@ export async function createLead(leadData) {
     creation_date_time: creationDateTime,
 
     customer_name: leadData.customer_name,
+    // Here we store the digits-only phone number
     customer_phone_number: leadData.customer_phone_number,
     customer_email: leadData.customer_email,
     company_name: leadData.company_name,
@@ -42,12 +41,12 @@ export async function createLead(leadData) {
     sales_name: leadData.sales_name || '',
     is_new: leadData.is_new !== undefined ? leadData.is_new : true,
 
-    // NEW FIELDS
+    // For survey:
     estimator: leadData.estimator || '',
     survey_date: leadData.survey_date || '',
     survey_time: leadData.survey_time || '',
 
-    // NEW: track quote_type (inventory_option)
+    // track the inventory_option
     inventory_option: leadData.inventory_option || 'Detailed Inventory Quote',
   };
 
@@ -86,7 +85,7 @@ export async function updateLead(leadId, updates) {
     survey_date: updates.survey_date ?? existingLead.survey_date,
     survey_time: updates.survey_time ?? existingLead.survey_time,
 
-    // NEW: store the inventory_option
+    // inventory_option
     inventory_option: updates.inventory_option ?? existingLead.inventory_option,
   };
 

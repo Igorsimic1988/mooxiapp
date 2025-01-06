@@ -1,7 +1,7 @@
 // src/components/Leads/Leads.js
 
 import React, { useState, useEffect } from 'react';
-import styles from './Leads.module.css'; 
+import styles from './Leads.module.css';
 import HeaderDashboard from './HeadrerDashboard.js/HeaderDashboard';
 import LeadsFilterBar from './LeadsFilterBar/LeadsFilterBar';
 import LeadsSearchBar from './LeadsSearchBar/LeadsSearchBar';
@@ -20,7 +20,7 @@ import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
  * Filter leads based on current activeTab
  * - "Active Leads" => statuses in ["New Lead", "In Progress", "Quoted", "Move on Hold"], excluding In-Progress leads whose next_action="Survey Completed"
  * - "Closed Leads" => statuses in ["Bad Lead", "Declined"]
- * - "My Appointments" => status="In Progress", activity="In Home Estimate", next_action="Survey Completed"
+ * - "My Appointments" => status="In Progress", activity in ["In Home Estimate","Virtual Estimate"], next_action="Survey Completed"
  * - "Pending" => status="New Lead" (example assumption)
  * - "Booked" => statuses in ["Booked", "Cancaled"]
  */
@@ -30,12 +30,11 @@ function filterLeadsByTab(leads, activeTab) {
       return leads.filter((ld) => {
         const st = ld.lead_status;
         const na = ld.next_action;
-        const isActiveStatus = (
+        const isActiveStatus =
           st === 'New Lead' ||
           st === 'In Progress' ||
           st === 'Quoted' ||
-          st === 'Move on Hold'
-        );
+          st === 'Move on Hold';
         // If In Progress => exclude if next_action=Survey Completed
         if (st === 'In Progress' && na === 'Survey Completed') {
           return false;
@@ -49,11 +48,14 @@ function filterLeadsByTab(leads, activeTab) {
       );
 
     case 'My Appointments':
-      // status="In Progress", activity="In Home Estimate", next_action="Survey Completed"
+      // status="In Progress"
+      // activity in ["In Home Estimate","Virtual Estimate"]
+      // next_action="Survey Completed"
       return leads.filter(
         (ld) =>
           ld.lead_status === 'In Progress' &&
-          ld.lead_activity === 'In Home Estimate' &&
+          (ld.lead_activity === 'In Home Estimate' ||
+            ld.lead_activity === 'Virtual Estimate') &&
           ld.next_action === 'Survey Completed'
       );
 

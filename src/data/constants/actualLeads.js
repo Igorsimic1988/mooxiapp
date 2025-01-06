@@ -1,8 +1,5 @@
 // src/data/constants/actualLeads.js
 
-// A list of 50 leads with varied names, statuses, etc.
-// We have added new fields: "estimator", "survey_date", "survey_time", and "inventory_option".
-
 const actualLeads = [
   {
     lead_id: "8a5fc988-0bbf-4aae-a58e-9d089e5719aa",
@@ -11,7 +8,7 @@ const actualLeads = [
     job_number: 21554,
     creation_date_time: "07/01/2024",
     customer_name: "John Doe",
-    customer_phone_number: "(678) 909-1876",
+    customer_phone_number: "6789091876",
     customer_email: "john.doe@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -24,11 +21,9 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: true,
 
-    estimator: "Cynthia Lin",
-    survey_date: "06/29/2024",
-    survey_time: "07:30 AM",
-
-    // 1) Detailed Inventory Quote
+    estimator: "",               // CLEARED, because lead_activity != In Home/Virtual
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -38,7 +33,7 @@ const actualLeads = [
     job_number: 21555,
     creation_date_time: "07/01/2024",
     customer_name: "Jane Smith",
-    customer_phone_number: "(404) 555-1234",
+    customer_phone_number: "4045551234",
     customer_email: "jane.smith@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -51,11 +46,9 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: false,
 
-    estimator: "David Perry",
-    survey_date: "06/29/2024",
-    survey_time: "09:15 AM",
-
-    // 2) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -65,7 +58,7 @@ const actualLeads = [
     job_number: 21556,
     creation_date_time: "07/02/2024",
     customer_name: "Michael Johnson",
-    customer_phone_number: "(770) 222-4532",
+    customer_phone_number: "7702224532",
     customer_email: "michael.johnson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -78,11 +71,9 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: true,
 
-    estimator: "Alice Morgan",
-    survey_date: "06/30/2024",
-    survey_time: "07:45 PM",
-
-    // 3) Detailed Inventory Quote
+    estimator: "",               // CLEARED (no In Home/Virtual)
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -92,7 +83,7 @@ const actualLeads = [
     job_number: 21557,
     creation_date_time: "07/02/2024",
     customer_name: "Emily Davis",
-    customer_phone_number: "(678) 909-1876",
+    customer_phone_number: "6789091876",
     customer_email: "emily.davis@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -105,11 +96,9 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: false,
 
-    estimator: "Brian White",
-    survey_date: "06/30/2024",
-    survey_time: "08:30 PM",
-
-    // 4) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -119,7 +108,7 @@ const actualLeads = [
     job_number: 21558,
     creation_date_time: "07/03/2024",
     customer_name: "Robert Brown",
-    customer_phone_number: "(470) 777-9999",
+    customer_phone_number: "4707779999",
     customer_email: "robert.brown@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -132,11 +121,9 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: true,
 
-    estimator: "Erika Martinez",
-    survey_date: "07/01/2024",
-    survey_time: "10:00 AM",
-
-    // 5) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -146,7 +133,7 @@ const actualLeads = [
     job_number: 21559,
     creation_date_time: "07/03/2024",
     customer_name: "Sophia Martinez",
-    customer_phone_number: "(404) 123-9876",
+    customer_phone_number: "4041239876",
     customer_email: "sophia.martinez@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -159,11 +146,9 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "Cynthia Lin",
-    survey_date: "07/01/2024",
-    survey_time: "11:45 AM",
-
-    // 6) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -173,7 +158,7 @@ const actualLeads = [
     job_number: 21560,
     creation_date_time: "07/04/2024",
     customer_name: "James Wilson",
-    customer_phone_number: "(678) 222-1122",
+    customer_phone_number: "6782221122",
     customer_email: "james.wilson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -186,11 +171,9 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "Frank Delgado",
-    survey_date: "07/02/2024",
-    survey_time: "08:15 AM",
-
-    // 7) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -200,7 +183,7 @@ const actualLeads = [
     job_number: 21561,
     creation_date_time: "07/04/2024",
     customer_name: "Olivia Clark",
-    customer_phone_number: "(770) 333-4444",
+    customer_phone_number: "7703334444",
     customer_email: "olivia.clark@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -213,11 +196,9 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: false,
 
-    estimator: "David Perry",
-    survey_date: "07/02/2024",
-    survey_time: "07:15 PM",
-
-    // 8) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -227,7 +208,7 @@ const actualLeads = [
     job_number: 21562,
     creation_date_time: "07/05/2024",
     customer_name: "David Miller",
-    customer_phone_number: "(678) 909-1876",
+    customer_phone_number: "6789091876",
     customer_email: "david.miller@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -240,11 +221,9 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: true,
 
-    estimator: "Gina Sanders",
-    survey_date: "07/03/2024",
-    survey_time: "04:30 PM",
-
-    // 9) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -254,7 +233,7 @@ const actualLeads = [
     job_number: 21563,
     creation_date_time: "07/05/2024",
     customer_name: "Emma Anderson",
-    customer_phone_number: "(404) 987-6543",
+    customer_phone_number: "4049876543",
     customer_email: "emma.anderson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -267,11 +246,9 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "Cynthia Lin",
-    survey_date: "07/03/2024",
-    survey_time: "01:45 PM",
-
-    // 10) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -281,7 +258,7 @@ const actualLeads = [
     job_number: 21564,
     creation_date_time: "07/06/2024",
     customer_name: "John Doe Jr.",
-    customer_phone_number: "(678) 111-2233",
+    customer_phone_number: "6781112233",
     customer_email: "john.doejr@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -294,11 +271,9 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "Frank Delgado",
-    survey_date: "07/04/2024",
-    survey_time: "08:00 AM",
-
-    // 11) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -308,7 +283,7 @@ const actualLeads = [
     job_number: 21565,
     creation_date_time: "07/06/2024",
     customer_name: "Jane S. Smith",
-    customer_phone_number: "(404) 555-0000",
+    customer_phone_number: "4045550000",
     customer_email: "jane.s.smith@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -321,11 +296,9 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: false,
 
-    estimator: "Gina Sanders",
-    survey_date: "07/04/2024",
-    survey_time: "06:30 PM",
-
-    // 12) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -335,7 +308,7 @@ const actualLeads = [
     job_number: 21566,
     creation_date_time: "07/07/2024",
     customer_name: "Michael J. Johnson",
-    customer_phone_number: "(470) 555-1212",
+    customer_phone_number: "4705551212",
     customer_email: "michael.j.johnson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -348,11 +321,9 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: true,
 
-    estimator: "Alice Morgan",
-    survey_date: "07/05/2024",
-    survey_time: "09:15 AM",
-
-    // 13) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -362,7 +333,7 @@ const actualLeads = [
     job_number: 21567,
     creation_date_time: "07/07/2024",
     customer_name: "Emily R. Davis",
-    customer_phone_number: "(770) 555-1111",
+    customer_phone_number: "7705551111",
     customer_email: "emily.r.davis@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -370,16 +341,15 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "In Home Estimate",
-    next_action: "Schedule Survey",
+    // Since it's In Home => next_action => "Survey Completed"
+    next_action: "Survey Completed",
 
     sales_name: "Brian White",
     is_new: false,
 
-    estimator: "Brian White",
-    survey_date: "07/05/2024",
-    survey_time: "07:45 PM",
-
-    // 14) Detailed Inventory Quote
+    estimator: "Brian White",     // Keep as is
+    survey_date: "07/05/2024",    // Keep
+    survey_time: "07:45 PM",      // Keep
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -389,7 +359,7 @@ const actualLeads = [
     job_number: 21568,
     creation_date_time: "07/08/2024",
     customer_name: "Robert T. Brown",
-    customer_phone_number: "(678) 999-0000",
+    customer_phone_number: "6789990000",
     customer_email: "robert.t.brown@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -402,11 +372,9 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: true,
 
-    estimator: "Brian White",
-    survey_date: "07/06/2024",
-    survey_time: "04:00 PM",
-
-    // 15) Detailed Inventory Quote
+    estimator: "",                // CLEARED
+    survey_date: "",              // CLEARED
+    survey_time: "",              // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -416,7 +384,7 @@ const actualLeads = [
     job_number: 21569,
     creation_date_time: "07/08/2024",
     customer_name: "Sophia M. Martinez",
-    customer_phone_number: "(404) 222-3333",
+    customer_phone_number: "4042223333",
     customer_email: "sophia.m.martinez@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -424,7 +392,8 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "Virtual Estimate",
-    next_action: "Schedule Survey",
+    // Virtual => next_action => "Survey Completed"
+    next_action: "Survey Completed",
 
     sales_name: "David Perry",
     is_new: false,
@@ -432,8 +401,6 @@ const actualLeads = [
     estimator: "David Perry",
     survey_date: "07/06/2024",
     survey_time: "03:15 PM",
-
-    // 16) Detailed Inventory Quote
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -443,7 +410,7 @@ const actualLeads = [
     job_number: 21570,
     creation_date_time: "07/09/2024",
     customer_name: "James K. Wilson",
-    customer_phone_number: "(678) 909-1876",
+    customer_phone_number: "6789091876",
     customer_email: "james.k.wilson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -456,11 +423,9 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: true,
 
-    estimator: "Gina Sanders",
-    survey_date: "07/07/2024",
-    survey_time: "05:30 PM",
-
-    // 17) Detailed Inventory Quote
+    estimator: "",                // CLEARED
+    survey_date: "",              // CLEARED
+    survey_time: "",              // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -470,7 +435,7 @@ const actualLeads = [
     job_number: 21571,
     creation_date_time: "07/09/2024",
     customer_name: "Olivia P. Clark",
-    customer_phone_number: "(770) 123-1111",
+    customer_phone_number: "7701231111",
     customer_email: "olivia.p.clark@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -483,11 +448,9 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "Cynthia Lin",
-    survey_date: "07/07/2024",
-    survey_time: "12:15 PM",
-
-    // 18) Detailed Inventory Quote
+    estimator: "",                // CLEARED
+    survey_date: "",              // CLEARED
+    survey_time: "",              // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -497,7 +460,7 @@ const actualLeads = [
     job_number: 21572,
     creation_date_time: "07/10/2024",
     customer_name: "David G. Miller",
-    customer_phone_number: "(470) 999-9876",
+    customer_phone_number: "4709999876",
     customer_email: "david.g.miller@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -510,11 +473,9 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: true,
 
-    estimator: "Alice Morgan",
-    survey_date: "07/08/2024",
-    survey_time: "08:45 PM",
-
-    // 19) Detailed Inventory Quote
+    estimator: "",                // CLEARED
+    survey_date: "",              // CLEARED
+    survey_time: "",              // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -524,7 +485,7 @@ const actualLeads = [
     job_number: 21573,
     creation_date_time: "07/10/2024",
     customer_name: "Emma L. Anderson",
-    customer_phone_number: "(404) 444-1212",
+    customer_phone_number: "4044441212",
     customer_email: "emma.l.anderson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -537,11 +498,9 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: false,
 
-    estimator: "Frank Delgado",
-    survey_date: "07/08/2024",
-    survey_time: "07:00 AM",
-
-    // 20) Detailed Inventory Quote
+    estimator: "",                // CLEARED
+    survey_date: "",              // CLEARED
+    survey_time: "",              // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -551,7 +510,7 @@ const actualLeads = [
     job_number: 21574,
     creation_date_time: "07/11/2024",
     customer_name: "John D. Paul",
-    customer_phone_number: "(678) 555-0001",
+    customer_phone_number: "6785550001",
     customer_email: "john.d.paul@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -564,11 +523,9 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: true,
 
-    estimator: "Brian White",
-    survey_date: "07/09/2024",
-    survey_time: "09:45 AM",
-
-    // 21) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -578,7 +535,7 @@ const actualLeads = [
     job_number: 21575,
     creation_date_time: "07/11/2024",
     customer_name: "Jane W. Smith",
-    customer_phone_number: "(404) 555-2345",
+    customer_phone_number: "4045552345",
     customer_email: "jane.w.smith@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -591,11 +548,9 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: false,
 
-    estimator: "Erika Martinez",
-    survey_date: "07/09/2024",
-    survey_time: "04:15 PM",
-
-    // 22) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -605,7 +560,7 @@ const actualLeads = [
     job_number: 21576,
     creation_date_time: "07/12/2024",
     customer_name: "Michael A. Jordan",
-    customer_phone_number: "(470) 222-3333",
+    customer_phone_number: "4702223333",
     customer_email: "michael.a.jordan@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -618,11 +573,9 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: true,
 
-    estimator: "David Perry",
-    survey_date: "07/10/2024",
-    survey_time: "08:00 PM",
-
-    // 23) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -632,7 +585,7 @@ const actualLeads = [
     job_number: 21577,
     creation_date_time: "07/12/2024",
     customer_name: "Emily K. Davis",
-    customer_phone_number: "(770) 567-7890",
+    customer_phone_number: "7705677890",
     customer_email: "emily.k.davis@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -645,11 +598,9 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "Cynthia Lin",
-    survey_date: "07/10/2024",
-    survey_time: "02:30 PM",
-
-    // 24) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -659,7 +610,7 @@ const actualLeads = [
     job_number: 21578,
     creation_date_time: "07/13/2024",
     customer_name: "Robert L. Brown",
-    customer_phone_number: "(678) 000-1111",
+    customer_phone_number: "6780001111",
     customer_email: "robert.l.brown@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -672,11 +623,9 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "Frank Delgado",
-    survey_date: "07/11/2024",
-    survey_time: "10:30 AM",
-
-    // 25) Detailed Inventory Quote
+    estimator: "",               // CLEARED
+    survey_date: "",             // CLEARED
+    survey_time: "",             // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -686,7 +635,7 @@ const actualLeads = [
     job_number: 21579,
     creation_date_time: "07/13/2024",
     customer_name: "Sophia J. Martinez",
-    customer_phone_number: "(404) 777-8888",
+    customer_phone_number: "4047778888",
     customer_email: "sophia.j.martinez@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -699,11 +648,9 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: false,
 
-    estimator: "Alice Morgan",
-    survey_date: "07/11/2024",
-    survey_time: "05:45 PM",
-
-    // 26) Detailed Inventory Quote
+    estimator: "",              // CLEARED
+    survey_date: "",            // CLEARED
+    survey_time: "",            // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -713,7 +660,7 @@ const actualLeads = [
     job_number: 21580,
     creation_date_time: "07/14/2024",
     customer_name: "James R. Wilson",
-    customer_phone_number: "(678) 999-2222",
+    customer_phone_number: "6789992222",
     customer_email: "james.r.wilson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -721,7 +668,8 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "Virtual Estimate",
-    next_action: "Schedule Survey",
+    // Virtual => next_action => "Survey Completed"
+    next_action: "Survey Completed",
 
     sales_name: "Brian White",
     is_new: true,
@@ -729,8 +677,6 @@ const actualLeads = [
     estimator: "Brian White",
     survey_date: "07/12/2024",
     survey_time: "12:45 PM",
-
-    // 27) Detailed Inventory Quote
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -740,7 +686,7 @@ const actualLeads = [
     job_number: 21581,
     creation_date_time: "07/14/2024",
     customer_name: "Olivia D. Clark",
-    customer_phone_number: "(770) 444-5555",
+    customer_phone_number: "7704445555",
     customer_email: "olivia.d.clark@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -753,11 +699,9 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: false,
 
-    estimator: "Erika Martinez",
-    survey_date: "07/12/2024",
-    survey_time: "07:30 PM",
-
-    // 28) Detailed Inventory Quote
+    estimator: "",              // CLEARED
+    survey_date: "",            // CLEARED
+    survey_time: "",            // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -767,7 +711,7 @@ const actualLeads = [
     job_number: 21582,
     creation_date_time: "07/15/2024",
     customer_name: "David E. Miller",
-    customer_phone_number: "(470) 111-7777",
+    customer_phone_number: "4701117777",
     customer_email: "david.e.miller@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -780,11 +724,9 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: true,
 
-    estimator: "David Perry",
-    survey_date: "07/13/2024",
-    survey_time: "07:00 AM",
-
-    // 29) Detailed Inventory Quote
+    estimator: "",              // CLEARED
+    survey_date: "",            // CLEARED
+    survey_time: "",            // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -794,7 +736,7 @@ const actualLeads = [
     job_number: 21583,
     creation_date_time: "07/15/2024",
     customer_name: "Emma T. Anderson",
-    customer_phone_number: "(404) 888-9999",
+    customer_phone_number: "4048889999",
     customer_email: "emma.t.anderson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -807,11 +749,9 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "Cynthia Lin",
-    survey_date: "07/13/2024",
-    survey_time: "09:30 AM",
-
-    // 30) Detailed Inventory Quote
+    estimator: "",             // CLEARED
+    survey_date: "",           // CLEARED
+    survey_time: "",           // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -821,7 +761,7 @@ const actualLeads = [
     job_number: 21584,
     creation_date_time: "07/16/2024",
     customer_name: "John Q. Public",
-    customer_phone_number: "(678) 555-2222",
+    customer_phone_number: "6785552222",
     customer_email: "john.q.public@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -834,11 +774,9 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "Frank Delgado",
-    survey_date: "07/14/2024",
-    survey_time: "08:00 PM",
-
-    // 31) Detailed Inventory Quote
+    estimator: "",             // CLEARED
+    survey_date: "",           // CLEARED
+    survey_time: "",           // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -848,7 +786,7 @@ const actualLeads = [
     job_number: 21585,
     creation_date_time: "07/16/2024",
     customer_name: "Jane L. Smythe",
-    customer_phone_number: "(404) 666-7777",
+    customer_phone_number: "4046667777",
     customer_email: "jane.l.smythe@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -861,11 +799,9 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: false,
 
-    estimator: "Gina Sanders",
-    survey_date: "07/14/2024",
-    survey_time: "07:15 AM",
-
-    // 32) Detailed Inventory Quote
+    estimator: "",            // CLEARED
+    survey_date: "",          // CLEARED
+    survey_time: "",          // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -875,7 +811,7 @@ const actualLeads = [
     job_number: 21586,
     creation_date_time: "07/17/2024",
     customer_name: "Michael V. Jenson",
-    customer_phone_number: "(470) 333-8888",
+    customer_phone_number: "4703338888",
     customer_email: "michael.v.jenson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -888,11 +824,9 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: true,
 
-    estimator: "Alice Morgan",
-    survey_date: "07/15/2024",
-    survey_time: "04:15 PM",
-
-    // 33) Detailed Inventory Quote
+    estimator: "",           // CLEARED
+    survey_date: "",         // CLEARED
+    survey_time: "",         // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -902,7 +836,7 @@ const actualLeads = [
     job_number: 21587,
     creation_date_time: "07/17/2024",
     customer_name: "Emily U. Davids",
-    customer_phone_number: "(770) 999-0000",
+    customer_phone_number: "7709990000",
     customer_email: "emily.u.davids@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -915,11 +849,9 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: false,
 
-    estimator: "Brian White",
-    survey_date: "07/15/2024",
-    survey_time: "11:00 AM",
-
-    // 34) Detailed Inventory Quote
+    estimator: "",           // CLEARED
+    survey_date: "",         // CLEARED
+    survey_time: "",         // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -929,7 +861,7 @@ const actualLeads = [
     job_number: 21588,
     creation_date_time: "07/18/2024",
     customer_name: "Robert Z. Brown",
-    customer_phone_number: "(678) 345-6789",
+    customer_phone_number: "6783456789",
     customer_email: "robert.z.brown@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -942,11 +874,9 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: true,
 
-    estimator: "Cynthia Lin",
-    survey_date: "07/16/2024",
-    survey_time: "02:30 PM",
-
-    // 35) Detailed Inventory Quote
+    estimator: "",           // CLEARED
+    survey_date: "",         // CLEARED
+    survey_time: "",         // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -956,7 +886,7 @@ const actualLeads = [
     job_number: 21589,
     creation_date_time: "07/18/2024",
     customer_name: "Sophia Y. Martinez",
-    customer_phone_number: "(404) 222-9999",
+    customer_phone_number: "4042229999",
     customer_email: "sophia.y.martinez@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -969,11 +899,9 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: false,
 
-    estimator: "Erika Martinez",
-    survey_date: "07/16/2024",
-    survey_time: "03:45 PM",
-
-    // 36) Detailed Inventory Quote
+    estimator: "",           // CLEARED
+    survey_date: "",         // CLEARED
+    survey_time: "",         // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -983,7 +911,7 @@ const actualLeads = [
     job_number: 21590,
     creation_date_time: "07/19/2024",
     customer_name: "James H. Wilson",
-    customer_phone_number: "(678) 101-2020",
+    customer_phone_number: "6781012020",
     customer_email: "james.h.wilson@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -996,11 +924,9 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: true,
 
-    estimator: "David Perry",
-    survey_date: "07/17/2024",
-    survey_time: "10:00 AM",
-
-    // 37) Detailed Inventory Quote
+    estimator: "",          // CLEARED
+    survey_date: "",        // CLEARED
+    survey_time: "",        // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -1010,7 +936,7 @@ const actualLeads = [
     job_number: 21591,
     creation_date_time: "07/19/2024",
     customer_name: "Olivia B. Clarke",
-    customer_phone_number: "(770) 212-3434",
+    customer_phone_number: "7702123434",
     customer_email: "olivia.b.clarke@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1023,11 +949,9 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: false,
 
-    estimator: "Gina Sanders",
-    survey_date: "07/17/2024",
-    survey_time: "06:45 PM",
-
-    // 38) Detailed Inventory Quote
+    estimator: "",          // CLEARED
+    survey_date: "",        // CLEARED
+    survey_time: "",        // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -1037,7 +961,7 @@ const actualLeads = [
     job_number: 21592,
     creation_date_time: "07/20/2024",
     customer_name: "David W. Milley",
-    customer_phone_number: "(470) 454-5555",
+    customer_phone_number: "4704545555",
     customer_email: "david.w.milley@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1050,11 +974,9 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: true,
 
-    estimator: "Cynthia Lin",
-    survey_date: "07/18/2024",
-    survey_time: "07:30 PM",
-
-    // 39) Detailed Inventory Quote
+    estimator: "",          // CLEARED
+    survey_date: "",        // CLEARED
+    survey_time: "",        // CLEARED
     inventory_option: "Detailed Inventory Quote"
   },
   {
@@ -1064,7 +986,7 @@ const actualLeads = [
     job_number: 21593,
     creation_date_time: "07/20/2024",
     customer_name: "Emma G. Anders",
-    customer_phone_number: "(404) 121-1313",
+    customer_phone_number: "4041211313",
     customer_email: "emma.g.anders@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1072,7 +994,8 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "Virtual Estimate",
-    next_action: "Schedule Survey",
+    // Virtual => next_action => "Survey Completed"
+    next_action: "Survey Completed",
 
     sales_name: "Brian White",
     is_new: false,
@@ -1080,12 +1003,8 @@ const actualLeads = [
     estimator: "Brian White",
     survey_date: "07/18/2024",
     survey_time: "08:15 AM",
-
-    // 40) Detailed Inventory Quote
     inventory_option: "Detailed Inventory Quote"
   },
-
-  // Next 5 => "Quick Estimate"
   {
     lead_id: "8a7f9e0c-aef7-45f9-bfdb-78f7ef9dfd80",
     tenant_id: "tenant_1",
@@ -1093,7 +1012,7 @@ const actualLeads = [
     job_number: 21594,
     creation_date_time: "07/21/2024",
     customer_name: "John R. Doe",
-    customer_phone_number: "(678) 222-3333",
+    customer_phone_number: "6782223333",
     customer_email: "john.r.doe@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1106,11 +1025,9 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: true,
 
-    estimator: "Erika Martinez",
-    survey_date: "07/19/2024",
-    survey_time: "01:45 PM",
-
-    // 41) Quick Estimate
+    estimator: "",         // CLEARED
+    survey_date: "",       // CLEARED
+    survey_time: "",       // CLEARED
     inventory_option: "Quick Estimate"
   },
   {
@@ -1120,7 +1037,7 @@ const actualLeads = [
     job_number: 21595,
     creation_date_time: "07/21/2024",
     customer_name: "Jane A. Smithy",
-    customer_phone_number: "(404) 999-8888",
+    customer_phone_number: "4049998888",
     customer_email: "jane.a.smithy@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1133,11 +1050,9 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: false,
 
-    estimator: "Alice Morgan",
-    survey_date: "07/19/2024",
-    survey_time: "05:00 PM",
-
-    // 42) Quick Estimate
+    estimator: "",         // CLEARED
+    survey_date: "",       // CLEARED
+    survey_time: "",       // CLEARED
     inventory_option: "Quick Estimate"
   },
   {
@@ -1147,7 +1062,7 @@ const actualLeads = [
     job_number: 21596,
     creation_date_time: "07/22/2024",
     customer_name: "Michael X. Jon",
-    customer_phone_number: "(470) 101-2021",
+    customer_phone_number: "4701012021",
     customer_email: "michael.x.jon@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1160,11 +1075,9 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "Frank Delgado",
-    survey_date: "07/20/2024",
-    survey_time: "11:45 AM",
-
-    // 43) Quick Estimate
+    estimator: "",         // CLEARED
+    survey_date: "",       // CLEARED
+    survey_time: "",       // CLEARED
     inventory_option: "Quick Estimate"
   },
   {
@@ -1174,7 +1087,7 @@ const actualLeads = [
     job_number: 21597,
     creation_date_time: "07/22/2024",
     customer_name: "Emily O. Daves",
-    customer_phone_number: "(770) 131-4141",
+    customer_phone_number: "7701314141",
     customer_email: "emily.o.daves@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1187,11 +1100,9 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: false,
 
-    estimator: "David Perry",
-    survey_date: "07/20/2024",
-    survey_time: "10:30 AM",
-
-    // 44) Quick Estimate
+    estimator: "",         // CLEARED
+    survey_date: "",       // CLEARED
+    survey_time: "",       // CLEARED
     inventory_option: "Quick Estimate"
   },
   {
@@ -1201,7 +1112,7 @@ const actualLeads = [
     job_number: 21598,
     creation_date_time: "07/23/2024",
     customer_name: "Robert M. Browning",
-    customer_phone_number: "(678) 555-1313",
+    customer_phone_number: "6785551313",
     customer_email: "robert.m.browning@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1214,15 +1125,11 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: true,
 
-    estimator: "Gina Sanders",
-    survey_date: "07/21/2024",
-    survey_time: "07:00 PM",
-
-    // 45) Quick Estimate
+    estimator: "",         // CLEARED
+    survey_date: "",       // CLEARED
+    survey_time: "",       // CLEARED
     inventory_option: "Quick Estimate"
   },
-
-  // Last 5 => "I Know My Shipment Size"
   {
     lead_id: "7312ae0f-48d6-4c74-8c07-41dfefe45e52",
     tenant_id: "tenant_1",
@@ -1230,7 +1137,7 @@ const actualLeads = [
     job_number: 21599,
     creation_date_time: "07/23/2024",
     customer_name: "Sophia R. Martines",
-    customer_phone_number: "(404) 141-5151",
+    customer_phone_number: "4041415151",
     customer_email: "sophia.r.martines@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1243,11 +1150,9 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "Cynthia Lin",
-    survey_date: "07/21/2024",
-    survey_time: "02:00 PM",
-
-    // 46) I Know My Shipment Size
+    estimator: "",        // CLEARED
+    survey_date: "",      // CLEARED
+    survey_time: "",      // CLEARED
     inventory_option: "I Know My Shipment Size"
   },
   {
@@ -1257,7 +1162,7 @@ const actualLeads = [
     job_number: 21600,
     creation_date_time: "07/24/2024",
     customer_name: "James O. Wilsen",
-    customer_phone_number: "(678) 909-1876",
+    customer_phone_number: "6789091876",
     customer_email: "james.o.wilsen@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1270,11 +1175,9 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: true,
 
-    estimator: "Brian White",
-    survey_date: "07/22/2024",
-    survey_time: "12:00 PM",
-
-    // 47) I Know My Shipment Size
+    estimator: "",        // CLEARED
+    survey_date: "",      // CLEARED
+    survey_time: "",      // CLEARED
     inventory_option: "I Know My Shipment Size"
   },
   {
@@ -1284,7 +1187,7 @@ const actualLeads = [
     job_number: 21601,
     creation_date_time: "07/24/2024",
     customer_name: "Olivia F. Clarks",
-    customer_phone_number: "(770) 232-4343",
+    customer_phone_number: "7702324343",
     customer_email: "olivia.f.clarks@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1297,11 +1200,9 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: false,
 
-    estimator: "Alice Morgan",
-    survey_date: "07/22/2024",
-    survey_time: "08:30 AM",
-
-    // 48) I Know My Shipment Size
+    estimator: "",        // CLEARED
+    survey_date: "",      // CLEARED
+    survey_time: "",      // CLEARED
     inventory_option: "I Know My Shipment Size"
   },
   {
@@ -1311,7 +1212,7 @@ const actualLeads = [
     job_number: 21602,
     creation_date_time: "07/25/2024",
     customer_name: "David Q. Millers",
-    customer_phone_number: "(470) 242-5252",
+    customer_phone_number: "4702425252",
     customer_email: "david.q.millers@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1324,11 +1225,9 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: true,
 
-    estimator: "Gina Sanders",
-    survey_date: "07/23/2024",
-    survey_time: "01:00 PM",
-
-    // 49) I Know My Shipment Size
+    estimator: "",       // CLEARED
+    survey_date: "",     // CLEARED
+    survey_time: "",     // CLEARED
     inventory_option: "I Know My Shipment Size"
   },
   {
@@ -1338,7 +1237,7 @@ const actualLeads = [
     job_number: 21603,
     creation_date_time: "07/25/2024",
     customer_name: "Emma H. Andersen",
-    customer_phone_number: "(404) 252-6262",
+    customer_phone_number: "4042526262",
     customer_email: "emma.h.andersen@example.com",
     rate_type: "Hourly Rate",
     service_type: "Moving",
@@ -1346,7 +1245,8 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "In Home Estimate",
-    next_action: "Schedule Survey",
+    // In Home => next_action => "Survey Completed"
+    next_action: "Survey Completed",
 
     sales_name: "Erika Martinez",
     is_new: false,
@@ -1354,8 +1254,6 @@ const actualLeads = [
     estimator: "Erika Martinez",
     survey_date: "07/23/2024",
     survey_time: "07:45 PM",
-
-    // 50) I Know My Shipment Size
     inventory_option: "I Know My Shipment Size"
   }
 ];

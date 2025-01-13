@@ -42,7 +42,7 @@ function formatPhone(phone) {
 function formatMonthDay(isoString) {
   if (!isoString) return '';
   const d = new Date(isoString);
-  if (isNaN(d)) return ''; 
+  if (isNaN(d)) return '';
   const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const month = monthNames[d.getMonth()];
   const day   = d.getDate();
@@ -63,9 +63,13 @@ const statusMapping = {
   'Cancaled':     { color: '#2f3236', Icon: CanceledIcon },
 };
 
-function LeadsList({ leads, onLeadClick, activeTab }) {
+function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
   return (
-    <div className={styles.listContainer}>
+    <div
+      className={styles.listContainer}
+      ref={leadsListRef}
+      onScroll={onScroll}
+    >
       {leads.map((lead) => {
         // Default color/icon if not found
         const { color, Icon } = statusMapping[lead.lead_status] || {
@@ -79,15 +83,14 @@ function LeadsList({ leads, onLeadClick, activeTab }) {
         //  - bottom line => sales_name
         let topLineText     = lead.lead_status;
         let showTopLineIcon = true;
-        let middleLineText  = (activeTab === 'Active Leads') 
-                                ? lead.next_action 
-                                : lead.lead_activity;
+        let middleLineText  = (activeTab === 'Active Leads')
+          ? lead.next_action
+          : lead.lead_activity;
         let bottomLineText  = lead.sales_name;
 
         // For "My Appointments":
         //  - top line => lead_activity (NO ICON).
-        //    => This can be "In Home Estimate" or "Virtual Estimate" or anything else your data might have.
-        //  - middle line => "Jul 23 10:00 AM" => formatMonthDay + survey_time
+        //  - middle line => e.g. "Jul 23 10:00 AM"
         //  - bottom line => lead.estimator
         if (activeTab === 'My Appointments') {
           topLineText     = lead.lead_activity || '';
@@ -154,7 +157,7 @@ function LeadsList({ leads, onLeadClick, activeTab }) {
                   {topLineText}
                 </span>
                 {showTopLineIcon && Icon && (
-                  <Icon className={styles.statusIcon} style={{ color }}/>
+                  <Icon className={styles.statusIcon} style={{ color }} />
                 )}
               </div>
 

@@ -1,6 +1,6 @@
 // src/components/Leads/Leads.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './Leads.module.css';
 import HeaderDashboard from './HeadrerDashboard.js/HeaderDashboard';
 import LeadsFilterBar from './LeadsFilterBar/LeadsFilterBar';
@@ -18,9 +18,12 @@ import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
 
 /**
  * Filter leads based on current activeTab
- * - "Active Leads" => statuses in ["New Lead", "In Progress", "Quoted", "Move on Hold"], excluding In-Progress leads whose next_action="Survey Completed"
+ * - "Active Leads" => statuses in ["New Lead", "In Progress", "Quoted", "Move on Hold"],
+ *                     excluding In-Progress leads whose next_action="Survey Completed"
  * - "Closed Leads" => statuses in ["Bad Lead", "Declined"]
- * - "My Appointments" => status="In Progress", activity in ["In Home Estimate","Virtual Estimate"], next_action="Survey Completed"
+ * - "My Appointments" => status="In Progress",
+ *                        activity in ["In Home Estimate","Virtual Estimate"],
+ *                        next_action="Survey Completed"
  * - "Pending" => status="New Lead" (example assumption)
  * - "Booked" => statuses in ["Booked", "Cancaled"]
  */
@@ -35,6 +38,7 @@ function filterLeadsByTab(leads, activeTab) {
           st === 'In Progress' ||
           st === 'Quoted' ||
           st === 'Move on Hold';
+
         // If In Progress => exclude if next_action=Survey Completed
         if (st === 'In Progress' && na === 'Survey Completed') {
           return false;
@@ -48,9 +52,7 @@ function filterLeadsByTab(leads, activeTab) {
       );
 
     case 'My Appointments':
-      // status="In Progress"
-      // activity in ["In Home Estimate","Virtual Estimate"]
-      // next_action="Survey Completed"
+      // status="In Progress", lead_activity in [In Home, Virtual], next_action="Survey Completed"
       return leads.filter(
         (ld) =>
           ld.lead_status === 'In Progress' &&
@@ -60,7 +62,7 @@ function filterLeadsByTab(leads, activeTab) {
       );
 
     case 'Pending':
-      // For example, leads with lead_status === ''
+      // Example: leads with lead_status === ''
       return leads.filter((ld) => ld.lead_status === '');
 
     case 'Booked':
@@ -113,6 +115,10 @@ function Leads() {
   // If a lead is selected => show its details
   const [selectedLead, setSelectedLead] = useState(null);
 
+  // Scroll tracking: store the current offset
+  const leadsListRef = useRef(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
+
   // Popup for creating/editing leads
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
@@ -127,7 +133,7 @@ function Leads() {
     return () => window.removeEventListener('resize', setAppHeight);
   }, []);
 
-  // 1) Sort by creation_date_time newest-first
+  // 1) Sort leads newest-first by creation date
   const sortedLeads = [...leads].sort(
     (a, b) => new Date(b.creation_date_time) - new Date(a.creation_date_time)
   );
@@ -135,7 +141,7 @@ function Leads() {
   // 2) Filter by activeTab
   let filteredLeads = filterLeadsByTab(sortedLeads, activeTab);
 
-  // 2.5) If My Appointments => further sort ascending by (survey_date + survey_time)
+  // 2.5) If My Appointments => sort ascending by (survey_date + survey_time)
   if (activeTab === 'My Appointments') {
     filteredLeads.sort((a, b) => {
       const dateA = parseSurveyDateTime(a);
@@ -164,12 +170,22 @@ function Leads() {
 
   // Selecting a lead => show LeadManagementPanel
   const handleLeadClick = (lead) => {
+    // Save scroll position
+    if (leadsListRef.current) {
+      setScrollPosition(leadsListRef.current.scrollTop);
+    }
     setSelectedLead(lead);
   };
 
   // Closing panel
   const handleBack = () => {
     setSelectedLead(null);
+    // When the list reappears, restore scroll
+    setTimeout(() => {
+      if (leadsListRef.current) {
+        leadsListRef.current.scrollTop = scrollPosition;
+      }
+    }, 0);
   };
 
   // Creating a new lead => push to array
@@ -226,10 +242,15 @@ function Leads() {
             />
           </div>
 
+          {/* 
+            Pass down the leadsListRef and an onScroll handler so we can track the scroll position 
+          */}
           <LeadsList
             leads={currentLeads}
             onLeadClick={handleLeadClick}
             activeTab={activeTab}
+            leadsListRef={leadsListRef}
+            onScroll={(e) => setScrollPosition(e.target.scrollTop)}
           />
 
           <div className={styles.paginationContainer}>

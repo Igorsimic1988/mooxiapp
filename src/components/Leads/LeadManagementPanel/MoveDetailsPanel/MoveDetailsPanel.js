@@ -1,3 +1,5 @@
+// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/MoveDetailsPanel.js
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ReactComponent as TruckCouchIcon } from '../../../../assets/icons/truckcouch.svg';
 import { ReactComponent as NotebookIcon } from '../../../../assets/icons/notebook.svg';
@@ -49,7 +51,7 @@ const storageOptions = [
   'All items',
 ];
 
-function MoveDetailsPanel({ onShowInventory }) {
+function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   // Tabs
   const [selectedIndex, setSelectedIndex] = useState(0);
   const isSelected = (idx) => idx === selectedIndex;
@@ -72,13 +74,15 @@ function MoveDetailsPanel({ onShowInventory }) {
   const [showETARequestDropdown, setShowETARequestDropdown] = useState(false);
 
   // ---------- "Add storage" toggle + items dropdown ----------
-  const [isStorageToggled, setIsStorageToggled] = useState(false);
+  // Load from lead.add_storage (boolean) + lead.storage_items (string)
+  const [isStorageToggled, setIsStorageToggled] = useState(Boolean(lead?.add_storage));
   const [storageDropdownOpen, setStorageDropdownOpen] = useState(false);
-  const [selectedStorage, setSelectedStorage] = useState('All items');
+  const [selectedStorage, setSelectedStorage] = useState(lead?.storage_items || 'All items');
 
   // ---------- Time Promised (Arrival Time) ----------
-  const [isTimePromisedToggled, setIsTimePromisedToggled] = useState(false);
-  const [arrivalTime, setArrivalTime] = useState('');
+  // Load from lead.time_promised (boolean) + lead.arrival_time (string)
+  const [isTimePromisedToggled, setIsTimePromisedToggled] = useState(Boolean(lead?.time_promised));
+  const [arrivalTime, setArrivalTime] = useState(lead?.arrival_time || '');
   const [arrivalStart, setArrivalStart] = useState('');
   const [showStartTimeDropdown, setShowStartTimeDropdown] = useState(false);
   const [showIncrementsGrid, setShowIncrementsGrid] = useState(false);
@@ -102,13 +106,13 @@ function MoveDetailsPanel({ onShowInventory }) {
   };
 
   // ============ Refs for each popup (to detect outside clicks) ============
-  const moveCalendarRef        = useRef(null);
-  const deliveryCalendarRef    = useRef(null);
-  const typeOfServiceRef       = useRef(null);
-  const etaRequestRef          = useRef(null);
-  const storageRef             = useRef(null);
-  const startTimeDropdownRef   = useRef(null);
-  const incrementsGridRef      = useRef(null);
+  const moveCalendarRef      = useRef(null);
+  const deliveryCalendarRef  = useRef(null);
+  const typeOfServiceRef     = useRef(null);
+  const etaRequestRef        = useRef(null);
+  const storageRef           = useRef(null);
+  const startTimeDropdownRef = useRef(null);
+  const incrementsGridRef    = useRef(null);
 
   // Helper => default to +2h if user didn't select increment
   // define as stable callback => reference won't change each render => linter is happy
@@ -131,12 +135,21 @@ function MoveDetailsPanel({ onShowInventory }) {
     const mmStr = mm.toString().padStart(2, '0');
     const endTime = `${hh}:${mmStr} ${suffix}`;
     setArrivalTime(`${arrivalStart} - ${endTime}`);
-  }, [arrivalStart]);
+
+    // Also persist
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        time_promised: true,
+        arrival_time: `${arrivalStart} - ${endTime}`,
+      });
+    }
+  }, [arrivalStart, onLeadUpdated, lead]);
 
   // Outside click => close popups
   useEffect(() => {
     function handleClickOutside(e) {
-      // If the moveCalendar is open & user clicked outside moveCalendarRef => close
+      // If the moveCalendar is open & user clicked outside => close
       if (showMoveCalendar && moveCalendarRef.current && !moveCalendarRef.current.contains(e.target)) {
         setShowMoveCalendar(false);
       }
@@ -182,8 +195,65 @@ function MoveDetailsPanel({ onShowInventory }) {
     showIncrementsGrid,
     arrivalStart,
     arrivalTime,
-    defaultToTwoHours
+    defaultToTwoHours,
   ]);
+
+  // ---------- Handle toggling "Add Storage" ----------
+  const handleToggleStorage = (value) => {
+    setIsStorageToggled(value);
+    // Also persist in lead
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        add_storage: value,
+        storage_items: value ? selectedStorage : '', // if turning off => clear
+      });
+    }
+  };
+
+  // ---------- Handle picking a storage type ----------
+  const handleSelectStorage = (option) => {
+    setSelectedStorage(option);
+    setStorageDropdownOpen(false);
+    // Also persist
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        add_storage: true,
+        storage_items: option,
+      });
+    }
+  };
+
+  // ---------- Handle toggling "Time Promised" ----------
+  const handleToggleTimePromised = (value) => {
+    setIsTimePromisedToggled(value);
+    if (!value) {
+      // If user turns it off => clear arrival_time
+      setArrivalTime('');
+    }
+    // Also persist in lead
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        time_promised: value,
+        arrival_time: value ? arrivalTime : '',
+      });
+    }
+  };
+
+  // ---------- Handle setting the final arrival time range ----------
+  const handleSetArrivalTime = (rangeStr) => {
+    setArrivalTime(rangeStr);
+    // Persist in lead
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        time_promised: true,
+        arrival_time: rangeStr,
+      });
+    }
+  };
 
   return (
     <div className={styles.panelContainer}>
@@ -267,7 +337,11 @@ function MoveDetailsPanel({ onShowInventory }) {
             </div>
             <div className={styles.calendarGrid}>
               {daysInMonth.map((day) => {
-                const dayDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+                const dayDate = new Date(
+                  calendarMonth.getFullYear(),
+                  calendarMonth.getMonth(),
+                  day
+                );
                 const disabled = dayDate < today.setHours(0, 0, 0, 0);
                 return (
                   <button
@@ -340,7 +414,10 @@ function MoveDetailsPanel({ onShowInventory }) {
       {/* ---------- ADD STORAGE TOGGLE ---------- */}
       <div className={styles.storageContainer}>
         <span className={styles.addStorageText}>Add storage</span>
-        <SimpleToggle isToggled={isStorageToggled} onToggle={setIsStorageToggled} />
+        <SimpleToggle
+          isToggled={isStorageToggled}
+          onToggle={handleToggleStorage}
+        />
       </div>
 
       {/* If toggled => show Storage dropdown */}
@@ -370,8 +447,7 @@ function MoveDetailsPanel({ onShowInventory }) {
                   className={styles.dropdownOption}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedStorage(option);
-                    setStorageDropdownOpen(false);
+                    handleSelectStorage(option);
                   }}
                 >
                   {option}
@@ -415,7 +491,11 @@ function MoveDetailsPanel({ onShowInventory }) {
             </div>
             <div className={styles.calendarGrid}>
               {daysInMonth.map((day) => {
-                const dayDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+                const dayDate = new Date(
+                  calendarMonth.getFullYear(),
+                  calendarMonth.getMonth(),
+                  day
+                );
                 const disabled = dayDate < today.setHours(0, 0, 0, 0);
                 return (
                   <button
@@ -488,7 +568,10 @@ function MoveDetailsPanel({ onShowInventory }) {
       {/* ---------- TIME PROMISED TOGGLE ---------- */}
       <div className={styles.timePromisedRow}>
         <span className={styles.timePromisedText}>Time promised</span>
-        <SimpleToggle isToggled={isTimePromisedToggled} onToggle={setIsTimePromisedToggled} />
+        <SimpleToggle
+          isToggled={isTimePromisedToggled}
+          onToggle={handleToggleTimePromised}
+        />
       </div>
 
       {/* If time promised => ARRIVAL TIME */}
@@ -565,8 +648,12 @@ function MoveDetailsPanel({ onShowInventory }) {
                     }
                     if (hh === 0) hh = 12;
                     const mmStr = mm.toString().padStart(2, '0');
-                    setArrivalTime(`${arrivalStart} - ${hh}:${mmStr} ${suffix}`);
+                    const rangeStr = `${arrivalStart} - ${hh}:${mmStr} ${suffix}`;
+                    setArrivalTime(rangeStr);
                     setShowIncrementsGrid(false);
+
+                    // Save in lead
+                    handleSetArrivalTime(rangeStr);
                   }}
                 >
                   +{inc}h

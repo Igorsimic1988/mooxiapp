@@ -907,7 +907,11 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         </div>
       </div>
 
-      <MoveDetailsPanel onShowInventory={() => setShowInventory(true)} />
+      <MoveDetailsPanel
+  onShowInventory={() => setShowInventory(true)}
+  lead={lead}            // pass the lead object down
+  onLeadUpdated={onLeadUpdated}  // pass the callback down
+/>
     </div>
   );
 }

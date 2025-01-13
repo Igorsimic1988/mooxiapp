@@ -4,7 +4,7 @@ const actualLeads = [
   {
     lead_id: "8a5fc988-0bbf-4aae-a58e-9d089e5719aa",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21554,
     creation_date_time: "07/01/2024",
     customer_name: "John Doe",
@@ -21,15 +21,21 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: true,
 
-    estimator: "",               // CLEARED, because lead_activity != In Home/Virtual
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    // NEW fields (always off/empty by default):
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "d3cfc4b1-f0c3-42a7-b73a-693b21794c40",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21555,
     creation_date_time: "07/01/2024",
     customer_name: "Jane Smith",
@@ -46,15 +52,20 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: false,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "32fe5cc1-4b86-4bcf-89cc-d6500aa7d2a4",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21556,
     creation_date_time: "07/02/2024",
     customer_name: "Michael Johnson",
@@ -71,15 +82,20 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: true,
 
-    estimator: "",               // CLEARED (no In Home/Virtual)
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "c9371593-9bb7-4c61-9ae7-72dc797cd5a3",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21557,
     creation_date_time: "07/02/2024",
     customer_name: "Emily Davis",
@@ -96,15 +112,20 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: false,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "b7ba2dff-af83-4bb2-8df9-c0fbdee9538c",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21558,
     creation_date_time: "07/03/2024",
     customer_name: "Robert Brown",
@@ -121,15 +142,20 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: true,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "50252d3d-35bb-46d7-9f78-9f36128b7bc8",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21559,
     creation_date_time: "07/03/2024",
     customer_name: "Sophia Martinez",
@@ -146,15 +172,20 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "9a8024de-0035-48c2-83f9-dc2a04df209f",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21560,
     creation_date_time: "07/04/2024",
     customer_name: "James Wilson",
@@ -171,15 +202,20 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "eb396780-0c8d-4eff-a6fa-0888f1196b66",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21561,
     creation_date_time: "07/04/2024",
     customer_name: "Olivia Clark",
@@ -196,15 +232,20 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: false,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "aef53dea-b3e1-45d8-b2bb-866bb0cd039c",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21562,
     creation_date_time: "07/05/2024",
     customer_name: "David Miller",
@@ -221,15 +262,20 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: true,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "4ab4744f-5c6f-42fe-b606-86f086bcc0a0",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21563,
     creation_date_time: "07/05/2024",
     customer_name: "Emma Anderson",
@@ -246,15 +292,20 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "ed070cde-ef29-45d1-b729-8fa66f5cabcc",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21564,
     creation_date_time: "07/06/2024",
     customer_name: "John Doe Jr.",
@@ -271,15 +322,20 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "dc639864-69d7-4f74-a997-fc3bdbcf8624",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21565,
     creation_date_time: "07/06/2024",
     customer_name: "Jane S. Smith",
@@ -296,15 +352,20 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: false,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "39bcaf32-c6bb-4efe-9ec4-5447194f94f0",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21566,
     creation_date_time: "07/07/2024",
     customer_name: "Michael J. Johnson",
@@ -321,15 +382,20 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: true,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "91ac5b4a-689c-4781-91ff-bfa74ba1e494",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21567,
     creation_date_time: "07/07/2024",
     customer_name: "Emily R. Davis",
@@ -341,21 +407,25 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "In Home Estimate",
-    // Since it's In Home => next_action => "Survey Completed"
     next_action: "Survey Completed",
 
     sales_name: "Brian White",
     is_new: false,
 
-    estimator: "Brian White",     // Keep as is
-    survey_date: "07/05/2024",    // Keep
-    survey_time: "07:45 PM",      // Keep
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "Brian White",
+    survey_date: "07/05/2024",
+    survey_time: "07:45 PM",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "97ff6956-e0eb-4e09-9a57-27a0699cc677",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21568,
     creation_date_time: "07/08/2024",
     customer_name: "Robert T. Brown",
@@ -372,15 +442,20 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: true,
 
-    estimator: "",                // CLEARED
-    survey_date: "",              // CLEARED
-    survey_time: "",              // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "d625e940-9fd9-4fa5-aef1-7091753ad6da",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21569,
     creation_date_time: "07/08/2024",
     customer_name: "Sophia M. Martinez",
@@ -392,7 +467,6 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "Virtual Estimate",
-    // Virtual => next_action => "Survey Completed"
     next_action: "Survey Completed",
 
     sales_name: "David Perry",
@@ -401,12 +475,17 @@ const actualLeads = [
     estimator: "David Perry",
     survey_date: "07/06/2024",
     survey_time: "03:15 PM",
-    inventory_option: "Detailed Inventory Quote"
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "78b12f24-9f4f-4d8a-9099-fa47208a9a1d",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21570,
     creation_date_time: "07/09/2024",
     customer_name: "James K. Wilson",
@@ -423,15 +502,20 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: true,
 
-    estimator: "",                // CLEARED
-    survey_date: "",              // CLEARED
-    survey_time: "",              // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "6cc9d2fb-6ade-4ba4-aa7f-fdb21331cfda",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21571,
     creation_date_time: "07/09/2024",
     customer_name: "Olivia P. Clark",
@@ -448,15 +532,20 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "",                // CLEARED
-    survey_date: "",              // CLEARED
-    survey_time: "",              // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "61d8d4c0-f588-4632-a24b-26fb38568d2d",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21572,
     creation_date_time: "07/10/2024",
     customer_name: "David G. Miller",
@@ -473,15 +562,20 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: true,
 
-    estimator: "",                // CLEARED
-    survey_date: "",              // CLEARED
-    survey_time: "",              // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "13a05a1a-8380-4f77-977c-811eb2c01852",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21573,
     creation_date_time: "07/10/2024",
     customer_name: "Emma L. Anderson",
@@ -498,15 +592,20 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: false,
 
-    estimator: "",                // CLEARED
-    survey_date: "",              // CLEARED
-    survey_time: "",              // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "8898bce6-b53b-4bad-af3b-a60b6ee78180",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21574,
     creation_date_time: "07/11/2024",
     customer_name: "John D. Paul",
@@ -523,15 +622,20 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: true,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "7fa93f50-badf-4112-96c0-926de1487f52",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21575,
     creation_date_time: "07/11/2024",
     customer_name: "Jane W. Smith",
@@ -548,15 +652,20 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: false,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "bca34c78-d563-4887-bf2c-5dc7f8b7e72e",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21576,
     creation_date_time: "07/12/2024",
     customer_name: "Michael A. Jordan",
@@ -573,15 +682,20 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: true,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "60ee6258-cdaa-4df7-86fd-6095da88e005",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21577,
     creation_date_time: "07/12/2024",
     customer_name: "Emily K. Davis",
@@ -598,15 +712,20 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "b6f04f20-16ff-4af9-9019-967af19b063f",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21578,
     creation_date_time: "07/13/2024",
     customer_name: "Robert L. Brown",
@@ -623,15 +742,20 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "",               // CLEARED
-    survey_date: "",             // CLEARED
-    survey_time: "",             // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "7ed7f508-7c4c-4b63-aa0d-c234c91b0aa7",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21579,
     creation_date_time: "07/13/2024",
     customer_name: "Sophia J. Martinez",
@@ -648,15 +772,20 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: false,
 
-    estimator: "",              // CLEARED
-    survey_date: "",            // CLEARED
-    survey_time: "",            // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "00b1bc1b-d385-4b4a-9cb6-c1bb228809dd",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21580,
     creation_date_time: "07/14/2024",
     customer_name: "James R. Wilson",
@@ -668,7 +797,6 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "Virtual Estimate",
-    // Virtual => next_action => "Survey Completed"
     next_action: "Survey Completed",
 
     sales_name: "Brian White",
@@ -677,12 +805,17 @@ const actualLeads = [
     estimator: "Brian White",
     survey_date: "07/12/2024",
     survey_time: "12:45 PM",
-    inventory_option: "Detailed Inventory Quote"
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "32fa6aa2-dbfa-4cf6-b17e-46fb9332011a",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21581,
     creation_date_time: "07/14/2024",
     customer_name: "Olivia D. Clark",
@@ -699,15 +832,20 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: false,
 
-    estimator: "",              // CLEARED
-    survey_date: "",            // CLEARED
-    survey_time: "",            // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "99533fbf-863d-4daf-bd19-d5700f202354",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21582,
     creation_date_time: "07/15/2024",
     customer_name: "David E. Miller",
@@ -724,15 +862,20 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: true,
 
-    estimator: "",              // CLEARED
-    survey_date: "",            // CLEARED
-    survey_time: "",            // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "b95ffbc4-61e4-489d-88bb-e680c0fadd03",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21583,
     creation_date_time: "07/15/2024",
     customer_name: "Emma T. Anderson",
@@ -749,15 +892,20 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "",             // CLEARED
-    survey_date: "",           // CLEARED
-    survey_time: "",           // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "c405f42a-54a7-4809-a332-a7b24a6cf034",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21584,
     creation_date_time: "07/16/2024",
     customer_name: "John Q. Public",
@@ -774,15 +922,20 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "",             // CLEARED
-    survey_date: "",           // CLEARED
-    survey_time: "",           // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "d68f8b6a-07f3-4aa7-8c46-fff944270b5b",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21585,
     creation_date_time: "07/16/2024",
     customer_name: "Jane L. Smythe",
@@ -799,15 +952,20 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: false,
 
-    estimator: "",            // CLEARED
-    survey_date: "",          // CLEARED
-    survey_time: "",          // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "bb13a65d-9076-4b30-bb52-c035ade7a2f8",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21586,
     creation_date_time: "07/17/2024",
     customer_name: "Michael V. Jenson",
@@ -824,15 +982,20 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: true,
 
-    estimator: "",           // CLEARED
-    survey_date: "",         // CLEARED
-    survey_time: "",         // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "f4262edb-1744-4977-a494-02cf6dc241b2",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21587,
     creation_date_time: "07/17/2024",
     customer_name: "Emily U. Davids",
@@ -849,15 +1012,20 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: false,
 
-    estimator: "",           // CLEARED
-    survey_date: "",         // CLEARED
-    survey_time: "",         // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "ed6a888f-9df0-47c9-9372-1bb060b2d4fa",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21588,
     creation_date_time: "07/18/2024",
     customer_name: "Robert Z. Brown",
@@ -874,15 +1042,20 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: true,
 
-    estimator: "",           // CLEARED
-    survey_date: "",         // CLEARED
-    survey_time: "",         // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "fbc15014-68c0-4db8-9df1-1493866295ef",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21589,
     creation_date_time: "07/18/2024",
     customer_name: "Sophia Y. Martinez",
@@ -899,15 +1072,20 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: false,
 
-    estimator: "",           // CLEARED
-    survey_date: "",         // CLEARED
-    survey_time: "",         // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "77f138e3-3149-480b-bf6c-46c7a4e63ae1",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21590,
     creation_date_time: "07/19/2024",
     customer_name: "James H. Wilson",
@@ -924,15 +1102,20 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: true,
 
-    estimator: "",          // CLEARED
-    survey_date: "",        // CLEARED
-    survey_time: "",        // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "ed4b469a-1bf9-49f4-9aad-32f8c5eb15c1",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21591,
     creation_date_time: "07/19/2024",
     customer_name: "Olivia B. Clarke",
@@ -949,15 +1132,20 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: false,
 
-    estimator: "",          // CLEARED
-    survey_date: "",        // CLEARED
-    survey_time: "",        // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "5b4c3086-3bc1-49e4-9130-a37df5c08bdd",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21592,
     creation_date_time: "07/20/2024",
     customer_name: "David W. Milley",
@@ -974,15 +1162,20 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: true,
 
-    estimator: "",          // CLEARED
-    survey_date: "",        // CLEARED
-    survey_time: "",        // CLEARED
-    inventory_option: "Detailed Inventory Quote"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "5fb06e47-0093-4c14-9faa-c8645f249d27",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21593,
     creation_date_time: "07/20/2024",
     customer_name: "Emma G. Anders",
@@ -994,7 +1187,6 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "Virtual Estimate",
-    // Virtual => next_action => "Survey Completed"
     next_action: "Survey Completed",
 
     sales_name: "Brian White",
@@ -1003,12 +1195,17 @@ const actualLeads = [
     estimator: "Brian White",
     survey_date: "07/18/2024",
     survey_time: "08:15 AM",
-    inventory_option: "Detailed Inventory Quote"
+    inventory_option: "Detailed Inventory Quote",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "8a7f9e0c-aef7-45f9-bfdb-78f7ef9dfd80",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21594,
     creation_date_time: "07/21/2024",
     customer_name: "John R. Doe",
@@ -1025,15 +1222,20 @@ const actualLeads = [
     sales_name: "Erika Martinez",
     is_new: true,
 
-    estimator: "",         // CLEARED
-    survey_date: "",       // CLEARED
-    survey_time: "",       // CLEARED
-    inventory_option: "Quick Estimate"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Quick Estimate",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "b11db0d0-8d90-470a-bd86-5e437e26652e",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Best Rate Movers", // Replaced "Zip Moving"
     job_number: 21595,
     creation_date_time: "07/21/2024",
     customer_name: "Jane A. Smithy",
@@ -1050,15 +1252,20 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: false,
 
-    estimator: "",         // CLEARED
-    survey_date: "",       // CLEARED
-    survey_time: "",       // CLEARED
-    inventory_option: "Quick Estimate"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Quick Estimate",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "6670a16e-1379-4e41-80f4-37ed5e19fcf5",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21596,
     creation_date_time: "07/22/2024",
     customer_name: "Michael X. Jon",
@@ -1075,15 +1282,20 @@ const actualLeads = [
     sales_name: "Frank Delgado",
     is_new: true,
 
-    estimator: "",         // CLEARED
-    survey_date: "",       // CLEARED
-    survey_time: "",       // CLEARED
-    inventory_option: "Quick Estimate"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Quick Estimate",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "de2e431b-edc1-4e64-9d1c-7f60059b9de0",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21597,
     creation_date_time: "07/22/2024",
     customer_name: "Emily O. Daves",
@@ -1100,15 +1312,20 @@ const actualLeads = [
     sales_name: "David Perry",
     is_new: false,
 
-    estimator: "",         // CLEARED
-    survey_date: "",       // CLEARED
-    survey_time: "",       // CLEARED
-    inventory_option: "Quick Estimate"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Quick Estimate",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "814f7454-ccf1-4b0e-b9fd-2fcf48d25ad9",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21598,
     creation_date_time: "07/23/2024",
     customer_name: "Robert M. Browning",
@@ -1125,15 +1342,20 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: true,
 
-    estimator: "",         // CLEARED
-    survey_date: "",       // CLEARED
-    survey_time: "",       // CLEARED
-    inventory_option: "Quick Estimate"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "Quick Estimate",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "7312ae0f-48d6-4c74-8c07-41dfefe45e52",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21599,
     creation_date_time: "07/23/2024",
     customer_name: "Sophia R. Martines",
@@ -1150,15 +1372,20 @@ const actualLeads = [
     sales_name: "Cynthia Lin",
     is_new: false,
 
-    estimator: "",        // CLEARED
-    survey_date: "",      // CLEARED
-    survey_time: "",      // CLEARED
-    inventory_option: "I Know My Shipment Size"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "I Know My Shipment Size",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "ee4ea6b5-c56f-435f-8411-c0b0c8022f3b",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21600,
     creation_date_time: "07/24/2024",
     customer_name: "James O. Wilsen",
@@ -1175,15 +1402,20 @@ const actualLeads = [
     sales_name: "Brian White",
     is_new: true,
 
-    estimator: "",        // CLEARED
-    survey_date: "",      // CLEARED
-    survey_time: "",      // CLEARED
-    inventory_option: "I Know My Shipment Size"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "I Know My Shipment Size",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "5e3821a8-a01a-40fd-a026-96bd9ad3ffa2",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21601,
     creation_date_time: "07/24/2024",
     customer_name: "Olivia F. Clarks",
@@ -1200,15 +1432,20 @@ const actualLeads = [
     sales_name: "Alice Morgan",
     is_new: false,
 
-    estimator: "",        // CLEARED
-    survey_date: "",      // CLEARED
-    survey_time: "",      // CLEARED
-    inventory_option: "I Know My Shipment Size"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "I Know My Shipment Size",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "fcc1fcb5-0110-4b83-87d1-80c0e174fb0b",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Ace Moving & Storage", // Replaced "Zip Moving"
     job_number: 21602,
     creation_date_time: "07/25/2024",
     customer_name: "David Q. Millers",
@@ -1225,15 +1462,20 @@ const actualLeads = [
     sales_name: "Gina Sanders",
     is_new: true,
 
-    estimator: "",       // CLEARED
-    survey_date: "",     // CLEARED
-    survey_time: "",     // CLEARED
-    inventory_option: "I Know My Shipment Size"
+    estimator: "",
+    survey_date: "",
+    survey_time: "",
+    inventory_option: "I Know My Shipment Size",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   },
   {
     lead_id: "66c626e9-179b-4fa4-9094-c70ddd7d9470",
     tenant_id: "tenant_1",
-    company_name: "Zip Moving",
+    company_name: "Citywide Relocation", // Replaced "Zip Moving"
     job_number: 21603,
     creation_date_time: "07/25/2024",
     customer_name: "Emma H. Andersen",
@@ -1245,7 +1487,6 @@ const actualLeads = [
 
     lead_status: "In Progress",
     lead_activity: "In Home Estimate",
-    // In Home => next_action => "Survey Completed"
     next_action: "Survey Completed",
 
     sales_name: "Erika Martinez",
@@ -1254,7 +1495,12 @@ const actualLeads = [
     estimator: "Erika Martinez",
     survey_date: "07/23/2024",
     survey_time: "07:45 PM",
-    inventory_option: "I Know My Shipment Size"
+    inventory_option: "I Know My Shipment Size",
+
+    add_storage: false,
+    time_promised: false,
+    storage_items: "",
+    arrival_time: ""
   }
 ];
 

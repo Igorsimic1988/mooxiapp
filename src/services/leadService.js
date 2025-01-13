@@ -1,3 +1,5 @@
+// src/services/leadService.js
+
 import { v4 as uuidv4 } from 'uuid';
 import leadsData from '../data/constants/actualLeads';
 
@@ -46,8 +48,14 @@ export async function createLead(leadData) {
     survey_date: leadData.survey_date || '',
     survey_time: leadData.survey_time || '',
 
-    // track the inventory_option
+    // Track the inventory_option
     inventory_option: leadData.inventory_option || 'Detailed Inventory Quote',
+
+    // NEW FIELDS:
+    add_storage: leadData.add_storage ?? false,
+    storage_items: leadData.storage_items ?? '',
+    time_promised: leadData.time_promised ?? false,
+    arrival_time: leadData.arrival_time ?? '',
   };
 
   leadsData.push(newLead);
@@ -76,7 +84,7 @@ export async function updateLead(leadId, updates) {
     service_type: updates.service_type ?? existingLead.service_type,
     sales_name: updates.sales_name ?? existingLead.sales_name,
 
-    // changes from LeadManagementPanel
+    // changes from LeadManagementPanel or MoveDetailsPanel
     lead_status: updates.lead_status ?? existingLead.lead_status,
     lead_activity: updates.lead_activity ?? existingLead.lead_activity,
     next_action: updates.next_action ?? existingLead.next_action,
@@ -87,6 +95,12 @@ export async function updateLead(leadId, updates) {
 
     // inventory_option
     inventory_option: updates.inventory_option ?? existingLead.inventory_option,
+
+    // NEW FIELDS:
+    add_storage: updates.add_storage ?? existingLead.add_storage,
+    storage_items: updates.storage_items ?? existingLead.storage_items,
+    time_promised: updates.time_promised ?? existingLead.time_promised,
+    arrival_time: updates.arrival_time ?? existingLead.arrival_time,
   };
 
   leadsData[existingIndex] = updatedLead;

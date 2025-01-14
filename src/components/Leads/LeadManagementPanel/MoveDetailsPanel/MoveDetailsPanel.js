@@ -13,6 +13,9 @@ import OriginDetails from './OriginDetails/OriginDetails';
 import DestinationDetails from './DestinationDetails/DestinationDetails';
 import styles from './MoveDetailsPanel.module.css';
 
+// Import your typeOfServiceChoices from the constants file
+import typeOfServiceChoices from '../../../../data/constants/typeOfServiceChoices';
+
 /** Generate time slots from 7:00 AM to 9:00 PM in 15-min increments */
 function generateTimeSlots() {
   const slots = [];
@@ -34,13 +37,6 @@ function generateTimeSlots() {
 }
 const timeSlots = generateTimeSlots();
 
-// Example dropdown data
-const typeOfServiceChoices = [
-  { id: 1, name: 'Moving' },
-  { id: 2, name: 'Move items within premises' },
-  { id: 3, name: 'Junk removal' },
-  { id: 4, name: 'Help with packing' },
-];
 const etaRequestOptions = ['Flexible', 'Morning', 'Midday', 'Afternoon', 'Late Afternoon'];
 const storageOptions = [
   'Few items',
@@ -57,8 +53,9 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const isSelected = (idx) => idx === selectedIndex;
 
   // ---------- Move/Delivery Date ----------
-  const [moveDate, setMoveDate] = useState('');
-  const [deliveryDate, setDeliveryDate] = useState('');
+  // Initialize from the lead if available
+  const [moveDate, setMoveDate] = useState(lead?.move_date || '');
+  const [deliveryDate, setDeliveryDate] = useState(lead?.delivery_date || '');
   const [showMoveCalendar, setShowMoveCalendar] = useState(false);
   const [showDeliveryCalendar, setShowDeliveryCalendar] = useState(false);
 
@@ -66,11 +63,13 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const [daysInMonth, setDaysInMonth] = useState([]);
 
   // ---------- Type of Service ----------
-  const [typeOfService, setTypeOfService] = useState('Moving');
+  // Initialize from lead.service_type if available, otherwise default to 'Moving'
+  const [typeOfService, setTypeOfService] = useState(lead?.service_type || 'Moving');
   const [showTypeOfServiceDropdown, setShowTypeOfServiceDropdown] = useState(false);
 
   // ---------- ETA Request ----------
-  const [etaRequest, setEtaRequest] = useState('Flexible');
+  // Initialize from the lead if available, else default 'Flexible'
+  const [etaRequest, setEtaRequest] = useState(lead?.eta_request || 'Flexible');
   const [showETARequestDropdown, setShowETARequestDropdown] = useState(false);
 
   // ---------- "Add storage" toggle + items dropdown ----------
@@ -89,6 +88,8 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
   // For the calendars
   const today = new Date();
+  today.setHours(0, 0, 0, 0); // zero out today's time for accurate comparisons
+
   useEffect(() => {
     const y = calendarMonth.getFullYear();
     const m = calendarMonth.getMonth();
@@ -115,7 +116,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const incrementsGridRef    = useRef(null);
 
   // Helper => default to +2h if user didn't select increment
-  // define as stable callback => reference won't change each render => linter is happy
   const defaultToTwoHours = useCallback(() => {
     if (!arrivalStart) return; // no start => do nothing
 
@@ -149,36 +149,29 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   // Outside click => close popups
   useEffect(() => {
     function handleClickOutside(e) {
-      // If the moveCalendar is open & user clicked outside => close
       if (showMoveCalendar && moveCalendarRef.current && !moveCalendarRef.current.contains(e.target)) {
         setShowMoveCalendar(false);
       }
-      // same for delivery
       if (showDeliveryCalendar && deliveryCalendarRef.current && !deliveryCalendarRef.current.contains(e.target)) {
         setShowDeliveryCalendar(false);
       }
-      // same for typeOfService
       if (showTypeOfServiceDropdown && typeOfServiceRef.current && !typeOfServiceRef.current.contains(e.target)) {
         setShowTypeOfServiceDropdown(false);
       }
-      // same for ETA
       if (showETARequestDropdown && etaRequestRef.current && !etaRequestRef.current.contains(e.target)) {
         setShowETARequestDropdown(false);
       }
-      // same for storage
       if (storageDropdownOpen && storageRef.current && !storageRef.current.contains(e.target)) {
         setStorageDropdownOpen(false);
       }
 
       // For arrival time increments
       if (showIncrementsGrid && arrivalStart && !arrivalTime) {
-        // If user clicked outside incrementsGridRef => default to 2h & close
         if (incrementsGridRef.current && !incrementsGridRef.current.contains(e.target)) {
           defaultToTwoHours();
           setShowIncrementsGrid(false);
         }
       }
-      // If the startTime dropdown is open but user clicked outside => close it
       if (showStartTimeDropdown && startTimeDropdownRef.current && !startTimeDropdownRef.current.contains(e.target)) {
         setShowStartTimeDropdown(false);
       }
@@ -201,12 +194,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   // ---------- Handle toggling "Add Storage" ----------
   const handleToggleStorage = (value) => {
     setIsStorageToggled(value);
-    // Also persist in lead
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
         add_storage: value,
-        storage_items: value ? selectedStorage : '', // if turning off => clear
+        storage_items: value ? selectedStorage : '',
       });
     }
   };
@@ -215,7 +207,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const handleSelectStorage = (option) => {
     setSelectedStorage(option);
     setStorageDropdownOpen(false);
-    // Also persist
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
@@ -229,10 +220,8 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const handleToggleTimePromised = (value) => {
     setIsTimePromisedToggled(value);
     if (!value) {
-      // If user turns it off => clear arrival_time
       setArrivalTime('');
     }
-    // Also persist in lead
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
@@ -245,7 +234,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   // ---------- Handle setting the final arrival time range ----------
   const handleSetArrivalTime = (rangeStr) => {
     setArrivalTime(rangeStr);
-    // Persist in lead
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
@@ -254,6 +242,55 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       });
     }
   };
+
+  // ---------- Handle choosing "Type of Service" ----------
+  const handleSelectServiceType = (svcName) => {
+    setTypeOfService(svcName);
+    setShowTypeOfServiceDropdown(false);
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        service_type: svcName,
+      });
+    }
+  };
+
+  // ---------- Handle choosing "Move Date" ----------
+  const handleSelectMoveDate = (dateObj) => {
+    const dateStr = dateObj.toDateString();
+    setMoveDate(dateStr);
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        move_date: dateStr,
+      });
+    }
+  };
+
+  // ---------- Handle choosing "Delivery Date" ----------
+  const handleSelectDeliveryDate = (dateObj) => {
+    const dateStr = dateObj.toDateString();
+    setDeliveryDate(dateStr);
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        delivery_date: dateStr,
+      });
+    }
+  };
+
+  // ---------- Handle choosing "ETA Request" ----------
+  const handleSelectEtaRequest = (opt) => {
+    setEtaRequest(opt);
+    setShowETARequestDropdown(false);
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        eta_request: opt,
+      });
+    }
+  };
+
 
   return (
     <div className={styles.panelContainer}>
@@ -342,7 +379,8 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                   calendarMonth.getMonth(),
                   day
                 );
-                const disabled = dayDate < today.setHours(0, 0, 0, 0);
+                // Already in code: cannot pick a date in the past
+                const disabled = dayDate < today;
                 return (
                   <button
                     key={day}
@@ -354,12 +392,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                     }}
                     onClick={() => {
                       if (!disabled) {
-                        const dateObj = new Date(
-                          calendarMonth.getFullYear(),
-                          calendarMonth.getMonth(),
-                          day
-                        );
-                        setMoveDate(dateObj.toDateString());
+                        handleSelectMoveDate(dayDate);
                         setShowMoveCalendar(false);
                       }
                     }}
@@ -400,8 +433,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                 className={styles.dropdownOption}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setTypeOfService(svc.name);
-                  setShowTypeOfServiceDropdown(false);
+                  handleSelectServiceType(svc.name);
                 }}
               >
                 {svc.name}
@@ -496,7 +528,20 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                   calendarMonth.getMonth(),
                   day
                 );
-                const disabled = dayDate < today.setHours(0, 0, 0, 0);
+
+                // If user hasn't selected a move date => earliest is 'today'
+                // If user has selected a move date => earliest is moveDate
+                let earliestDelivery = new Date(today.getTime());
+                if (moveDate) {
+                  const moveDateObj = new Date(moveDate);
+                  moveDateObj.setHours(0, 0, 0, 0);
+                  // If moveDate is valid => earliestDelivery = moveDateObj
+                  if (!isNaN(moveDateObj)) {
+                    earliestDelivery = moveDateObj;
+                  }
+                }
+
+                const disabled = dayDate < earliestDelivery;
                 return (
                   <button
                     key={day}
@@ -508,12 +553,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                     }}
                     onClick={() => {
                       if (!disabled) {
-                        const dateObj = new Date(
-                          calendarMonth.getFullYear(),
-                          calendarMonth.getMonth(),
-                          day
-                        );
-                        setDeliveryDate(dateObj.toDateString());
+                        handleSelectDeliveryDate(dayDate);
                         setShowDeliveryCalendar(false);
                       }
                     }}
@@ -554,8 +594,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                 className={styles.dropdownOption}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setEtaRequest(opt);
-                  setShowETARequestDropdown(false);
+                  handleSelectEtaRequest(opt);
                 }}
               >
                 {opt}
@@ -580,7 +619,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           className={styles.arrivalTimeInput}
           onClick={() => {
             const newVal = !showStartTimeDropdown;
-            // if we are closing & user didn't pick increment => default 2h
             if (!newVal && arrivalStart && !arrivalTime && showIncrementsGrid) {
               defaultToTwoHours();
             }

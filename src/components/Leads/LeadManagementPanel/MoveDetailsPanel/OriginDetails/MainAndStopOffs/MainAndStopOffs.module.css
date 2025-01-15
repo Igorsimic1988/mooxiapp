@@ -1,0 +1,68 @@
+/* src/components/OriginDetails/MainAndStopOffs/MainAndStopOffs.module.css */
+
+.addressRow {
+    margin-bottom: 10px;
+  }
+  
+  .addressContainer {
+    border-radius: 12px;
+    background: #f2f5f8;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    gap: 4px;
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: fit-content;
+  }
+  
+  .addressButtonsWrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  /* Base style */
+  .mainAddressButton {
+    height: 40px;
+    padding: 0 15px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-family: Satoshi, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: normal;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Selected => background #3FA9F5, text #FFF */
+  .buttonSelected {
+    background: #3fa9f5;
+    color: #fff;
+  }
+  
+  /* Unselected => background rgba(63, 169, 245, 0.15), text #3FA9F5 */
+  .buttonUnselected {
+    background: rgba(63, 169, 245, 0.15);
+    color: #3fa9f5;
+  }
+  
+  .plusButton {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #90a4b7;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  

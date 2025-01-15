@@ -1,0 +1,125 @@
+.popup {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: flex-end;
+    align-items: stretch;
+    z-index: 1000;
+  }
+  
+  .popupContent {
+    border-radius: 20px 0 0 0;
+    background-color: #fff;
+    width: calc(100% - 16px);
+    max-width: 400px;
+    height: 100%;
+    box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+  }
+  
+  /* HEADER */
+  .header {
+    width: 100%;
+    min-height: 60px;
+    background: #59B779; /* Green-ish header */
+    border-radius: 20px 0 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .title {
+    display: flex;
+    align-items: center;
+  }
+  
+  .icon {
+    width: 24px;
+    height: 24px;
+    margin-left: 30px;
+    color: white;
+  }
+  
+  .header p {
+    color: white;
+    font-family: Satoshi, sans-serif;
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-left: 10px;
+  }
+  
+  .closeButton {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+  }
+  
+  .closeButton button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    width: 50px;
+    height: 50px;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .closeIcon {
+    color: white;
+  }
+  
+  /* RADIO GROUP */
+  .radioGroup {
+    padding-left: 35px;
+    width: 100%;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    border-top: 1px solid #D8DCE0;
+    border-bottom: 1px solid #D8DCE0;
+    background: #FFF;
+  }
+  
+  .radioLabel {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .radioInput {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+  }
+  
+  .radioText {
+    display: inline-block;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #90A4B7;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 3px solid transparent;
+    padding-bottom: 4px; /* underline effect */
+  }
+  
+  .radioInput:checked + .radioText {
+    color: #2F3236;
+    border-bottom: 3px solid #59B779;
+  }
+  
+  /* 3) New wrapper for padding around MainAndStopOffs */
+  .stopOffsPaddingWrapper {
+    padding-left: 30px; /* or however much you want */
+  }
+  

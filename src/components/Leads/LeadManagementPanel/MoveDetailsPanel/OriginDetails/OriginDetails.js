@@ -1,3 +1,5 @@
+// src/components/OriginDetails/OriginDetails.js
+
 import React, { useState } from 'react';
 import { ReactComponent as LocationIcon } from '../../../../../assets/icons/location.svg';
 import { ReactComponent as PlaceIcon } from '../../../../../assets/icons/place1.svg';
@@ -8,30 +10,46 @@ import { ReactComponent as MyInventoryIcon } from '../../../../../assets/icons/m
 import SimpleToggle from '../../../SimpleToggle/SimpleToggle';
 import styles from './OriginDetails.module.css';
 
-function OriginDetails({ onShowInventory }) {
-  const [timeRestrictionsToggled, setTimeRestrictionsToggled] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+// The popup
+import PlacePopup from './PlacePopup/PlacePopup';
 
-  // This array will hold the "Stop off 1", "Stop off 2", etc. labels
+// The reusable "Main + Stop-offs" row
+import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
+
+function OriginDetails({ onShowInventory }) {
+  // 1) Manage "stopOffs" array in the parent
   const [stopOffs, setStopOffs] = useState([]);
 
-  // Each time user clicks '+', we add a new "Stop off X"
+  // 2) Manage "selectedStop" in the parent so it doesn't reset
+  //    Default to "Main Address"
+  const [selectedStop, setSelectedStop] = useState('Main Address');
+
+  // Add a new stop-off (Stop off #X) and auto-select it
   const handleAddStopOff = () => {
     const newStopNum = stopOffs.length + 1;
-    setStopOffs((prev) => [...prev, `Stop off ${newStopNum}`]);
+    const newStopLabel = `Stop off ${newStopNum}`;
+    setStopOffs((prev) => [...prev, newStopLabel]);
+
+    // Also set the newly added as selected
+    setSelectedStop(newStopLabel);
   };
 
-  const handleToggleCollapse = () => {
-    setIsCollapsed((prev) => !prev);
-  };
+  // For collapsible UI
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const handleToggleCollapse = () => setIsCollapsed((prev) => !prev);
 
-  // We'll store user-entered address info in local state (optional).
-  // If you need to pass these values to the parent, you can do so via callbacks.
+  // Store user-entered address info in local state (optional).
   const [propertyAddress, setPropertyAddress] = useState('');
   const [aptOrSuite, setAptOrSuite] = useState('');
   const [city, setCity] = useState('');
   const [stateName, setStateName] = useState('');
   const [zipCode, setZipCode] = useState('');
+
+  // For time restrictions
+  const [timeRestrictionsToggled, setTimeRestrictionsToggled] = useState(false);
+
+  // 3) Control the visibility of PlacePopup
+  const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
 
   return (
     <div className={styles.originContainer}>
@@ -45,33 +63,27 @@ function OriginDetails({ onShowInventory }) {
       {/* Only render content if not collapsed */}
       {!isCollapsed && (
         <>
-          <div className={styles.addressRow}>
-            <div className={styles.addressContainer}>
-              {/* Left side: Main Address + any stop-offs */}
-              <div className={styles.addressButtonsWrapper}>
-                <button className={styles.mainAddressButton}>Main Address</button>
-                {stopOffs.map((stopLabel, idx) => (
-                  <button key={idx} className={styles.mainAddressButton}>
-                    {stopLabel}
-                  </button>
-                ))}
-              </div>
+          {/*
+            4) Use MainAndStopOffs, 
+               passing BOTH stopOffs + selectedStop state 
+               and the callbacks to update them
+          */}
+          <MainAndStopOffs
+            stopOffs={stopOffs}
+            selectedStop={selectedStop}
+            setSelectedStop={setSelectedStop}
+            onAddStopOff={handleAddStopOff}
+          />
 
-              {/* Right side: plus button */}
-              <button className={styles.plusButton} onClick={handleAddStopOff}>
-                +
-              </button>
-            </div>
-          </div>
-
+          {/* -------------------------
+              Rest of your OriginDetails UI
+          ------------------------- */}
           <div className={styles.propertySection}>
             <span className={styles.propertyAddressText}>Property Address</span>
-
-            {/* PROPERTY ADDRESS (with icon on the right) */}
             <div className={styles.inputContainer}>
               <input
                 type="text"
-                className={styles.addressInput} /* new input style */
+                className={styles.addressInput}
                 placeholder="Property Address"
                 value={propertyAddress}
                 onChange={(e) => setPropertyAddress(e.target.value)}
@@ -82,7 +94,6 @@ function OriginDetails({ onShowInventory }) {
             </div>
 
             <div className={styles.twoInputsRow}>
-              {/* APT/SUITE */}
               <div className={styles.inputContainer}>
                 <input
                   type="text"
@@ -92,7 +103,6 @@ function OriginDetails({ onShowInventory }) {
                   onChange={(e) => setAptOrSuite(e.target.value)}
                 />
               </div>
-              {/* CITY */}
               <div className={styles.inputContainer}>
                 <input
                   type="text"
@@ -105,7 +115,6 @@ function OriginDetails({ onShowInventory }) {
             </div>
 
             <div className={styles.twoInputsRow}>
-              {/* STATE */}
               <div className={styles.inputContainer}>
                 <input
                   type="text"
@@ -115,7 +124,6 @@ function OriginDetails({ onShowInventory }) {
                   onChange={(e) => setStateName(e.target.value)}
                 />
               </div>
-              {/* ZIP */}
               <div className={styles.inputContainer}>
                 <input
                   type="text"
@@ -131,18 +139,24 @@ function OriginDetails({ onShowInventory }) {
           <div className={styles.propertyInfoSection}>
             <span className={styles.propertyText}>Property</span>
 
-            <div className={`${styles.propertyItem} ${styles.propertyItemPlace}`}>
+            {/* PLACE card opens popup if container is clicked */}
+            <div
+              className={`${styles.propertyItem} ${styles.propertyItemPlace}`}
+              onClick={() => setIsPlacePopupOpen(true)}
+            >
               <div className={styles.propertyItemLeft}>
                 <PlaceIcon className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>PLACE</span>
               </div>
               <button
                 className={`${styles.propertyItemPlusButton} ${styles.propertyItemPlaceButton}`}
+                onClick={(e) => e.stopPropagation()}
               >
                 +
               </button>
             </div>
 
+            {/* ACCESS card */}
             <div className={`${styles.propertyItem} ${styles.propertyItemAccess}`}>
               <div className={styles.propertyItemLeft}>
                 <AccessIcon className={styles.propertyItemIcon} />
@@ -155,6 +169,7 @@ function OriginDetails({ onShowInventory }) {
               </button>
             </div>
 
+            {/* SERVICES card */}
             <div className={`${styles.propertyItem} ${styles.propertyItemServices}`}>
               <div className={styles.propertyItemLeft}>
                 <ServicesIcon className={styles.propertyItemIcon} />
@@ -185,29 +200,25 @@ function OriginDetails({ onShowInventory }) {
                 <div className={styles.timeRestrictionsInputsColumn}>
                   <div className={styles.inputContainer}>
                     <span className={styles.inputLabel}>
-                      Option:{' '}
-                      <span className={styles.inputValueText}>Not allowed</span>
+                      Option: <span className={styles.inputValueText}>Not allowed</span>
                     </span>
                     <UnfoldMoreIcon className={styles.moreIcon} />
                   </div>
                   <div className={styles.inputContainer}>
                     <span className={styles.inputLabel}>
-                      Type:{' '}
-                      <span className={styles.inputValueText}>Elevator</span>
+                      Type: <span className={styles.inputValueText}>Elevator</span>
                     </span>
                     <UnfoldMoreIcon className={styles.moreIcon} />
                   </div>
                   <div className={styles.inputContainer}>
                     <span className={styles.inputLabel}>
-                      Start time:{' '}
-                      <span className={styles.inputValueText}>10:00pm</span>
+                      Start time: <span className={styles.inputValueText}>10:00pm</span>
                     </span>
                     <UnfoldMoreIcon className={styles.moreIcon} />
                   </div>
                   <div className={styles.inputContainer}>
                     <span className={styles.inputLabel}>
-                      End time:{' '}
-                      <span className={styles.inputValueText}>10:00am</span>
+                      End time: <span className={styles.inputValueText}>10:00am</span>
                     </span>
                     <UnfoldMoreIcon className={styles.moreIcon} />
                   </div>
@@ -242,6 +253,18 @@ function OriginDetails({ onShowInventory }) {
             </div>
           </div>
         </>
+      )}
+
+      {/* Conditionally render the PlacePopup here */}
+      {isPlacePopupOpen && (
+        <PlacePopup
+          setIsPlacePopupVisible={setIsPlacePopupOpen}
+          // Pass the SAME states so it doesn't reset
+          stopOffs={stopOffs}
+          onAddStopOff={handleAddStopOff}
+          selectedStop={selectedStop}
+          setSelectedStop={setSelectedStop}
+        />
       )}
     </div>
   );

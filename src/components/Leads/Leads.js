@@ -10,6 +10,9 @@ import AddNewLeadButton from './AddNewLeadButton/AddNewLeadButton';
 import LeadsList from './LeadsList/LeadsList';
 import LeadManagementPanel from './LeadManagementPanel/LeadManagementPanel';
 
+// Import Inventory
+import Inventory from './LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory';
+
 // local leads data
 import actualLeads from '../../data/constants/actualLeads';
 
@@ -18,41 +21,30 @@ import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
 
 /**
  * Filter leads based on current activeTab
- * - "Active Leads" => statuses in ["New Lead", "In Progress", "Quoted", "Move on Hold"],
- *                     excluding In-Progress leads whose next_action="Survey Completed"
- * - "Closed Leads" => statuses in ["Bad Lead", "Declined"]
- * - "My Appointments" => status="In Progress",
- *                        activity in ["In Home Estimate","Virtual Estimate"],
- *                        next_action="Survey Completed"
- * - "Pending" => status="New Lead" (example assumption)
- * - "Booked" => statuses in ["Booked", "Cancaled"]
  */
 function filterLeadsByTab(leads, activeTab) {
+  if (!Array.isArray(leads)) return [];
   switch (activeTab) {
     case 'Active Leads':
       return leads.filter((ld) => {
         const st = ld.lead_status;
         const na = ld.next_action;
-        const isActiveStatus =
+        const isActive =
           st === 'New Lead' ||
           st === 'In Progress' ||
           st === 'Quoted' ||
           st === 'Move on Hold';
-
-        // If In Progress => exclude if next_action=Survey Completed
+        // If "In Progress" => exclude if next_action="Survey Completed"
         if (st === 'In Progress' && na === 'Survey Completed') {
           return false;
         }
-        return isActiveStatus;
+        return isActive;
       });
-
     case 'Closed Leads':
       return leads.filter(
         (ld) => ld.lead_status === 'Bad Lead' || ld.lead_status === 'Declined'
       );
-
     case 'My Appointments':
-      // status="In Progress", lead_activity in [In Home, Virtual], next_action="Survey Completed"
       return leads.filter(
         (ld) =>
           ld.lead_status === 'In Progress' &&
@@ -60,16 +52,12 @@ function filterLeadsByTab(leads, activeTab) {
             ld.lead_activity === 'Virtual Estimate') &&
           ld.next_action === 'Survey Completed'
       );
-
     case 'Pending':
-      // Example: leads with lead_status === ''
       return leads.filter((ld) => ld.lead_status === '');
-
     case 'Booked':
       return leads.filter(
         (ld) => ld.lead_status === 'Booked' || ld.lead_status === 'Cancaled'
       );
-
     default:
       return leads;
   }
@@ -77,14 +65,12 @@ function filterLeadsByTab(leads, activeTab) {
 
 /**
  * Parse lead.survey_date + survey_time into a JS Date.
- * If invalid, returns null => so we can sort "My Appointments".
  */
 function parseSurveyDateTime(lead) {
-  if (!lead.survey_date) return null;
+  if (!lead || !lead.survey_date) return null;
   const d = new Date(lead.survey_date);
   if (isNaN(d)) return null;
 
-  // parse "07:30 AM" or similar
   if (lead.survey_time) {
     const regex = /^(\d{1,2}):(\d{2})\s?(AM|PM)$/i;
     const match = lead.survey_time.match(regex);
@@ -92,18 +78,17 @@ function parseSurveyDateTime(lead) {
       let hour = parseInt(match[1], 10);
       const minute = parseInt(match[2], 10);
       const ampm = match[3].toUpperCase();
-
       if (ampm === 'PM' && hour < 12) hour += 12;
       if (ampm === 'AM' && hour === 12) hour = 0;
       d.setHours(hour, minute, 0, 0);
     }
   }
-
   return d;
 }
 
 function Leads() {
-  const [leads, setLeads] = useState([...actualLeads]);
+  // Defensive: if actualLeads isn't an array, fallback to []
+  const [leads, setLeads] = useState(Array.isArray(actualLeads) ? [...actualLeads] : []);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -123,7 +108,14 @@ function Leads() {
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
 
-  // On mount/resize => set app height
+  // If true => show the Inventory "full-screen"
+  const [showInventoryFullScreen, setShowInventoryFullScreen] = useState(false);
+
+  // Track which room is currently selected in Inventory
+  // => if null, we are on the Inventory main screen; if not null, "in a room"
+  const [inventoryRoom, setInventoryRoom] = useState(null);
+
+  // On mount => set app height
   useEffect(() => {
     function setAppHeight() {
       document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
@@ -133,7 +125,7 @@ function Leads() {
     return () => window.removeEventListener('resize', setAppHeight);
   }, []);
 
-  // 1) Sort leads newest-first by creation date
+  // 1) Sort leads newest-first
   const sortedLeads = [...leads].sort(
     (a, b) => new Date(b.creation_date_time) - new Date(a.creation_date_time)
   );
@@ -141,7 +133,7 @@ function Leads() {
   // 2) Filter by activeTab
   let filteredLeads = filterLeadsByTab(sortedLeads, activeTab);
 
-  // 2.5) If My Appointments => sort ascending by (survey_date + survey_time)
+  // 2.5) If My Appointments => sort ascending by date/time
   if (activeTab === 'My Appointments') {
     filteredLeads.sort((a, b) => {
       const dateA = parseSurveyDateTime(a);
@@ -149,7 +141,7 @@ function Leads() {
       if (!dateA && !dateB) return 0;
       if (!dateA) return 1;
       if (!dateB) return -1;
-      return dateA - dateB; // ascending
+      return dateA - dateB;
     });
   }
 
@@ -160,27 +152,25 @@ function Leads() {
   const endIndex = Math.min(startIndex + leadsPerPage, totalLeads);
   const currentLeads = filteredLeads.slice(startIndex, endIndex);
 
-  // Pagination handlers
+  // Pagination
   const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
   };
   const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+    if (currentPage > 1) setCurrentPage(prev => prev - 1);
   };
 
-  // Selecting a lead => show LeadManagementPanel
+  // Selecting a lead => show details
   const handleLeadClick = (lead) => {
-    // Save scroll position
     if (leadsListRef.current) {
       setScrollPosition(leadsListRef.current.scrollTop);
     }
     setSelectedLead(lead);
   };
 
-  // Closing panel
+  // Closing the lead-management panel => arrow in HeaderDashboard
   const handleBack = () => {
     setSelectedLead(null);
-    // When the list reappears, restore scroll
     setTimeout(() => {
       if (leadsListRef.current) {
         leadsListRef.current.scrollTop = scrollPosition;
@@ -188,17 +178,16 @@ function Leads() {
     }, 0);
   };
 
-  // Creating a new lead => push to array
+  // Creating a new lead
   const handleLeadCreated = (newLead) => {
-    setLeads((prev) => [...prev, newLead]);
+    setLeads(prev => [...prev, newLead]);
   };
 
-  // Updating an existing lead
+  // Updating a lead
   const handleLeadUpdated = (updatedLead) => {
-    setLeads((prevLeads) =>
-      prevLeads.map((ld) => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
+    setLeads(prevLeads =>
+      prevLeads.map(ld => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
     );
-    // If that lead is currently selected => update it
     if (selectedLead && selectedLead.lead_id === updatedLead.lead_id) {
       setSelectedLead(updatedLead);
     }
@@ -216,9 +205,61 @@ function Leads() {
     setCurrentPage(1);
   };
 
+  // Inventory
+  const openInventoryFullScreen = () => setShowInventoryFullScreen(true);
+  const closeInventoryFullScreen = () => setShowInventoryFullScreen(false);
+
+
+  // ================ ARROW / ROOM LOGIC ================
+  // We give `HeaderDashboard` these props:
+  //   isInInventory = showInventoryFullScreen
+  //   inRoom = !!inventoryRoom
+  //   roomName = inventoryRoom?.name || ''
+  //
+  //   onRoomBack = () => setInventoryRoom(null)
+  //   onCloseInventory = closeInventoryFullScreen
+  //   onBack = handleBack (for leads scenario)
+  // ====================================================
+
+  // If Inventory is open => we show the Inventory + the same single Header
+  if (showInventoryFullScreen) {
+    return (
+      <div className={styles.container}>
+        <HeaderDashboard
+          isLeadSelected={!!selectedLead}
+          onBack={handleBack}
+  
+          // Inventory arrow logic:
+          isInInventory={true}
+          inRoom={!!inventoryRoom}
+          roomName={inventoryRoom?.name || ''}
+          onRoomBack={() => setInventoryRoom(null)}
+          onCloseInventory={closeInventoryFullScreen}
+        />
+  
+        <Inventory
+          onCloseInventory={closeInventoryFullScreen}
+          // We pass down the "current" selected room and a setter
+          inventoryRoom={inventoryRoom}
+          onSelectRoom={(roomObj) => setInventoryRoom(roomObj)}
+        />
+      </div>
+    );
+  }
+
+  // Otherwise, normal leads UI
   return (
     <div className={styles.container}>
-      <HeaderDashboard isLeadSelected={!!selectedLead} onBack={handleBack} />
+      <HeaderDashboard
+         isLeadSelected={!!selectedLead}
+         onBack={handleBack}
+         // Because we are NOT in the full-screen inventory:
+         isInInventory={false}
+         inRoom={false}
+         roomName=""
+         onRoomBack={() => {}}
+         onCloseInventory={() => {}}
+      />
 
       {selectedLead ? (
         <LeadManagementPanel
@@ -226,6 +267,8 @@ function Leads() {
           onClose={() => setSelectedLead(null)}
           onEditLead={handleEditLead}
           onLeadUpdated={handleLeadUpdated}
+          // This triggers full-screen Inventory
+          onInventoryFullScreen={openInventoryFullScreen}
         />
       ) : (
         <>
@@ -242,9 +285,6 @@ function Leads() {
             />
           </div>
 
-          {/* 
-            Pass down the leadsListRef and an onScroll handler so we can track the scroll position 
-          */}
           <LeadsList
             leads={currentLeads}
             onLeadClick={handleLeadClick}

@@ -1,3 +1,5 @@
+// src/components/Leads/LeadManagementPanel/LeadManagementPanel.js
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ReactComponent as CustomerUserIcon } from '../../../assets/icons/customeruser.svg';
 import { ReactComponent as MoreIcon } from '../../../assets/icons/more.svg';
@@ -557,6 +559,8 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     }
   };
 
+  
+
   // figure out color for the text + icon container
   const selectedInvObj = inventoryDropdownOptions.find(o => o.label === inventoryOption)
     || inventoryDropdownOptions[0];
@@ -908,10 +912,10 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       </div>
 
       <MoveDetailsPanel
-  onShowInventory={() => setShowInventory(true)}
-  lead={lead}            // pass the lead object down
-  onLeadUpdated={onLeadUpdated}  // pass the callback down
-/>
+        onShowInventory={() => setShowInventory(true)}
+        lead={lead}
+        onLeadUpdated={onLeadUpdated}
+      />
     </div>
   );
 }

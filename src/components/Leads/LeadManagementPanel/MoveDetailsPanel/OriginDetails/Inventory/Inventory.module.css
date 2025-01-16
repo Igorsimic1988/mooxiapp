@@ -8,17 +8,18 @@
 .inventoryContainer {
   display: flex;
   flex-direction: column;
-  height: calc(var(--vh, 1vh) * 100);
-  overflow: hidden; /* Prevents body scrolling */
+  width: 100%;
+  /* Remove the full-screen constraints */
+  /* remove: height: calc(var(--vh, 1vh) * 100);
+     remove: overflow: hidden; */
+  background-color: #f2f5f8; /* optional */
 }
 
 /* Fixed Header */
 .header {
-  position: fixed;
-  top: 0;
-  left: 0;
   width: 100%;
-  z-index: 1000; /* Ensures it stays above other elements */
+  background: #fff;
+  /* remove position: fixed, top, left, z-index if you don't want it pinned */
   display: flex;
   flex-direction: column;
 }
@@ -26,7 +27,6 @@
 
 /* Main Content */
 .mainContent {
-  margin-top: 50px; /* Height of TopNavigation + HouseHeader/SearchHeader */
    /* Height of FooterNavigation */
   overflow: hidden; /* Disable scrolling here */
   height: calc(var(--vh, 1vh) * 100 - 105px);

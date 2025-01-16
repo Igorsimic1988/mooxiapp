@@ -73,13 +73,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const [showETARequestDropdown, setShowETARequestDropdown] = useState(false);
 
   // ---------- "Add storage" toggle + items dropdown ----------
-  // Load from lead.add_storage (boolean) + lead.storage_items (string)
   const [isStorageToggled, setIsStorageToggled] = useState(Boolean(lead?.add_storage));
   const [storageDropdownOpen, setStorageDropdownOpen] = useState(false);
   const [selectedStorage, setSelectedStorage] = useState(lead?.storage_items || 'All items');
 
   // ---------- Time Promised (Arrival Time) ----------
-  // Load from lead.time_promised (boolean) + lead.arrival_time (string)
   const [isTimePromisedToggled, setIsTimePromisedToggled] = useState(Boolean(lead?.time_promised));
   const [arrivalTime, setArrivalTime] = useState(lead?.arrival_time || '');
   const [arrivalStart, setArrivalStart] = useState('');
@@ -290,7 +288,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       });
     }
   };
-
 
   return (
     <div className={styles.panelContainer}>

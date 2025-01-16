@@ -1,4 +1,4 @@
-// src/components/OriginDetails/OriginDetails.js
+// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/OriginDetails.js
 
 import React, { useState } from 'react';
 import { ReactComponent as LocationIcon } from '../../../../../assets/icons/location.svg';
@@ -17,11 +17,10 @@ import PlacePopup from './PlacePopup/PlacePopup';
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
 
 function OriginDetails({ onShowInventory }) {
-  // 1) Manage "stopOffs" array in the parent
+  // 1) Manage "stopOffs" array in local state
   const [stopOffs, setStopOffs] = useState([]);
 
-  // 2) Manage "selectedStop" in the parent so it doesn't reset
-  //    Default to "Main Address"
+  // 2) The currently-selected stop (default "Main Address")
   const [selectedStop, setSelectedStop] = useState('Main Address');
 
   // Add a new stop-off (Stop off #X) and auto-select it
@@ -30,7 +29,7 @@ function OriginDetails({ onShowInventory }) {
     const newStopLabel = `Stop off ${newStopNum}`;
     setStopOffs((prev) => [...prev, newStopLabel]);
 
-    // Also set the newly added as selected
+    // Also set newly added as selected
     setSelectedStop(newStopLabel);
   };
 
@@ -38,7 +37,7 @@ function OriginDetails({ onShowInventory }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const handleToggleCollapse = () => setIsCollapsed((prev) => !prev);
 
-  // Store user-entered address info in local state (optional).
+  // Store user-entered address info
   const [propertyAddress, setPropertyAddress] = useState('');
   const [aptOrSuite, setAptOrSuite] = useState('');
   const [city, setCity] = useState('');
@@ -63,11 +62,7 @@ function OriginDetails({ onShowInventory }) {
       {/* Only render content if not collapsed */}
       {!isCollapsed && (
         <>
-          {/*
-            4) Use MainAndStopOffs, 
-               passing BOTH stopOffs + selectedStop state 
-               and the callbacks to update them
-          */}
+          {/* Stop-offs row */}
           <MainAndStopOffs
             stopOffs={stopOffs}
             selectedStop={selectedStop}
@@ -76,7 +71,7 @@ function OriginDetails({ onShowInventory }) {
           />
 
           {/* -------------------------
-              Rest of your OriginDetails UI
+              Rest of the OriginDetails UI
           ------------------------- */}
           <div className={styles.propertySection}>
             <span className={styles.propertyAddressText}>Property Address</span>

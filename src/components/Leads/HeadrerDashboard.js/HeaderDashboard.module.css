@@ -1,3 +1,5 @@
+/* HeaderDashboard.module.css */
+
 .headerContainer {
   display: flex;
   flex-direction: column;
@@ -37,11 +39,21 @@
   width: 1px;
   height: 40px;
   background: rgba(255, 255, 255, 0.20);
-  margin-left: 14px; 
+  margin-left: 14px;
 }
 
 .homeText {
-  margin-left: 20px; 
+  margin-left: 20px;
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.roomNameText {
+  /* same style as homeText, but margin-left: 10px to the arrow */
+  margin-left: 10px;
   color: #FFF;
   font-family: Satoshi, sans-serif;
   font-size: 1.125rem;

@@ -1,4 +1,4 @@
-// src/components/Inventory/Inventory.js
+// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory.js
 
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Inventory.module.css';
@@ -7,33 +7,44 @@ import HouseHeader from './HouseHeader/HouseHeader';
 import FooterNavigation from './FooterNavigation/FooterNavigation';
 import ItemSelection from './ItemSelection/ItemSelection';
 import SearchHeader from './SearchHeader/SearchHeader';
-import rooms from '../../../../../../data/constants/AllRoomsList'; // Import rooms data
-import allItems from '../../../../../../data/constants/funitureItems'; // Import allItems
+import rooms from '../../../../../../data/constants/AllRoomsList';
+import allItems from '../../../../../../data/constants/funitureItems';
 import InventoryDesktop from './InventoryDesktop/InventoryDesktop';
-import { v4 as uuidv4 } from 'uuid'; // For unique IDs
+import { v4 as uuidv4 } from 'uuid';
 import ItemPopup from './ItemSelection/Item/ItemPopup/ItemPopup';
-import { generateGroupingKey } from './utils/generateGroupingKey'; // Adjust path if needed
+import { generateGroupingKey } from './utils/generateGroupingKey';
 
-// Rooms to show by default
 const defaultRoomIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
 /**
  * Inventory
  *
  * Props:
- *   - onCloseInventory(): closes the entire Inventory screen
+ *   - onCloseInventory(): closes entire Inventory
+ *   - inventoryRoom: parent's "selected room" (null if none)
+ *   - setInventoryRoom: parent's setter for that "selected room"
  */
-function Inventory({ onCloseInventory }) {
-  const [selectedRoom, setSelectedRoom] = useState(null);
+function Inventory({
+  onCloseInventory,
+  inventoryRoom,
+  setInventoryRoom,
+}) {
+  // The parent's selectedRoom
+  const selectedRoom = inventoryRoom;
+
+  // States
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLetter, setSelectedLetter] = useState(null);
   const [selectedSubButton, setSelectedSubButton] = useState({ letter: null, subButton: null });
+
+  // Local item selections
   const [roomItemSelections, setRoomItemSelections] = useState(() =>
-    rooms.reduce((acc, room) => {
-      acc[room.id] = [];
+    rooms.reduce((acc, r) => {
+      acc[r.id] = [];
       return acc;
     }, {})
   );
+
   const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
   const [isToggled, setIsToggled] = useState(true);
 
@@ -46,12 +57,11 @@ function Inventory({ onCloseInventory }) {
   const handleClosePopup = () => setPopupData(null);
 
   const [displayedRooms, setDisplayedRooms] = useState(
-    rooms.filter((room) => defaultRoomIds.includes(room.id))
+    rooms.filter((r) => defaultRoomIds.includes(r.id))
   );
   const [isMyItemsActive, setIsMyItemsActive] = useState(false);
   const [isDeleteActive, setIsDeleteActive] = useState(false);
 
-  // Adjust the viewport height var
   useEffect(() => {
     function setVh() {
       document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
@@ -61,7 +71,7 @@ function Inventory({ onCloseInventory }) {
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
-  // “Start Fresh” => push a new item
+  // “Start Fresh”
   const handleStartFresh = (newItemInstance) => {
     if (!selectedRoom) return;
     setRoomItemSelections((prev) => {
@@ -73,19 +83,18 @@ function Inventory({ onCloseInventory }) {
     });
   };
 
-  // Switch rooms
+  // Switch rooms => parent's setter
   const handleRoomSelect = (room) => {
-    setSelectedRoom(room);
+    if (setInventoryRoom) {
+      setInventoryRoom(room);
+    }
   };
 
-  // -------------------------------------------
-  // If a user is in a room => show items;
-  // else => show the list of rooms
-  // -------------------------------------------
-
-  // Go back to main room list
+  // If user clicks "back to rooms" => set parent's room to null
   const handleBackToRooms = () => {
-    setSelectedRoom(null);
+    if (setInventoryRoom) {
+      setInventoryRoom(null);
+    }
     setSearchQuery('');
     setSelectedLetter(null);
     setSelectedSubButton({ letter: null, subButton: null });
@@ -98,16 +107,13 @@ function Inventory({ onCloseInventory }) {
     setSelectedLetter(null);
     setSelectedSubButton({ letter: null, subButton: null });
   };
-
   const handleSearchClick = () => {
     setIsMyItemsActive(false);
     setSelectedLetter(null);
     setSelectedSubButton({ letter: null, subButton: null });
   };
 
-  // --------------------------------------------------
-  // DO NOT CHANGE: handleLetterSelect, handleSubButtonSelect
-  // --------------------------------------------------
+  // Letter + SubButton selects
   const handleLetterSelect = (letter) => {
     setIsMyItemsActive(false);
     if (selectedLetter === letter) {
@@ -120,7 +126,6 @@ function Inventory({ onCloseInventory }) {
       setSearchQuery('');
     }
   };
-
   const handleSubButtonSelect = (letter, subButton) => {
     setIsMyItemsActive(false);
     if (
@@ -136,18 +141,17 @@ function Inventory({ onCloseInventory }) {
       setSearchQuery('');
     }
   };
-  // --------------------------------------------------
 
   // Increase/decrease items
   const handleItemSelection = (clickedItem, action) => {
     if (!selectedRoom) return;
     if (!action) {
-      // default => either 'increase' or 'decrease' depending on isDeleteActive
       action = isDeleteActive ? 'decrease' : 'increase';
     }
 
     setRoomItemSelections((prev) => {
       const current = [...(prev[selectedRoom.id] || [])];
+
       if (action === 'decrease') {
         let idx = -1;
         if (isMyItemsActive) {
@@ -158,7 +162,7 @@ function Inventory({ onCloseInventory }) {
         }
         if (idx !== -1) current.splice(idx, 1);
       } else {
-        // increase
+        // "increase"
         let newItemInstance;
         if (isMyItemsActive) {
           newItemInstance = {
@@ -201,14 +205,11 @@ function Inventory({ onCloseInventory }) {
         current.push(newItemInstance);
       }
 
-      return {
-        ...prev,
-        [selectedRoom.id]: current,
-      };
+      return { ...prev, [selectedRoom.id]: current };
     });
   };
 
-  // Toggling room visibility
+  // Toggle room visibility
   const handleToggleRoom = (roomId) => {
     if (roomId === 13) return; // always show Boxes
     const found = rooms.find((r) => r.id === roomId);
@@ -231,29 +232,27 @@ function Inventory({ onCloseInventory }) {
     }
   }, [displayedRooms]);
 
-  // Count items in the current room
   const getItemCountForCurrentRoom = () => {
     if (!selectedRoom) return 0;
     return (roomItemSelections[selectedRoom.id] || []).length;
   };
 
-  // Updating an item from the ItemPopup
+  // Updating an item from ItemPopup
   const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
     if (!selectedRoom) return;
     setRoomItemSelections((prev) => {
       const next = { ...prev };
       let arr = [...(next[selectedRoom.id] || [])];
 
-      // gather all from same groupingKey
       const groupItems = arr.filter(
         (itm) => itm.groupingKey === originalItemInstance.groupingKey
       );
-      if (groupItems.length === 0) return next; // not found
+      if (groupItems.length === 0) return next;
 
       // Remove them
       arr = arr.filter((itm) => itm.groupingKey !== originalItemInstance.groupingKey);
 
-      // update groupingKey
+      // new groupingKey
       const newKey = generateGroupingKey(updatedItemInstance);
       updatedItemInstance.groupingKey = newKey;
 
@@ -271,7 +270,7 @@ function Inventory({ onCloseInventory }) {
     });
   };
 
-  // Adding brand new item
+  // Add brand new item
   const handleAddItem = (newItemInstance) => {
     if (!selectedRoom) return;
     setRoomItemSelections((prev) => {
@@ -289,7 +288,7 @@ function Inventory({ onCloseInventory }) {
     });
   };
 
-  // Auto-adding boxes if toggle is ON
+  // Auto-add boxes if toggle is ON
   useEffect(() => {
     if (!isToggled) return;
 
@@ -309,10 +308,11 @@ function Inventory({ onCloseInventory }) {
       });
     });
 
-    if (prevTotalLbsRef.current === totalLbs) return;
+    if (prevTotalLbsRef.current === totalLbs) {
+      return;
+    }
     prevTotalLbsRef.current = totalLbs;
 
-    // Calculate boxes
     const boxesPer200lbs = 3;
     const nUnits = Math.ceil(totalLbs / 200);
     const totalBoxes = nUnits * boxesPer200lbs;
@@ -331,6 +331,7 @@ function Inventory({ onCloseInventory }) {
     setRoomItemSelections((prev) => {
       const copy = { ...prev };
       const boxesArr = copy['13'] || [];
+
       // remove autoAdded
       const nonAuto = boxesArr.filter((bx) => !bx.autoAdded);
 
@@ -378,7 +379,6 @@ function Inventory({ onCloseInventory }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // If desktop => show InventoryDesktop
   if (isDesktop) {
     return (
       <InventoryDesktop
@@ -389,7 +389,7 @@ function Inventory({ onCloseInventory }) {
         isToggled={isToggled}
         setIsToggled={setIsToggled}
         selectedRoom={selectedRoom}
-        setSelectedRoom={setSelectedRoom}
+        setSelectedRoom={setInventoryRoom}
         rooms={rooms}
         searchQuery={searchQuery}
         handleSearch={handleSearch}
@@ -405,17 +405,9 @@ function Inventory({ onCloseInventory }) {
     );
   }
 
-  // MOBILE => We'll add a small "arrow" icon in this header or let the parent do it.
-  // For now, we rely on the parent controlling the arrow.
-  // We'll provide "handleBack" as a reference if needed.
-
   return (
     <div className={styles.inventoryContainer}>
       <header className={styles.header}>
-        {/* 
-          If a room is selected => show SearchHeader,
-          else => show HouseHeader 
-        */}
         {selectedRoom ? (
           <SearchHeader
             roomName={selectedRoom.name}
@@ -455,7 +447,6 @@ function Inventory({ onCloseInventory }) {
             isToggled={isToggled}
             setIsToggled={setIsToggled}
             onStartFresh={handleStartFresh}
-            // "Back to rooms" method
             onBackToRooms={handleBackToRooms}
             onOpenPopup={handleOpenPopup}
           />
@@ -464,11 +455,11 @@ function Inventory({ onCloseInventory }) {
             onRoomSelect={handleRoomSelect}
             roomItemSelections={roomItemSelections}
             displayedRooms={displayedRooms}
+            selectedRoom={selectedRoom}
           />
         )}
       </main>
 
-      {/* If an item popup is open */}
       {popupData && (
         <ItemPopup
           item={popupData.item}
@@ -482,7 +473,6 @@ function Inventory({ onCloseInventory }) {
 
       <FooterNavigation
         inRoom={!!selectedRoom}
-        // We'll call handleBackToRooms if "inRoom", else close Inventory
         onBackToRooms={handleBackToRooms}
         isDeleteActive={isDeleteActive}
         setIsDeleteActive={setIsDeleteActive}

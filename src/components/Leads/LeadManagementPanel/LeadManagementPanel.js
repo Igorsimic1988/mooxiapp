@@ -1,5 +1,3 @@
-// src/components/Leads/LeadManagementPanel/LeadManagementPanel.js
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ReactComponent as CustomerUserIcon } from '../../../assets/icons/customeruser.svg';
 import { ReactComponent as MoreIcon } from '../../../assets/icons/more.svg';
@@ -21,7 +19,6 @@ import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.s
 import { ReactComponent as CalendarIcon } from '../../../assets/icons/calendar.svg';
 
 import MoveDetailsPanel from './MoveDetailsPanel/MoveDetailsPanel';
-import Inventory from './MoveDetailsPanel/OriginDetails/Inventory/Inventory';
 import styles from './LeadManagementPanel.module.css';
 
 import PossibleSalesReps from '../../../data/constants/PossibleSalesReps';
@@ -107,21 +104,18 @@ const inventoryDropdownOptions = [
 ];
 
 /**
- * Helper to format a 10-digit phone string (e.g. "6789091876") as "(678) 909-1876".
- * If phone is shorter or longer, we do a best-effort approach.
+ * Helper to format phone number
  */
 function formatPhoneNumber(digits) {
   if (!digits) return '';
-  const raw = digits.replace(/\D/g, ''); // ensure only digits
+  const raw = digits.replace(/\D/g, '');
   if (!raw) return '';
 
-  // up to 10 digits
   let trimmed = raw;
   if (trimmed.length > 10) {
-    trimmed = trimmed.slice(-10); // just the last 10 digits
+    trimmed = trimmed.slice(-10);
   }
 
-  // For display: (xxx) xxx-xxxx
   const area = trimmed.slice(0, 3);
   const mid  = trimmed.slice(3, 6);
   const last = trimmed.slice(6);
@@ -139,9 +133,17 @@ function formatPhoneNumber(digits) {
  *  - onClose: (optional) close the panel
  *  - onEditLead: invoked if user clicks the Edit icon
  *  - onLeadUpdated: invoked whenever the lead is updated
+ *  - onInventoryFullScreen: function => signals the parent (Leads) to open full-screen Inventory
  */
-function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
-  const [showInventory, setShowInventory] = useState(false);
+function LeadManagementPanel({
+  lead,
+  onClose,
+  onEditLead,
+  onLeadUpdated,
+  onInventoryFullScreen, // <--- from parent
+}) {
+  // We removed local showInventory and local inventoryRoom states
+  // Instead, we rely on parent's onInventoryFullScreen() to open Inventory
 
   // status, activity, nextAction
   const [leadStatus, setLeadStatus]     = useState(lead.lead_status);
@@ -231,19 +233,12 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     showInventoryDropdown,
   ]);
 
-  // If user opens Inventory overlay
-  if (showInventory) {
-    return <Inventory onCloseInventory={() => setShowInventory(false)} />;
-  }
-
   // "Edit" => pop up form
   const handleEditClick = () => {
     if (onEditLead) onEditLead(lead);
   };
 
-  // -----------
-  // Status logic
-  // -----------
+  // ----------- Status logic -----------
   const handleToggleStatusDropdown = () => {
     setShowStatusDropdown((prev) => !prev);
   };
@@ -283,20 +278,17 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     }
   };
 
-  // -----------
-  // Activity logic
-  // -----------
+  // ----------- Activity logic -----------
   const handleToggleActivityDropdown = () => {
     setShowActivityDropdown((prev) => !prev);
   };
   const handleSelectActivity = (activityValue) => {
     setShowActivityDropdown(false);
 
-    // Remember the old
     const oldActivity = leadActivity;
     let newNextAction = nextAction;
 
-    // If user picks "In Home Estimate" or "Virtual Estimate" in "In Progress" => NextAction = "Schedule Survey"
+    // If user picks "In Home Estimate" or "Virtual Estimate" => NextAction = "Schedule Survey"
     if (
       leadStatus === 'In Progress' &&
       (activityValue === 'In Home Estimate' || activityValue === 'Virtual Estimate')
@@ -304,6 +296,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       newNextAction = 'Schedule Survey';
       setHideNextActionAfterSurvey(false);
     }
+    // If switching away from "In Home/Virtual"
     else if (
       leadStatus === 'In Progress' &&
       (oldActivity === 'In Home Estimate' || oldActivity === 'Virtual Estimate') &&
@@ -329,9 +322,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     }
   };
 
-  // -----------
-  // NextAction logic
-  // -----------
+  // ----------- NextAction logic -----------
   const handleNextActionClick = () => {
     setAnimateNextAction(true);
     setTimeout(() => setAnimateNextAction(false), 600);
@@ -369,15 +360,15 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       return;
     }
 
-    let newStatus    = leadStatus;
-    let newActivity  = leadActivity;
-    let newNextAction= nextAction;
+    let newStatus = leadStatus;
+    let newActivity = leadActivity;
+    let newNextAction = nextAction;
 
     if (leadStatus === 'New Lead') {
       if (nextAction === 'Attempt 1') {
-        newStatus    = 'In Progress';
-        newActivity  = 'Contacting';
-        newNextAction= 'Attempt 2';
+        newStatus = 'In Progress';
+        newActivity = 'Contacting';
+        newNextAction = 'Attempt 2';
       } else if (nextAction.startsWith('Attempt')) {
         const attemptNum = parseInt(nextAction.replace('Attempt ', ''), 10);
         if (attemptNum >= 6) {
@@ -397,8 +388,8 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       } else {
         const attemptNum = parseInt(nextAction.replace('Attempt ', ''), 10);
         if (attemptNum >= 6) {
-          newStatus     = 'Bad Lead';
-          newActivity   = getActivityOptions('Bad Lead')[0] || '';
+          newStatus   = 'Bad Lead';
+          newActivity = getActivityOptions('Bad Lead')[0] || '';
           newNextAction = '—';
         } else {
           newNextAction = `Attempt ${attemptNum + 1}`;
@@ -411,8 +402,8 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       } else {
         const fuNum = parseInt(nextAction.replace('Follow up ', ''), 10);
         if (fuNum >= 6) {
-          newStatus     = 'Declined';
-          newActivity   = getActivityOptions('Declined')[0] || '';
+          newStatus   = 'Declined';
+          newActivity = getActivityOptions('Declined')[0] || '';
           newNextAction = '—';
         } else {
           newNextAction = `Follow up ${fuNum + 1}`;
@@ -420,13 +411,13 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
       }
     }
 
-    setLeadStatus(newStatus);
-    setLeadActivity(newActivity);
-
+    // If new status is hidden => nextAction=''
     if (HIDDEN_STATUSES.includes(newStatus)) {
       newNextAction = '';
     }
 
+    setLeadStatus(newStatus);
+    setLeadActivity(newActivity);
     setNextAction(newNextAction);
 
     if (onLeadUpdated) {
@@ -443,9 +434,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     }
   };
 
-  // -----------
-  // Estimator logic
-  // -----------
+  // ----------- Estimator logic -----------
   const handleToggleEstimatorDropdown = () => {
     setShowEstimatorDropdown((prev) => !prev);
   };
@@ -467,9 +456,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     }
   };
 
-  // -----------
-  // Calendar for "Survey Date"
-  // -----------
+  // ----------- Calendar -----------
   const handleToggleCalendar = () => {
     setShowCalendar((prev) => !prev);
   };
@@ -480,7 +467,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
   const handleDayClick = (dayNum) => {
-    const dateObj       = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNum);
+    const dateObj = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNum);
     const newDateString = dateObj.toDateString();
     setSelectedDate(newDateString);
     setShowCalendar(false);
@@ -499,12 +486,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     }
   };
 
-  // -----------
-  // Time (Survey Time)
-  // -----------
-  const handleToggleTimeDropdown = () => {
-    setShowTimeDropdown((prev) => !prev);
-  };
+  // ----------- Time (Survey Time) -----------
   const handleSelectTime = (timeStr) => {
     setSelectedTime(timeStr);
     setShowTimeDropdown(false);
@@ -559,15 +541,10 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
     }
   };
 
-  
-
-  // figure out color for the text + icon container
   const selectedInvObj = inventoryDropdownOptions.find(o => o.label === inventoryOption)
     || inventoryDropdownOptions[0];
-  const inventoryTextColor = selectedInvObj.textColor;
-  const inventoryIconBg    = selectedInvObj.iconBg;
 
-  // Here we format the phone number for display
+  // format phone
   const displayPhone = formatPhoneNumber(lead.customer_phone_number);
 
   return (
@@ -593,10 +570,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
 
         {/* ---------- Contact Row ---------- */}
         <div className={styles.contactRow}>
-          {/* Display phone number in a user-friendly format */}
-          <div className={styles.infoChip}>
-            {displayPhone}
-          </div>
+          <div className={styles.infoChip}>{displayPhone}</div>
           <div className={styles.emailRow}>
             <div className={styles.infoChip}>
               {lead.customer_email || 'No Email'}
@@ -698,7 +672,6 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         {/* If (status=In Progress + "In Home"/"Virtual") => show Estimator + Date + Time */}
         {showEstimatorDateTimeInputs && (
           <div className={styles.estimateExtraContainer}>
-
             {/* Estimator */}
             <div className={styles.inputContainer} style={{ position: 'relative' }}>
               <button
@@ -774,7 +747,7 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
               <button
                 type="button"
                 className={styles.estimatorTimeButton}
-                onClick={handleToggleTimeDropdown}
+                onClick={() => setShowTimeDropdown((prev) => !prev)}
               >
                 <span className={selectedTime ? styles.timeSelected : styles.timePlaceholder}>
                   {selectedTime || 'Time'}
@@ -837,7 +810,6 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         <div className={styles.previousRequestsLabel}>Previous Requests:</div>
 
         <div className={styles.requestsButtonsContainer}>
-
           {/* Hide "Invite Customer" via CSS */}
           <button className={`${styles.inviteButton} ${styles.hiddenButton}`}>
             <span className={styles.inviteText}>Invite Customer</span>
@@ -858,13 +830,13 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
           >
             <span
               className={styles.inventoryText}
-              style={{ color: inventoryTextColor }}
+              style={{ color: selectedInvObj.textColor }}
             >
               {inventoryOption}
             </span>
             <div
               className={styles.inventoryIconContainer}
-              style={{ backgroundColor: inventoryIconBg }}
+              style={{ backgroundColor: selectedInvObj.iconBg }}
             >
               <SpecialHIcon className={styles.specialHIcon} />
             </div>
@@ -911,8 +883,10 @@ function LeadManagementPanel({ lead, onClose, onEditLead, onLeadUpdated }) {
         </div>
       </div>
 
+      {/* The MoveDetailsPanel below can still show "Inventory" button,
+          but we'll call `onInventoryFullScreen()` to open the parent's Inventory. */}
       <MoveDetailsPanel
-        onShowInventory={() => setShowInventory(true)}
+        onShowInventory={onInventoryFullScreen}  // <--- call parent's method
         lead={lead}
         onLeadUpdated={onLeadUpdated}
       />

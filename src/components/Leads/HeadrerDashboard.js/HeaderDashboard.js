@@ -1,4 +1,4 @@
-// src/components/Leads/HeadrerDashboard.js/HeaderDashboard.js
+// HeaderDashboard.js
 
 import React from 'react';
 import { ReactComponent as AddBars } from '../../../assets/icons/barsStaggered.svg';
@@ -10,11 +10,11 @@ import styles from './HeaderDashboard.module.css';
 /**
  * HeaderDashboard
  *
- *   - If isInInventory=true, arrow calls:
- *       if (inRoom) => onRoomBack()
- *       else => onCloseInventory()
- *   - Else if isLeadSelected => arrow calls onBack() for leads
- *   - Also displays roomName if inRoom
+ * - If isInInventory=true, arrow calls:
+ *     if (inRoom) => onRoomBack()
+ *     else => onCloseInventory()
+ * - Else if isLeadSelected => arrow calls onBack() for leads
+ * - Also displays roomName if inRoom
  */
 function HeaderDashboard({
   isLeadSelected = false,
@@ -28,32 +28,24 @@ function HeaderDashboard({
   const handleArrowClick = () => {
     if (isInInventory) {
       if (inRoom) {
-        // We are inside a room => arrow goes back to the "Inventory main"
         onRoomBack();
       } else {
-        // We are in inventory, but not in a room => close inventory => go back to Leads
         onCloseInventory();
       }
     } else if (isLeadSelected) {
-      // Normal leads => arrow closes the lead-management panel
       onBack();
+    } else {
+      // do nothing or Home
     }
-    // else => do nothing or show "Home"
   };
 
   return (
-    <div
-      className={`${styles.headerContainer} ${isLeadSelected ? styles.leadSelected : ''}`}
-    >
+    <div className={`${styles.headerContainer} ${isLeadSelected ? styles.leadSelected : ''}`}>
       <div className={styles.topBar}>
         <div className={styles.leftGroup}>
           <AddBars className={styles.addBarsIcon} />
           <div className={styles.verticalDivider} />
 
-          {/* 
-            If in inventory or a lead is open => show arrow
-            else => "Home"
-          */}
           {(isInInventory || isLeadSelected) ? (
             <ForwardArrow
               className={styles.forwardArrowIcon}
@@ -84,7 +76,7 @@ function HeaderDashboard({
       </div>
 
       <div className={styles.bottomBarBack}>
-        <div className={styles.bottomBar}></div>
+        <div className={styles.bottomBar} />
       </div>
     </div>
   );

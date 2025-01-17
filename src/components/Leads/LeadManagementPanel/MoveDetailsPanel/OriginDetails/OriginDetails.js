@@ -23,31 +23,29 @@ function OriginDetails({ onShowInventory }) {
   // 2) The currently-selected stop (default "Main Address")
   const [selectedStop, setSelectedStop] = useState('Main Address');
 
-  // Add a new stop-off (Stop off #X) and auto-select it
+  // Add a new stop-off
   const handleAddStopOff = () => {
     const newStopNum = stopOffs.length + 1;
     const newStopLabel = `Stop off ${newStopNum}`;
     setStopOffs((prev) => [...prev, newStopLabel]);
-
-    // Also set newly added as selected
     setSelectedStop(newStopLabel);
   };
 
-  // For collapsible UI
+  // Collapsible
   const [isCollapsed, setIsCollapsed] = useState(false);
   const handleToggleCollapse = () => setIsCollapsed((prev) => !prev);
 
-  // Store user-entered address info
+  // Basic address info
   const [propertyAddress, setPropertyAddress] = useState('');
   const [aptOrSuite, setAptOrSuite] = useState('');
   const [city, setCity] = useState('');
   const [stateName, setStateName] = useState('');
   const [zipCode, setZipCode] = useState('');
 
-  // For time restrictions
+  // Time restrictions
   const [timeRestrictionsToggled, setTimeRestrictionsToggled] = useState(false);
 
-  // 3) Control the visibility of PlacePopup
+  // Place popup
   const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
 
   return (
@@ -59,10 +57,10 @@ function OriginDetails({ onShowInventory }) {
         </button>
       </div>
 
-      {/* Only render content if not collapsed */}
+      {/* Only render if not collapsed */}
       {!isCollapsed && (
         <>
-          {/* Stop-offs row */}
+          {/* Stop-offs */}
           <MainAndStopOffs
             stopOffs={stopOffs}
             selectedStop={selectedStop}
@@ -70,9 +68,6 @@ function OriginDetails({ onShowInventory }) {
             onAddStopOff={handleAddStopOff}
           />
 
-          {/* -------------------------
-              Rest of the OriginDetails UI
-          ------------------------- */}
           <div className={styles.propertySection}>
             <span className={styles.propertyAddressText}>Property Address</span>
             <div className={styles.inputContainer}>
@@ -134,7 +129,7 @@ function OriginDetails({ onShowInventory }) {
           <div className={styles.propertyInfoSection}>
             <span className={styles.propertyText}>Property</span>
 
-            {/* PLACE card opens popup if container is clicked */}
+            {/* PLACE card => opens place popup on click */}
             <div
               className={`${styles.propertyItem} ${styles.propertyItemPlace}`}
               onClick={() => setIsPlacePopupOpen(true)}
@@ -178,7 +173,7 @@ function OriginDetails({ onShowInventory }) {
             </div>
           </div>
 
-          {/* Time Restrictions Section */}
+          {/* Time Restrictions */}
           <div className={styles.timeRestrictionsContainer}>
             <div className={styles.timeRestrictionsRow}>
               <span className={styles.timeRestrictionsText}>Time restrictions</span>
@@ -250,11 +245,10 @@ function OriginDetails({ onShowInventory }) {
         </>
       )}
 
-      {/* Conditionally render the PlacePopup here */}
+      {/* PlacePopup if open */}
       {isPlacePopupOpen && (
         <PlacePopup
           setIsPlacePopupVisible={setIsPlacePopupOpen}
-          // Pass the SAME states so it doesn't reset
           stopOffs={stopOffs}
           onAddStopOff={handleAddStopOff}
           selectedStop={selectedStop}

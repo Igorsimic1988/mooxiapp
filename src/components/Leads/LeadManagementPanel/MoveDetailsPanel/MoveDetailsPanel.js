@@ -53,7 +53,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const isSelected = (idx) => idx === selectedIndex;
 
   // ---------- Move/Delivery Date ----------
-  // Initialize from the lead if available
   const [moveDate, setMoveDate] = useState(lead?.move_date || '');
   const [deliveryDate, setDeliveryDate] = useState(lead?.delivery_date || '');
   const [showMoveCalendar, setShowMoveCalendar] = useState(false);
@@ -63,12 +62,10 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const [daysInMonth, setDaysInMonth] = useState([]);
 
   // ---------- Type of Service ----------
-  // Initialize from lead.service_type if available, otherwise default to 'Moving'
   const [typeOfService, setTypeOfService] = useState(lead?.service_type || 'Moving');
   const [showTypeOfServiceDropdown, setShowTypeOfServiceDropdown] = useState(false);
 
   // ---------- ETA Request ----------
-  // Initialize from the lead if available, else default 'Flexible'
   const [etaRequest, setEtaRequest] = useState(lead?.eta_request || 'Flexible');
   const [showETARequestDropdown, setShowETARequestDropdown] = useState(false);
 
@@ -86,7 +83,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
   // For the calendars
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // zero out today's time for accurate comparisons
+  today.setHours(0, 0, 0, 0);
 
   useEffect(() => {
     const y = calendarMonth.getFullYear();
@@ -104,7 +101,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
-  // ============ Refs for each popup (to detect outside clicks) ============
+  // Refs for outside-click detection
   const moveCalendarRef      = useRef(null);
   const deliveryCalendarRef  = useRef(null);
   const typeOfServiceRef     = useRef(null);
@@ -115,15 +112,12 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
   // Helper => default to +2h if user didn't select increment
   const defaultToTwoHours = useCallback(() => {
-    if (!arrivalStart) return; // no start => do nothing
-
-    // parse e.g. "10:15 AM"
+    if (!arrivalStart) return;
     const [hhmm, ampm] = arrivalStart.split(' ');
     const [hS, mS] = hhmm.split(':');
     let hh = Number(hS);
     let mm = Number(mS);
     let suffix = ampm;
-    // +2 hours
     hh += 2;
     while (hh > 12) {
       hh -= 12;
@@ -134,7 +128,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     const endTime = `${hh}:${mmStr} ${suffix}`;
     setArrivalTime(`${arrivalStart} - ${endTime}`);
 
-    // Also persist
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
@@ -163,7 +156,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         setStorageDropdownOpen(false);
       }
 
-      // For arrival time increments
       if (showIncrementsGrid && arrivalStart && !arrivalTime) {
         if (incrementsGridRef.current && !incrementsGridRef.current.contains(e.target)) {
           defaultToTwoHours();
@@ -189,7 +181,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     defaultToTwoHours,
   ]);
 
-  // ---------- Handle toggling "Add Storage" ----------
+  // ---------- "Add Storage" ----------
   const handleToggleStorage = (value) => {
     setIsStorageToggled(value);
     if (onLeadUpdated) {
@@ -200,8 +192,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       });
     }
   };
-
-  // ---------- Handle picking a storage type ----------
   const handleSelectStorage = (option) => {
     setSelectedStorage(option);
     setStorageDropdownOpen(false);
@@ -214,7 +204,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     }
   };
 
-  // ---------- Handle toggling "Time Promised" ----------
+  // ---------- "Time Promised" ----------
   const handleToggleTimePromised = (value) => {
     setIsTimePromisedToggled(value);
     if (!value) {
@@ -228,8 +218,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       });
     }
   };
-
-  // ---------- Handle setting the final arrival time range ----------
   const handleSetArrivalTime = (rangeStr) => {
     setArrivalTime(rangeStr);
     if (onLeadUpdated) {
@@ -241,7 +229,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     }
   };
 
-  // ---------- Handle choosing "Type of Service" ----------
+  // ---------- "Type of Service" ----------
   const handleSelectServiceType = (svcName) => {
     setTypeOfService(svcName);
     setShowTypeOfServiceDropdown(false);
@@ -253,7 +241,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     }
   };
 
-  // ---------- Handle choosing "Move Date" ----------
+  // ---------- "Move Date" ----------
   const handleSelectMoveDate = (dateObj) => {
     const dateStr = dateObj.toDateString();
     setMoveDate(dateStr);
@@ -265,7 +253,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     }
   };
 
-  // ---------- Handle choosing "Delivery Date" ----------
+  // ---------- "Delivery Date" ----------
   const handleSelectDeliveryDate = (dateObj) => {
     const dateStr = dateObj.toDateString();
     setDeliveryDate(dateStr);
@@ -277,7 +265,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     }
   };
 
-  // ---------- Handle choosing "ETA Request" ----------
+  // ---------- "ETA Request" ----------
   const handleSelectEtaRequest = (opt) => {
     setEtaRequest(opt);
     setShowETARequestDropdown(false);
@@ -376,7 +364,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                   calendarMonth.getMonth(),
                   day
                 );
-                // Already in code: cannot pick a date in the past
+                // cannot pick a date in the past
                 const disabled = dayDate < today;
                 return (
                   <button
@@ -526,13 +514,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                   day
                 );
 
-                // If user hasn't selected a move date => earliest is 'today'
-                // If user has selected a move date => earliest is moveDate
+                // earliest date depends on moveDate
                 let earliestDelivery = new Date(today.getTime());
                 if (moveDate) {
                   const moveDateObj = new Date(moveDate);
                   moveDateObj.setHours(0, 0, 0, 0);
-                  // If moveDate is valid => earliestDelivery = moveDateObj
                   if (!isNaN(moveDateObj)) {
                     earliestDelivery = moveDateObj;
                   }
@@ -669,13 +655,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                   className={styles.addHoursButton}
                   onClick={(e) => {
                     e.stopPropagation();
-
                     const [hhmm, ampm] = arrivalStart.split(' ');
                     const [hS, mS] = hhmm.split(':');
                     let hh = Number(hS);
                     let mm = Number(mS);
                     let suffix = ampm;
-
                     hh += inc;
                     while (hh > 12) {
                       hh -= 12;
@@ -700,6 +684,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       )}
 
       <div className={styles.spacing20}></div>
+      {/* The "OriginDetails" can open inventory. It calls onShowInventory() from props. */}
       <OriginDetails onShowInventory={onShowInventory} />
       <DestinationDetails />
     </div>

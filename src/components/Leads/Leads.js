@@ -10,7 +10,7 @@ import AddNewLeadButton from './AddNewLeadButton/AddNewLeadButton';
 import LeadsList from './LeadsList/LeadsList';
 import LeadManagementPanel from './LeadManagementPanel/LeadManagementPanel';
 
-// Import Inventory
+// Import Inventory (full-screen)
 import Inventory from './LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory';
 
 // local leads data
@@ -20,7 +20,7 @@ import actualLeads from '../../data/constants/actualLeads';
 import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
 
 /**
- * Filter leads based on current activeTab
+ * Filter leads by activeTab
  */
 function filterLeadsByTab(leads, activeTab) {
   if (!Array.isArray(leads)) return [];
@@ -64,7 +64,7 @@ function filterLeadsByTab(leads, activeTab) {
 }
 
 /**
- * Parse lead.survey_date + survey_time into a JS Date.
+ * Parse lead.survey_date + survey_time => JS Date
  */
 function parseSurveyDateTime(lead) {
   if (!lead || !lead.survey_date) return null;
@@ -87,7 +87,7 @@ function parseSurveyDateTime(lead) {
 }
 
 function Leads() {
-  // Defensive: if actualLeads isn't an array, fallback to []
+  // Defensive
   const [leads, setLeads] = useState(Array.isArray(actualLeads) ? [...actualLeads] : []);
 
   // Pagination
@@ -97,22 +97,21 @@ function Leads() {
   // The current tab
   const [activeTab, setActiveTab] = useState('Active Leads');
 
-  // If a lead is selected => show its details
+  // If a lead is selected => show details
   const [selectedLead, setSelectedLead] = useState(null);
 
-  // Scroll tracking: store the current offset
+  // Scroll tracking
   const leadsListRef = useRef(null);
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Popup for creating/editing leads
+  // Popup
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
 
-  // If true => show the Inventory "full-screen"
+  // If true => show Inventory in full-screen
   const [showInventoryFullScreen, setShowInventoryFullScreen] = useState(false);
 
-  // Track which room is currently selected in Inventory
-  // => if null, we are on the Inventory main screen; if not null, "in a room"
+  // LIFTED STATE => for Inventory
   const [inventoryRoom, setInventoryRoom] = useState(null);
 
   // On mount => set app height
@@ -152,12 +151,11 @@ function Leads() {
   const endIndex = Math.min(startIndex + leadsPerPage, totalLeads);
   const currentLeads = filteredLeads.slice(startIndex, endIndex);
 
-  // Pagination
   const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
   const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(prev => prev - 1);
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
   // Selecting a lead => show details
@@ -168,7 +166,7 @@ function Leads() {
     setSelectedLead(lead);
   };
 
-  // Closing the lead-management panel => arrow in HeaderDashboard
+  // Closing lead => arrow
   const handleBack = () => {
     setSelectedLead(null);
     setTimeout(() => {
@@ -178,87 +176,77 @@ function Leads() {
     }, 0);
   };
 
-  // Creating a new lead
+  // Create lead
   const handleLeadCreated = (newLead) => {
-    setLeads(prev => [...prev, newLead]);
+    setLeads((prev) => [...prev, newLead]);
   };
 
-  // Updating a lead
+  // Update lead
   const handleLeadUpdated = (updatedLead) => {
-    setLeads(prevLeads =>
-      prevLeads.map(ld => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
+    setLeads((prevLeads) =>
+      prevLeads.map((ld) => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
     );
     if (selectedLead && selectedLead.lead_id === updatedLead.lead_id) {
       setSelectedLead(updatedLead);
     }
   };
 
-  // Editing existing => open popup
+  // Editing lead => open popup
   const handleEditLead = (lead) => {
     setEditingLead(lead);
     setShowLeadForm(true);
   };
 
-  // Changing tabs => reset page
+  // Change tab => reset page
   const handleChangeTab = (newTab) => {
     setActiveTab(newTab);
     setCurrentPage(1);
   };
 
-  // Inventory
-  const openInventoryFullScreen = () => setShowInventoryFullScreen(true);
-  const closeInventoryFullScreen = () => setShowInventoryFullScreen(false);
+  // Inventory => open or close
+  const openInventoryFullScreen = () => {
+    setShowInventoryFullScreen(true);
+  };
 
+  const closeInventoryFullScreen = () => {
+    setShowInventoryFullScreen(false);
+  };
 
-  // ================ ARROW / ROOM LOGIC ================
-  // We give `HeaderDashboard` these props:
-  //   isInInventory = showInventoryFullScreen
-  //   inRoom = !!inventoryRoom
-  //   roomName = inventoryRoom?.name || ''
-  //
-  //   onRoomBack = () => setInventoryRoom(null)
-  //   onCloseInventory = closeInventoryFullScreen
-  //   onBack = handleBack (for leads scenario)
-  // ====================================================
-
-  // If Inventory is open => we show the Inventory + the same single Header
+  // If Inventory is open => show it full-screen
   if (showInventoryFullScreen) {
     return (
       <div className={styles.container}>
         <HeaderDashboard
           isLeadSelected={!!selectedLead}
           onBack={handleBack}
-  
-          // Inventory arrow logic:
-          isInInventory={true}
+          // Inventory arrow logic
+          isInInventory
           inRoom={!!inventoryRoom}
           roomName={inventoryRoom?.name || ''}
           onRoomBack={() => setInventoryRoom(null)}
           onCloseInventory={closeInventoryFullScreen}
         />
-  
+
         <Inventory
           onCloseInventory={closeInventoryFullScreen}
-          // We pass down the "current" selected room and a setter
           inventoryRoom={inventoryRoom}
-          onSelectRoom={(roomObj) => setInventoryRoom(roomObj)}
+          setInventoryRoom={setInventoryRoom}
         />
       </div>
     );
   }
 
-  // Otherwise, normal leads UI
+  // Otherwise => normal leads UI
   return (
     <div className={styles.container}>
       <HeaderDashboard
-         isLeadSelected={!!selectedLead}
-         onBack={handleBack}
-         // Because we are NOT in the full-screen inventory:
-         isInInventory={false}
-         inRoom={false}
-         roomName=""
-         onRoomBack={() => {}}
-         onCloseInventory={() => {}}
+        isLeadSelected={!!selectedLead}
+        onBack={handleBack}
+        isInInventory={false}
+        inRoom={false}
+        roomName=""
+        onRoomBack={() => {}}
+        onCloseInventory={() => {}}
       />
 
       {selectedLead ? (
@@ -267,7 +255,7 @@ function Leads() {
           onClose={() => setSelectedLead(null)}
           onEditLead={handleEditLead}
           onLeadUpdated={handleLeadUpdated}
-          // This triggers full-screen Inventory
+          // Clicking "Inventory" inside lead => opens full-screen inventory
           onInventoryFullScreen={openInventoryFullScreen}
         />
       ) : (

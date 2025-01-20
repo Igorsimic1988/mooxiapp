@@ -16,6 +16,8 @@
     box-sizing: border-box;
     column-gap: 20px;
     overflow: hidden;
+    margin-top: -20px;
+    border-radius: 20px 0px 0px 0px;
   }
 
   .inventoryDesktopContainer.expanded {

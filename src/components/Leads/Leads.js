@@ -212,6 +212,9 @@ function Leads() {
     setShowInventoryFullScreen(false);
   };
 
+  // Decide if we are in "desktop" mode
+  const isDesktopScreen = window.innerWidth >= 1024;
+
   // If Inventory is open => show it full-screen
   if (showInventoryFullScreen) {
     return (
@@ -225,6 +228,8 @@ function Leads() {
           roomName={inventoryRoom?.name || ''}
           onRoomBack={() => setInventoryRoom(null)}
           onCloseInventory={closeInventoryFullScreen}
+          // We pass this so the arrow knows what to do:
+          isDesktopInventory={isDesktopScreen}
         />
 
         <Inventory
@@ -247,6 +252,7 @@ function Leads() {
         roomName=""
         onRoomBack={() => {}}
         onCloseInventory={() => {}}
+        isDesktopInventory={false}
       />
 
       {selectedLead ? (

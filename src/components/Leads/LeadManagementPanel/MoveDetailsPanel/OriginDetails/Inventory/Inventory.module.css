@@ -30,7 +30,7 @@
    /* Height of FooterNavigation */
   overflow: hidden; /* Disable scrolling here */
   height: calc(var(--vh, 1vh) * 100 - 105px);
-  padding: 14px 10px 66px 16px; /* Optional padding */
+  padding: 14px 10px 86px 16px; /* Optional padding */
   background-color: #F2F5F8; /* Optional background color */
   display: flex;
   flex-direction: column;

@@ -379,6 +379,7 @@ function Inventory({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // If large screen => show the desktop version
   if (isDesktop) {
     return (
       <InventoryDesktop
@@ -401,10 +402,12 @@ function Inventory({
         isMyItemsActive={isMyItemsActive}
         setIsMyItemsActive={setIsMyItemsActive}
         setSearchQuery={setSearchQuery}
+        onCloseDesktopInventory={onCloseInventory}
       />
     );
   }
 
+  // If mobile => show the mobile version
   return (
     <div className={styles.inventoryContainer}>
       <header className={styles.header}>

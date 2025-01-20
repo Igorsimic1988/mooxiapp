@@ -1,4 +1,4 @@
-// HeaderDashboard.js
+// src/components/Leads/HeadrerDashboard.js/HeaderDashboard.js
 
 import React from 'react';
 import { ReactComponent as AddBars } from '../../../assets/icons/barsStaggered.svg';
@@ -10,11 +10,12 @@ import styles from './HeaderDashboard.module.css';
 /**
  * HeaderDashboard
  *
- * - If isInInventory=true, arrow calls:
- *     if (inRoom) => onRoomBack()
- *     else => onCloseInventory()
+ * - If isInInventory=true:
+ *   - If isDesktopInventory => arrow calls onCloseInventory() directly
+ *   - Else (mobile):
+ *       if (inRoom) => onRoomBack()
+ *       else => onCloseInventory()
  * - Else if isLeadSelected => arrow calls onBack() for leads
- * - Also displays roomName if inRoom
  */
 function HeaderDashboard({
   isLeadSelected = false,
@@ -24,13 +25,21 @@ function HeaderDashboard({
   roomName = '',
   onRoomBack = () => {},
   onCloseInventory = () => {},
+  isDesktopInventory = false, // <--- new prop
 }) {
   const handleArrowClick = () => {
     if (isInInventory) {
-      if (inRoom) {
-        onRoomBack();
-      } else {
+      // If it's desktop, always close inventory
+      if (isDesktopInventory) {
         onCloseInventory();
+      }
+      // Otherwise (mobile):
+      else {
+        if (inRoom) {
+          onRoomBack();
+        } else {
+          onCloseInventory();
+        }
       }
     } else if (isLeadSelected) {
       onBack();

@@ -685,7 +685,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
       <div className={styles.spacing20}></div>
       {/* The "OriginDetails" can open inventory. It calls onShowInventory() from props. */}
-      <OriginDetails onShowInventory={onShowInventory} />
+      <OriginDetails 
+      onShowInventory={onShowInventory} 
+      lead={lead}                         
+       onLeadUpdated={onLeadUpdated}
+      />
       <DestinationDetails />
     </div>
   );

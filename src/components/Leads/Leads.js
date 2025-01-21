@@ -233,6 +233,7 @@ function Leads() {
         />
 
         <Inventory
+        lead={selectedLead} 
           onCloseInventory={closeInventoryFullScreen}
           inventoryRoom={inventoryRoom}
           setInventoryRoom={setInventoryRoom}

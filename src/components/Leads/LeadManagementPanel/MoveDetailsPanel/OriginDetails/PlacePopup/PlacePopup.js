@@ -1,55 +1,107 @@
-// src/components/OriginDetails/PlacePopup/PlacePopup.js
+// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/PlacePopup/PlacePopup.js
 
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './PlacePopup.module.css';
 
-// Replace these with the correct paths in your project
+// Icons
 import { ReactComponent as HouseIcon } from '../../../../../../assets/icons/house.svg';
 import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Close.svg';
 
-// 1) Import the shared component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 
-function PlacePopup({
-    setIsPlacePopupVisible,  // existing
-    stopOffs,               // existing
-    onAddStopOff,           // existing
-    selectedStop,           // new
-    setSelectedStop         // new
-  }) {
+/**
+ * PlacePopup
+ * ----------
+ * Props:
+ *   - lead: the entire lead object
+ *       must include lead.originStops and lead.destinationStops
+ *   - onLeadUpdated: function(updatedLead)
+ *   - setIsPlacePopupVisible: function => to close the popup
+ */
+function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
+  const popupContentRef = useRef(null);
+
+  // Which place are we editing? "origin" or "destination"
+  const [selectedPlace, setSelectedPlace] = useState('origin');
+
+  // We'll track separate selectedStopIndexes for origin vs. destination
+  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(0);
+  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(0);
+
+  // If user clicks outside, close the popup
   const handleClose = useCallback(() => {
     setIsPlacePopupVisible(false);
   }, [setIsPlacePopupVisible]);
 
-  // Ref for popup content (to detect outside clicks)
-  const popupContentRef = useRef(null);
-
-  // Radio group: default "Origin"
-  const [selectedPlace, setSelectedPlace] = useState('origin');
-
-  // We do NOT store local stopOffs state here 
-  // because we want to share it from OriginDetails (passed in as props).
-
-  // Close if clicking outside
+  // Outside-click detection
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        popupContentRef.current &&
-        !popupContentRef.current.contains(event.target)
-      ) {
+    const handleClickOutside = (e) => {
+      if (popupContentRef.current && !popupContentRef.current.contains(e.target)) {
         handleClose();
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [handleClose]);
+
+  // Ensure we have arrays for originStops & destinationStops
+  // (If your lead creation already does this, you can skip.)
+  useEffect(() => {
+    const updates = {};
+    let changedSomething = false;
+
+    if (!Array.isArray(lead.originStops)) {
+      updates.originStops = [
+        { label: 'Main Address', address: '', apt: '', city: '', state: '', zip: '' },
+      ];
+      changedSomething = true;
+    }
+    if (!Array.isArray(lead.destinationStops)) {
+      updates.destinationStops = [
+        { label: 'Main Address', address: '', apt: '', city: '', state: '', zip: '' },
+      ];
+      changedSomething = true;
+    }
+
+    if (changedSomething) {
+      onLeadUpdated({ ...lead, ...updates });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Determine which array of stops we're currently editing
+  const originStops = lead.originStops || [];
+  const destinationStops = lead.destinationStops || [];
+
+  // If "origin" => use originStops and selectedStopIndexOrigin
+  // If "destination" => use destinationStops and selectedStopIndexDest
+  const currentStops =
+    selectedPlace === 'origin' ? originStops : destinationStops;
+
+  const selectedStopIndex =
+    selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
+
+  const setSelectedStopIndex = (idx) => {
+    if (selectedPlace === 'origin') {
+      setSelectedStopIndexOrigin(idx);
+    } else {
+      setSelectedStopIndexDest(idx);
+    }
+  };
+
+  // When user adds or modifies stops inside MainAndStopOffs
+  const handleStopsUpdated = (newStops) => {
+    // We'll update either originStops or destinationStops in the lead
+    if (selectedPlace === 'origin') {
+      onLeadUpdated({ ...lead, originStops: newStops });
+    } else {
+      onLeadUpdated({ ...lead, destinationStops: newStops });
+    }
+  };
 
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
-
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
@@ -63,7 +115,7 @@ function PlacePopup({
           </div>
         </div>
 
-        {/* RADIO GROUP (origin selected by default) */}
+        {/* Radio group: select "origin" or "destination" */}
         <div className={styles.radioGroup}>
           <label className={styles.radioLabel}>
             <input
@@ -76,7 +128,6 @@ function PlacePopup({
             />
             <span className={styles.radioText}>Origin</span>
           </label>
-
           <label className={styles.radioLabel}>
             <input
               type="radio"
@@ -90,14 +141,14 @@ function PlacePopup({
           </label>
         </div>
 
-        {/* 2) Wrapper div to add left padding around MainAndStopOffs */}
+        {/* STOP-OFFS UI for whichever array is active */}
         <div className={styles.stopOffsPaddingWrapper}>
-        <MainAndStopOffs
-  stopOffs={stopOffs}
-  onAddStopOff={onAddStopOff}
-  selectedStop={selectedStop}       // pass in
-  setSelectedStop={setSelectedStop} // pass in
-/>
+          <MainAndStopOffs
+            stops={currentStops}
+            onStopsUpdated={handleStopsUpdated}
+            selectedStopIndex={selectedStopIndex}
+            setSelectedStopIndex={setSelectedStopIndex}
+          />
         </div>
       </div>
     </div>

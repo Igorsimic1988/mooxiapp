@@ -1,5 +1,4 @@
 // src/components/Leads/Leads.js
-
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Leads.module.css';
 import HeaderDashboard from './HeadrerDashboard.js/HeaderDashboard';
@@ -233,7 +232,7 @@ function Leads() {
         />
 
         <Inventory
-        lead={selectedLead} 
+          lead={selectedLead}
           onCloseInventory={closeInventoryFullScreen}
           inventoryRoom={inventoryRoom}
           setInventoryRoom={setInventoryRoom}

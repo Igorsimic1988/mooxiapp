@@ -7,48 +7,50 @@ import styles from './PlacePopup.module.css';
 import { ReactComponent as HouseIcon } from '../../../../../../assets/icons/house.svg';
 import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Close.svg';
 
-// Reuse the MainAndStopOffs component for the stops
+// Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 
 /**
  * Mappings for "type of place" => possible "move size" options.
+ * 
+ * Make sure each place type has an array of strings for the move sizes.
  */
 const moveSizeOptionsMap = {
   'House': [
     'One Item',
     'Just a Few Items',
-    '2 Beedroom',
-    '3 Beedroom',
-    '4 Beedroom',
-    '5 Beedroom',
-    '6 Beedroom',
-    '7 Beedroom',
-    '8 Beedroom',
-    '9+ Beedroom',
+    '2 Bedroom',
+    '3 Bedroom',
+    '4 Bedroom',
+    '5 Bedroom',
+    '6 Bedroom',
+    '7 Bedroom',
+    '8 Bedroom',
+    '9+ Bedroom',
   ],
   'Town House': [
     'One Item',
     'Just a Few Items',
-    '2 Beedroom',
-    '3 Beedroom',
-    '4 Beedroom',
-    '5 Beedroom',
-    '6 Beedroom',
-    '7 Beedroom',
-    '8 Beedroom',
-    '9+ Beedroom',
+    '2 Bedroom',
+    '3 Bedroom',
+    '4 Bedroom',
+    '5 Bedroom',
+    '6 Bedroom',
+    '7 Bedroom',
+    '8 Bedroom',
+    '9+ Bedroom',
   ],
   'Apartment': [
     'One Item',
     'Just a Few Items',
-    '2 Beedroom',
-    '3 Beedroom',
-    '4 Beedroom',
-    '5 Beedroom',
-    '6 Beedroom',
-    '7 Beedroom',
-    '8 Beedroom',
-    '9+ Beedroom',
+    '2 Bedroom',
+    '3 Bedroom',
+    '4 Bedroom',
+    '5 Bedroom',
+    '6 Bedroom',
+    '7 Bedroom',
+    '8 Bedroom',
+    '9+ Bedroom',
   ],
   'Outdoor Storage': [
     'One Item',
@@ -92,32 +94,32 @@ const moveSizeOptionsMap = {
   'Store': [
     'One Item',
     'Just a Few Items',
-    'Small ( Limited inventory, a few aisles or sections. )',
-    'Medium ( Moderate inventory, several aisles or sections. )',
-    'Large ( Extensive inventory, many aisles or departments )',
-    'Extra Large ( Extensive inventory, multiple departments, and complex layout. )',
+    'Small ( limited inventory )',
+    'Medium ( moderate inventory )',
+    'Large ( extensive inventory )',
+    'Extra Large ( multiple departments )',
   ],
   'Religious Institution': [
     'One Item',
     'Just a Few Items',
-    'Small ( basic furniture, seating, and minimal equipment. )',
-    'Medium ( More furniture, seating, artifacts, and some equipment. )',
-    'Large ( Significant seating, artifacts, altars, and multiple rooms. )',
-    'Extra Large ( Large-scale, multiple areas, specialized furniture and equipment. )',
+    'Small ( basic furniture, minimal equipment )',
+    'Medium ( more furniture, some equipment )',
+    'Large ( multiple rooms, artifacts )',
+    'Extra Large ( large-scale, specialized equipment )',
   ],
   'Government Institution': [
     'One Item',
     'Just a Few Items',
-    'Small ( Limited items, basic office furniture, and minimal equipment. )',
-    'Medium ( More furniture, office setups, and some specialized equipment. )',
-    'Large ( Significant office setups, multiple departments, and extensive equipment. )',
-    'Extra Large ( Large-scale, multiple offices, specialized furniture, and advanced equipment. )',
+    'Small ( limited items )',
+    'Medium ( more furniture, some specialized )',
+    'Large ( multiple departments, extensive equipment )',
+    'Extra Large ( large-scale, advanced equipment )',
   ],
   'Pod': [
     'One Item',
     'Just a Few Items',
-    'Small ( up tp 7ft)',
-    'Medium ( up to 12ft )',
+    'Small ( up to 7 ft )',
+    'Medium ( up to 12 ft )',
     'Large ( over 13 ft )',
   ],
   'Truck': [
@@ -126,7 +128,7 @@ const moveSizeOptionsMap = {
     'Small ( up to 15 ft )',
     'Medium ( up to 22 ft )',
     'Large ( up to 32 ft )',
-    'Extra Large ( up to 72 ft)',
+    'Extra Large ( up to 72 ft )',
   ],
   'Pickup Truck': [
     'One Item',
@@ -141,7 +143,7 @@ const moveSizeOptionsMap = {
     'Small ( up to 15 ft )',
     'Medium ( up to 22 ft )',
     'Large ( up to 32 ft )',
-    'Extra Large ( up to 53 ft)',
+    'Extra Large ( up to 53 ft )',
   ],
   'Container': [
     'One Item',
@@ -158,7 +160,9 @@ const moveSizeOptionsMap = {
   ],
 };
 
-/** Full list of "Type of place" */
+/** 
+ * Full list of "Type of place" 
+ */
 const typeOfPlaceOptions = [
   'House',
   'Town House',
@@ -177,7 +181,7 @@ const typeOfPlaceOptions = [
   'Van',
 ];
 
-/** Which place types are eligible for the "How many stories" dropdown */
+/** Which place types are eligible for "How many stories" */
 const storiesEligibleTypes = new Set([
   'House',
   'Town House',
@@ -197,32 +201,41 @@ const howManyStoriesOptions = [
   '5+ Stories',
 ];
 
-/**
- * PlacePopup
- * ----------
- * Props:
- *   - lead: object with lead.originStops, lead.destinationStops
- *   - onLeadUpdated: function(updatedLead)
- *   - setIsPlacePopupVisible: function(bool)
+/** If typeOfPlace ∈ this set => furnishing style has [Minimalist, Moderate, Dense]
+ *  else => [Sparse, Moderate, Full]
  */
+const furnishingEligibleTypes = new Set([
+  'House',
+  'Town House',
+  'Apartment',
+  'Office',
+  'Store',
+  'Religious Institution',
+  'Government Institution',
+]);
+
 function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
   const popupContentRef = useRef(null);
 
-  // which place: 'origin' or 'destination'
+  // Which place are we editing? "origin" or "destination"
   const [selectedPlace, setSelectedPlace] = useState('origin');
 
-  // track separate selectedStopIndexes for origin vs. destination
+  // We'll track separate selectedStopIndexes for origin vs. destination
   const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(0);
   const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(0);
 
-  // close popup if user clicks outside
+  // If user clicks outside => close the popup
   const handleClose = useCallback(() => {
     setIsPlacePopupVisible(false);
   }, [setIsPlacePopupVisible]);
 
+  // Outside-click detection
   useEffect(() => {
     function handleClickOutside(e) {
-      if (popupContentRef.current && !popupContentRef.current.contains(e.target)) {
+      if (
+        popupContentRef.current &&
+        !popupContentRef.current.contains(e.target)
+      ) {
         handleClose();
       }
     }
@@ -232,7 +245,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     };
   }, [handleClose]);
 
-  // ensure lead has arrays
+  // Ensure lead has arrays for originStops & destinationStops
   useEffect(() => {
     const updates = {};
     let changedSomething = false;
@@ -249,19 +262,20 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
       ];
       changedSomething = true;
     }
+
     if (changedSomething) {
       onLeadUpdated({ ...lead, ...updates });
     }
     // eslint-disable-next-line
   }, []);
 
-  // figure out which array of stops to display
+  // Determine which array of stops to edit
   const originStops = lead.originStops || [];
   const destinationStops = lead.destinationStops || [];
   const currentStops =
     selectedPlace === 'origin' ? originStops : destinationStops;
 
-  // figure out which index is selected
+  // Manage the selectedStopIndex
   const selectedStopIndex =
     selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
 
@@ -273,7 +287,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     }
   }
 
-  // Called when user modifies stops in MainAndStopOffs
+  // When user modifies stops in MainAndStopOffs
   function handleStopsUpdated(newStops) {
     if (selectedPlace === 'origin') {
       onLeadUpdated({ ...lead, originStops: newStops });
@@ -282,9 +296,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     }
   }
 
-  // ----------------------------
-  //  Type of place / Move size / Stories
-  // ----------------------------
+  // Place fields => Type of place / Move size / How many stories
   const [typeOfPlace, setTypeOfPlace] = useState('');
   const [moveSize, setMoveSize] = useState('');
   const [howManyStories, setHowManyStories] = useState('');
@@ -293,18 +305,18 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
   const [showMoveSizeDropdown, setShowMoveSizeDropdown] = useState(false);
   const [showStoriesDropdown, setShowStoriesDropdown] = useState(false);
 
-  // If typeOfPlace changes => reset moveSize & howManyStories
+  // If typeOfPlace changes => reset
   useEffect(() => {
     setMoveSize('');
     setHowManyStories('');
   }, [typeOfPlace]);
 
-  // possible move sizes for the chosen type
+  // The move sizes for the chosen type
   const moveSizeOptions = typeOfPlace
-    ? moveSizeOptionsMap[typeOfPlace] || []
+    ? (moveSizeOptionsMap[typeOfPlace] || [])
     : [];
 
-  // "How many stories" is applicable?
+  // Whether "stories" is applicable
   const storiesApplicable = storiesEligibleTypes.has(typeOfPlace);
 
   useEffect(() => {
@@ -313,6 +325,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     }
   }, [storiesApplicable]);
 
+  // Toggling the 3 dropdowns
   function handleToggleTypeOfPlaceDropdown() {
     setShowTypeOfPlaceDropdown((prev) => !prev);
     setShowMoveSizeDropdown(false);
@@ -325,7 +338,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
   }
 
   function handleToggleMoveSizeDropdown() {
-    if (!typeOfPlace) return;
+    if (!typeOfPlace) return; // only open if typeOfPlace is chosen
     setShowMoveSizeDropdown((prev) => !prev);
     setShowTypeOfPlaceDropdown(false);
     setShowStoriesDropdown(false);
@@ -337,7 +350,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
   }
 
   function handleToggleStoriesDropdown() {
-    if (!storiesApplicable) return;
+    if (!storiesApplicable) return; // only open if stories is relevant
     setShowStoriesDropdown((prev) => !prev);
     setShowTypeOfPlaceDropdown(false);
     setShowMoveSizeDropdown(false);
@@ -348,19 +361,15 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     setShowStoriesDropdown(false);
   }
 
-  // ----------------------------
-  // 4 checkboxes (Basement, Attic, Shed, External Storage)
-  // ----------------------------
+  // 4 checkboxes
   const [checkedFeatures, setCheckedFeatures] = useState([]);
   const featuresList = ['Basement', 'Attic', 'Shed', 'External Storage'];
 
   function toggleFeature(feature) {
     setCheckedFeatures((prev) => {
       if (prev.includes(feature)) {
-        // remove
         return prev.filter((f) => f !== feature);
       } else {
-        // add
         return [...prev, feature];
       }
     });
@@ -369,42 +378,25 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     return checkedFeatures.includes(feature);
   }
 
-  // ----------------------------
-  // Furnishing style => hidden if moveSize is "One Item" or "Just a Few Items"
-  // If typeOfPlace is House/Town House/Apartment/Office/Store/Religious Inst/Government => [Minimalist, Moderate, Dense]
-  // else => [Sparse, Moderate, Full]
-  // ----------------------------
-  const furnishingEligibleTypes = new Set([
-    'House',
-    'Town House',
-    'Apartment',
-    'Office',
-    'Store',
-    'Religious Institution',
-    'Government Institution'
-  ]);
-
+  // Furnishing style => disabled if moveSize is empty or "One Item"/"Just a Few Items"
   const [furnishingStyle, setFurnishingStyle] = useState('');
   const [showFurnishingDropdown, setShowFurnishingDropdown] = useState(false);
 
-  const isMoveSizeBasic =
-    moveSize === 'One Item' || moveSize === 'Just a Few Items';
-  const shouldShowFurnishing = !isMoveSizeBasic && moveSize !== '';
-
+  // If type or moveSize changes => reset furnishing
   useEffect(() => {
-    // reset furnishing style if typeOfPlace or moveSize changes
     setFurnishingStyle('');
   }, [typeOfPlace, moveSize]);
 
-  let furnishingOptions = [];
-  if (furnishingEligibleTypes.has(typeOfPlace)) {
-    furnishingOptions = ['Minimalist', 'Moderate', 'Dense'];
-  } else {
-    furnishingOptions = ['Sparse', 'Moderate', 'Full'];
-  }
+  const isMoveSizeBasic =
+    moveSize === 'One Item' || moveSize === 'Just a Few Items';
+  const furnishingDisabled = (!moveSize || isMoveSizeBasic);
+
+  const furnishingOptions = furnishingEligibleTypes.has(typeOfPlace)
+    ? ['Minimalist', 'Moderate', 'Dense']
+    : ['Sparse', 'Moderate', 'Full'];
 
   function handleToggleFurnishingDropdown() {
-    if (!shouldShowFurnishing) return;
+    if (furnishingDisabled) return;
     setShowFurnishingDropdown((prev) => !prev);
     setShowTypeOfPlaceDropdown(false);
     setShowMoveSizeDropdown(false);
@@ -415,28 +407,41 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     setShowFurnishingDropdown(false);
   }
 
-  // ----------------------------
-  //  Single checkbox => "Certificate of Insurance" 16px below furnishing style
-  // ----------------------------
+  // Single checkbox => "Certificate of Insurance"
   const [needsCOI, setNeedsCOI] = useState(false);
   function toggleCOI() {
     setNeedsCOI((prev) => !prev);
   }
 
-  // ----------------------------
-  //  Sticky Footer => "Save" button
-  // ----------------------------
-  const handleSave = () => {
-    console.log('PlacePopup: Save clicked');
-    // If you need to do something specific, do it here.
-    // Then close the popup:
+  // Save button => store everything into the selected stop
+  function handleSave() {
+    // Example: store these fields into the selected stop object
+    const updatedStops = [...currentStops];
+    const stop = { ...updatedStops[selectedStopIndex] };
+
+    stop.typeOfPlace = typeOfPlace;
+    stop.moveSize = moveSize;
+    stop.howManyStories = howManyStories;
+    stop.features = checkedFeatures; // e.g. ["Basement", "Attic", ...]
+    stop.furnishingStyle = furnishingStyle;
+    stop.needsCOI = needsCOI;
+
+    updatedStops[selectedStopIndex] = stop;
+
+    // Update lead
+    if (selectedPlace === 'origin') {
+      onLeadUpdated({ ...lead, originStops: updatedStops });
+    } else {
+      onLeadUpdated({ ...lead, destinationStops: updatedStops });
+    }
+
+    // Then close the popup
     setIsPlacePopupVisible(false);
-  };
+  }
 
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
-
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
@@ -450,9 +455,9 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
           </div>
         </div>
 
-        {/* SCROLLABLE BODY */}
+        {/* BODY => SCROLLABLE */}
         <div className={styles.bodyContent}>
-          {/* Radio group: select "origin" or "destination" */}
+          {/* Radio group => origin/destination */}
           <div className={styles.radioGroup}>
             <label className={styles.radioLabel}>
               <input
@@ -478,7 +483,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
             </label>
           </div>
 
-          {/* STOP-OFFS UI */}
+          {/* Stop-offs UI */}
           <div className={styles.stopOffsPaddingWrapper}>
             <MainAndStopOffs
               stops={currentStops}
@@ -488,7 +493,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
             />
           </div>
 
-          {/* FORM FIELDS WRAPPER */}
+          {/* Additional form fields */}
           <div className={styles.formFieldsWrapper}>
 
             {/* 1) Type of place */}
@@ -513,7 +518,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
               {showTypeOfPlaceDropdown && (
                 <ul className={styles.optionsList}>
                   {typeOfPlaceOptions.map((option) => {
-                    const isSelected = typeOfPlace === option;
+                    const isSelected = (typeOfPlace === option);
                     return (
                       <li
                         key={option}
@@ -532,7 +537,9 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
             <div className={styles.moveSizeSelectWrapper}>
               <button
                 type="button"
-                className={`${styles.dropdownButton} ${!typeOfPlace ? styles.disabledDropdown : ''}`}
+                className={`${styles.dropdownButton} ${
+                  !typeOfPlace ? styles.disabledDropdown : ''
+                }`}
                 onClick={handleToggleMoveSizeDropdown}
               >
                 <div className={styles.dropdownLabel}>
@@ -552,7 +559,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
               {showMoveSizeDropdown && typeOfPlace && (
                 <ul className={styles.optionsList}>
                   {moveSizeOptions.map((option) => {
-                    const isSelected = moveSize === option;
+                    const isSelected = (moveSize === option);
                     return (
                       <li
                         key={option}
@@ -567,46 +574,46 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
               )}
             </div>
 
-            {/* 3) How many stories (if applicable) */}
-            {storiesApplicable && (
-              <div className={styles.storiesSelectWrapper}>
-                <button
-                  type="button"
-                  className={styles.dropdownButton}
-                  onClick={handleToggleStoriesDropdown}
-                >
-                  <div className={styles.dropdownLabel}>
-                    {howManyStories === '' ? (
-                      <>
-                        <span className={styles.dropdownPrefix}>How many stories:</span>
-                        <span className={styles.dropdownPlaceholder}>Select</span>
-                      </>
-                    ) : (
-                      <span className={styles.dropdownSelected}>{howManyStories}</span>
-                    )}
-                  </div>
-                </button>
+            {/* 3) How many stories => always visible, but disabled if not in storiesEligibleTypes */}
+            <div className={styles.storiesSelectWrapper}>
+              <button
+                type="button"
+                className={`${styles.dropdownButton} ${
+                  !storiesApplicable ? styles.disabledDropdown : ''
+                }`}
+                onClick={handleToggleStoriesDropdown}
+              >
+                <div className={styles.dropdownLabel}>
+                  {howManyStories === '' ? (
+                    <>
+                      <span className={styles.dropdownPrefix}>How many stories:</span>
+                      <span className={styles.dropdownPlaceholder}>Select</span>
+                    </>
+                  ) : (
+                    <span className={styles.dropdownSelected}>{howManyStories}</span>
+                  )}
+                </div>
+              </button>
 
-                {showStoriesDropdown && (
-                  <ul className={styles.optionsList}>
-                    {howManyStoriesOptions.map((option) => {
-                      const isSelected = howManyStories === option;
-                      return (
-                        <li
-                          key={option}
-                          className={`${styles.option} ${isSelected ? styles.selected : ''}`}
-                          onClick={() => handleSelectStories(option)}
-                        >
-                          {option}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            )}
+              {showStoriesDropdown && storiesApplicable && (
+                <ul className={styles.optionsList}>
+                  {howManyStoriesOptions.map((option) => {
+                    const isSelected = (howManyStories === option);
+                    return (
+                      <li
+                        key={option}
+                        className={`${styles.option} ${isSelected ? styles.selected : ''}`}
+                        onClick={() => handleSelectStories(option)}
+                      >
+                        {option}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
 
-            {/* 4) The 4 features checkboxes */}
+            {/* 4) The 4 features => Basement, Attic, etc. */}
             <div className={styles.featuresGrid}>
               {featuresList.map((feature) => {
                 const checked = isFeatureChecked(feature);
@@ -625,46 +632,46 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
               })}
             </div>
 
-            {/* 5) Furnishing style */}
-            {shouldShowFurnishing && (
-              <div style={{ marginTop: '21px', position: 'relative' }}>
-                <button
-                  type="button"
-                  className={styles.dropdownButton}
-                  onClick={handleToggleFurnishingDropdown}
-                >
-                  <div className={styles.dropdownLabel}>
-                    {furnishingStyle === '' ? (
-                      <>
-                        <span className={styles.dropdownPrefix}>Furnishing style:</span>
-                        <span className={styles.dropdownPlaceholder}>Select</span>
-                      </>
-                    ) : (
-                      <span className={styles.dropdownSelected}>{furnishingStyle}</span>
-                    )}
-                  </div>
-                </button>
+            {/* 5) Furnishing style => disabled if moveSize is "" or "One Item"/"Just a Few Items" */}
+            <div className={styles.furnishingSelectWrapper} style={{ marginTop: '21px' }}>
+              <button
+                type="button"
+                className={`${styles.dropdownButton} ${
+                  furnishingDisabled ? styles.disabledDropdown : ''
+                }`}
+                onClick={handleToggleFurnishingDropdown}
+              >
+                <div className={styles.dropdownLabel}>
+                  {furnishingStyle === '' ? (
+                    <>
+                      <span className={styles.dropdownPrefix}>Furnishing style:</span>
+                      <span className={styles.dropdownPlaceholder}>Select</span>
+                    </>
+                  ) : (
+                    <span className={styles.dropdownSelected}>{furnishingStyle}</span>
+                  )}
+                </div>
+              </button>
 
-                {showFurnishingDropdown && (
-                  <ul className={styles.optionsList}>
-                    {furnishingOptions.map((option) => {
-                      const isSelected = furnishingStyle === option;
-                      return (
-                        <li
-                          key={option}
-                          className={`${styles.option} ${isSelected ? styles.selected : ''}`}
-                          onClick={() => handleSelectFurnishingStyle(option)}
-                        >
-                          {option}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            )}
+              {showFurnishingDropdown && !furnishingDisabled && (
+                <ul className={styles.optionsList}>
+                  {furnishingOptions.map((option) => {
+                    const isSelected = (furnishingStyle === option);
+                    return (
+                      <li
+                        key={option}
+                        className={`${styles.option} ${isSelected ? styles.selected : ''}`}
+                        onClick={() => handleSelectFurnishingStyle(option)}
+                      >
+                        {option}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
 
-            {/* 6) Single "Certificate of Insurance" checkbox */}
+            {/* 6) Certificate of Insurance */}
             <div style={{ marginTop: '16px' }}>
               <label className={styles.featureCheckbox}>
                 <input
@@ -680,7 +687,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
           </div>
         </div>
 
-        {/* STICKY FOOTER with Save button */}
+        {/* STICKY FOOTER => Save button */}
         <div className={styles.stickyFooter}>
           <button
             type="button"
@@ -690,7 +697,6 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
             Save
           </button>
         </div>
-
       </div>
     </div>
   );

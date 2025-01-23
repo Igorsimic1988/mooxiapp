@@ -1,5 +1,3 @@
-/* src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/PlacePopup/PlacePopup.module.css */
-
 /* The popup overlay */
 .popup {
   position: fixed;
@@ -23,7 +21,7 @@
   box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3);
 
   display: flex;
-  flex-direction: column; /* So we can have a body area + sticky footer */
+  flex-direction: column; /* So we can have a scrolling body + sticky footer */
   position: relative;
 }
 
@@ -37,7 +35,6 @@
   align-items: center;
   justify-content: space-between;
 }
-
 .title {
   display: flex;
   align-items: center;
@@ -55,7 +52,6 @@
   font-weight: 700;
   margin-left: 10px;
 }
-
 .closeButton {
   height: 100%;
   display: flex;
@@ -79,15 +75,15 @@
   height: 24px;
 }
 
-/* The scrollable body area */
+/* BODY => SCROLLABLE */
 .bodyContent {
-  flex: 1;              /* This allows the content to grow and scroll */
-  overflow-y: auto;     /* enable vertical scroll if needed */
+  flex: 1;
+  overflow-y: auto; /* enable vertical scroll if needed */
   display: flex;
   flex-direction: column;
 }
 
-/* RADIO GROUP for "Origin" / "Destination" */
+/* RADIO GROUP => "Origin" / "Destination" */
 .radioGroup {
   padding-left: 35px;
   width: 100%;
@@ -111,7 +107,7 @@
 }
 .radioText {
   display: inline-block;
-  font-size: 0.9375rem;
+  font-size: 0.9375rem; /* 15px */
   font-weight: 700;
   color: #90A4B7;
   cursor: pointer;
@@ -124,13 +120,13 @@
   border-bottom: 3px solid #59B779;
 }
 
-/* STOP-OFFS area */
+/* The area for MainAndStopOffs */
 .stopOffsPaddingWrapper {
   padding: 0 30px;
   margin-top: 10px;
 }
 
-/* The form fields wrapper: typeOfPlace, moveSize, stories, etc. */
+/* The form fields wrapper => includes typeOfPlace, moveSize, etc. */
 .formFieldsWrapper {
   margin-top: 10px;
   padding: 0 30px;
@@ -138,7 +134,7 @@
   flex-direction: column;
 }
 
-/* Wrappers for each dropdown row */
+/* Individual dropdown wrappers */
 .typeOfPlaceSelectWrapper {
   position: relative;
   margin-bottom: 5px;
@@ -150,8 +146,12 @@
 .storiesSelectWrapper {
   position: relative;
 }
+.furnishingSelectWrapper {
+  position: relative;
+  margin-bottom: 5px; /* if you want spacing after it */
+}
 
-/* The “dropdownButton” shared style */
+/* The shared .dropdownButton style */
 .dropdownButton {
   width: 100%;
   height: 50px;
@@ -168,13 +168,13 @@
 }
 .disabledDropdown {
   opacity: 0.5;
-  pointer-events: none;
+  pointer-events: none; /* can't open if disabled */
 }
 .dropdownLabel {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex: 1;
+  flex: 1; /* expand horizontally */
   white-space: nowrap;
   overflow: hidden;
 }
@@ -197,10 +197,10 @@
   text-overflow: ellipsis;
 }
 
-/* The dropdown options list */
+/* The dropdown list of options => absolutely positioned below the button */
 .optionsList {
   position: absolute;
-  top: 60px;
+  top: 60px; /* about 60px down from the top of the button */
   left: 0;
   width: 100%;
   max-height: 400px;
@@ -214,6 +214,8 @@
   margin: 0;
   padding: 8px 0;
 }
+
+/* Each list item in the dropdown */
 .option {
   padding: 10px 15px;
   font-family: Satoshi, sans-serif;
@@ -239,7 +241,7 @@
   margin-top: 16px;
 }
 
-/* Each checkbox row => custom style */
+/* A feature checkbox + label row */
 .featureCheckbox {
   display: flex;
   align-items: center; /* vertical centering */
@@ -254,7 +256,7 @@
 
 /* Hide the default checkbox appearance */
 .featureCheckbox input[type="checkbox"] {
-  appearance: none; /* or -webkit-appearance: none for Safari */
+  appearance: none;
   width: 24px;
   height: 24px;
   position: relative;
@@ -291,7 +293,7 @@
   background-size: 24px 24px;
 }
 
-/* ------------- STICKY FOOTER WITH SAVE BUTTON ------------- */
+/* The sticky footer with the Save button */
 .stickyFooter {
   position: sticky;
   bottom: 0;
@@ -300,8 +302,6 @@
   padding: 20px 30px;
   z-index: 1100;
 }
-
-/* The Save button (similar to lead form) */
 .saveButton {
   width: 100%;
   background-color: #59B779;
@@ -314,7 +314,6 @@
   border-radius: 12px;
   cursor: pointer;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
   outline: none;
   text-align: center;
 }

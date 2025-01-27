@@ -11,25 +11,50 @@ import styles from './MainAndStopOffs.module.css';
  *   - onStopsUpdated: function(newStops) => pass updated array up
  *   - selectedStopIndex: which index is currently selected
  *   - setSelectedStopIndex: function => sets the current stop index
+ *   - placeType: either "origin" or "destination" (optional; default "origin")
  */
 function MainAndStopOffs({
   stops,
   onStopsUpdated,
   selectedStopIndex,
   setSelectedStopIndex,
+  placeType = 'origin', // 'origin' or 'destination'
 }) {
-  // If the passed-in array is empty, give at least one default
+  // If the passed-in array is empty, create an initial main label (depending on placeType).
   if (!Array.isArray(stops) || stops.length === 0) {
+    const mainLabel = (placeType === 'destination') ? 'Main Drop off' : 'Main Address';
     stops = [
-      { label: 'Main Address', address: '', apt: '', city: '', state: '', zip: '' },
+      { label: mainLabel, address: '', apt: '', city: '', state: '', zip: '' },
     ];
   }
 
-  // Add a new stop
+  // For highlighting
+  const isSelected = (index) => index === selectedStopIndex;
+  const getButtonClass = (index) =>
+    isSelected(index)
+      ? `${styles.mainAddressButton} ${styles.buttonSelected}`
+      : `${styles.mainAddressButton} ${styles.buttonUnselected}`;
+
+  // 1) Add a new stop
   const handleAddStopOff = () => {
-    const newStopNumber = stops.length;
-    const newLabel =
-      newStopNumber === 1 ? 'Stop off 1' : `Stop off ${newStopNumber}`;
+    const newStopCount = stops.length; // e.g. if we already have 1 stop
+    let newLabel = '';
+    
+    if (placeType === 'destination') {
+      // Destination => first is "Main Drop off", subsequent => "Drop off 1, 2..."
+      if (newStopCount === 1) {
+        newLabel = 'Drop off 1';
+      } else {
+        newLabel = `Drop off ${newStopCount}`;
+      }
+    } else {
+      // Origin => first is "Main Address", subsequent => "Stop off 1, 2..."
+      if (newStopCount === 1) {
+        newLabel = 'Stop off 1';
+      } else {
+        newLabel = `Stop off ${newStopCount}`;
+      }
+    }
 
     const newStop = {
       label: newLabel,
@@ -47,17 +72,10 @@ function MainAndStopOffs({
     setSelectedStopIndex(updatedStops.length - 1);
   };
 
-  // Switch to a different stop
+  // 2) Switch between existing stops
   const handleSelectStopIndex = (index) => {
     setSelectedStopIndex(index);
   };
-
-  // For highlighting
-  const isSelected = (index) => index === selectedStopIndex;
-  const getButtonClass = (index) =>
-    isSelected(index)
-      ? `${styles.mainAddressButton} ${styles.buttonSelected}`
-      : `${styles.mainAddressButton} ${styles.buttonUnselected}`;
 
   return (
     <div className={styles.addressRow}>

@@ -1,4 +1,5 @@
 // src/components/Leads/Leads.js
+
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Leads.module.css';
 import HeaderDashboard from './HeadrerDashboard.js/HeaderDashboard';
@@ -180,11 +181,14 @@ function Leads() {
     setLeads((prev) => [...prev, newLead]);
   };
 
-  // Update lead
+  // Update lead => console.log it
   const handleLeadUpdated = (updatedLead) => {
+    console.log('Updated lead data => ', updatedLead); // <-- ADDED LINE
+
     setLeads((prevLeads) =>
       prevLeads.map((ld) => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
     );
+
     if (selectedLead && selectedLead.lead_id === updatedLead.lead_id) {
       setSelectedLead(updatedLead);
     }
@@ -206,7 +210,6 @@ function Leads() {
   const openInventoryFullScreen = () => {
     setShowInventoryFullScreen(true);
   };
-
   const closeInventoryFullScreen = () => {
     setShowInventoryFullScreen(false);
   };
@@ -221,13 +224,11 @@ function Leads() {
         <HeaderDashboard
           isLeadSelected={!!selectedLead}
           onBack={handleBack}
-          // Inventory arrow logic
           isInInventory
           inRoom={!!inventoryRoom}
           roomName={inventoryRoom?.name || ''}
           onRoomBack={() => setInventoryRoom(null)}
           onCloseInventory={closeInventoryFullScreen}
-          // We pass this so the arrow knows what to do:
           isDesktopInventory={isDesktopScreen}
         />
 
@@ -261,7 +262,6 @@ function Leads() {
           onClose={() => setSelectedLead(null)}
           onEditLead={handleEditLead}
           onLeadUpdated={handleLeadUpdated}
-          // Clicking "Inventory" inside lead => opens full-screen inventory
           onInventoryFullScreen={openInventoryFullScreen}
         />
       ) : (

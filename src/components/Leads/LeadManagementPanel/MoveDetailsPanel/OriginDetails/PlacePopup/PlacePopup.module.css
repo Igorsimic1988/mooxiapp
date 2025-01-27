@@ -1,3 +1,5 @@
+/* src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/PlacePopup/PlacePopup.module.css */
+
 /* The popup overlay */
 .popup {
   position: fixed;
@@ -129,10 +131,13 @@
 /* The form fields wrapper => includes typeOfPlace, moveSize, etc. */
 .formFieldsWrapper {
   margin-top: 10px;
+  margin-bottom: 20px;
   padding: 0 30px;
   display: flex;
   flex-direction: column;
 }
+
+/* If you want no margin-bottom for the final item, adjust at will. */
 
 /* Individual dropdown wrappers */
 .typeOfPlaceSelectWrapper {
@@ -149,6 +154,11 @@
 .furnishingSelectWrapper {
   position: relative;
   margin-bottom: 5px; /* if you want spacing after it */
+}
+
+/* .coiDestination => custom margin top for the COI line in Destination */
+.coiDestination {
+  margin-top: 31px; /* The extra spacing you wanted */
 }
 
 /* The shared .dropdownButton style */
@@ -200,7 +210,7 @@
 /* The dropdown list of options => absolutely positioned below the button */
 .optionsList {
   position: absolute;
-  top: 60px; /* about 60px down from the top of the button */
+  top: 60px; 
   left: 0;
   width: 100%;
   max-height: 400px;
@@ -244,7 +254,7 @@
 /* A feature checkbox + label row */
 .featureCheckbox {
   display: flex;
-  align-items: center; /* vertical centering */
+  align-items: center;
   gap: 5px;
   cursor: pointer;
   user-select: none;

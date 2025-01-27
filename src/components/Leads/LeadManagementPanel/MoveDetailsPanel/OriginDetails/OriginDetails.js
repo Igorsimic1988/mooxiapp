@@ -16,16 +16,6 @@ import PlacePopup from './PlacePopup/PlacePopup';
 // Reusable row of stops
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
 
-/**
- * OriginDetails
- *
- * Props:
- *   - lead: an object with:
- *       originStops: Array<{ label, address, apt, city, state, zip }>,
- *       destinationStops?: Array<{ label, address, apt, city, state, zip }>
- *   - onLeadUpdated: function(updatedLead) => merges changes into the lead
- *   - onShowInventory: function => opens Inventory
- */
 function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
   // Which origin stop is selected in the main UI?
   const [selectedStopIndex, setSelectedStopIndex] = useState(0);
@@ -56,8 +46,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
       onLeadUpdated({ ...lead, originStops: defaultStops });
     }
 
-    // Also ensure we have a destinationStops array (if you want that too).
-    // If your lead might need it:
+    // Also ensure we have destinationStops (if needed)
     if (!Array.isArray(lead.destinationStops)) {
       onLeadUpdated({
         ...lead,
@@ -93,11 +82,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
     const updatedStop = { ...updatedStops[selectedStopIndex] };
     updatedStop[fieldName] = newValue;
     updatedStops[selectedStopIndex] = updatedStop;
-
-    onLeadUpdated({
-      ...lead,
-      originStops: updatedStops,
-    });
+    onLeadUpdated({ ...lead, originStops: updatedStops });
   };
 
   return (
@@ -111,18 +96,17 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
 
       {!isCollapsed && (
         <>
-          {/* The row of origin stops + plus button */}
+          {/* Row of origin stops + plus button */}
           <MainAndStopOffs
             stops={originStops}
             onStopsUpdated={(newStops) => {
-              // Merge the updated origin stops back into the lead
               onLeadUpdated({ ...lead, originStops: newStops });
             }}
             selectedStopIndex={selectedStopIndex}
             setSelectedStopIndex={setSelectedStopIndex}
           />
 
-          {/* Address Inputs for the currently selected origin stop */}
+          {/* Address Inputs */}
           <div className={styles.propertySection}>
             <span className={styles.propertyAddressText}>Property Address</span>
 
@@ -186,7 +170,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
           <div className={styles.propertyInfoSection}>
             <span className={styles.propertyText}>Property</span>
 
-            {/* PLACE card => open the popup */}
+            {/* PLACE card => entire area clickable */}
             <div
               className={`${styles.propertyItem} ${styles.propertyItemPlace}`}
               onClick={() => setIsPlacePopupOpen(true)}
@@ -195,15 +179,15 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
                 <PlaceIcon className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>PLACE</span>
               </div>
+              {/* The plus button now does NOT stop propagation */}
               <button
                 className={`${styles.propertyItemPlusButton} ${styles.propertyItemPlaceButton}`}
-                onClick={(e) => e.stopPropagation()}
               >
                 +
               </button>
             </div>
 
-            {/* ACCESS */}
+            {/* ACCESS => same approach if you want the entire thing clickable */}
             <div className={`${styles.propertyItem} ${styles.propertyItemAccess}`}>
               <div className={styles.propertyItemLeft}>
                 <AccessIcon className={styles.propertyItemIcon} />
@@ -211,7 +195,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
               </div>
               <button
                 className={`${styles.propertyItemPlusButton} ${styles.propertyItemAccessButton}`}
-                onClick={(e) => e.stopPropagation()}
               >
                 +
               </button>
@@ -225,7 +208,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
               </div>
               <button
                 className={`${styles.propertyItemPlusButton} ${styles.propertyItemServicesButton}`}
-                onClick={(e) => e.stopPropagation()}
               >
                 +
               </button>
@@ -306,7 +288,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
         </>
       )}
 
-      {/* The popup for "Place" (handles both origin & destination) */}
+      {/* The popup for "Place" */}
       {isPlacePopupOpen && (
         <PlacePopup
           lead={lead}

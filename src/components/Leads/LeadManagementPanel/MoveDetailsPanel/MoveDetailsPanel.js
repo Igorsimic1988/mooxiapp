@@ -13,6 +13,7 @@ import OriginDetails from './OriginDetails/OriginDetails';
 import DestinationDetails from './DestinationDetails/DestinationDetails';
 import styles from './MoveDetailsPanel.module.css';
 
+// Import your typeOfServiceChoices from the constants file
 import typeOfServiceChoices from '../../../../data/constants/typeOfServiceChoices';
 
 /** Generate time slots from 7:00 AM to 9:00 PM in 15-min increments */
@@ -154,6 +155,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       if (storageDropdownOpen && storageRef.current && !storageRef.current.contains(e.target)) {
         setStorageDropdownOpen(false);
       }
+
       if (showIncrementsGrid && arrivalStart && !arrivalTime) {
         if (incrementsGridRef.current && !incrementsGridRef.current.contains(e.target)) {
           defaultToTwoHours();
@@ -336,10 +338,16 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             setShowDeliveryCalendar(false);
           }}
         >
-          <div className={styles.truncateText}>
-            <strong style={{ marginRight: '6px' }}>Move Date:</strong>
-            {moveDate || 'Select date'}
-          </div>
+          {/* 
+             Wrap label + value in .oneLineEllipsis so it never breaks 
+             and uses ellipses if too long 
+          */}
+          <span className={styles.oneLineEllipsis}>
+            <span className={styles.dateLabelPrefix}>Move Date:</span>
+            <span className={moveDate ? styles.dateSelected : styles.datePlaceholder}>
+              {moveDate || ''}
+            </span>
+          </span>
           <div className={styles.calendarRightIconWrapper}>
             <CalendarIcon className={styles.calendarIcon} />
           </div>
@@ -402,10 +410,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         }}
         ref={typeOfServiceRef}
       >
-        <div className={styles.truncateText}>
-          <strong style={{ marginRight: '6px' }}>Type of Service:</strong>
-          {typeOfService}
-        </div>
+        {/* single-line ellipsis container */}
+        <span className={styles.oneLineEllipsis}>
+          <span className={styles.inputLabel}>Type of Service:</span>
+          <span className={styles.inputValue}> {typeOfService}</span>
+        </span>
         <MoreIcon className={styles.moreIcon} />
 
         {showTypeOfServiceDropdown && (
@@ -448,10 +457,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           }}
           ref={storageRef}
         >
-          <div className={styles.truncateText}>
-            <strong style={{ marginRight: '6px' }}>Items in storage:</strong>
-            {selectedStorage}
-          </div>
+          {/* single-line ellipsis container */}
+          <span className={styles.oneLineEllipsis}>
+            <span className={styles.inputLabel}>Items in storage:</span>
+            <span className={styles.inputValue}> {selectedStorage}</span>
+          </span>
           <MoreIcon className={styles.moreIcon} />
 
           {storageDropdownOpen && (
@@ -485,10 +495,12 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             setShowMoveCalendar(false);
           }}
         >
-          <div className={styles.truncateText}>
-            <strong style={{ marginRight: '6px' }}>Delivery Date:</strong>
-            {deliveryDate || 'Select date'}
-          </div>
+          <span className={styles.oneLineEllipsis}>
+            <span className={styles.dateLabelPrefix}>Delivery Date:</span>
+            <span className={deliveryDate ? styles.dateSelected : styles.datePlaceholder}>
+              {deliveryDate || ''}
+            </span>
+          </span>
           <div className={styles.calendarRightIconWrapper}>
             <CalendarIcon className={styles.calendarIcon} />
           </div>
@@ -561,10 +573,10 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         }}
         ref={etaRequestRef}
       >
-        <div className={styles.truncateText}>
-          <strong style={{ marginRight: '6px' }}>ETA Request:</strong>
-          {etaRequest}
-        </div>
+        <span className={styles.oneLineEllipsis}>
+          <span className={styles.inputLabel}>ETA Request:</span>
+          <span className={styles.inputValue}> {etaRequest}</span>
+        </span>
         <MoreIcon className={styles.moreIcon} />
 
         {showETARequestDropdown && (
@@ -607,10 +619,10 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             setShowIncrementsGrid(false);
           }}
         >
-          <div className={styles.truncateText}>
-            <strong style={{ marginRight: '6px' }}>Arrival Time:</strong>
-            {arrivalTime || 'Select'}
-          </div>
+          <span className={styles.oneLineEllipsis}>
+            <span className={styles.inputLabel}>Arrival Time:</span>
+            <span className={styles.inputValue}> {arrivalTime || 'Select'}</span>
+          </span>
           <div className={styles.inputIconContainer}>
             <ClockIcon className={styles.inputIcon} />
           </div>
@@ -683,10 +695,10 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
       <div className={styles.spacing20}></div>
 
-      {/* Origin and Destination details */}
-      <OriginDetails
-        onShowInventory={onShowInventory}
-        lead={lead}
+      {/* The "OriginDetails" can open inventory. It calls onShowInventory() from props. */}
+      <OriginDetails 
+        onShowInventory={onShowInventory} 
+        lead={lead}                         
         onLeadUpdated={onLeadUpdated}
       />
       <DestinationDetails />

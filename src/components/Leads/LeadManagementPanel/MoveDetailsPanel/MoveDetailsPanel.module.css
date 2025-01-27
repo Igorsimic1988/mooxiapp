@@ -56,16 +56,23 @@
   color: #3FA9F5;
 }
 
-/* A generic helper class to truncate text with ellipses */
-.truncateText {
+/* 
+   A new helper class so label + value stays on one line with ellipses if it overflows.
+   We also use 'flex:1' or 'min-width:0' so it can shrink properly 
+*/
+.oneLineEllipsis {
   display: inline-block;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 90%;  /* adjust as needed */
+  flex: 1;
+  min-width: 0;
 }
 
-/* Generic input container for Move/Delivery Date, etc. */
+/* 
+   inputContainer for the Date or any "bordered" row 
+*/
 .inputContainer {
   width: 100%;
   height: 50px;
@@ -77,30 +84,79 @@
   justify-content: space-between;
   padding: 0 20px;
   margin-bottom: 10px;
-  position: relative; /* for the calendarPopup absolute positioning */
-  /* Do NOT force overflow hidden, so dropdowns can overflow properly */
+}
+.inputLabel {
+  color: #6E7882;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+}
+.inputValue {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+.inputIconContainer {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #90A4B7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.inputIcon {
+  width: 16px;
+  height: 16px;
+  color: #FFF;
+}
+.moreIcon {
+  width: 20px;
+  height: 20px;
+  color: #90A4B7;
 }
 
-/* The date button */
+/* The date button for Move/Delivery Date */
 .dateButton {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   background: none;
   border: none;
   border-radius: 12px;
   height: 50px;
   width: 100%;
   cursor: pointer;
-  padding: 0 10px 0 0;
+  padding: 0;
+  gap: 10px;
   font-family: Satoshi, sans-serif;
   font-size: 16px;
-  gap: 10px;
   color: #6e7882;
+  /* 
+     Let child items handle text ellipsis, 
+     ensure min-width:0 on child 
+  */
 }
 
-/* Right icon wrapper inside date button */
+.dateLabelPrefix {
+  font-weight: 500;
+  color: #6E7882;
+}
+
+.datePlaceholder {
+  font-weight: 500;
+  color: #6E7882;
+}
+
+.dateSelected {
+  font-weight: 700;
+  color: #2F3236;
+}
+
 .calendarRightIconWrapper {
+  margin-left: auto;
   width: 30px;
   height: 30px;
   background: #90A4B7;
@@ -108,7 +164,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 .calendarIcon {
   width: 16px;
@@ -179,6 +234,8 @@
   font-size: 16px;
   font-weight: 700;
 }
+
+/* A general "bordered dropdown" row */
 .storageDropdown {
   width: 100%;
   height: 50px;
@@ -192,13 +249,8 @@
   margin-top: 12px;
   position: relative;
   cursor: pointer;
-  /* No overflow hidden, so dropdowns can appear outside */
 }
-.moreIcon {
-  width: 20px;
-  height: 20px;
-  color: #90A4B7;
-}
+
 .dropdownMenu {
   position: absolute;
   top: 60px;
@@ -217,9 +269,6 @@
   font-weight: 700;
   color: #2F3236;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .dropdownOption:hover {
   background: #F2F5F8;
@@ -259,23 +308,6 @@
   padding: 0 20px;
   margin-top: 12px;
   position: relative;
-  /* No overflow hidden */
-}
-.inputIconContainer {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: #90A4B7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.inputIcon {
-  width: 16px;
-  height: 16px;
-  color: #FFF;
 }
 .timeDropdown {
   position: absolute;
@@ -297,9 +329,6 @@
   font-family: Satoshi, sans-serif;
   color: #2F3236;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .timeOption:hover {
   background: #F2F5F8;
@@ -331,9 +360,6 @@
   font-weight: 700;
   font-size: 16px;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .addHoursButton:hover {
   background: #E6EBEF;

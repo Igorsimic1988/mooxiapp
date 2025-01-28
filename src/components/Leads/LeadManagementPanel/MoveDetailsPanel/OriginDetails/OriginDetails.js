@@ -11,8 +11,11 @@ import { ReactComponent as MyInventoryIcon } from '../../../../../assets/icons/m
 import SimpleToggle from '../../../SimpleToggle/SimpleToggle';
 import styles from './OriginDetails.module.css';
 
-// The popup
+// The three popups
 import PlacePopup from './PlacePopup/PlacePopup';
+import AccessPopup from './AccessPopup/AccessPopup';
+import ServicesPopup from './ServicesPopup/ServicesPopup';  // <--- import here
+
 // Reusable row of stops
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
 
@@ -27,8 +30,10 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
   // Time restrictions
   const [timeRestrictionsToggled, setTimeRestrictionsToggled] = useState(false);
 
-  // Place popup
+  // Popups
   const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
+  const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
+  const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false); // <--- new state for Services
 
   // Ensure there's at least 1 origin stop
   useEffect(() => {
@@ -46,7 +51,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
       onLeadUpdated({ ...lead, originStops: defaultStops });
     }
 
-    // Also ensure we have destinationStops (if needed)
+    // Also ensure we have destinationStops
     if (!Array.isArray(lead.destinationStops)) {
       onLeadUpdated({
         ...lead,
@@ -179,7 +184,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
                 <PlaceIcon className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>PLACE</span>
               </div>
-              {/* The plus button now does NOT stop propagation */}
               <button
                 className={`${styles.propertyItemPlusButton} ${styles.propertyItemPlaceButton}`}
               >
@@ -187,8 +191,11 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
               </button>
             </div>
 
-            {/* ACCESS => same approach if you want the entire thing clickable */}
-            <div className={`${styles.propertyItem} ${styles.propertyItemAccess}`}>
+            {/* ACCESS => entire area clickable */}
+            <div
+              className={`${styles.propertyItem} ${styles.propertyItemAccess}`}
+              onClick={() => setIsAccessPopupOpen(true)}
+            >
               <div className={styles.propertyItemLeft}>
                 <AccessIcon className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>ACCESS</span>
@@ -200,8 +207,11 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
               </button>
             </div>
 
-            {/* SERVICES */}
-            <div className={`${styles.propertyItem} ${styles.propertyItemServices}`}>
+            {/* SERVICES => entire area clickable */}
+            <div
+              className={`${styles.propertyItem} ${styles.propertyItemServices}`}
+              onClick={() => setIsServicesPopupOpen(true)} // <--- open Services popup
+            >
               <div className={styles.propertyItemLeft}>
                 <ServicesIcon className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>SERVICES</span>
@@ -294,6 +304,24 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
           lead={lead}
           onLeadUpdated={onLeadUpdated}
           setIsPlacePopupVisible={setIsPlacePopupOpen}
+        />
+      )}
+
+      {/* The popup for "Access" */}
+      {isAccessPopupOpen && (
+        <AccessPopup
+          lead={lead}
+          onLeadUpdated={onLeadUpdated}
+          setIsAccessPopupVisible={setIsAccessPopupOpen}
+        />
+      )}
+
+      {/* The popup for "Services" */}
+      {isServicesPopupOpen && (
+        <ServicesPopup
+          lead={lead}
+          onLeadUpdated={onLeadUpdated}
+          setIsServicesPopupVisible={setIsServicesPopupOpen}
         />
       )}
     </div>

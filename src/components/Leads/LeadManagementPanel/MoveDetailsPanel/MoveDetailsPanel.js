@@ -338,10 +338,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             setShowDeliveryCalendar(false);
           }}
         >
-          {/* 
-             Wrap label + value in .oneLineEllipsis so it never breaks 
-             and uses ellipses if too long 
-          */}
           <span className={styles.oneLineEllipsis}>
             <span className={styles.dateLabelPrefix}>Move Date:</span>
             <span className={moveDate ? styles.dateSelected : styles.datePlaceholder}>
@@ -410,7 +406,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         }}
         ref={typeOfServiceRef}
       >
-        {/* single-line ellipsis container */}
         <span className={styles.oneLineEllipsis}>
           <span className={styles.inputLabel}>Type of Service:</span>
           <span className={styles.inputValue}> {typeOfService}</span>
@@ -457,7 +452,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           }}
           ref={storageRef}
         >
-          {/* single-line ellipsis container */}
           <span className={styles.oneLineEllipsis}>
             <span className={styles.inputLabel}>Items in storage:</span>
             <span className={styles.inputValue}> {selectedStorage}</span>
@@ -701,7 +695,10 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         lead={lead}                         
         onLeadUpdated={onLeadUpdated}
       />
-      <DestinationDetails />
+      <DestinationDetails 
+      lead={lead}                         
+      onLeadUpdated={onLeadUpdated}
+/>
     </div>
   );
 }

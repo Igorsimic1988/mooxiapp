@@ -11,12 +11,7 @@ import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Clos
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 
 // Example data for drop-downs
-const whatsMovingOriginOptions = [
-  'Mixed',
-  'Boxes Only',
-  'Furniture Only',
-];
-
+const whatsMovingOriginOptions = ['Mixed', 'Boxes Only', 'Furniture Only'];
 const packingOriginOptions = [
   'No Packing',
   'Partial Packing',
@@ -58,12 +53,17 @@ const typeOfServiceChoices = [
  * -------------
  * Allows editing "Services" info for both Origin & Destination stops.
  *
- * PROPS:
- *   - lead
- *   - onLeadUpdated
- *   - setIsServicesPopupVisible => to close
+ * New props:
+ *   - defaultTab: "origin" or "destination"
+ *   - defaultStopIndex: number
  */
-function ServicesPopup({ lead, onLeadUpdated, setIsServicesPopupVisible }) {
+function ServicesPopup({
+  lead,
+  onLeadUpdated,
+  setIsServicesPopupVisible,
+  defaultTab = 'origin',
+  defaultStopIndex = 0,
+}) {
   const popupContentRef = useRef(null);
 
   // local arrays for origin/destination stops
@@ -71,39 +71,45 @@ function ServicesPopup({ lead, onLeadUpdated, setIsServicesPopupVisible }) {
   const [localDestinationStops, setLocalDestinationStops] = useState([]);
 
   // which place: 'origin' or 'destination'
-  const [selectedPlace, setSelectedPlace] = useState('origin');
+  const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
   // track selectedStopIndex for each place
-  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(0);
-  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(0);
+  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
+    defaultTab === 'origin' ? defaultStopIndex : 0
+  );
+  const [selectedStopIndexDest,   setSelectedStopIndexDest]   = useState(
+    defaultTab === 'destination' ? defaultStopIndex : 0
+  );
 
   // On mount => copy data from lead => local arrays
   useEffect(() => {
-    const originStops = Array.isArray(lead.originStops) && lead.originStops.length > 0
-      ? lead.originStops
-      : [
-          {
-            label: 'Main Address',
-            address: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-          },
-        ];
+    const originStops =
+      Array.isArray(lead.originStops) && lead.originStops.length > 0
+        ? lead.originStops
+        : [
+            {
+              label: 'Main Address',
+              address: '',
+              apt: '',
+              city: '',
+              state: '',
+              zip: '',
+            },
+          ];
 
-    const destStops = Array.isArray(lead.destinationStops) && lead.destinationStops.length > 0
-      ? lead.destinationStops
-      : [
-          {
-            label: 'Main Address',
-            address: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-          },
-        ];
+    const destStops =
+      Array.isArray(lead.destinationStops) && lead.destinationStops.length > 0
+        ? lead.destinationStops
+        : [
+            {
+              label: 'Main Address',
+              address: '',
+              apt: '',
+              city: '',
+              state: '',
+              zip: '',
+            },
+          ];
 
     // We'll add fields for the "Services" portion to each stop
     const mappedOrigin = originStops.map((stop) => ({
@@ -172,7 +178,6 @@ function ServicesPopup({ lead, onLeadUpdated, setIsServicesPopupVisible }) {
   // decide which array + selectedStopIndex
   const currentStops =
     selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
-
   const selectedStopIndex =
     selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
 
@@ -255,7 +260,7 @@ function ServicesPopup({ lead, onLeadUpdated, setIsServicesPopupVisible }) {
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
 
-        {/* HEADER */}
+        {/* HEADER => pinned at top */}
         <div className={styles.header}>
           <div className={styles.title}>
             <HouseIcon className={styles.icon} />
@@ -268,9 +273,8 @@ function ServicesPopup({ lead, onLeadUpdated, setIsServicesPopupVisible }) {
           </div>
         </div>
 
-        {/* BODY => SCROLLABLE */}
-        <div className={styles.bodyContent}>
-
+        {/* TOP SECTION => the radio + stopoffs pinned below header */}
+        <div className={styles.topSection}>
           {/* Radio => origin/destination */}
           <div className={styles.radioGroup}>
             <label className={styles.radioLabel}>
@@ -303,8 +307,10 @@ function ServicesPopup({ lead, onLeadUpdated, setIsServicesPopupVisible }) {
               placeType={selectedPlace}
             />
           </div>
+        </div>
 
-          {/* FORM FIELDS */}
+        {/* MAIN SCROLLABLE CONTENT */}
+        <div className={styles.scrollableContent}>
           <div className={styles.formFieldsWrapper}>
 
             {/* ORIGIN fields */}
@@ -457,38 +463,33 @@ function ServicesPopup({ lead, onLeadUpdated, setIsServicesPopupVisible }) {
             {/* Group of 3 checkboxes => 
                 either (Items to be taken apart, Hoist, Crane) 
                 or (Items to be assembled, Hoist, Crane)
-                8px between them, plus 21px after => see .checkboxesGroup */}
+                8px between them, plus 21px after => see .checkboxesGroup 
+            */}
             <div className={styles.checkboxesGroup}>
               {selectedPlace === 'origin' && (
-                <>
-                  {/* Items to be taken apart? */}
-                  <label className={styles.featureCheckbox}>
-                    <input
-                      type="checkbox"
-                      className={styles.hiddenCheckbox}
-                      checked={!!stop.itemsToBeTakenApart}
-                      onChange={() => toggleField('itemsToBeTakenApart')}
-                    />
-                    <span className={styles.customBox} />
-                    <span className={styles.featureLabel}>Items to be taken apart?</span>
-                  </label>
-                </>
+                <label className={styles.featureCheckbox}>
+                  <input
+                    type="checkbox"
+                    className={styles.hiddenCheckbox}
+                    checked={!!stop.itemsToBeTakenApart}
+                    onChange={() => toggleField('itemsToBeTakenApart')}
+                  />
+                  <span className={styles.customBox} />
+                  <span className={styles.featureLabel}>Items to be taken apart?</span>
+                </label>
               )}
 
               {selectedPlace === 'destination' && (
-                <>
-                  {/* Items to be assembled? */}
-                  <label className={styles.featureCheckbox}>
-                    <input
-                      type="checkbox"
-                      className={styles.hiddenCheckbox}
-                      checked={!!stop.itemsToBeAssembled}
-                      onChange={() => toggleField('itemsToBeAssembled')}
-                    />
-                    <span className={styles.customBox} />
-                    <span className={styles.featureLabel}>Items to be assembled?</span>
-                  </label>
-                </>
+                <label className={styles.featureCheckbox}>
+                  <input
+                    type="checkbox"
+                    className={styles.hiddenCheckbox}
+                    checked={!!stop.itemsToBeAssembled}
+                    onChange={() => toggleField('itemsToBeAssembled')}
+                  />
+                  <span className={styles.customBox} />
+                  <span className={styles.featureLabel}>Items to be assembled?</span>
+                </label>
               )}
 
               {/* Hoist items? */}

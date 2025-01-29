@@ -1,3 +1,5 @@
+// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/AccessPopup/AccessPopup.js
+
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './AccessPopup.module.css';
 
@@ -71,30 +73,37 @@ const elevatorSizeOptions = [
  * AccessPopup
  * -----------
  * Allows editing "Access" info for both Origin & Destination stops.
- * The same set of questions is repeated for each stop in either origin or destination.
  *
- * PROPS:
- *   - lead                  => The entire lead object
- *   - onLeadUpdated         => Function(updatedLead)
- *   - setIsAccessPopupVisible => function to close the popup
+ * New props:
+ *   - defaultTab: "origin" or "destination" => which tab to open first
+ *   - defaultStopIndex: number => which stop is highlighted initially
  */
-function AccessPopup({ lead, onLeadUpdated, setIsAccessPopupVisible }) {
+function AccessPopup({
+  lead,
+  onLeadUpdated,
+  setIsAccessPopupVisible,
+  defaultTab = 'origin',
+  defaultStopIndex = 0,
+}) {
   const popupContentRef = useRef(null);
 
-  // We use local arrays for origin & destination stops to avoid losing typed data if user switches tabs
+  // local arrays for origin & destination stops
   const [localOriginStops, setLocalOriginStops] = useState([]);
   const [localDestinationStops, setLocalDestinationStops] = useState([]);
 
-  // Which place are we editing: "origin" or "destination"?
-  const [selectedPlace, setSelectedPlace] = useState('origin');
+  // which place: 'origin' or 'destination'
+  const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
-  // We'll track separate selectedStopIndexes for origin vs. destination
-  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(0);
-  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(0);
+  // track selectedStopIndex for each place
+  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
+    defaultTab === 'origin' ? defaultStopIndex : 0
+  );
+  const [selectedStopIndexDest,   setSelectedStopIndexDest]   = useState(
+    defaultTab === 'destination' ? defaultStopIndex : 0
+  );
 
-  // On mount => copy from lead into local arrays
+  // On mount => copy from lead
   useEffect(() => {
-    // If any stops arrays are missing or empty, provide a default
     const originStops =
       Array.isArray(lead.originStops) && lead.originStops.length > 0
         ? lead.originStops
@@ -149,7 +158,6 @@ function AccessPopup({ lead, onLeadUpdated, setIsAccessPopupVisible }) {
       howManySteps: stop.howManySteps || '',
       terrainDoorTruck: stop.terrainDoorTruck || '',
 
-      // Elevator fields
       elevatorAtStop: !!stop.elevatorAtStop,
       elevatorExclusive: !!stop.elevatorExclusive,
       elevatorFloors: stop.elevatorFloors || '',
@@ -182,8 +190,7 @@ function AccessPopup({ lead, onLeadUpdated, setIsAccessPopupVisible }) {
   }, [handleClose]);
 
   // Decide which array of stops to show
-  const currentStops =
-    selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
+  const currentStops = selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
 
   // Decide which selectedStopIndex
   const selectedStopIndex =
@@ -197,7 +204,7 @@ function AccessPopup({ lead, onLeadUpdated, setIsAccessPopupVisible }) {
     }
   }
 
-  // When user modifies the array of stops (MainAndStopOffs => add stop, rename, etc.)
+  // When user modifies the array of stops
   function handleStopsLocalUpdated(newStops) {
     if (selectedPlace === 'origin') {
       setLocalOriginStops(newStops);
@@ -223,17 +230,13 @@ function AccessPopup({ lead, onLeadUpdated, setIsAccessPopupVisible }) {
     }
   }
 
-  // For "Shuttle Truck Required"
+  // Toggling checkboxes & toggles
   function toggleShuttleTruckRequired() {
     setStopField('shuttleTruckRequired', !stop.shuttleTruckRequired);
   }
-
-  // For elevator toggle
   function handleElevatorToggle(newValue) {
     setStopField('elevatorAtStop', newValue);
   }
-
-  // Toggling exclusive use
   function toggleElevatorExclusive() {
     setStopField('elevatorExclusive', !stop.elevatorExclusive);
   }
@@ -249,20 +252,20 @@ function AccessPopup({ lead, onLeadUpdated, setIsAccessPopupVisible }) {
     setIsAccessPopupVisible(false);
   }
 
-  // All dropdown states
+  // Dropdown states
   const [showTruckAccessDropdown, setShowTruckAccessDropdown] = useState(false);
   const [showParkingDropdown, setShowParkingDropdown] = useState(false);
   const [showDistanceDropdown, setShowDistanceDropdown] = useState(false);
   const [showStepsDropdown, setShowStepsDropdown] = useState(false);
   const [showTerrainDropdown, setShowTerrainDropdown] = useState(false);
-
   const [showElevatorFloorsDropdown, setShowElevatorFloorsDropdown] = useState(false);
   const [showElevatorSizeDropdown, setShowElevatorSizeDropdown] = useState(false);
 
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
-        {/* HEADER */}
+        
+        {/* HEADER => pinned at top */}
         <div className={styles.header}>
           <div className={styles.title}>
             <HouseIcon className={styles.icon} />
@@ -275,8 +278,8 @@ function AccessPopup({ lead, onLeadUpdated, setIsAccessPopupVisible }) {
           </div>
         </div>
 
-        {/* BODY => SCROLLABLE */}
-        <div className={styles.bodyContent}>
+        {/* TOP SECTION => pinned below header => radio + stopoffs */}
+        <div className={styles.topSection}>
           {/* Radio => origin/destination */}
           <div className={styles.radioGroup}>
             <label className={styles.radioLabel}>
@@ -309,13 +312,14 @@ function AccessPopup({ lead, onLeadUpdated, setIsAccessPopupVisible }) {
               onStopsUpdated={handleStopsLocalUpdated}
               selectedStopIndex={selectedStopIndex}
               setSelectedStopIndex={setSelectedStopIndex}
-              placeType={selectedPlace}  
+              placeType={selectedPlace}
             />
           </div>
+        </div>
 
-          {/* The form fields */}
+        {/* MAIN SCROLLABLE CONTENT => the fields */}
+        <div className={styles.scrollableContent}>
           <div className={styles.formFieldsWrapper}>
-
             {/* 1) Biggest Truck Access */}
             <div className={styles.inputWrapper}>
               <button
@@ -576,7 +580,7 @@ function AccessPopup({ lead, onLeadUpdated, setIsAccessPopupVisible }) {
             {/* ---------- 25px space before Elevator toggle ---------- */}
             <div style={{ height: '25px' }} />
 
-            {/* Elevator Toggle (now using SimpleToggle) */}
+            {/* Elevator Toggle (SimpleToggle) */}
             <div className={styles.elevatorToggleRow}>
               <span className={styles.elevatorToggleLabel}>
                 {selectedPlace === 'origin'

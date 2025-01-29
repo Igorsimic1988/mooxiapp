@@ -10,9 +10,7 @@ import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Clos
 // Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 
-/**
- * Mappings for "type of place" => possible "move size" options.
- */
+// Data for dropdowns, etc.
 const moveSizeOptionsMap = {
   'House': [
     'One Item',
@@ -158,9 +156,6 @@ const moveSizeOptionsMap = {
   ],
 };
 
-/** 
- * Full list of "Type of place"
- */
 const typeOfPlaceOptions = [
   'House',
   'Town House',
@@ -179,7 +174,6 @@ const typeOfPlaceOptions = [
   'Van',
 ];
 
-/** Which place types are eligible for "How many stories" */
 const storiesEligibleTypes = new Set([
   'House',
   'Town House',
@@ -190,7 +184,6 @@ const storiesEligibleTypes = new Set([
   'Government Institution',
 ]);
 
-/** The list of "How many stories" options */
 const howManyStoriesOptions = [
   'Single Story',
   'Two Story',
@@ -199,10 +192,6 @@ const howManyStoriesOptions = [
   '5+ Stories',
 ];
 
-/**
- * If typeOfPlace ∈ this set => furnishing style has [Minimalist, Moderate, Dense]
- * else => [Sparse, Moderate, Full]
- */
 const furnishingEligibleTypes = new Set([
   'House',
   'Town House',
@@ -213,19 +202,39 @@ const furnishingEligibleTypes = new Set([
   'Government Institution',
 ]);
 
-function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
+/**
+ * PlacePopup
+ * ----------
+ * PROPS:
+ *   - lead
+ *   - onLeadUpdated
+ *   - setIsPlacePopupVisible
+ *   - defaultTab: "origin" or "destination"
+ *   - defaultStopIndex: number (which stop is highlighted initially)
+ */
+function PlacePopup({
+  lead,
+  onLeadUpdated,
+  setIsPlacePopupVisible,
+  defaultTab = 'origin',
+  defaultStopIndex = 0,
+}) {
   const popupContentRef = useRef(null);
 
   // Which place are we editing? "origin" or "destination"
-  const [selectedPlace, setSelectedPlace] = useState('origin');
+  const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
-  // local arrays for origin/destination
+  // Local arrays for origin/destination
   const [localOriginStops, setLocalOriginStops] = useState([]);
   const [localDestinationStops, setLocalDestinationStops] = useState([]);
 
-  // We'll track separate selectedStopIndexes for origin vs. destination
-  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(0);
-  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(0);
+  // We'll track separate selectedStopIndexes — here's the fix:
+  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
+    defaultTab === 'origin' ? defaultStopIndex : 0
+  );
+  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(
+    defaultTab === 'destination' ? defaultStopIndex : 0
+  );
 
   // On mount => copy from lead into local arrays
   useEffect(() => {
@@ -261,7 +270,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     setLocalDestinationStops(destMapped);
   }, [lead]);
 
-  // If user clicks outside => close the popup
+  // If user clicks outside => close popup
   const handleClose = useCallback(() => {
     setIsPlacePopupVisible(false);
   }, [setIsPlacePopupVisible]);
@@ -282,16 +291,18 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     };
   }, [handleClose]);
 
-  // Decide which array & selectedStopIndex
-  const currentStops = (selectedPlace === 'origin')
+  // Decide which array & selectedStopIndex are we editing
+  const currentStops = selectedPlace === 'origin'
     ? localOriginStops
     : localDestinationStops;
 
-  const selectedStopIndex = (selectedPlace === 'origin')
-    ? selectedStopIndexOrigin
-    : selectedStopIndexDest;
+  const stopIndex =
+    selectedPlace === 'origin'
+      ? selectedStopIndexOrigin
+      : selectedStopIndexDest;
 
-  function setSelectedStopIndex(idx) {
+  // We define a setter to unify how we switch stops in either array:
+  function handleSetStopIndex(idx) {
     if (selectedPlace === 'origin') {
       setSelectedStopIndexOrigin(idx);
     } else {
@@ -299,7 +310,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     }
   }
 
-  // Add/update stops
+  // Add/update stops in local state
   function handleStopsLocalUpdated(newStops) {
     if (selectedPlace === 'origin') {
       setLocalOriginStops(newStops);
@@ -309,14 +320,14 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
   }
 
   // The "current" stop
-  const currentStop = currentStops[selectedStopIndex] || {};
+  const currentStop = currentStops[stopIndex] || {};
 
   // Helper => set a field in the current stop
   function setStopField(fieldName, newValue) {
     const updated = [...currentStops];
-    const cloned = { ...updated[selectedStopIndex] };
+    const cloned = { ...updated[stopIndex] };
     cloned[fieldName] = newValue;
-    updated[selectedStopIndex] = cloned;
+    updated[stopIndex] = cloned;
 
     if (selectedPlace === 'origin') {
       setLocalOriginStops(updated);
@@ -326,7 +337,6 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
   }
 
   // Move Size & Furnishing => only if origin
-  // But "How many stories" => for both, if type is in the set
   const moveSizeOptions = moveSizeOptionsMap[currentStop.typeOfPlace] || [];
   const storiesApplicable = storiesEligibleTypes.has(currentStop.typeOfPlace);
 
@@ -367,7 +377,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
   }
   function handleSelectTypeOfPlace(option) {
     if (option !== currentStop.typeOfPlace) {
-      // reset
+      // reset some fields if the type changes
       setStopField('moveSize', '');
       setStopField('howManyStories', '');
       setStopField('furnishingStyle', '');
@@ -392,7 +402,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     setShowMoveSizeDropdown(false);
   }
 
-  // How many stories => for both origin & destination if storiesEligible
+  // How many stories => for both origin & destination if applicable
   function handleToggleStoriesDropdown() {
     if (!storiesApplicable) return;
     setShowStoriesDropdown((prev) => !prev);
@@ -418,7 +428,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
     setShowFurnishingDropdown(false);
   }
 
-  // COI => for both
+  // COI => for both origin/destination
   function toggleCOI() {
     setStopField('needsCOI', !currentStop.needsCOI);
   }
@@ -436,7 +446,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
-        {/* HEADER */}
+        {/* HEADER => pinned at top */}
         <div className={styles.header}>
           <div className={styles.title}>
             <HouseIcon className={styles.icon} />
@@ -449,9 +459,8 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
           </div>
         </div>
 
-        {/* BODY => SCROLLABLE */}
-        <div className={styles.bodyContent}>
-
+        {/* TOP SECTION => pinned just below header => holds the radio + stopOffs */}
+        <div className={styles.topSection}>
           {/* Radio group => origin/destination */}
           <div className={styles.radioGroup}>
             <label className={styles.radioLabel}>
@@ -478,18 +487,20 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
             </label>
           </div>
 
-          {/* Stop-offs UI */}
           <div className={styles.stopOffsPaddingWrapper}>
             <MainAndStopOffs
               stops={currentStops}
               onStopsUpdated={handleStopsLocalUpdated}
-              selectedStopIndex={selectedStopIndex}
-              setSelectedStopIndex={setSelectedStopIndex}
+              selectedStopIndex={stopIndex}
+              setSelectedStopIndex={handleSetStopIndex}
               placeType={selectedPlace}
             />
           </div>
+        </div>
 
-          {/* ORIGIN BLOCK: full fields */}
+        {/* MAIN SCROLLABLE CONTENT => the origin/destination fields */}
+        <div className={styles.scrollableContent}>
+          {/* ORIGIN BLOCK */}
           {selectedPlace === 'origin' && (
             <div className={styles.formFieldsWrapper}>
               {/* Type of Place */}
@@ -577,9 +588,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
                 <button
                   type="button"
                   className={`${styles.dropdownButton} ${
-                    !storiesEligibleTypes.has(currentStop.typeOfPlace)
-                      ? styles.disabledDropdown
-                      : ''
+                    !storiesApplicable ? styles.disabledDropdown : ''
                   }`}
                   onClick={handleToggleStoriesDropdown}
                 >
@@ -597,8 +606,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
                   </div>
                 </button>
 
-                {showStoriesDropdown &&
-                  storiesEligibleTypes.has(currentStop.typeOfPlace) && (
+                {showStoriesDropdown && storiesApplicable && (
                   <ul className={styles.optionsList}>
                     {howManyStoriesOptions.map((option) => {
                       const isSelected = currentStop.howManyStories === option;
@@ -640,11 +648,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
                 <button
                   type="button"
                   className={`${styles.dropdownButton} ${
-                    (!currentStop.moveSize
-                     || currentStop.moveSize === 'One Item'
-                     || currentStop.moveSize === 'Just a Few Items')
-                      ? styles.disabledDropdown
-                      : ''
+                    furnishingDisabled ? styles.disabledDropdown : ''
                   }`}
                   onClick={handleToggleFurnishingDropdown}
                 >
@@ -662,16 +666,13 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
                   </div>
                 </button>
 
-                {showFurnishingDropdown &&
-                  currentStop.moveSize &&
-                  currentStop.moveSize !== 'One Item' &&
-                  currentStop.moveSize !== 'Just a Few Items' && (
+                {showFurnishingDropdown && !furnishingDisabled && (
                   <ul className={styles.optionsList}>
                     {(furnishingEligibleTypes.has(currentStop.typeOfPlace)
                       ? ['Minimalist', 'Moderate', 'Dense']
                       : ['Sparse', 'Moderate', 'Full']
                     ).map((option) => {
-                      const isSelected = (currentStop.furnishingStyle === option);
+                      const isSelected = currentStop.furnishingStyle === option;
                       return (
                         <li
                           key={option}
@@ -702,8 +703,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
             </div>
           )}
 
-          {/* DESTINATION => no Move Size, no Furnishing style, 
-              howManyStories if in set, plus a bigger margin for COI */}
+          {/* DESTINATION BLOCK */}
           {selectedPlace === 'destination' && (
             <div className={styles.formFieldsWrapper}>
               {/* Type of place */}
@@ -745,12 +745,12 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
                 )}
               </div>
 
-              {/* How many stories => same logic as origin */}
+              {/* How many stories */}
               <div className={styles.storiesSelectWrapper}>
                 <button
                   type="button"
                   className={`${styles.dropdownButton} ${
-                    !storiesEligibleTypes.has(currentStop.typeOfPlace) ? styles.disabledDropdown : ''
+                    !storiesApplicable ? styles.disabledDropdown : ''
                   }`}
                   onClick={handleToggleStoriesDropdown}
                 >
@@ -768,10 +768,10 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
                   </div>
                 </button>
 
-                {showStoriesDropdown && storiesEligibleTypes.has(currentStop.typeOfPlace) && (
+                {showStoriesDropdown && storiesApplicable && (
                   <ul className={styles.optionsList}>
                     {howManyStoriesOptions.map((option) => {
-                      const isSelected = (currentStop.howManyStories === option);
+                      const isSelected = currentStop.howManyStories === option;
                       return (
                         <li
                           key={option}
@@ -805,10 +805,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
                 })}
               </div>
 
-              {/* No move size, no furnishing style. */}
-
-              {/* COI => margin top "21px" for destination => 
-                  We'll attach a class that sets margin-top: 21px. */}
+              {/* COI => margin top "21px" for destination */}
               <div className={styles.coiDestination}>
                 <label className={styles.featureCheckbox}>
                   <input
@@ -825,7 +822,7 @@ function PlacePopup({ lead, onLeadUpdated, setIsPlacePopupVisible }) {
           )}
         </div>
 
-        {/* FOOTER => Save */}
+        {/* FOOTER => pinned at bottom */}
         <div className={styles.stickyFooter}>
           <button
             type="button"

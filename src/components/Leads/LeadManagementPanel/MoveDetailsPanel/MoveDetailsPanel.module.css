@@ -57,8 +57,8 @@
 }
 
 /* 
-   A new helper class so label + value stays on one line with ellipses if it overflows.
-   We also use 'flex:1' or 'min-width:0' so it can shrink properly 
+   This helper ensures label + value in one line, 
+   with ellipsis if too long
 */
 .oneLineEllipsis {
   display: inline-block;
@@ -71,7 +71,7 @@
 }
 
 /* 
-   inputContainer for the Date or any "bordered" row 
+   Our container for date fields or other single-line inputs 
 */
 .inputContainer {
   width: 100%;
@@ -85,6 +85,8 @@
   padding: 0 20px;
   margin-bottom: 10px;
 }
+
+/* Label & Value for normal input rows */
 .inputLabel {
   color: #6E7882;
   font-family: Satoshi, sans-serif;
@@ -96,7 +98,26 @@
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   font-weight: 700;
+  margin-left: 4px; /* optional small gap if you want */
 }
+
+/* For the Move/Delivery date label => add small margin-right for space */
+.dateLabelPrefix {
+  font-weight: 500;
+  color: #6E7882;
+  margin-right: 6px; /* <-- ensures a little gap between "Move Date:" and the selected date */
+}
+
+.datePlaceholder {
+  font-weight: 500;
+  color: #6E7882;
+}
+
+.dateSelected {
+  font-weight: 700;
+  color: #2F3236;
+}
+
 .inputIconContainer {
   width: 30px;
   height: 30px;
@@ -118,7 +139,7 @@
   color: #90A4B7;
 }
 
-/* The date button for Move/Delivery Date */
+/* The button for Move/Delivery Date row */
 .dateButton {
   display: flex;
   align-items: center;
@@ -134,25 +155,6 @@
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   color: #6e7882;
-  /* 
-     Let child items handle text ellipsis, 
-     ensure min-width:0 on child 
-  */
-}
-
-.dateLabelPrefix {
-  font-weight: 500;
-  color: #6E7882;
-}
-
-.datePlaceholder {
-  font-weight: 500;
-  color: #6E7882;
-}
-
-.dateSelected {
-  font-weight: 700;
-  color: #2F3236;
 }
 
 .calendarRightIconWrapper {
@@ -234,8 +236,6 @@
   font-size: 16px;
   font-weight: 700;
 }
-
-/* A general "bordered dropdown" row */
 .storageDropdown {
   width: 100%;
   height: 50px;
@@ -250,7 +250,6 @@
   position: relative;
   cursor: pointer;
 }
-
 .dropdownMenu {
   position: absolute;
   top: 60px;

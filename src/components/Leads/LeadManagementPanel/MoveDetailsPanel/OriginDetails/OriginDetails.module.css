@@ -1,3 +1,5 @@
+/* src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/OriginDetails.module.css */
+
 .originContainer {
   padding: 16px 20px 16px 20px;
   border-radius: 16px;
@@ -50,8 +52,8 @@
   padding: 5px;
   gap: 4px;
   /* Scroll horizontally if too many buttons */
-  overflow-x: auto;    /* KEY: horizontal scrolling */
-  white-space: nowrap; /* keep buttons on a single line */
+  overflow-x: auto;
+  white-space: nowrap;
   max-width: fit-content;
 }
 
@@ -124,9 +126,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
+  /* We will also use position: relative in some cases, but let's keep it here if needed. */
 }
 
-/* New: style for the actual text <input> inside the .inputContainer */
 .addressInput {
   border: none;
   outline: none;
@@ -195,7 +197,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;  
+  padding: 0 20px;
 }
 
 .propertyItemLeft {
@@ -276,6 +278,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-bottom: 21px;
+  margin-top: 10px;
 }
 .timeRestrictionsRow {
   display: flex;
@@ -301,38 +305,10 @@
   flex-direction: column;
   gap: 10px;
 }
-.addButtonWrapper {
-  height: 50px;
-  border-radius: 12px;
-  background: rgba(163, 163, 163, 0.20);
-  display: inline-flex;
-  align-items: center;
-  padding: 10px 10px 10px 18px;
-  gap: 10px;
-  max-width: fit-content;
-}
-.addButtonText {
-  color: #90A4B7;
-  font-family: Satoshi, sans-serif;
-  font-size: 15px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: normal;
-}
-.addButtonIconContainer {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: #90A4B7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #FFF;
-  font-family: Satoshi, sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: normal;
-}
+
+/* The 'Add' button container was removed as requested. */
+
+/* For the time restriction dropdown label values */
 .inputValueText {
   color: #2F3236;
   font-weight: 700;
@@ -341,6 +317,50 @@
   width: 20px;
   height: 20px;
   color: #90A4B7;
+}
+
+/* Turn each dropdown into a positioned container */
+.dropdownWrapper {
+  position: relative; /* needed so the .dropdownMenu is absolutely positioned inside */
+  cursor: default;    /* we control pointer on the .clickableArea */
+}
+
+/* The area that toggles the dropdown. We separate it so we don't inadvertently close 
+   or open when we click inside the actual .dropdownMenu. */
+.clickableArea {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* The actual dropdown menu: absolute position, same width as parent */
+.dropdownMenu {
+  position: absolute;
+  top: 54px; /* push below the input container */
+  left: 0;
+  width: 100%;
+  background: #FFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  z-index: 999;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  max-height: 220px;  /* optional scroll limit */
+  overflow-y: auto;   /* enable scroll if many items */
+}
+
+.dropdownOption {
+  padding: 10px 20px;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2F3236;
+  line-height: normal;
+  cursor: pointer;
+}
+.dropdownOption:hover {
+  background: #F2F5F8;
 }
 
 /* Inventory Section */
@@ -410,5 +430,3 @@
   font-weight: 700;
   line-height: normal;
 }
-
-

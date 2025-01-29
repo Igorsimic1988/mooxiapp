@@ -1,5 +1,3 @@
-/* src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/PlacePopup/PlacePopup.module.css */
-
 /* The popup overlay */
 .popup {
   position: fixed;
@@ -22,17 +20,24 @@
   height: 100%;
   box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3);
 
+  /* Flex container so we can have a top + middle (scrollable) + bottom */
   display: flex;
-  flex-direction: column; /* So we can have a scrolling body + sticky footer */
+  flex-direction: column;
   position: relative;
 }
 
-/* HEADER */
+/* HEADER => pinned top */
 .header {
   width: 100%;
   min-height: 60px;
   background: #59B779;
   border-radius: 20px 0 0 0;
+
+  /* Make the header stick to the top of the container */
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -77,10 +82,22 @@
   height: 24px;
 }
 
-/* BODY => SCROLLABLE */
-.bodyContent {
-  flex: 1;
-  overflow-y: auto; /* enable vertical scroll if needed */
+/* 
+   TOP SECTION => pinned just below the header 
+   so "Origin/Destination" + "stopOffs" are also always visible
+*/
+.topSection {
+  position: sticky;
+  top: 60px; /* the header's height */
+  z-index: 1099;
+  background: #FFF;
+  /* You can add a border or spacing if needed */
+}
+
+/* The main scrollable area for the form fields */
+.scrollableContent {
+  flex: 1;              /* fill all remaining vertical space */
+  overflow-y: auto;     /* enable scrolling for the main content */
   display: flex;
   flex-direction: column;
 }
@@ -126,6 +143,7 @@
 .stopOffsPaddingWrapper {
   padding: 0 30px;
   margin-top: 10px;
+  border-bottom: 1px solid #D8DCE0;
 }
 
 /* The form fields wrapper => includes typeOfPlace, moveSize, etc. */
@@ -138,8 +156,6 @@
 }
 
 /* If you want no margin-bottom for the final item, adjust at will. */
-
-/* Individual dropdown wrappers */
 .typeOfPlaceSelectWrapper {
   position: relative;
   margin-bottom: 5px;
@@ -153,12 +169,11 @@
 }
 .furnishingSelectWrapper {
   position: relative;
-  margin-bottom: 5px; /* if you want spacing after it */
+  margin-bottom: 5px;
 }
 
-/* .coiDestination => custom margin top for the COI line in Destination */
 .coiDestination {
-  margin-top: 31px; /* The extra spacing you wanted */
+  margin-top: 31px;
 }
 
 /* The shared .dropdownButton style */
@@ -178,13 +193,13 @@
 }
 .disabledDropdown {
   opacity: 0.5;
-  pointer-events: none; /* can't open if disabled */
+  pointer-events: none; 
 }
 .dropdownLabel {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex: 1; /* expand horizontally */
+  flex: 1; 
   white-space: nowrap;
   overflow: hidden;
 }
@@ -207,7 +222,7 @@
   text-overflow: ellipsis;
 }
 
-/* The dropdown list of options => absolutely positioned below the button */
+/* The dropdown list => absolutely positioned below the button */
 .optionsList {
   position: absolute;
   top: 60px; 
@@ -218,14 +233,12 @@
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   z-index: 9999;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   list-style: none;
   margin: 0;
   padding: 8px 0;
 }
-
-/* Each list item in the dropdown */
 .option {
   padding: 10px 15px;
   font-family: Satoshi, sans-serif;
@@ -251,7 +264,6 @@
   margin-top: 16px;
 }
 
-/* A feature checkbox + label row */
 .featureCheckbox {
   display: flex;
   align-items: center;
@@ -264,7 +276,7 @@
   color: #2F3236;
 }
 
-/* Hide the default checkbox appearance */
+/* Hide default checkbox appearance */
 .featureCheckbox input[type="checkbox"] {
   appearance: none;
   width: 24px;
@@ -278,13 +290,10 @@
   flex-shrink: 0;
   margin: 0;
 }
-
-/* The text label next to the box */
 .featureLabel {
   line-height: normal;
 }
 
-/* On checked => fill + show white check icon */
 .featureCheckbox input[type="checkbox"]:checked {
   border-color: #3FA9F5;
   background-color: #3FA9F5;
@@ -303,7 +312,7 @@
   background-size: 24px 24px;
 }
 
-/* The sticky footer with the Save button */
+/* FOOTER => pinned at bottom */
 .stickyFooter {
   position: sticky;
   bottom: 0;
@@ -312,6 +321,7 @@
   padding: 20px 30px;
   z-index: 1100;
 }
+
 .saveButton {
   width: 100%;
   background-color: #59B779;

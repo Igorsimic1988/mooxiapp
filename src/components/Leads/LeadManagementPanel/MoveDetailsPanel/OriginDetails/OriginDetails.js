@@ -1,6 +1,6 @@
 // src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/OriginDetails.js
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ReactComponent as LocationIcon } from '../../../../../assets/icons/location.svg';
 import { ReactComponent as PlaceIcon } from '../../../../../assets/icons/place1.svg';
 import { ReactComponent as AccessIcon } from '../../../../../assets/icons/access1.svg';
@@ -14,28 +14,61 @@ import styles from './OriginDetails.module.css';
 // The three popups
 import PlacePopup from './PlacePopup/PlacePopup';
 import AccessPopup from './AccessPopup/AccessPopup';
-import ServicesPopup from './ServicesPopup/ServicesPopup';  // <--- import here
+import ServicesPopup from './ServicesPopup/ServicesPopup';
 
 // Reusable row of stops
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
 
+/** Generate 15-min increments from 7:00 AM to 12:00 AM, excluding midnight duplication */
+function generateTimeOptions() {
+  const times = [];
+  let startMinutes = 7 * 60; // 7:00 AM
+  const endMinutes = 24 * 60; // 1440
+
+  // Use < instead of <= to avoid duplicating 12:00
+  while (startMinutes < endMinutes) {
+    const hh = Math.floor(startMinutes / 60);
+    const mm = startMinutes % 60;
+    const suffix = hh >= 12 ? 'PM' : 'AM';
+    let displayHour = hh % 12;
+    if (displayHour === 0) displayHour = 12;
+    const displayMin = String(mm).padStart(2, '0');
+    times.push(`${displayHour}:${displayMin} ${suffix}`);
+
+    startMinutes += 15;
+  }
+  return times;
+}
+
 function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
-  // Which origin stop is selected in the main UI?
+  // ---------- ORIGIN STOPS ----------
   const [selectedStopIndex, setSelectedStopIndex] = useState(0);
 
   // Collapsible
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
 
-  // Time restrictions
-  const [timeRestrictionsToggled, setTimeRestrictionsToggled] = useState(false);
+  // ---------- For the Time Restrictions UI ----------
+  const timeRestrictionOptions = ['Not allowed', 'Allowed'];
+  const timeRestrictionTypes = [
+    'Elevator Usage',
+    'Place Access',
+    'Operating Hours',
+    'Permit Requests',
+    'Personal Plans',
+    'Loading Zone',
+    'Parking Zone',
+    'Community Rules',
+    'Other',
+  ];
+  const timeOptions = generateTimeOptions();
 
-  // Popups
+  // ---------- PLACE/ACCESS/SERVICES POPUPS ----------
   const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
   const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
-  const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false); // <--- new state for Services
+  const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false);
 
-  // Ensure there's at least 1 origin stop
+  // ---------- ENSURE ORIGIN/DEST STOPS EXIST ----------
   useEffect(() => {
     if (!Array.isArray(lead.originStops) || lead.originStops.length === 0) {
       const defaultStops = [
@@ -46,12 +79,19 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
           city: '',
           state: '',
           zip: '',
+          // Initialize timeRestrictions for each stop:
+          timeRestrictions: {
+            isEnabled: false,
+            option: 'Select',
+            restrictionType: 'Select',
+            startTime: '',
+            endTime: '',
+          },
         },
       ];
       onLeadUpdated({ ...lead, originStops: defaultStops });
     }
 
-    // Also ensure we have destinationStops
     if (!Array.isArray(lead.destinationStops)) {
       onLeadUpdated({
         ...lead,
@@ -71,23 +111,122 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
 
   // Safely get the "current" origin stop
   const originStops = lead.originStops || [];
-  const currentStop =
-    originStops[selectedStopIndex] || {
-      label: '',
-      address: '',
-      apt: '',
-      city: '',
-      state: '',
-      zip: '',
-    };
+  const currentStop = originStops[selectedStopIndex] || {};
 
   // If user types in an address field => update just that origin stop
   const handleStopFieldChange = (fieldName, newValue) => {
     const updatedStops = [...originStops];
-    const updatedStop = { ...updatedStops[selectedStopIndex] };
-    updatedStop[fieldName] = newValue;
-    updatedStops[selectedStopIndex] = updatedStop;
+    const stopCopy = { ...updatedStops[selectedStopIndex] };
+
+    stopCopy[fieldName] = newValue;
+    updatedStops[selectedStopIndex] = stopCopy;
+
     onLeadUpdated({ ...lead, originStops: updatedStops });
+  };
+
+  // Helper: ensure there's a `timeRestrictions` object on the current stop
+  function getCurrentStopRestrictions() {
+    if (!currentStop.timeRestrictions) {
+      return {
+        isEnabled: false,
+        option: 'Select',
+        restrictionType: 'Select',
+        startTime: '',
+        endTime: '',
+      };
+    }
+    return currentStop.timeRestrictions;
+  }
+
+  // ---------- TIME RESTRICTIONS: All handled per-stop ----------
+  const currentTR = getCurrentStopRestrictions(); // currentStop's timeRestrictions
+
+  // Dropdown open states + refs
+  const optionDropdownRef = useRef(null);
+  const typeDropdownRef = useRef(null);
+  const startDropdownRef = useRef(null);
+  const endDropdownRef = useRef(null);
+
+  const [optionDropdownOpen, setOptionDropdownOpen] = useState(false);
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const [startDropdownOpen, setStartDropdownOpen] = useState(false);
+  const [endDropdownOpen, setEndDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (optionDropdownOpen && optionDropdownRef.current && !optionDropdownRef.current.contains(e.target)) {
+        setOptionDropdownOpen(false);
+      }
+      if (typeDropdownOpen && typeDropdownRef.current && !typeDropdownRef.current.contains(e.target)) {
+        setTypeDropdownOpen(false);
+      }
+      if (startDropdownOpen && startDropdownRef.current && !startDropdownRef.current.contains(e.target)) {
+        setStartDropdownOpen(false);
+      }
+      if (endDropdownOpen && endDropdownRef.current && !endDropdownRef.current.contains(e.target)) {
+        setEndDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [
+    optionDropdownOpen,
+    typeDropdownOpen,
+    startDropdownOpen,
+    endDropdownOpen
+  ]);
+
+  // A helper to update the timeRestrictions object in the current stop
+  const updateCurrentStopRestrictions = (partialObj) => {
+    const updatedStops = [...originStops];
+    let stopCopy = { ...updatedStops[selectedStopIndex] };
+
+    // Ensure timeRestrictions is an object
+    let tr = stopCopy.timeRestrictions || {
+      isEnabled: false,
+      option: 'Select',
+      restrictionType: 'Select',
+      startTime: '',
+      endTime: '',
+    };
+
+    // Merge partial updates
+    tr = { ...tr, ...partialObj };
+    stopCopy.timeRestrictions = tr;
+
+    updatedStops[selectedStopIndex] = stopCopy;
+    onLeadUpdated({ ...lead, originStops: updatedStops });
+  };
+
+  // Toggle
+  const handleToggleTimeRestrictions = (value) => {
+    updateCurrentStopRestrictions({ isEnabled: value });
+  };
+
+  // Option
+  const handleSelectTimeRestrictionsOption = (opt) => {
+    setOptionDropdownOpen(false);
+    updateCurrentStopRestrictions({ option: opt });
+  };
+
+  // Type
+  const handleSelectTimeRestrictionsType = (typ) => {
+    setTypeDropdownOpen(false);
+    updateCurrentStopRestrictions({ restrictionType: typ });
+  };
+
+  // Start
+  const handleSelectTimeRestrictionsStart = (startVal) => {
+    setStartDropdownOpen(false);
+    updateCurrentStopRestrictions({ startTime: startVal });
+  };
+
+  // End
+  const handleSelectTimeRestrictionsEnd = (endVal) => {
+    setEndDropdownOpen(false);
+    updateCurrentStopRestrictions({ endTime: endVal });
   };
 
   return (
@@ -120,7 +259,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
                 type="text"
                 className={styles.addressInput}
                 placeholder="Property Address"
-                value={currentStop.address}
+                value={currentStop.address || ''}
                 onChange={(e) => handleStopFieldChange('address', e.target.value)}
               />
               <div className={styles.inputIconContainer}>
@@ -134,7 +273,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
                   type="text"
                   className={styles.addressInput}
                   placeholder="Apt/Suite"
-                  value={currentStop.apt}
+                  value={currentStop.apt || ''}
                   onChange={(e) => handleStopFieldChange('apt', e.target.value)}
                 />
               </div>
@@ -143,7 +282,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
                   type="text"
                   className={styles.addressInput}
                   placeholder="City"
-                  value={currentStop.city}
+                  value={currentStop.city || ''}
                   onChange={(e) => handleStopFieldChange('city', e.target.value)}
                 />
               </div>
@@ -155,7 +294,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
                   type="text"
                   className={styles.addressInput}
                   placeholder="State"
-                  value={currentStop.state}
+                  value={currentStop.state || ''}
                   onChange={(e) => handleStopFieldChange('state', e.target.value)}
                 />
               </div>
@@ -164,7 +303,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
                   type="text"
                   className={styles.addressInput}
                   placeholder="Zip code"
-                  value={currentStop.zip}
+                  value={currentStop.zip || ''}
                   onChange={(e) => handleStopFieldChange('zip', e.target.value)}
                 />
               </div>
@@ -178,7 +317,10 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
             {/* PLACE card => entire area clickable */}
             <div
               className={`${styles.propertyItem} ${styles.propertyItemPlace}`}
-              onClick={() => setIsPlacePopupOpen(true)}
+              onClick={() => {
+                // Open PlacePopup with the "origin" tab, focusing on same selectedStopIndex
+                setIsPlacePopupOpen(true);
+              }}
             >
               <div className={styles.propertyItemLeft}>
                 <PlaceIcon className={styles.propertyItemIcon} />
@@ -194,7 +336,10 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
             {/* ACCESS => entire area clickable */}
             <div
               className={`${styles.propertyItem} ${styles.propertyItemAccess}`}
-              onClick={() => setIsAccessPopupOpen(true)}
+              onClick={() => {
+                // Open AccessPopup with same tab & stop index
+                setIsAccessPopupOpen(true);
+              }}
             >
               <div className={styles.propertyItemLeft}>
                 <AccessIcon className={styles.propertyItemIcon} />
@@ -210,7 +355,10 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
             {/* SERVICES => entire area clickable */}
             <div
               className={`${styles.propertyItem} ${styles.propertyItemServices}`}
-              onClick={() => setIsServicesPopupOpen(true)} // <--- open Services popup
+              onClick={() => {
+                // Open ServicesPopup with same tab & stop index
+                setIsServicesPopupOpen(true);
+              }}
             >
               <div className={styles.propertyItemLeft}>
                 <ServicesIcon className={styles.propertyItemIcon} />
@@ -224,55 +372,182 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
             </div>
           </div>
 
-          {/* Time Restrictions */}
+          {/* Time Restrictions - now per stop */}
           <div className={styles.timeRestrictionsContainer}>
             <div className={styles.timeRestrictionsRow}>
               <span className={styles.timeRestrictionsText}>Time restrictions</span>
               <div className={styles.timeRestrictionsToggle}>
                 <SimpleToggle
-                  isToggled={timeRestrictionsToggled}
-                  onToggle={setTimeRestrictionsToggled}
+                  isToggled={currentTR.isEnabled}
+                  onToggle={handleToggleTimeRestrictions}
                 />
               </div>
             </div>
 
-            {timeRestrictionsToggled && (
+            {currentTR.isEnabled && (
               <div className={styles.timeRestrictionsContent}>
                 <div className={styles.timeRestrictionsInputsColumn}>
-                  <div className={styles.inputContainer}>
-                    <span className={styles.inputLabel}>
-                      Option:{' '}
-                      <span className={styles.inputValueText}>Not allowed</span>
-                    </span>
-                    <UnfoldMoreIcon className={styles.moreIcon} />
+                  {/* Option dropdown */}
+                  <div
+                    className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
+                    ref={optionDropdownRef}
+                  >
+                    <div
+                      className={styles.clickableArea}
+                      onClick={() => {
+                        setOptionDropdownOpen(!optionDropdownOpen);
+                        setTypeDropdownOpen(false);
+                        setStartDropdownOpen(false);
+                        setEndDropdownOpen(false);
+                      }}
+                    >
+                      <span className={styles.inputLabel}>
+                        Option:{' '}
+                        <span className={styles.inputValueText}>
+                          {currentTR.option}
+                        </span>
+                      </span>
+                      <UnfoldMoreIcon className={styles.moreIcon} />
+                    </div>
+                    {optionDropdownOpen && (
+                      <div className={styles.dropdownMenu}>
+                        {timeRestrictionOptions.map((opt) => (
+                          <div
+                            key={opt}
+                            className={styles.dropdownOption}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectTimeRestrictionsOption(opt);
+                            }}
+                          >
+                            {opt}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className={styles.inputContainer}>
-                    <span className={styles.inputLabel}>
-                      Type:{' '}
-                      <span className={styles.inputValueText}>Elevator</span>
-                    </span>
-                    <UnfoldMoreIcon className={styles.moreIcon} />
-                  </div>
-                  <div className={styles.inputContainer}>
-                    <span className={styles.inputLabel}>
-                      Start time:{' '}
-                      <span className={styles.inputValueText}>10:00pm</span>
-                    </span>
-                    <UnfoldMoreIcon className={styles.moreIcon} />
-                  </div>
-                  <div className={styles.inputContainer}>
-                    <span className={styles.inputLabel}>
-                      End time:{' '}
-                      <span className={styles.inputValueText}>10:00am</span>
-                    </span>
-                    <UnfoldMoreIcon className={styles.moreIcon} />
-                  </div>
-                </div>
 
-                <div className={styles.addButtonWrapper}>
-                  <span className={styles.addButtonText}>Add</span>
-                  <div className={styles.addButtonIconContainer}>+</div>
+                  {/* Type dropdown */}
+                  <div
+                    className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
+                    ref={typeDropdownRef}
+                  >
+                    <div
+                      className={styles.clickableArea}
+                      onClick={() => {
+                        setTypeDropdownOpen(!typeDropdownOpen);
+                        setOptionDropdownOpen(false);
+                        setStartDropdownOpen(false);
+                        setEndDropdownOpen(false);
+                      }}
+                    >
+                      <span className={styles.inputLabel}>
+                        Type:{' '}
+                        <span className={styles.inputValueText}>
+                          {currentTR.restrictionType}
+                        </span>
+                      </span>
+                      <UnfoldMoreIcon className={styles.moreIcon} />
+                    </div>
+                    {typeDropdownOpen && (
+                      <div className={styles.dropdownMenu}>
+                        {timeRestrictionTypes.map((typ) => (
+                          <div
+                            key={typ}
+                            className={styles.dropdownOption}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectTimeRestrictionsType(typ);
+                            }}
+                          >
+                            {typ}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Start time dropdown */}
+                  <div
+                    className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
+                    ref={startDropdownRef}
+                  >
+                    <div
+                      className={styles.clickableArea}
+                      onClick={() => {
+                        setStartDropdownOpen(!startDropdownOpen);
+                        setOptionDropdownOpen(false);
+                        setTypeDropdownOpen(false);
+                        setEndDropdownOpen(false);
+                      }}
+                    >
+                      <span className={styles.inputLabel}>
+                        Start time:{' '}
+                        <span className={styles.inputValueText}>
+                          {currentTR.startTime || 'Select'}
+                        </span>
+                      </span>
+                      <UnfoldMoreIcon className={styles.moreIcon} />
+                    </div>
+                    {startDropdownOpen && (
+                      <div className={styles.dropdownMenu}>
+                        {timeOptions.map((t) => (
+                          <div
+                            key={t}
+                            className={styles.dropdownOption}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectTimeRestrictionsStart(t);
+                            }}
+                          >
+                            {t}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* End time dropdown */}
+                  <div
+                    className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
+                    ref={endDropdownRef}
+                  >
+                    <div
+                      className={styles.clickableArea}
+                      onClick={() => {
+                        setEndDropdownOpen(!endDropdownOpen);
+                        setOptionDropdownOpen(false);
+                        setTypeDropdownOpen(false);
+                        setStartDropdownOpen(false);
+                      }}
+                    >
+                      <span className={styles.inputLabel}>
+                        End time:{' '}
+                        <span className={styles.inputValueText}>
+                          {currentTR.endTime || 'Select'}
+                        </span>
+                      </span>
+                      <UnfoldMoreIcon className={styles.moreIcon} />
+                    </div>
+                    {endDropdownOpen && (
+                      <div className={styles.dropdownMenu}>
+                        {timeOptions.map((t) => (
+                          <div
+                            key={t}
+                            className={styles.dropdownOption}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectTimeRestrictionsEnd(t);
+                            }}
+                          >
+                            {t}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
+                {/* AddButtonWrapper was removed as requested */}
               </div>
             )}
           </div>
@@ -304,6 +579,8 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
           lead={lead}
           onLeadUpdated={onLeadUpdated}
           setIsPlacePopupVisible={setIsPlacePopupOpen}
+          defaultTab="origin"
+          defaultStopIndex={selectedStopIndex}
         />
       )}
 
@@ -313,6 +590,8 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
           lead={lead}
           onLeadUpdated={onLeadUpdated}
           setIsAccessPopupVisible={setIsAccessPopupOpen}
+          defaultTab="origin"
+          defaultStopIndex={selectedStopIndex}
         />
       )}
 
@@ -322,6 +601,8 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
           lead={lead}
           onLeadUpdated={onLeadUpdated}
           setIsServicesPopupVisible={setIsServicesPopupOpen}
+          defaultTab="origin"
+          defaultStopIndex={selectedStopIndex}
         />
       )}
     </div>

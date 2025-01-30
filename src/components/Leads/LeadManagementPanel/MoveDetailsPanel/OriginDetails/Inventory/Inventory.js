@@ -405,6 +405,7 @@ function Inventory({
         setIsMyItemsActive={setIsMyItemsActive}
         setSearchQuery={setSearchQuery}
         onCloseDesktopInventory={handleClose}
+        lead={lead}
       />
     );
   }
@@ -423,10 +424,11 @@ function Inventory({
           />
         ) : (
           <HouseHeader
-            onToggleRoom={handleToggleRoom}
-            rooms={rooms}
-            displayedRooms={displayedRooms}
-          />
+  onToggleRoom={handleToggleRoom}
+  rooms={rooms}
+  displayedRooms={displayedRooms}
+  lead={lead}
+/>
         )}
       </header>
 

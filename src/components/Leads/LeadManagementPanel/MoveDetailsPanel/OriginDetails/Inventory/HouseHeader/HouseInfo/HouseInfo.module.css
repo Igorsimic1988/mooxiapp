@@ -1,56 +1,135 @@
 /* src/components/Inventory/HouseHeader/HouseInfo/HouseInfo.module.css */
 
 .houseInfoContainer {
+    /* This is now just the outer container. */
+    /* Don't fix widths here, let the parent .houseHeader apply flex: 1 1 0. */
     display: flex;
-    align-items: center; /* Add this to vertically center the items */
-}
-
-.iconWrapper {
+    align-items: center;
+    position: relative;
+    /* min-width: 0; can help ensure child flex items can ellipsize if needed */
+    min-width: 0;
+  }
+  
+  .iconWrapper {
     padding-right: 19px;
-    /* Remove padding-top to prevent the icon from being pushed down */
-}
-
-.houseIcon {
-    display: block;
+    flex-shrink: 0; /* The icon won't shrink */
+  }
+  
+  .houseIcon {
     width: 24px;
     height: 24px;
     color: #90A4B7;
-}
-
-.houseInfo {
-    min-width: max-content;
-}
-
-.houseTitle {
+    display: block;
+  }
+  
+  .houseInfo {
+    /* Let it be a column container if you want the label below the row */
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* critical so child flex items can overflow properly */
+    position: relative;
+  }
+  
+  /* 
+     The row that has the title and the icon 
+     Let it shrink if needed.
+  */
+  .placeDropdownRow {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    min-width: 0; /* again, so text can ellipsize */
+  }
+  
+  /* The houseTitle text can grow or shrink */
+  .houseTitle {
+    margin: 0;
     color: #2F3236;
     font-family: 'Satoshi';
     font-size: 1.125rem;
-    font-style: normal;
     font-weight: 700;
     line-height: normal;
-}
-
-
-.houseBedrooms {
+  
+    /* spacing near the icon */
+    margin-right: 6px;
+  
+    /* 
+      Flex so it can occupy leftover space. 
+      min-width: 0 => needed for ellipsis. 
+    */
+    flex: 1 1 auto;
+    min-width: 0;
+  
+    /* The ellipsis magic */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .moreIcon {
+    flex-shrink: 0; 
+    width: 20px;
+    height: 20px;
+    fill: #90A4B7;
+    transition: transform 0.3s ease;
+  }
+  
+  .rotate {
+    transform: rotate(180deg);
+  }
+  
+  .stopLabel {
+    margin: 0;
     color: #90A4B7;
     font-size: 12px;
-    font-style: normal;
     font-weight: 700;
-    line-height: normal;
-}
-
-.houseStories {
-    color: #90A4B7;
-    font-size: 12px;
-    font-style: normal;
+    margin-top: 4px;
+  }
+  
+  /* The dropdown */
+  .customDropdown {
+    position: absolute;
+    top: 100%;
+    left: -25%;
+    max-height: 500px;
+    overflow-y: auto;     /* vertical scroll if lots of items */
+    /* If you also want horizontal scroll for extremely long text: */
+    /* overflow-x: auto;  */
+  
+    background: #FFF;
+    border: 1px solid #D8DCE0;
+    border-radius: 12px;
+    margin-top: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  
+    /* KEY: no wrapping, width auto-sizes to fit content */
+    white-space: nowrap;  /* ensures each item is one line */
+    width: max-content;   /* expand as wide as needed */
+  }
+  
+  /* Each list item also on a single line, no wrapping */
+  .dropdownItem {
+    display: block;
+    white-space: nowrap; /* ensures no line-breaks in the text */
+    padding: 10px 16px;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 1rem;
     font-weight: 700;
-    line-height: normal;
-}
-
-.houseComma {
-    color: #90A4B7;
-    font-size: 12px;
-    font-style: normal;
-    font-weight: 700;
-    line-height: normal;
-}
+    color: #2F3236;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .dropdownItem:hover {
+    background-color: rgba(63, 169, 245, 0.1);
+  }
+  
+  .selected {
+    background-color: #3FA9F5;
+    color: #fff;
+  }
+  

@@ -47,6 +47,7 @@ function InventoryDesktop({
   setSearchQuery,
   // New prop => used to close the entire Inventory from desktop
   onCloseDesktopInventory,
+  lead,
 }) {
   // State for ItemPopup
   const [isItemPopupVisible, setIsItemPopupVisible] = useState(false);
@@ -451,7 +452,7 @@ function InventoryDesktop({
       {/* ===== Middle Row ===== */}
       <div className={styles.middleRowCol1}>
         <div className={styles.houseInfo}>
-          <HouseInfo />
+        <HouseInfo lead={lead} />
         </div>
         <div className={styles.roomListContainer}>
           <RoomList

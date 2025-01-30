@@ -1,23 +1,29 @@
-/* src/components/Inventory/HouseHeader/HouseHeader.module.css */
-
 .houseHeader {
-    border-radius: 20px 0px 0px 0px;
-    border-bottom: 1px solid #D8DCE0;
-    background: #FFF;
-    height: 70px;
-    margin-top: -20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* Ensure content is vertically centered */
-    z-index: 1;
-    padding-left: 20px;
-    padding-right: 20px;
-    flex: 0 0 auto;
-  }
-  
-  /* Removed styles related to the add room button:
-  .addRoomButton
-  .addRoomText
-  .addRoomIcon
-  */
-  
+  border-radius: 20px 0px 0px 0px;
+  border-bottom: 1px solid #D8DCE0;
+  background: #FFF;
+  height: 70px;
+  margin-top: -20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1;
+  padding-left: 20px;
+  padding-right: 20px;
+  gap: 10px;
+  /* flex: 0 0 auto;  <-- remove if you have it. The container should be free to grow */
+}
+
+/* Make the FIRST child (.HouseInfo) flexible. 
+   This is a neat trick if you can't directly add a wrapper:
+*/
+.houseHeader > :first-child {
+  flex: 1 1 0;
+  min-width: 0; /* critical for text ellipsis in flex children */
+}
+
+/* Make sure the AddRoomButton doesn't shrink. 
+   If your AddRoomButton is a direct child, you can do: */
+.houseHeader > :last-child {
+  flex-shrink: 0; /* or flex: 0 0 auto; ensures the button won't shrink */
+}

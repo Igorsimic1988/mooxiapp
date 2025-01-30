@@ -169,19 +169,24 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 15px;
   user-select: none;
-  justify-content: flex-start;
+  justify-content: space-between; /* label left, icon right */
   margin-bottom: 5px;
+  outline: none;
+  text-align: left;
 }
-.dropdownLabel {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+
+.oneLineEllipsis {
+  display: inline-flex;
   flex: 1;
+  align-items: center;
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  gap: 4px;
 }
+
 .dropdownPrefix {
   font-weight: 500;
   color: #6E7882;
@@ -191,6 +196,9 @@
   font-weight: 700;
   color: #2F3236;
   font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .dropdownSelected {
   font-weight: 700;
@@ -199,6 +207,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* The icon on the right side of the dropdown button */
+.rightIcon {
+  width: 20px;
+  height: 20px;
+  color: #90A4B7;
+  flex-shrink: 0;
 }
 
 /* The dropdown list */
@@ -297,7 +313,6 @@
   font-weight: 500;
   color: #2F3236;
 }
-
 .hiddenCheckbox {
   appearance: none;
   width: 24px;

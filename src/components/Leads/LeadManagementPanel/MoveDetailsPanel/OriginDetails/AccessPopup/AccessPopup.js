@@ -6,6 +6,7 @@ import styles from './AccessPopup.module.css';
 // Icons
 import { ReactComponent as HouseIcon } from '../../../../../../assets/icons/house.svg';
 import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Close.svg';
+import { ReactComponent as UnfoldMoreIcon } from '../../../../../../assets/icons/unfoldmore.svg';
 
 // Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
@@ -13,7 +14,7 @@ import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 // Import the toggle
 import SimpleToggle from '../../../../SimpleToggle/SimpleToggle';
 
-// Dropdown options
+/** Dropdown options */
 const biggestTruckAccessOptions = [
   'Semi-trailer',
   'Large 20-26 feet',
@@ -55,7 +56,6 @@ const terrainOptions = [
   'Steep Uphill/ Downhill',
 ];
 
-// Elevator-related dropdowns
 const elevatorFloorsOptions = [
   '1–5 floors',
   '6–10 floors',
@@ -74,7 +74,10 @@ const elevatorSizeOptions = [
  * -----------
  * Allows editing "Access" info for both Origin & Destination stops.
  *
- * New props:
+ * PROPS:
+ *   - lead                  => The entire lead object
+ *   - onLeadUpdated         => Function(updatedLead)
+ *   - setIsAccessPopupVisible => to close the popup
  *   - defaultTab: "origin" or "destination" => which tab to open first
  *   - defaultStopIndex: number => which stop is highlighted initially
  */
@@ -87,52 +90,46 @@ function AccessPopup({
 }) {
   const popupContentRef = useRef(null);
 
-  // local arrays for origin & destination stops
+  // Local arrays for origin & destination
   const [localOriginStops, setLocalOriginStops] = useState([]);
   const [localDestinationStops, setLocalDestinationStops] = useState([]);
 
-  // which place: 'origin' or 'destination'
+  // Which place? 'origin' or 'destination'
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
-  // track selectedStopIndex for each place
+  // Separate selectedStopIndex for origin vs destination
   const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
     defaultTab === 'origin' ? defaultStopIndex : 0
   );
-  const [selectedStopIndexDest,   setSelectedStopIndexDest]   = useState(
+  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(
     defaultTab === 'destination' ? defaultStopIndex : 0
   );
 
-  // On mount => copy from lead
+  // On mount => copy from lead into local arrays
   useEffect(() => {
-    const originStops =
-      Array.isArray(lead.originStops) && lead.originStops.length > 0
-        ? lead.originStops
-        : [
-            {
-              label: 'Main Address',
-              address: '',
-              apt: '',
-              city: '',
-              state: '',
-              zip: '',
-            },
-          ];
+    const originStops = Array.isArray(lead.originStops) && lead.originStops.length > 0
+      ? lead.originStops
+      : [{
+          label: 'Main Address',
+          address: '',
+          apt: '',
+          city: '',
+          state: '',
+          zip: '',
+        }];
 
-    const destinationStops =
-      Array.isArray(lead.destinationStops) && lead.destinationStops.length > 0
-        ? lead.destinationStops
-        : [
-            {
-              label: 'Main Address',
-              address: '',
-              apt: '',
-              city: '',
-              state: '',
-              zip: '',
-            },
-          ];
+    const destinationStops = Array.isArray(lead.destinationStops) && lead.destinationStops.length > 0
+      ? lead.destinationStops
+      : [{
+          label: 'Main Address',
+          address: '',
+          apt: '',
+          city: '',
+          state: '',
+          zip: '',
+        }];
 
-    // Map them to ensure each has the new Access fields
+    // Map them to ensure each has the Access fields
     const mappedOrigin = originStops.map((stop) => ({
       ...stop,
       biggestTruckAccess: stop.biggestTruckAccess || '',
@@ -141,8 +138,6 @@ function AccessPopup({
       distanceDoorTruck: stop.distanceDoorTruck || '',
       howManySteps: stop.howManySteps || '',
       terrainDoorTruck: stop.terrainDoorTruck || '',
-
-      // Elevator fields
       elevatorAtStop: !!stop.elevatorAtStop,
       elevatorExclusive: !!stop.elevatorExclusive,
       elevatorFloors: stop.elevatorFloors || '',
@@ -157,7 +152,6 @@ function AccessPopup({
       distanceDoorTruck: stop.distanceDoorTruck || '',
       howManySteps: stop.howManySteps || '',
       terrainDoorTruck: stop.terrainDoorTruck || '',
-
       elevatorAtStop: !!stop.elevatorAtStop,
       elevatorExclusive: !!stop.elevatorExclusive,
       elevatorFloors: stop.elevatorFloors || '',
@@ -168,12 +162,12 @@ function AccessPopup({
     setLocalDestinationStops(mappedDestination);
   }, [lead]);
 
-  // Clicking outside => close
+  // If user clicks outside => close popup
   const handleClose = useCallback(() => {
     setIsAccessPopupVisible(false);
   }, [setIsAccessPopupVisible]);
 
-  // Outside click detection
+  // Outside-click detection
   useEffect(() => {
     function handleClickOutside(e) {
       if (
@@ -189,13 +183,14 @@ function AccessPopup({
     };
   }, [handleClose]);
 
-  // Decide which array of stops to show
-  const currentStops = selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
+  // Decide which array & selectedStopIndex
+  const currentStops =
+    selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
 
-  // Decide which selectedStopIndex
   const selectedStopIndex =
     selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
 
+  // A helper to switch indexes
   function setSelectedStopIndex(idx) {
     if (selectedPlace === 'origin') {
       setSelectedStopIndexOrigin(idx);
@@ -204,7 +199,7 @@ function AccessPopup({
     }
   }
 
-  // When user modifies the array of stops
+  // A helper to update the local stops array
   function handleStopsLocalUpdated(newStops) {
     if (selectedPlace === 'origin') {
       setLocalOriginStops(newStops);
@@ -213,37 +208,25 @@ function AccessPopup({
     }
   }
 
-  // The "current" stop object
+  // The "current" stop
   const stop = currentStops[selectedStopIndex] || {};
 
-  // A helper to set a field in the current stop
-  function setStopField(fieldName, value) {
-    const updatedStops = [...currentStops];
-    const clonedStop = { ...updatedStops[selectedStopIndex] };
-    clonedStop[fieldName] = value;
-    updatedStops[selectedStopIndex] = clonedStop;
+  // A helper to set a field
+  function setStopField(fieldName, newValue) {
+    const updated = [...currentStops];
+    const cloned = { ...updated[selectedStopIndex] };
+    cloned[fieldName] = newValue;
+    updated[selectedStopIndex] = cloned;
 
     if (selectedPlace === 'origin') {
-      setLocalOriginStops(updatedStops);
+      setLocalOriginStops(updated);
     } else {
-      setLocalDestinationStops(updatedStops);
+      setLocalDestinationStops(updated);
     }
-  }
-
-  // Toggling checkboxes & toggles
-  function toggleShuttleTruckRequired() {
-    setStopField('shuttleTruckRequired', !stop.shuttleTruckRequired);
-  }
-  function handleElevatorToggle(newValue) {
-    setStopField('elevatorAtStop', newValue);
-  }
-  function toggleElevatorExclusive() {
-    setStopField('elevatorExclusive', !stop.elevatorExclusive);
   }
 
   // Save => update lead
   function handleSave() {
-    // Merge back into lead
     onLeadUpdated({
       ...lead,
       originStops: localOriginStops,
@@ -252,7 +235,18 @@ function AccessPopup({
     setIsAccessPopupVisible(false);
   }
 
-  // Dropdown states
+  // Toggling checkboxes
+  function toggleShuttleTruckRequired() {
+    setStopField('shuttleTruckRequired', !stop.shuttleTruckRequired);
+  }
+  function handleElevatorToggle(value) {
+    setStopField('elevatorAtStop', value);
+  }
+  function toggleElevatorExclusive() {
+    setStopField('elevatorExclusive', !stop.elevatorExclusive);
+  }
+
+  // ---------- Dropdown show/hide states ----------
   const [showTruckAccessDropdown, setShowTruckAccessDropdown] = useState(false);
   const [showParkingDropdown, setShowParkingDropdown] = useState(false);
   const [showDistanceDropdown, setShowDistanceDropdown] = useState(false);
@@ -260,6 +254,24 @@ function AccessPopup({
   const [showTerrainDropdown, setShowTerrainDropdown] = useState(false);
   const [showElevatorFloorsDropdown, setShowElevatorFloorsDropdown] = useState(false);
   const [showElevatorSizeDropdown, setShowElevatorSizeDropdown] = useState(false);
+
+  // We'll create a small helper component, so we keep the same style as in PlacePopup:
+  function DropdownButton({ label, value, onClick }) {
+    const displayValue = value ? value : 'Select';
+    return (
+      <button
+        type="button"
+        className={styles.dropdownButton}
+        onClick={onClick}
+      >
+        <span className={styles.oneLineEllipsis}>
+          <span className={styles.dropdownPrefix}>{label}</span>
+          <span className={styles.dropdownSelected}>{displayValue}</span>
+        </span>
+        <UnfoldMoreIcon className={styles.rightIcon} />
+      </button>
+    );
+  }
 
   return (
     <div className={styles.popup}>
@@ -320,33 +332,22 @@ function AccessPopup({
         {/* MAIN SCROLLABLE CONTENT => the fields */}
         <div className={styles.scrollableContent}>
           <div className={styles.formFieldsWrapper}>
+
             {/* 1) Biggest Truck Access */}
             <div className={styles.inputWrapper}>
-              <button
-                type="button"
-                className={styles.dropdownButton}
+              <DropdownButton
+                label="Biggest Truck:"
+                value={stop.biggestTruckAccess}
                 onClick={() => {
-                  setShowTruckAccessDropdown((prev) => !prev);
+                  setShowTruckAccessDropdown(!showTruckAccessDropdown);
                   setShowParkingDropdown(false);
                   setShowDistanceDropdown(false);
                   setShowStepsDropdown(false);
                   setShowTerrainDropdown(false);
+                  setShowElevatorFloorsDropdown(false);
+                  setShowElevatorSizeDropdown(false);
                 }}
-              >
-                <div className={styles.dropdownLabel}>
-                  {stop.biggestTruckAccess ? (
-                    <span className={styles.dropdownSelected}>
-                      {stop.biggestTruckAccess}
-                    </span>
-                  ) : (
-                    <>
-                      <span className={styles.dropdownPrefix}>Biggest Truck Access:</span>
-                      <span className={styles.dropdownPlaceholder}>Select</span>
-                    </>
-                  )}
-                </div>
-              </button>
-
+              />
               {showTruckAccessDropdown && (
                 <ul className={styles.optionsList}>
                   {biggestTruckAccessOptions.map((option) => {
@@ -369,10 +370,7 @@ function AccessPopup({
             </div>
 
             {/* 2) Shuttle Truck Required => checkbox */}
-            <div
-              className={styles.shuttleCheckboxWrapper}
-              style={{ margin: '21px 0' }}
-            >
+            <div className={styles.shuttleCheckboxWrapper}>
               <label className={styles.featureCheckbox}>
                 <input
                   type="checkbox"
@@ -387,31 +385,19 @@ function AccessPopup({
 
             {/* 3) Parking Access */}
             <div className={styles.inputWrapper}>
-              <button
-                type="button"
-                className={styles.dropdownButton}
+              <DropdownButton
+                label="Parking:"
+                value={stop.parkingAccess}
                 onClick={() => {
-                  setShowParkingDropdown((prev) => !prev);
+                  setShowParkingDropdown(!showParkingDropdown);
                   setShowTruckAccessDropdown(false);
                   setShowDistanceDropdown(false);
                   setShowStepsDropdown(false);
                   setShowTerrainDropdown(false);
+                  setShowElevatorFloorsDropdown(false);
+                  setShowElevatorSizeDropdown(false);
                 }}
-              >
-                <div className={styles.dropdownLabel}>
-                  {stop.parkingAccess ? (
-                    <span className={styles.dropdownSelected}>
-                      {stop.parkingAccess}
-                    </span>
-                  ) : (
-                    <>
-                      <span className={styles.dropdownPrefix}>Parking Access:</span>
-                      <span className={styles.dropdownPlaceholder}>Select</span>
-                    </>
-                  )}
-                </div>
-              </button>
-
+              />
               {showParkingDropdown && (
                 <ul className={styles.optionsList}>
                   {parkingAccessOptions.map((option) => {
@@ -435,31 +421,19 @@ function AccessPopup({
 
             {/* 4) Distance door to truck */}
             <div className={styles.inputWrapper}>
-              <button
-                type="button"
-                className={styles.dropdownButton}
+              <DropdownButton
+                label="Door to truck:"
+                value={stop.distanceDoorTruck}
                 onClick={() => {
-                  setShowDistanceDropdown((prev) => !prev);
+                  setShowDistanceDropdown(!showDistanceDropdown);
                   setShowTruckAccessDropdown(false);
                   setShowParkingDropdown(false);
                   setShowStepsDropdown(false);
                   setShowTerrainDropdown(false);
+                  setShowElevatorFloorsDropdown(false);
+                  setShowElevatorSizeDropdown(false);
                 }}
-              >
-                <div className={styles.dropdownLabel}>
-                  {stop.distanceDoorTruck ? (
-                    <span className={styles.dropdownSelected}>
-                      {stop.distanceDoorTruck}
-                    </span>
-                  ) : (
-                    <>
-                      <span className={styles.dropdownPrefix}>Distance door to truck:</span>
-                      <span className={styles.dropdownPlaceholder}>Select</span>
-                    </>
-                  )}
-                </div>
-              </button>
-
+              />
               {showDistanceDropdown && (
                 <ul className={styles.optionsList}>
                   {distanceDoorTruckOptions.map((option) => {
@@ -483,31 +457,19 @@ function AccessPopup({
 
             {/* 5) How Many Steps */}
             <div className={styles.inputWrapper}>
-              <button
-                type="button"
-                className={styles.dropdownButton}
+              <DropdownButton
+                label="How Many Steps:"
+                value={stop.howManySteps}
                 onClick={() => {
-                  setShowStepsDropdown((prev) => !prev);
+                  setShowStepsDropdown(!showStepsDropdown);
                   setShowTruckAccessDropdown(false);
                   setShowParkingDropdown(false);
                   setShowDistanceDropdown(false);
                   setShowTerrainDropdown(false);
+                  setShowElevatorFloorsDropdown(false);
+                  setShowElevatorSizeDropdown(false);
                 }}
-              >
-                <div className={styles.dropdownLabel}>
-                  {stop.howManySteps ? (
-                    <span className={styles.dropdownSelected}>
-                      {stop.howManySteps}
-                    </span>
-                  ) : (
-                    <>
-                      <span className={styles.dropdownPrefix}>How Many Steps:</span>
-                      <span className={styles.dropdownPlaceholder}>Select</span>
-                    </>
-                  )}
-                </div>
-              </button>
-
+              />
               {showStepsDropdown && (
                 <ul className={styles.optionsList}>
                   {howManyStepsOptions.map((option) => {
@@ -531,31 +493,19 @@ function AccessPopup({
 
             {/* 6) Terrain from door to truck */}
             <div className={styles.inputWrapper}>
-              <button
-                type="button"
-                className={styles.dropdownButton}
+              <DropdownButton
+                label="Door to truck Terrain:"
+                value={stop.terrainDoorTruck}
                 onClick={() => {
-                  setShowTerrainDropdown((prev) => !prev);
+                  setShowTerrainDropdown(!showTerrainDropdown);
                   setShowTruckAccessDropdown(false);
                   setShowParkingDropdown(false);
                   setShowDistanceDropdown(false);
                   setShowStepsDropdown(false);
+                  setShowElevatorFloorsDropdown(false);
+                  setShowElevatorSizeDropdown(false);
                 }}
-              >
-                <div className={styles.dropdownLabel}>
-                  {stop.terrainDoorTruck ? (
-                    <span className={styles.dropdownSelected}>
-                      {stop.terrainDoorTruck}
-                    </span>
-                  ) : (
-                    <>
-                      <span className={styles.dropdownPrefix}>Terrain from door to truck:</span>
-                      <span className={styles.dropdownPlaceholder}>Select</span>
-                    </>
-                  )}
-                </div>
-              </button>
-
+              />
               {showTerrainDropdown && (
                 <ul className={styles.optionsList}>
                   {terrainOptions.map((option) => {
@@ -577,7 +527,7 @@ function AccessPopup({
               )}
             </div>
 
-            {/* ---------- 25px space before Elevator toggle ---------- */}
+            {/* Extra spacing before Elevator toggle */}
             <div style={{ height: '25px' }} />
 
             {/* Elevator Toggle (SimpleToggle) */}
@@ -612,28 +562,14 @@ function AccessPopup({
 
                 {/* 2) Elevator floors => dropdown */}
                 <div className={styles.inputWrapper}>
-                  <button
-                    type="button"
-                    className={styles.dropdownButton}
+                  <DropdownButton
+                    label="Elevator floors:"
+                    value={stop.elevatorFloors}
                     onClick={() => {
-                      setShowElevatorFloorsDropdown((prev) => !prev);
+                      setShowElevatorFloorsDropdown(!showElevatorFloorsDropdown);
                       setShowElevatorSizeDropdown(false);
                     }}
-                  >
-                    <div className={styles.dropdownLabel}>
-                      {stop.elevatorFloors ? (
-                        <span className={styles.dropdownSelected}>
-                          {stop.elevatorFloors}
-                        </span>
-                      ) : (
-                        <>
-                          <span className={styles.dropdownPrefix}>Elevator floors:</span>
-                          <span className={styles.dropdownPlaceholder}>Select</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-
+                  />
                   {showElevatorFloorsDropdown && (
                     <ul className={styles.optionsList}>
                       {elevatorFloorsOptions.map((option) => {
@@ -657,28 +593,14 @@ function AccessPopup({
 
                 {/* 3) Elevator size => dropdown */}
                 <div className={styles.inputWrapper}>
-                  <button
-                    type="button"
-                    className={styles.dropdownButton}
+                  <DropdownButton
+                    label="Elevator Size:"
+                    value={stop.elevatorSize}
                     onClick={() => {
-                      setShowElevatorSizeDropdown((prev) => !prev);
+                      setShowElevatorSizeDropdown(!showElevatorSizeDropdown);
                       setShowElevatorFloorsDropdown(false);
                     }}
-                  >
-                    <div className={styles.dropdownLabel}>
-                      {stop.elevatorSize ? (
-                        <span className={styles.dropdownSelected}>
-                          {stop.elevatorSize}
-                        </span>
-                      ) : (
-                        <>
-                          <span className={styles.dropdownPrefix}>Elevator Size:</span>
-                          <span className={styles.dropdownPlaceholder}>Select</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-
+                  />
                   {showElevatorSizeDropdown && (
                     <ul className={styles.optionsList}>
                       {elevatorSizeOptions.map((option) => {

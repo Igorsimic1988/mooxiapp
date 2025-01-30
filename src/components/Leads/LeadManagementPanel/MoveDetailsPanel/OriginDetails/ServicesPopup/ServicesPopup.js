@@ -6,6 +6,7 @@ import styles from './ServicesPopup.module.css';
 // Icons
 import { ReactComponent as HouseIcon } from '../../../../../../assets/icons/house.svg';
 import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Close.svg';
+import { ReactComponent as UnfoldMoreIcon } from '../../../../../../assets/icons/unfoldmore.svg';
 
 // Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
@@ -53,7 +54,10 @@ const typeOfServiceChoices = [
  * -------------
  * Allows editing "Services" info for both Origin & Destination stops.
  *
- * New props:
+ * Props:
+ *   - lead
+ *   - onLeadUpdated
+ *   - setIsServicesPopupVisible
  *   - defaultTab: "origin" or "destination"
  *   - defaultStopIndex: number
  */
@@ -77,7 +81,7 @@ function ServicesPopup({
   const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
     defaultTab === 'origin' ? defaultStopIndex : 0
   );
-  const [selectedStopIndexDest,   setSelectedStopIndexDest]   = useState(
+  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(
     defaultTab === 'destination' ? defaultStopIndex : 0
   );
 
@@ -250,11 +254,29 @@ function ServicesPopup({
     );
   }
 
-  // to handle dropdown toggles
+  // handle dropdown toggles
   const [showWhatsMovingDropdown, setShowWhatsMovingDropdown] = useState(false);
   const [showPackingDropdown, setShowPackingDropdown] = useState(false);
   const [showUnpackingDropdown, setShowUnpackingDropdown] = useState(false);
   const [showBlanketsDropdown, setShowBlanketsDropdown] = useState(false);
+
+  // We'll create a small reusable DropdownButton for each dropdown:
+  function DropdownButton({ label, value, onClick }) {
+    const displayValue = value ? value : 'Select';
+    return (
+      <button
+        type="button"
+        className={styles.dropdownButton}
+        onClick={onClick}
+      >
+        <span className={styles.oneLineEllipsis}>
+          <span className={styles.dropdownPrefix}>{label}</span>
+          <span className={styles.dropdownSelected}>{displayValue}</span>
+        </span>
+        <UnfoldMoreIcon className={styles.rightIcon} />
+      </button>
+    );
+  }
 
   return (
     <div className={styles.popup}>
@@ -318,29 +340,16 @@ function ServicesPopup({
               <>
                 {/* 1) What's Moving */}
                 <div className={styles.dropdownWrapper}>
-                  <button
-                    type="button"
-                    className={styles.dropdownButton}
+                  <DropdownButton
+                    label="What's Moving:"
+                    value={stop.whatsMoving}
                     onClick={() => {
-                      setShowWhatsMovingDropdown((prev) => !prev);
+                      setShowWhatsMovingDropdown(!showWhatsMovingDropdown);
                       setShowPackingDropdown(false);
                       setShowBlanketsDropdown(false);
+                      setShowUnpackingDropdown(false);
                     }}
-                  >
-                    <div className={styles.dropdownLabel}>
-                      {stop.whatsMoving ? (
-                        <span className={styles.dropdownSelected}>
-                          {stop.whatsMoving}
-                        </span>
-                      ) : (
-                        <>
-                          <span className={styles.dropdownPrefix}>What's Moving:</span>
-                          <span className={styles.dropdownPlaceholder}>Select</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-
+                  />
                   {showWhatsMovingDropdown && (
                     <ul className={styles.optionsList}>
                       {whatsMovingOriginOptions.map((option) => {
@@ -364,29 +373,16 @@ function ServicesPopup({
 
                 {/* 2) Packing Option => 21px spacing after it */}
                 <div className={`${styles.dropdownWrapper} ${styles.packingOptionMargin}`}>
-                  <button
-                    type="button"
-                    className={styles.dropdownButton}
+                  <DropdownButton
+                    label="Packing Option:"
+                    value={stop.packingOption}
                     onClick={() => {
-                      setShowPackingDropdown((prev) => !prev);
+                      setShowPackingDropdown(!showPackingDropdown);
                       setShowWhatsMovingDropdown(false);
                       setShowBlanketsDropdown(false);
+                      setShowUnpackingDropdown(false);
                     }}
-                  >
-                    <div className={styles.dropdownLabel}>
-                      {stop.packingOption ? (
-                        <span className={styles.dropdownSelected}>
-                          {stop.packingOption}
-                        </span>
-                      ) : (
-                        <>
-                          <span className={styles.dropdownPrefix}>Packing Option:</span>
-                          <span className={styles.dropdownPlaceholder}>Select</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-
+                  />
                   {showPackingDropdown && (
                     <ul className={styles.optionsList}>
                       {packingOriginOptions.map((option) => {
@@ -415,28 +411,16 @@ function ServicesPopup({
               <>
                 {/* 1) Unpacking Option => 21px spacing after it */}
                 <div className={`${styles.dropdownWrapper} ${styles.unpackingOptionMargin}`}>
-                  <button
-                    type="button"
-                    className={styles.dropdownButton}
+                  <DropdownButton
+                    label="Unpacking:"
+                    value={stop.unpackingOption}
                     onClick={() => {
-                      setShowUnpackingDropdown((prev) => !prev);
+                      setShowUnpackingDropdown(!showUnpackingDropdown);
                       setShowBlanketsDropdown(false);
+                      setShowWhatsMovingDropdown(false);
+                      setShowPackingDropdown(false);
                     }}
-                  >
-                    <div className={styles.dropdownLabel}>
-                      {stop.unpackingOption ? (
-                        <span className={styles.dropdownSelected}>
-                          {stop.unpackingOption}
-                        </span>
-                      ) : (
-                        <>
-                          <span className={styles.dropdownPrefix}>Unpacking:</span>
-                          <span className={styles.dropdownPlaceholder}>Select</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-
+                  />
                   {showUnpackingDropdown && (
                     <ul className={styles.optionsList}>
                       {unpackingDestinationOptions.map((option) => {
@@ -463,7 +447,6 @@ function ServicesPopup({
             {/* Group of 3 checkboxes => 
                 either (Items to be taken apart, Hoist, Crane) 
                 or (Items to be assembled, Hoist, Crane)
-                8px between them, plus 21px after => see .checkboxesGroup 
             */}
             <div className={styles.checkboxesGroup}>
               {selectedPlace === 'origin' && (
@@ -475,7 +458,9 @@ function ServicesPopup({
                     onChange={() => toggleField('itemsToBeTakenApart')}
                   />
                   <span className={styles.customBox} />
-                  <span className={styles.featureLabel}>Items to be taken apart?</span>
+                  <span className={styles.featureLabel}>
+                    Items to be taken apart?
+                  </span>
                 </label>
               )}
 
@@ -488,7 +473,9 @@ function ServicesPopup({
                     onChange={() => toggleField('itemsToBeAssembled')}
                   />
                   <span className={styles.customBox} />
-                  <span className={styles.featureLabel}>Items to be assembled?</span>
+                  <span className={styles.featureLabel}>
+                    Items to be assembled?
+                  </span>
                 </label>
               )}
 
@@ -519,30 +506,16 @@ function ServicesPopup({
 
             {/* Blankets => origin vs destination => 21px spacing after it */}
             <div className={`${styles.blanketsDropdownWrapper} ${styles.blanketsMargin}`}>
-              <button
-                type="button"
-                className={styles.dropdownButton}
+              <DropdownButton
+                label="Blankets:"
+                value={stop.blanketsOption}
                 onClick={() => {
-                  setShowBlanketsDropdown((prev) => !prev);
+                  setShowBlanketsDropdown(!showBlanketsDropdown);
                   setShowWhatsMovingDropdown(false);
                   setShowPackingDropdown(false);
                   setShowUnpackingDropdown(false);
                 }}
-              >
-                <div className={styles.dropdownLabel}>
-                  {stop.blanketsOption ? (
-                    <span className={styles.dropdownSelected}>
-                      {stop.blanketsOption}
-                    </span>
-                  ) : (
-                    <>
-                      <span className={styles.dropdownPrefix}>Blankets:</span>
-                      <span className={styles.dropdownPlaceholder}>Select</span>
-                    </>
-                  )}
-                </div>
-              </button>
-
+              />
               {showBlanketsDropdown && (
                 <ul className={styles.optionsList}>
                   {(selectedPlace === 'origin'

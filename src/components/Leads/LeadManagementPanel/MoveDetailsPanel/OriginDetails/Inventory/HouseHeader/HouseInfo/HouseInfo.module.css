@@ -40,6 +40,10 @@
     cursor: pointer;
     min-width: 0; /* again, so text can ellipsize */
   }
+
+  .disabledRow {
+    cursor: default; /* arrow cursor, or 'inherit' */
+  }
   
   /* The houseTitle text can grow or shrink */
   .houseTitle {

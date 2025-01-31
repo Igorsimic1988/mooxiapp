@@ -45,6 +45,9 @@ function HouseInfo({ lead }) {
     );
   }
 
+  // Check how many stops we have
+  const isSingleStop = (combinedStops.length === 1);
+
   // 4) Otherwise, proceed
   const currentStop = combinedStops[selectedStopIndex];
   // If typeOfPlace is empty => "No Place Set"
@@ -54,7 +57,12 @@ function HouseInfo({ lead }) {
   }
 
   // Toggle the dropdown
-  const handleToggleDropdown = () => setIsOpen(prev => !prev);
+  const handleToggleDropdown = () => {
+    // Only allow toggling if more than one stop
+    if (!isSingleStop) {
+      setIsOpen(prev => !prev);
+    }
+  };
 
   // Select a stop
   const handleSelectStop = (index) => {
@@ -71,20 +79,30 @@ function HouseInfo({ lead }) {
 
       {/* Info section */}
       <div className={styles.houseInfo}>
-        <div className={styles.placeDropdownRow} onClick={handleToggleDropdown}>
+        {/* 
+          If more than one stop, .placeDropdownRow is clickable. Otherwise no pointer. 
+        */}
+        <div
+          className={`${styles.placeDropdownRow} ${isSingleStop ? styles.disabledRow : ''}`}
+          onClick={handleToggleDropdown}
+        >
           <h1 className={styles.houseTitle}>{typeOfPlace}</h1>
-          <MoreIcon
-            className={`${styles.moreIcon} ${isOpen ? styles.rotate : ''}`}
-            aria-hidden="true"
-          />
+
+          {/* Hide the MoreIcon if there's only one stop */}
+          {!isSingleStop && (
+            <MoreIcon
+              className={`${styles.moreIcon} ${isOpen ? styles.rotate : ''}`}
+              aria-hidden="true"
+            />
+          )}
         </div>
         
         <p className={styles.stopLabel}>{label}</p>
 
-        {isOpen && (
+        {/* If only one stop, we skip the dropdown entirely */}
+        {!isSingleStop && isOpen && (
           <ul className={styles.customDropdown}>
             {combinedStops.map((stop, index) => {
-              // For each item:
               let itemTypeOfPlace = stop.typeOfPlace && stop.typeOfPlace.trim()
                 ? stop.typeOfPlace
                 : 'No Place Set';

@@ -47,6 +47,32 @@ function Inventory({
     }, {})
   );
 
+  useEffect(() => {
+    // If we haven't actually loaded from DB yet, skip saving
+    if (!hasLoadedInventory) return;
+  
+    if (lead && lead.lead_id && lead.tenant_id) {
+      // 1) Call createOrUpdateInventory
+      const updatedRecord = createOrUpdateInventory(
+        lead.lead_id,
+        lead.tenant_id,
+        roomItemSelections
+      );
+  
+      // 2) Log the results
+      console.log(
+        'Updated inventory record =>',
+        updatedRecord
+      );
+      console.log(
+        'Tenant ID:',
+        lead.tenant_id,
+        'Lead ID:',
+        lead.lead_id
+      );
+    }
+  }, [roomItemSelections, lead, hasLoadedInventory]);
+
   const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
   const [isToggled, setIsToggled] = useState(true);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);

@@ -1,29 +1,36 @@
-import React, { useRef, useEffect } from 'react';
+// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/RoomList/RoomList.js
+
+import React, { useRef, useEffect, useCallback } from 'react';
 import styles from './RoomList.module.css';
 import { ReactComponent as More } from '../../../../../../../assets/icons/more.svg';
 
-function RoomList({ onRoomSelect, roomItemSelections, displayedRooms, selectedRoom }) {
+/**
+ * RoomList
+ *
+ * Props:
+ *  - onRoomSelect(room): function to select a room object
+ *  - roomItemSelections: { [roomId]: arrayOfItems }
+ *  - displayedRooms: array of room objects (e.g. [{ id, name }, ...])
+ *  - selectedRoom: the currently selected room object
+ */
+function RoomList({
+  onRoomSelect,
+  roomItemSelections = {},
+  displayedRooms = [],
+  selectedRoom
+}) {
   const isDragging = useRef(false);
   const startY = useRef(0);
   const scrollTop = useRef(0);
   const scrollContainerRef = useRef(null);
   const hasMoved = useRef(false);
 
+  // Separate out the "boxes room" if present (id=13)
   const otherRooms = displayedRooms.filter((room) => room.id !== 13);
   const boxesRoom = displayedRooms.find((room) => room.id === 13);
 
-  const handleMouseDown = (e) => {
-    isDragging.current = true;
-    startY.current = e.clientY;
-    scrollTop.current = scrollContainerRef.current.scrollTop;
-    hasMoved.current = false;
-
-    // Add event listeners
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const handleMouseMove = (e) => {
+  // ----- Mouse event handlers -----
+  const handleMouseMove = useCallback((e) => {
     if (!isDragging.current) return;
     const y = e.clientY;
     const dy = y - startY.current;
@@ -31,28 +38,35 @@ function RoomList({ onRoomSelect, roomItemSelections, displayedRooms, selectedRo
     if (Math.abs(dy) > 5) {
       hasMoved.current = true;
     }
-
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = scrollTop.current - dy;
     }
-  };
+  }, []);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     isDragging.current = false;
-    // Remove event listeners
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
+  }, [handleMouseMove]);
+
+  const handleMouseDown = (e) => {
+    isDragging.current = true;
+    startY.current = e.clientY;
+    scrollTop.current = scrollContainerRef.current?.scrollTop || 0;
+    hasMoved.current = false;
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   useEffect(() => {
-    // Cleanup on unmount
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleMouseMove, handleMouseUp]);
 
+  // ----- Render -----
   return (
     <div
       className={styles.roomListContainer}
@@ -60,13 +74,16 @@ function RoomList({ onRoomSelect, roomItemSelections, displayedRooms, selectedRo
       onMouseDown={handleMouseDown}
       style={{ cursor: isDragging.current ? 'grabbing' : 'grab' }}
     >
+      {/* Render all rooms except the "Boxes" room (id=13) */}
       {otherRooms.map((room) => {
-        const itemInstances = roomItemSelections?.[room.id] || [];
+        const itemInstances = roomItemSelections[room.id] || [];
         const selectedItemCount = itemInstances.length;
+        const isActive = selectedRoom && selectedRoom.id === room.id;
+        const roomName = room.name || `Room #${room.id}`;
 
         return (
           <button
-            key={room.id}
+            key={`room-${room.id}`} // ensure a unique key
             onClick={(e) => {
               if (hasMoved.current) {
                 e.preventDefault();
@@ -75,13 +92,11 @@ function RoomList({ onRoomSelect, roomItemSelections, displayedRooms, selectedRo
               }
               onRoomSelect(room);
             }}
-            className={`${styles.roomButton} ${
-              selectedRoom && selectedRoom.id === room.id ? styles.active : ''
-            }`}
-            aria-pressed={selectedRoom && selectedRoom.id === room.id}
-            aria-label={`Select ${room.name}`}
+            className={`${styles.roomButton} ${isActive ? styles.active : ''}`}
+            aria-pressed={isActive}
+            aria-label={`Select ${roomName}`}
           >
-            <p className={styles.roomName}>{room.name}</p>
+            <p className={styles.roomName}>{roomName}</p>
             <div className={styles.rightSection}>
               {selectedItemCount > 0 && (
                 <div className={styles.itemCount}>
@@ -96,9 +111,10 @@ function RoomList({ onRoomSelect, roomItemSelections, displayedRooms, selectedRo
         );
       })}
 
+      {/* Render boxes room (id=13) last, if it exists */}
       {boxesRoom && (
         <button
-          key={boxesRoom.id}
+          key={`room-${boxesRoom.id}`}
           onClick={(e) => {
             if (hasMoved.current) {
               e.preventDefault();
@@ -107,15 +123,23 @@ function RoomList({ onRoomSelect, roomItemSelections, displayedRooms, selectedRo
             }
             onRoomSelect(boxesRoom);
           }}
-          className={`${styles.roomButton} ${styles.fixedRoom} ${
-            selectedRoom && selectedRoom.id === boxesRoom.id ? styles.active : ''
-          }`}
+          className={`
+            ${styles.roomButton}
+            ${styles.fixedRoom}
+            ${
+              selectedRoom && selectedRoom.id === boxesRoom.id
+                ? styles.active
+                : ''
+            }
+          `}
           aria-pressed={selectedRoom && selectedRoom.id === boxesRoom.id}
-          aria-label={`Select ${boxesRoom.name}`}
+          aria-label={`Select ${boxesRoom.name || 'Boxes'}`}
         >
-          <p className={styles.roomName}>{boxesRoom.name}</p>
+          <p className={styles.roomName}>
+            {boxesRoom.name || 'Boxes'}
+          </p>
           <div className={styles.rightSection}>
-            {roomItemSelections?.[boxesRoom.id]?.length > 0 && (
+            {roomItemSelections[boxesRoom.id]?.length > 0 && (
               <div className={styles.itemCount}>
                 <p>{roomItemSelections[boxesRoom.id].length}</p>
               </div>

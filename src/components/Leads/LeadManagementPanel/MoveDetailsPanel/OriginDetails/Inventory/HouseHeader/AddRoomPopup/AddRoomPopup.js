@@ -5,7 +5,21 @@ import styles from './AddRoomPopup.module.css';
 import { ReactComponent as CloseIcon } from '../../../../../../../../assets/icons/Close.svg';
 import { ReactComponent as AddRoomIcon } from '../../../../../../../../assets/icons/addroomreservation.svg';
 
-function AddRoomPopup({ rooms, displayedRooms, onClose, onToggleRoom }) {
+/**
+ * AddRoomPopup
+ *
+ * Props:
+ *  - rooms: array of all possible room objects (with `.id` and `.name`)
+ *  - displayedRooms: array of numeric room IDs currently displayed
+ *  - onClose: function to close the popup
+ *  - onToggleRoom: function(roomId) => toggles that room
+ */
+function AddRoomPopup({
+  rooms = [],              // Default to empty array
+  displayedRooms = [],     // Default to empty array of IDs
+  onClose,
+  onToggleRoom
+}) {
   const popupContentRef = useRef(null);
 
   // Close the popup when clicking outside the popup content
@@ -21,7 +35,7 @@ function AddRoomPopup({ rooms, displayedRooms, onClose, onToggleRoom }) {
     };
   }, [onClose]);
 
-  // Filter out room id=13 ("Boxes")
+  // Filter out room id=13 ("Boxes"), if you want to keep it always
   const toggleableRooms = rooms.filter((room) => room.id !== 13);
 
   return (
@@ -44,7 +58,9 @@ function AddRoomPopup({ rooms, displayedRooms, onClose, onToggleRoom }) {
         <div className={styles.body}>
           <div className={styles.roomListContainer}>
             {toggleableRooms.map((room) => {
-              const isSelected = displayedRooms.some((r) => r.id === room.id);
+              // If displayedRooms is an array of numeric IDs:
+              const isSelected = displayedRooms.includes(room.id);
+
               return (
                 <button
                   key={room.id}

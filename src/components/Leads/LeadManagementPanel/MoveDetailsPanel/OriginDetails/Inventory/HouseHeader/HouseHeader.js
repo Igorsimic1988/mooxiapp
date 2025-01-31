@@ -5,11 +5,31 @@ import styles from './HouseHeader.module.css';
 import HouseInfo from './HouseInfo/HouseInfo';
 import AddRoomButton from './AddRoomButton/AddRoomButton';
 
-function HouseHeader({ rooms, displayedRooms, onToggleRoom, lead }) {
+/**
+ * HouseHeader receives:
+ *  - rooms
+ *  - displayedRooms
+ *  - onToggleRoom
+ *  - lead
+ *  - stopIndex (number)
+ *  - onStopIndexChange (function => changes the currently selected stop)
+ */
+function HouseHeader({
+  rooms,
+  displayedRooms,
+  onToggleRoom,
+  lead,
+  stopIndex,
+  onStopIndexChange,
+}) {
   return (
     <header className={styles.houseHeader}>
-      {/* Pass the lead here */}
-      <HouseInfo lead={lead} />
+      {/* Pass stopIndex / onStopIndexChange to HouseInfo */}
+      <HouseInfo
+        lead={lead}
+        stopIndex={stopIndex}
+        onStopIndexChange={onStopIndexChange}
+      />
       <AddRoomButton
         rooms={rooms}
         displayedRooms={displayedRooms}

@@ -1,5 +1,3 @@
-/* src/components/Leads/LeadManagementPanel/LeadManagementPanel.module.css */
-
 /* ===== Wrapper + Panel Container ===== */
 .wrapper {
   flex: 1;
@@ -246,7 +244,7 @@
   background: rgba(0,0,0,0.1);
 }
 
-/* --- Activity Button --- */
+/* --- Activity Button + Dropdown --- */
 .activityButton {
   display: flex;
   align-items: center;
@@ -289,7 +287,6 @@
   color: #2F3236;
 }
 
-/* The activity dropdown */
 .activityDropdown {
   position: absolute;
   left: 0;
@@ -350,7 +347,7 @@
   line-height: normal;
 }
 
-/* ===== For the new Estimator / Date / Time inputs ===== */
+/* ===== For the Estimator / Date / Time inputs ===== */
 .estimateExtraContainer {
   display: flex;
   flex-direction: column;
@@ -627,7 +624,6 @@
   padding: 0 20px;
   justify-content: space-between;
 }
-/* Just in case we have a class to hide it: */
 .hiddenButton {
   display: none !important;
 }
@@ -656,7 +652,7 @@
   color: #FFF;
 }
 
-/* Inventory Button */
+/* Inventory Button + Dropdown */
 .inventoryButton {
   width: 100%;
   height: 50px;
@@ -695,7 +691,39 @@
   color: #FFF;
 }
 
+.inventoryDropdown {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 8px 0;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 3100;
+}
 
+.inventoryOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2F3236;
+  background: #FFF;
+}
+.inventoryOption:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Reuse .selectedOption for highlight */
+.selectedOption {
+  background: rgba(0,0,0,0.1);
+}
+
+/* --- NextAction Animation Keyframes --- */
 @keyframes nextActionBounce {
   0% { transform: scale(1); }
   25% { transform: scale(1.08); }
@@ -704,9 +732,6 @@
   100% { transform: scale(1); }
 }
 
-/* 
-   A new class that triggers the animation:
-*/
 .animateNextAction {
   animation: nextActionBounce 0.6s ease-out;
 }

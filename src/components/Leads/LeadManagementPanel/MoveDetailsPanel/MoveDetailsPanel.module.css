@@ -105,7 +105,7 @@
 .dateLabelPrefix {
   font-weight: 500;
   color: #6E7882;
-  margin-right: 6px; /* <-- ensures a little gap between "Move Date:" and the selected date */
+  margin-right: 6px; 
 }
 
 .datePlaceholder {
@@ -223,6 +223,11 @@
   background: rgba(0,0,0,0.05);
 }
 
+/* highlight the selected day in the calendar */
+.selectedDay {
+  background: rgba(0,0,0,0.1) !important; 
+}
+
 /* Storage container/toggle */
 .storageContainer {
   display: flex;
@@ -271,6 +276,11 @@
 }
 .dropdownOption:hover {
   background: #F2F5F8;
+}
+
+/* a selected dropdown item uses the same highlight: */
+.selectedOption {
+  background: rgba(0,0,0,0.1);
 }
 
 .spacing30 {

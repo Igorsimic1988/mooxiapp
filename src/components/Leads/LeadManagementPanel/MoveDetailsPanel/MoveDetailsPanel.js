@@ -1,5 +1,3 @@
-// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/MoveDetailsPanel.js
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ReactComponent as TruckCouchIcon } from '../../../../assets/icons/truckcouch.svg';
 import { ReactComponent as NotebookIcon } from '../../../../assets/icons/notebook.svg';
@@ -50,7 +48,7 @@ const storageOptions = [
 function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   // Tabs
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const isSelected = (idx) => idx === selectedIndex;
+  const isSelectedTab = (idx) => idx === selectedIndex;
 
   // ---------- Move/Delivery Date ----------
   const [moveDate, setMoveDate] = useState(lead?.move_date || '');
@@ -277,52 +275,56 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     }
   };
 
+  // Convert stored strings back into Date objects for comparison
+  const selectedMoveDateObj = moveDate ? new Date(moveDate) : null;
+  const selectedDeliveryDateObj = deliveryDate ? new Date(deliveryDate) : null;
+
   return (
     <div className={styles.panelContainer}>
       {/* ---------- TABS ---------- */}
       <div className={styles.sectionsRow}>
         <div
-          className={`${styles.sectionItem} ${isSelected(0) ? styles.selected : ''}`}
+          className={`${styles.sectionItem} ${isSelectedTab(0) ? styles.selected : ''}`}
           onClick={() => setSelectedIndex(0)}
         >
           <TruckCouchIcon
-            className={`${styles.sectionIcon} ${isSelected(0) ? styles.iconActive : ''}`}
+            className={`${styles.sectionIcon} ${isSelectedTab(0) ? styles.iconActive : ''}`}
           />
-          <span className={`${styles.sectionText} ${isSelected(0) ? styles.textActive : ''}`}>
+          <span className={`${styles.sectionText} ${isSelectedTab(0) ? styles.textActive : ''}`}>
             Move
           </span>
         </div>
 
         <div
-          className={`${styles.sectionItem} ${isSelected(1) ? styles.selected : ''}`}
+          className={`${styles.sectionItem} ${isSelectedTab(1) ? styles.selected : ''}`}
           onClick={() => setSelectedIndex(1)}
         >
           <NotebookIcon
-            className={`${styles.sectionIcon} ${isSelected(1) ? styles.iconActive : ''}`}
+            className={`${styles.sectionIcon} ${isSelectedTab(1) ? styles.iconActive : ''}`}
           />
-          <span className={`${styles.sectionText} ${isSelected(1) ? styles.textActive : ''}`}>
+          <span className={`${styles.sectionText} ${isSelectedTab(1) ? styles.textActive : ''}`}>
             Notes
           </span>
         </div>
 
         <div
-          className={`${styles.sectionItem} ${isSelected(2) ? styles.selected : ''}`}
+          className={`${styles.sectionItem} ${isSelectedTab(2) ? styles.selected : ''}`}
           onClick={() => setSelectedIndex(2)}
         >
           <EmailWithDotIcon
-            className={`${styles.sectionIcon} ${isSelected(2) ? styles.iconActive : ''}`}
+            className={`${styles.sectionIcon} ${isSelectedTab(2) ? styles.iconActive : ''}`}
           />
-          <span className={`${styles.sectionText} ${isSelected(2) ? styles.textActive : ''}`}>
+          <span className={`${styles.sectionText} ${isSelectedTab(2) ? styles.textActive : ''}`}>
             Email
           </span>
         </div>
 
         <div
-          className={`${styles.sectionItem} ${isSelected(3) ? styles.selected : ''}`}
+          className={`${styles.sectionItem} ${isSelectedTab(3) ? styles.selected : ''}`}
           onClick={() => setSelectedIndex(3)}
         >
           <div className={styles.greenDot}></div>
-          <span className={`${styles.sectionText} ${isSelected(3) ? styles.textActive : ''}`}>
+          <span className={`${styles.sectionText} ${isSelectedTab(3) ? styles.textActive : ''}`}>
             Availability
           </span>
         </div>
@@ -368,11 +370,18 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                 );
                 // cannot pick a date in the past
                 const disabled = dayDate < today;
+                // check if this day is the currently selected "moveDate"
+                const isSelected = selectedMoveDateObj && 
+                  dayDate.toDateString() === selectedMoveDateObj.toDateString();
+
                 return (
                   <button
                     key={day}
                     type="button"
-                    className={styles.calendarDay}
+                    className={`
+                      ${styles.calendarDay} 
+                      ${isSelected ? styles.selectedDay : ''}
+                    `}
                     style={{
                       opacity: disabled ? 0.4 : 1,
                       cursor: disabled ? 'not-allowed' : 'pointer',
@@ -414,18 +423,24 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
         {showTypeOfServiceDropdown && (
           <div className={styles.dropdownMenu}>
-            {typeOfServiceChoices.map((svc) => (
-              <div
-                key={svc.id}
-                className={styles.dropdownOption}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSelectServiceType(svc.name);
-                }}
-              >
-                {svc.name}
-              </div>
-            ))}
+            {typeOfServiceChoices.map((svc) => {
+              const isSelected = svc.name === typeOfService;
+              return (
+                <div
+                  key={svc.id}
+                  className={`
+                    ${styles.dropdownOption} 
+                    ${isSelected ? styles.selectedOption : ''}
+                  `}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectServiceType(svc.name);
+                  }}
+                >
+                  {svc.name}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -460,18 +475,24 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
           {storageDropdownOpen && (
             <div className={styles.dropdownMenu}>
-              {storageOptions.map((option) => (
-                <div
-                  key={option}
-                  className={styles.dropdownOption}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelectStorage(option);
-                  }}
-                >
-                  {option}
-                </div>
-              ))}
+              {storageOptions.map((option) => {
+                const isSelected = option === selectedStorage;
+                return (
+                  <div
+                    key={option}
+                    className={`
+                      ${styles.dropdownOption}
+                      ${isSelected ? styles.selectedOption : ''}
+                    `}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectStorage(option);
+                    }}
+                  >
+                    {option}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -529,11 +550,19 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                 }
 
                 const disabled = dayDate < earliestDelivery;
+
+                // check if this day is the currently selected "deliveryDate"
+                const isSelected = selectedDeliveryDateObj &&
+                  dayDate.toDateString() === selectedDeliveryDateObj.toDateString();
+
                 return (
                   <button
                     key={day}
                     type="button"
-                    className={styles.calendarDay}
+                    className={`
+                      ${styles.calendarDay} 
+                      ${isSelected ? styles.selectedDay : ''}
+                    `}
                     style={{
                       opacity: disabled ? 0.4 : 1,
                       cursor: disabled ? 'not-allowed' : 'pointer',
@@ -575,18 +604,24 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
         {showETARequestDropdown && (
           <div className={styles.dropdownMenu}>
-            {etaRequestOptions.map((opt) => (
-              <div
-                key={opt}
-                className={styles.dropdownOption}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSelectEtaRequest(opt);
-                }}
-              >
-                {opt}
-              </div>
-            ))}
+            {etaRequestOptions.map((opt) => {
+              const isSelected = opt === etaRequest;
+              return (
+                <div
+                  key={opt}
+                  className={`
+                    ${styles.dropdownOption}
+                    ${isSelected ? styles.selectedOption : ''}
+                  `}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectEtaRequest(opt);
+                  }}
+                >
+                  {opt}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -628,21 +663,27 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
               ref={startTimeDropdownRef}
               onClick={(e) => e.stopPropagation()}
             >
-              {timeSlots.map((slot) => (
-                <div
-                  key={slot}
-                  className={styles.timeOption}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setArrivalStart(slot);
-                    setArrivalTime('');
-                    setShowIncrementsGrid(true);
-                    setShowStartTimeDropdown(false);
-                  }}
-                >
-                  {slot}
-                </div>
-              ))}
+              {timeSlots.map((slot) => {
+                const isSelected = slot === arrivalStart; 
+                return (
+                  <div
+                    key={slot}
+                    className={`
+                      ${styles.timeOption}
+                      ${isSelected ? styles.selectedOption : ''}
+                    `}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setArrivalStart(slot);
+                      setArrivalTime('');
+                      setShowIncrementsGrid(true);
+                      setShowStartTimeDropdown(false);
+                    }}
+                  >
+                    {slot}
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -696,9 +737,9 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         onLeadUpdated={onLeadUpdated}
       />
       <DestinationDetails 
-      lead={lead}                         
-      onLeadUpdated={onLeadUpdated}
-/>
+        lead={lead}                         
+        onLeadUpdated={onLeadUpdated}
+      />
     </div>
   );
 }

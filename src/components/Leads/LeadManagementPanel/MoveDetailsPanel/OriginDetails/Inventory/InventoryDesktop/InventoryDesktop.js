@@ -1,7 +1,9 @@
 // src/components/Inventory/InventoryDesktop/InventoryDesktop.js
 
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import styles from './InventoryDesktop.module.css';
+
+// Child components
 import BackButton from './BackButton/BackButton';
 import ToggleSwitch from '../ItemSelection/BcalculatorMyitems/ToogleSwitch/ToogleSwitch';
 import RoomList from '../RoomList/RoomList';
@@ -10,32 +12,67 @@ import AddRoomButton from '../HouseHeader/AddRoomButton/AddRoomButton';
 import SearchHeader from '../SearchHeader/SearchHeader';
 import AlphabetButtons from '../ItemSelection/AlphabetFilter/AlphabetButtons/AlphabetButtons';
 import ItemList from '../ItemSelection/ItemList/ItemList';
-import allItems from '../../../../../../../data/constants/funitureItems';
-import CreateQuoteButton from './CreateQuoteButton/CreateQuoteButton';
-import { v4 as uuidv4 } from 'uuid';
-import { generateGroupingKey } from '../utils/generateGroupingKey';
 import FurnitureCounter from './FurnitureCounter/FurnitureCounter';
+import CreateQuoteButton from './CreateQuoteButton/CreateQuoteButton';
 
+// Popups + Icons
+import ItemPopup from '../ItemSelection/Item/ItemPopup/ItemPopup';
+import MyInventory from '../FooterNavigation/MyInventory/MyInventory';
+import SpecialH from '../FooterNavigation/SpecialH/SpecialH';
+import DeleteButton from '../FooterNavigation/DeleteButton/DeleteButton';
 import { ReactComponent as ExpandIcon } from '../../../../../../../assets/icons/expand.svg';
 import { ReactComponent as CollapseIcon } from '../../../../../../../assets/icons/collapse.svg';
 import { ReactComponent as MyInventoryIcon } from '../../../../../../../assets/icons/MyInventoryPopupIcon.svg';
 import { ReactComponent as SpecialHIcon } from '../../../../../../../assets/icons/specialh.svg';
 
-import ItemPopup from '../ItemSelection/Item/ItemPopup/ItemPopup';
-import MyInventory from '../FooterNavigation/MyInventory/MyInventory';
-import SpecialH from '../FooterNavigation/SpecialH/SpecialH';
-import DeleteButton from '../FooterNavigation/DeleteButton/DeleteButton';
+// Data + Utils
+import allItems from '../../../../../../../data/constants/funitureItems';
 
+/**
+ * InventoryDesktop
+ *
+ * Props:
+ *  - stopIndex, setStopIndex
+ *  - roomItemSelections: { [roomId]: arrayOfItemInstances }
+ *  - setRoomItemSelections: (fnOrObj) => void  (for MyInventory/SpecialH)
+ *  - displayedRooms: array of {id, name}
+ *  - handleToggleRoom: function(roomId) => toggles displayedRooms in parent's inventory
+ *  - isToggled, setIsToggled
+ *  - selectedRoom, setSelectedRoom
+ *  - rooms (the master list)
+ *  - searchQuery, handleSearch, handleSearchClick
+ *  - selectedLetter, setSelectedLetter
+ *  - selectedSubButton, setSelectedSubButton
+ *  - isMyItemsActive, setIsMyItemsActive
+ *  - setSearchQuery
+ *  - onCloseDesktopInventory
+ *  - lead (for HouseInfo)
+ *  - handleItemSelection, handleUpdateItem, handleAddItem, handleStartFresh
+ *  - isDeleteActive, setIsDeleteActive
+ */
 function InventoryDesktop({
+  // Multi-stop
+  stopIndex,
+  setStopIndex,
+
+  // Items for this stop
   roomItemSelections,
   setRoomItemSelections,
+
+  // Currently displayed rooms => array of { id, name }
   displayedRooms,
-  setDisplayedRooms,
+
+  // Callback from parent that toggles rooms in inventoryByStop
+  handleToggleRoom,
+
+  // Toggles
   isToggled,
   setIsToggled,
   selectedRoom,
   setSelectedRoom,
   rooms,
+
+  // Searching / filters
   searchQuery,
   handleSearch,
   handleSearchClick,
@@ -43,101 +80,78 @@ function InventoryDesktop({
   setSelectedLetter,
   selectedSubButton,
   setSelectedSubButton,
+  isMyItemsActive,
   setIsMyItemsActive,
   setSearchQuery,
-  // New prop => used to close the entire Inventory from desktop
+
+  // Closing
   onCloseDesktopInventory,
   lead,
+
+  // Item logic
+  handleItemSelection,
+  handleUpdateItem,
+  handleAddItem,
+  handleStartFresh,
+
+  // Delete toggle
+  isDeleteActive,
+  setIsDeleteActive,
 }) {
-  // State for ItemPopup
+  // Show/hide item popup
   const [isItemPopupVisible, setIsItemPopupVisible] = useState(false);
   const [currentItemData, setCurrentItemData] = useState(null);
   const [currentItemInstance, setCurrentItemInstance] = useState(null);
 
-  // States for MyInventory, SpecialH, and DeleteButton
+  // MyInventory + SpecialH popups
   const [isMyInventoryVisible, setIsMyInventoryVisible] = useState(false);
   const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
-  const [isDeleteActive, setIsDeleteActive] = useState(false);
 
-  // State to control expansion of the Items panel
+  // Expand/collapse the middle panel
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // If no selectedRoom => pick the first
   useEffect(() => {
-    // If no selectedRoom is set, pick the first displayed room
-    if (!selectedRoom && displayedRooms && displayedRooms.length > 0) {
+    if (!selectedRoom && displayedRooms?.length > 0) {
       setSelectedRoom(displayedRooms[0]);
     }
   }, [selectedRoom, displayedRooms, setSelectedRoom]);
 
-  // Handler for expand/collapse button
+  // Convert displayedRooms = [{id, name}] => numeric array [id, ...] for MyInventory & SpecialH
+  const displayedRoomIds = displayedRooms.map((r) => r.id);
+
+  // Expand/collapse
   const handleExpandCollapse = () => {
     setIsExpanded((prev) => !prev);
   };
 
-  // === BACK BUTTON HANDLER ===
+  // Back => close
   const handleBackClick = () => {
-    // If we have the prop, call it => closes the inventory
     if (onCloseDesktopInventory) {
       onCloseDesktopInventory();
     }
   };
 
-  // === CREATE QUOTE BUTTON HANDLER ===
+  // "Create Quote"
   const handleCreateQuoteClick = () => {
-    // Same logic: close the inventory and return to leads
     if (onCloseDesktopInventory) {
       onCloseDesktopInventory();
     }
   };
 
-  // Function to open ItemPopup
-  const handleOpenItemPopup = (itemData, itemInstance) => {
-    setCurrentItemData(itemData);
-    setCurrentItemInstance(itemInstance);
-    setIsItemPopupVisible(true);
-  };
-  // Function to close ItemPopup
-  const handleCloseItemPopup = () => {
-    setIsItemPopupVisible(false);
-    setCurrentItemData(null);
-    setCurrentItemInstance(null);
-  };
-
-  // Handler function for the toggle switch
+  // ToggleSwitch => auto-box
   const handleToggle = () => {
     setIsToggled((prev) => !prev);
   };
 
-  // Handler function for room selection
+  // User clicks a room
   const handleRoomSelect = (room) => {
     setSelectedRoom(room);
   };
 
-  // Function to toggle room visibility
-  const handleToggleRoom = (roomId) => {
-    if (roomId === 13) {
-      // Prevent toggling room id=13 (Boxes)
-      return;
-    }
-
-    const roomToToggle = rooms.find((r) => r.id === roomId);
-    if (!roomToToggle) return;
-
-    setDisplayedRooms((prevDisplayedRooms) => {
-      if (prevDisplayedRooms.some((rm) => rm.id === roomId)) {
-        // If the room is already displayed, remove it
-        return prevDisplayedRooms.filter((rm) => rm.id !== roomId);
-      } else {
-        // If the room is not displayed, add it
-        return [...prevDisplayedRooms, roomToToggle];
-      }
-    });
-  };
-
-  const handleLetterSelect = (letter) => {
-    if (setIsMyItemsActive) {
-      setIsMyItemsActive(false); // Deactivate "My Items" button
-    }
+  // Letter filter => turn off My Items
+  const handleLetterSelectLocal = (letter) => {
+    if (setIsMyItemsActive) setIsMyItemsActive(false);
     if (selectedLetter === letter) {
       setSelectedLetter(null);
       setSelectedSubButton({ letter: null, subButton: null });
@@ -148,17 +162,15 @@ function InventoryDesktop({
     }
   };
 
-  const handleSubButtonSelect = (letter, subButton) => {
-    if (setIsMyItemsActive) {
-      setIsMyItemsActive(false); // Deactivate "My Items" button
-    }
+  // Sub-letter => turn off My Items
+  const handleSubButtonSelectLocal = (letter, subButton) => {
+    if (setIsMyItemsActive) setIsMyItemsActive(false);
     if (
-      selectedSubButton &&
-      selectedSubButton.subButton === subButton &&
-      selectedSubButton.letter === letter
+      selectedSubButton?.letter === letter &&
+      selectedSubButton?.subButton === subButton
     ) {
       setSelectedSubButton({ letter: null, subButton: null });
-      setSelectedLetter(null); 
+      setSelectedLetter(null);
     } else {
       setSelectedSubButton({ letter, subButton });
       setSelectedLetter(letter);
@@ -166,266 +178,99 @@ function InventoryDesktop({
     }
   };
 
-  const handleItemSelection = (clickedItem, action, isMyItemsActiveParam) => {
-    if (!selectedRoom) return;
+  // Count how many times each item appears in "Items" panel
+  const itemCounts = (roomItemSelections[selectedRoom?.id] || []).reduce(
+    (acc, inst) => {
+      const key = inst.itemId.toString();
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    },
+    {}
+  );
 
-    if (!action) {
-      action = isDeleteActive ? 'decrease' : 'increase';
-    }
-
-    setRoomItemSelections((prevSelections) => {
-      const currentRoomSelections = prevSelections[selectedRoom.id] || [];
-      let updatedRoomSelections = [...currentRoomSelections];
-
-      if (action === 'decrease') {
-        let indexToDelete = -1;
-
-        if (isMyItemsActiveParam) {
-          indexToDelete = updatedRoomSelections.findIndex(
-            (itemInstance) => itemInstance.groupingKey === clickedItem.groupingKey
-          );
-        } else {
-          const itemIdToDelete = clickedItem.id.toString();
-          indexToDelete = updatedRoomSelections.findIndex(
-            (itemInstance) => itemInstance.itemId === itemIdToDelete
-          );
-        }
-
-        if (indexToDelete !== -1) {
-          updatedRoomSelections.splice(indexToDelete, 1);
-        }
-      } else if (action === 'increase') {
-        let newItemInstance;
-        if (isMyItemsActiveParam) {
-          const originalItemData = allItems.find(
-            (itm) => itm.id.toString() === clickedItem.itemId
-          );
-
-          if (!originalItemData) {
-            console.error(`Item with id ${clickedItem.itemId} not found in allItems`);
-            return prevSelections;
-          }
-
-          newItemInstance = {
-            id: uuidv4(),
-            itemId: clickedItem.itemId,
-            item: { ...originalItemData }, 
-            tags: [...clickedItem.tags],
-            notes: clickedItem.notes || '',
-            cuft: clickedItem.cuft || '',
-            lbs: clickedItem.lbs || '',
-            packingNeedsCounts: { ...clickedItem.packingNeedsCounts },
-            link: clickedItem.link || '',
-            uploadedImages: [...(clickedItem.uploadedImages || [])],
-            cameraImages: [...(clickedItem.cameraImages || [])],
-            groupingKey: clickedItem.groupingKey,
-          };
-        } else {
-          let defaultPackingNeedsCounts = {};
-          if (clickedItem.packing && clickedItem.packing.length > 0) {
-            clickedItem.packing.forEach((pack) => {
-              defaultPackingNeedsCounts[pack.type] = pack.quantity;
-            });
-          }
-
-          newItemInstance = {
-            id: uuidv4(),
-            itemId: clickedItem.id.toString(),
-            item: { ...clickedItem },
-            tags: [...clickedItem.tags],
-            notes: '',
-            cuft: clickedItem.cuft || '',
-            lbs: clickedItem.lbs || '',
-            packingNeedsCounts: defaultPackingNeedsCounts,
-            link: '',
-            uploadedImages: [],
-            cameraImages: [],
-          };
-          newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
-        }
-
-        updatedRoomSelections.push(newItemInstance);
-      }
-
-      return {
-        ...prevSelections,
-        [selectedRoom.id]: updatedRoomSelections,
-      };
-    });
-  };
-
-  const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
-    setRoomItemSelections((prevSelections) => {
-      const updatedSelections = { ...prevSelections };
-      let roomItems = updatedSelections[selectedRoom.id] || [];
-
-      const groupItems = roomItems.filter(
-        (itm) => itm.groupingKey === originalItemInstance.groupingKey
-      );
-
-      if (groupItems.length === 0) {
-        console.error('Group not found for update.');
-        return updatedSelections;
-      }
-
-      roomItems = roomItems.filter(
-        (itm) => itm.groupingKey !== originalItemInstance.groupingKey
-      );
-
-      const updatedKey = generateGroupingKey(updatedItemInstance);
-      updatedItemInstance.groupingKey = updatedKey;
-
-      const newCount = updatedItemInstance.count !== undefined
-        ? updatedItemInstance.count
-        : 1;
-
-      const newGroupItems = [];
-      for (let i = 0; i < newCount; i++) {
-        newGroupItems.push({
-          ...updatedItemInstance,
-          id: i === 0 ? originalItemInstance.id : uuidv4(),
-        });
-      }
-
-      roomItems = roomItems.concat(newGroupItems);
-      updatedSelections[selectedRoom.id] = roomItems;
-      return updatedSelections;
-    });
-  };
-
-  const handleAddItem = (newItemInstance) => {
-    if (!selectedRoom) return;
-
-    setRoomItemSelections((prevSelections) => {
-      const currentRoomSelections = prevSelections[selectedRoom.id] || [];
-      const updatedRoomSelections = [...currentRoomSelections];
-
-      newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
-
-      const itemCount = newItemInstance.count !== undefined
-        ? newItemInstance.count
-        : 1;
-
-      for (let i = 0; i < itemCount; i++) {
-        updatedRoomSelections.push({
-          ...newItemInstance,
-          id: i === 0 ? newItemInstance.id : uuidv4(),
-        });
-      }
-
-      return {
-        ...prevSelections,
-        [selectedRoom.id]: updatedRoomSelections,
-      };
-    });
-  };
-
-  const handleStartFresh = (newItemInstance) => {
-    // Start fresh logic if needed
-  };
-
+  // Middle panel => get filtered items
   const getFilteredItems = () => {
     if (!selectedRoom) return [];
-
-    let filteredItems = [];
-
+    // If search query
     if (searchQuery.trim() !== '') {
-      filteredItems = allItems.filter((item) => {
-        const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const isSearchable = item.search !== 'N';
-        return matchesQuery && isSearchable;
+      const filtered = allItems.filter((itm) => {
+        const match = itm.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return match && itm.search !== 'N';
       });
-
-      if (filteredItems.length === 0) {
-        const customItem = allItems.find((item) => item.name === 'Custom Item');
-        if (customItem) {
-          filteredItems = [customItem];
-        }
+      if (filtered.length === 0) {
+        const customItem = allItems.find((x) => x.name === 'Custom Item');
+        return customItem ? [customItem] : [];
       }
-      return filteredItems;
+      return filtered;
     }
-
+    // If sub-letter
     if (selectedSubButton?.subButton) {
-      filteredItems = allItems.filter((item) =>
-        item.letters.includes(selectedSubButton.subButton)
+      return allItems.filter((itm) =>
+        itm.letters.includes(selectedSubButton.subButton)
       );
-      return filteredItems;
     }
-
+    // If single letter
     if (selectedLetter) {
-      filteredItems = allItems.filter((item) => item.letters.includes(selectedLetter));
-      return filteredItems;
+      return allItems.filter((itm) => itm.letters.includes(selectedLetter));
     }
-
-    filteredItems = allItems.filter((item) =>
-      item.rooms.includes(Number(selectedRoom.id))
-    );
-    return filteredItems;
+    // else => items in the current room
+    return allItems.filter((itm) => itm.rooms.includes(Number(selectedRoom.id)));
   };
 
-  const itemCounts = roomItemSelections[selectedRoom?.id]?.reduce((counts, instance) => {
-    const key = instance.itemId.toString();
-    counts[key] = (counts[key] || 0) + 1;
-    return counts;
-  }, {}) || {};
-
+  // Right panel => "My Items" => group by groupingKey
   const getGroupedItems = () => {
     if (!selectedRoom) return [];
-
-    const roomItemInstances = roomItemSelections[selectedRoom.id] || [];
-    const groupedItemsMap = roomItemInstances.reduce((groups, instance) => {
-      const key = instance.groupingKey;
-      if (!groups[key]) {
-        const originalItemData = allItems.find(
-          (itm) => itm.id.toString() === instance.itemId
-        );
-        if (!originalItemData) {
-          console.error(`Item with id ${instance.itemId} not found in allItems`);
-          return groups;
-        }
-        groups[key] = {
-          id: instance.id,
-          groupingKey: key,
-          itemId: instance.itemId,
-          item: { ...originalItemData },
-          tags: [...instance.tags],
-          notes: instance.notes,
-          cuft: instance.cuft,
-          lbs: instance.lbs,
-          packingNeedsCounts: { ...instance.packingNeedsCounts },
-          link: instance.link || '',
-          uploadedImages: [...(instance.uploadedImages || [])],
-          cameraImages: [...(instance.cameraImages || [])],
-          count: 1,
-        };
+    const arr = roomItemSelections[selectedRoom.id] || [];
+    const grouped = {};
+    for (const inst of arr) {
+      const gKey = inst.groupingKey;
+      if (!grouped[gKey]) {
+        grouped[gKey] = { ...inst, count: 1 };
       } else {
-        groups[key].count += 1;
+        grouped[gKey].count += 1;
       }
-      return groups;
-    }, {});
-
-    return Object.values(groupedItemsMap);
+    }
+    return Object.values(grouped);
   };
 
-  // Delete, SpecialH, MyInventory
+  // Delete toggle
   const handleDeleteClick = () => {
     setIsDeleteActive((prev) => !prev);
   };
 
-  const handleSpecialHClick = () => {
-    setIsSpecialHVisible(true);
-  };
-
+  // MyInventory
   const handleMyInventoryClick = () => {
     setIsMyInventoryVisible(true);
   };
 
+  // SpecialH
+  const handleSpecialHClick = () => {
+    setIsSpecialHVisible(true);
+  };
+
+  // If user taps search bar
   const handleSearchFocus = () => {
     handleSearchClick();
   };
 
+  // Open/close ItemPopup
+  const handleOpenItemPopup = (itemData, itemInstance) => {
+    setCurrentItemData(itemData);
+    setCurrentItemInstance(itemInstance);
+    setIsItemPopupVisible(true);
+  };
+  const handleCloseItemPopup = () => {
+    setIsItemPopupVisible(false);
+    setCurrentItemData(null);
+    setCurrentItemInstance(null);
+  };
+
   return (
-    <div className={`${styles.inventoryDesktopContainer} ${isExpanded ? styles.expanded : ''}`}>
+    <div
+      className={`${styles.inventoryDesktopContainer} ${
+        isExpanded ? styles.expanded : ''
+      }`}
+    >
       {/* ===== Top Row ===== */}
       <div className={styles.topRowCol1}>
         <BackButton onClick={handleBackClick} />
@@ -452,7 +297,11 @@ function InventoryDesktop({
       {/* ===== Middle Row ===== */}
       <div className={styles.middleRowCol1}>
         <div className={styles.houseInfo}>
-        <HouseInfo lead={lead} />
+          <HouseInfo
+            lead={lead}
+            stopIndex={stopIndex}
+            onStopIndexChange={setStopIndex}
+          />
         </div>
         <div className={styles.roomListContainer}>
           <RoomList
@@ -464,6 +313,7 @@ function InventoryDesktop({
         </div>
       </div>
 
+      {/* Middle Column => Items */}
       <div className={styles.middleRowCol2}>
         <div className={styles.itemsHeader}>
           <div className={styles.itemsHeaderText}>Items</div>
@@ -483,8 +333,8 @@ function InventoryDesktop({
             <AlphabetButtons
               selectedLetter={selectedLetter}
               selectedSubButton={selectedSubButton}
-              onLetterSelect={handleLetterSelect}
-              onSubButtonClick={handleSubButtonSelect}
+              onLetterSelect={handleLetterSelectLocal}
+              onSubButtonClick={handleSubButtonSelectLocal}
             />
           </div>
           <div className={styles.itemListPlaceholder}>
@@ -492,7 +342,7 @@ function InventoryDesktop({
               items={getFilteredItems()}
               itemClickCounts={itemCounts}
               onItemClick={handleItemSelection}
-              isMyItemsActive={false} 
+              isMyItemsActive={false}
               isDeleteActive={isDeleteActive}
               onUpdateItem={handleUpdateItem}
               onAddItem={handleAddItem}
@@ -503,6 +353,7 @@ function InventoryDesktop({
         </div>
       </div>
 
+      {/* Right Column => My Items */}
       <div className={styles.middleRowCol3}>
         <div className={styles.itemsHeader}>
           <div className={styles.itemsHeaderText}>My Items</div>
@@ -512,7 +363,9 @@ function InventoryDesktop({
           <p>MY INVENTORY</p>
         </div>
         <div className={styles.itemsContentContainer}>
-          <div className={`${styles.itemListPlaceholder} ${styles.myItemsListPlaceholder}`}>
+          <div
+            className={`${styles.itemListPlaceholder} ${styles.myItemsListPlaceholder}`}
+          >
             <ItemList
               items={getGroupedItems()}
               itemClickCounts={{}}
@@ -531,20 +384,28 @@ function InventoryDesktop({
 
       {/* ===== Bottom Row ===== */}
       <div className={styles.bottomRowCol1}>
+        {/* We pass numeric IDs => highlight in AddRoomPopup */}
         <AddRoomButton
-          rooms={rooms}
-          displayedRooms={displayedRooms}
-          onToggleRoom={handleToggleRoom}
+          rooms={rooms}  // full master list
+          displayedRooms={displayedRoomIds}  // array of numeric IDs
+          // The parent's function that toggles rooms in inventoryByStop:
+          onToggleRoom={handleToggleRoom} 
         />
       </div>
 
       <div className={styles.bottomRowCol2}>
         <div className={styles.leftGroup}>
-          <button className={styles.myInventoryButton} onClick={handleMyInventoryClick}>
+          <button
+            className={styles.myInventoryButton}
+            onClick={handleMyInventoryClick}
+          >
             <span>My Inventory</span>
             <MyInventoryIcon className={styles.myInventoryIcon} />
           </button>
-          <button className={styles.specialHButton} onClick={handleSpecialHClick}>
+          <button
+            className={styles.specialHButton}
+            onClick={handleSpecialHClick}
+          >
             <span>Special Handling</span>
             <SpecialHIcon className={styles.specialHIcon} />
           </button>
@@ -557,9 +418,7 @@ function InventoryDesktop({
         />
       </div>
 
-      {/* BottomRow Column 3 => the Create Quote button */}
       <div className={styles.bottomRowCol3}>
-        {/* We pass in an onClick that calls handleCreateQuoteClick */}
         <CreateQuoteButton onClick={handleCreateQuoteClick} />
       </div>
 
@@ -580,7 +439,8 @@ function InventoryDesktop({
         <MyInventory
           setIsMyInventoryVisible={setIsMyInventoryVisible}
           roomItemSelections={roomItemSelections}
-          displayedRooms={displayedRooms}
+          setRoomItemSelections={setRoomItemSelections}
+          displayedRooms={displayedRoomIds} // numeric IDs
         />
       )}
 
@@ -590,8 +450,7 @@ function InventoryDesktop({
           setIsSpecialHVisible={setIsSpecialHVisible}
           roomItemSelections={roomItemSelections}
           setRoomItemSelections={setRoomItemSelections}
-          selectedRoom={selectedRoom}
-          displayedRooms={displayedRooms}
+          displayedRooms={displayedRoomIds} // numeric IDs
         />
       )}
     </div>

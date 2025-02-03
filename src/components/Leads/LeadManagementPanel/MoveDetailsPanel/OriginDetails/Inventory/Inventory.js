@@ -1,3 +1,5 @@
+// src/components/Inventory/Inventory.js
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './Inventory.module.css';
 
@@ -37,16 +39,7 @@ function Inventory({
   // Keep track if we’ve loaded data so we don’t immediately overwrite
   const [hasLoadedInventory, setHasLoadedInventory] = useState(false);
 
-  /**
-   * inventoryByStop structure:
-   * {
-   *   [stopIndex]: {
-   *     displayedRooms: number[],   // e.g. [1,2,13]
-   *     itemsByRoom: { [roomId]: arrayOfItemInstances }
-   *   },
-   *   ...
-   * }
-   */
+  // The big object keyed by stopIndex => { displayedRooms, itemsByRoom }
   const [inventoryByStop, setInventoryByStop] = useState({});
 
   // If mobile, "inventoryRoom" is the selected room object
@@ -70,12 +63,12 @@ function Inventory({
   // For tracking & auto-adding boxes
   const prevTotalLbsRef = useRef(null);
 
-  // Item popup
+  // Item popup data
   const [popupData, setPopupData] = useState(null);
   const handleOpenPopup = (item, itemInstance) => setPopupData({ item, itemInstance });
   const handleClosePopup = () => setPopupData(null);
 
-  // 1) Load from DB on mount
+  // ============================== LOAD ON MOUNT ==============================
   useEffect(() => {
     if (lead?.lead_id && lead?.tenant_id) {
       const existing = getInventoryByLeadId(lead.lead_id, lead.tenant_id);
@@ -96,7 +89,7 @@ function Inventory({
     setHasLoadedInventory(true);
   }, [lead]);
 
-  // 2) Whenever inventoryByStop changes => do incremental save
+  // ============================== SAVE CHANGES ==============================
   useEffect(() => {
     if (!hasLoadedInventory) return;
     if (lead?.lead_id && lead?.tenant_id) {
@@ -104,7 +97,7 @@ function Inventory({
     }
   }, [inventoryByStop, lead, hasLoadedInventory]);
 
-  // Handle resizing for desktop vs mobile
+  // ============================== RESPONSIVE CHECK ==============================
   useEffect(() => {
     function handleResize() {
       setIsDesktop(window.innerWidth >= 1024);
@@ -123,8 +116,7 @@ function Inventory({
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
-  // ------------------- Helpers for this “stop” -------------------
-
+  // -------------------------- Helpers --------------------------
   // Returns the data object for the current stop (creating if missing)
   const getStopData = useCallback(
     (stopIdx) => {
@@ -140,9 +132,18 @@ function Inventory({
     [inventoryByStop]
   );
 
-  // ------------------- ROOM + ITEM LOGIC -------------------
+  // Debug log
+  useEffect(() => {
+    if (lead?.lead_id && lead?.tenant_id) {
+      console.log("Current Inventory Record:", {
+        lead_id: lead.lead_id,
+        tenant_id: lead.tenant_id,
+        inventoryByStop,
+      });
+    }
+  }, [lead, inventoryByStop]);
 
-  // For "Start Fresh" => add a brand new item instance
+  // ============================== ROOM + ITEM LOGIC ==============================
   const handleStartFresh = (newItemInstance) => {
     if (!selectedRoom) return;
     setInventoryByStop((prev) => {
@@ -160,7 +161,7 @@ function Inventory({
     });
   };
 
-  // For selecting a room (in mobile)
+  // For selecting a room (mobile)
   const handleRoomSelect = (room) => {
     if (setInventoryRoom) setInventoryRoom(room);
   };
@@ -285,10 +286,9 @@ function Inventory({
     });
   };
 
-  // Toggling rooms in “Add Room” popup => local to the current stop
+  // Toggling rooms in “Add Room” popup => local to this stop
   const handleToggleRoom = (roomId) => {
-    // If you want to keep "Boxes" always => skip if roomId=13
-    // Otherwise, remove this if you want it toggleable
+    // Keep "Boxes" always => skip if roomId=13 (optional)
     if (roomId === 13) return;
 
     setInventoryByStop((prev) => {
@@ -302,7 +302,7 @@ function Inventory({
         newDisplayed = [...oldDisplayed, roomId];
       }
 
-      // If you want to ensure #13 is always in the array:
+      // ensure #13 is always in array, if desired
       if (!newDisplayed.includes(13)) {
         newDisplayed.push(13);
       }
@@ -391,7 +391,7 @@ function Inventory({
     });
   };
 
-  // Auto-add boxes if toggled
+  // ============================== AUTO-ADD BOXES ==============================
   useEffect(() => {
     if (!isToggled) return;
 
@@ -486,25 +486,45 @@ function Inventory({
     onCloseInventory();
   };
 
-  // ---------------------------------------------------------
-  // DESKTOP RENDER
-  // ---------------------------------------------------------
+  // ============================== DESKTOP RENDER ==============================
   if (isDesktop) {
     const stopData = getStopData(stopIndex);
 
+    // Convert numeric IDs to room objects
+    const displayedRoomObjects = (stopData.displayedRooms || []).map((rId) => {
+      const found = rooms.find((rm) => rm.id === rId);
+      return found || { id: rId, name: `Room #${rId}` };
+    });
+
     return (
       <InventoryDesktop
-        // The entire multi-stop object
+        // The entire multi-stop object (if needed by Desktop)
         inventoryByStop={inventoryByStop}
         setInventoryByStop={setInventoryByStop}
         stopIndex={stopIndex}
         setStopIndex={setStopIndex}
 
-        // The “subset” for this stop: displayedRooms + itemsByRoom
+        // The “subset” for this stop
         roomItemSelections={stopData.itemsByRoom}
-        displayedRooms={stopData.displayedRooms}
+        // crucial so we can mutate items from MyInventory or SpecialH
+        setRoomItemSelections={(fnOrObj) => {
+          setInventoryByStop((prev) => {
+            const oldStopData = getStopData(stopIndex);
+            const oldItems = oldStopData.itemsByRoom;
+            const newItems =
+              typeof fnOrObj === 'function' ? fnOrObj(oldItems) : fnOrObj;
+            return {
+              ...prev,
+              [stopIndex]: {
+                ...oldStopData,
+                itemsByRoom: newItems,
+              },
+            };
+          });
+        }}
+        displayedRooms={displayedRoomObjects}
 
-        // Toggle, search, etc.
+        // Toggles, etc.
         isToggled={isToggled}
         setIsToggled={setIsToggled}
         selectedRoom={selectedRoom}
@@ -522,18 +542,26 @@ function Inventory({
         setSearchQuery={setSearchQuery}
         onCloseDesktopInventory={handleClose}
         lead={lead}
+
+        // item add/update logic
+        handleItemSelection={handleItemSelection}
+        handleUpdateItem={handleUpdateItem}
+        handleAddItem={handleAddItem}
+        handleStartFresh={handleStartFresh}
+
+        // Delete toggle
+        isDeleteActive={isDeleteActive}
+        setIsDeleteActive={setIsDeleteActive}
+        handleToggleRoom={handleToggleRoom}
       />
     );
   }
 
-  // ---------------------------------------------------------
-  // MOBILE RENDER
-  // ---------------------------------------------------------
+  // ============================== MOBILE RENDER ==============================
   const stopData = getStopData(stopIndex);
 
-  // Convert numeric IDs (e.g. 1,2,13) to room objects so <RoomList> can display them
+  // Convert numeric IDs (e.g. 1,2,13) to room objects
   const displayedRoomObjects = (stopData.displayedRooms || []).map((rId) => {
-    // find the matching object in 'rooms'
     const found = rooms.find((rm) => rm.id === rId);
     return found || { id: rId, name: `Room #${rId}` };
   });
@@ -552,7 +580,7 @@ function Inventory({
         ) : (
           <HouseHeader
             rooms={rooms} // your master list
-            displayedRooms={stopData.displayedRooms} // still numeric IDs for toggling
+            displayedRooms={stopData.displayedRooms} // numeric IDs
             onToggleRoom={handleToggleRoom}
             lead={lead}
             stopIndex={stopIndex}
@@ -571,7 +599,6 @@ function Inventory({
             selectedSubButton={selectedSubButton}
             onLetterSelect={handleLetterSelect}
             onSubButtonSelect={handleSubButtonSelect}
-            // The items for the currently selected room
             itemClickCounts={stopData.itemsByRoom[selectedRoom.id] || {}}
             itemInstances={stopData.itemsByRoom[selectedRoom.id] || []}
             onItemClick={handleItemSelection}
@@ -591,7 +618,7 @@ function Inventory({
           <RoomList
             onRoomSelect={handleRoomSelect}
             roomItemSelections={stopData.itemsByRoom}
-            displayedRooms={displayedRoomObjects}  // pass actual room objects
+            displayedRooms={displayedRoomObjects}
             selectedRoom={selectedRoom}
           />
         )}
@@ -617,6 +644,7 @@ function Inventory({
         setIsSpecialHVisible={setIsSpecialHVisible}
         // The item data for this stop
         roomItemSelections={stopData.itemsByRoom}
+        // Pass a function so MyInventory / SpecialH in mobile can update items
         setRoomItemSelections={(fnOrObj) => {
           setInventoryByStop((prev) => {
             const oldStopData = getStopData(stopIndex);
@@ -633,8 +661,7 @@ function Inventory({
           });
         }}
         selectedRoom={selectedRoom}
-        // For the Footer, if you need to display the "rooms" or let them be toggled:
-        displayedRooms={stopData.displayedRooms} 
+        displayedRooms={stopData.displayedRooms}
         onCloseInventory={handleClose}
       />
     </div>

@@ -9,7 +9,7 @@ import { ReactComponent as More } from '../../../../../../../assets/icons/more.s
  *
  * Props:
  *  - onRoomSelect(room): function to select a room object
- *  - roomItemSelections: { [roomId]: arrayOfItems }
+ *  - roomItemSelections: { [roomId]: arrayOfItemInstances }
  *  - displayedRooms: array of room objects (e.g. [{ id, name }, ...])
  *  - selectedRoom: the currently selected room object
  */
@@ -25,11 +25,14 @@ function RoomList({
   const scrollContainerRef = useRef(null);
   const hasMoved = useRef(false);
 
-  // Separate out the "boxes room" if present (id=13)
-  const otherRooms = displayedRooms.filter((room) => room.id !== 13);
-  const boxesRoom = displayedRooms.find((room) => room.id === 13);
+  // Filter out any falsy or malformed room entries
+  const validRooms = displayedRooms.filter((r) => r && typeof r === 'object');
 
-  // ----- Mouse event handlers -----
+  // Separate out the "boxes" room if present (id=13)
+  const otherRooms = validRooms.filter((room) => room.id !== 13);
+  const boxesRoom = validRooms.find((room) => room.id === 13);
+
+  // Mouse move while dragging
   const handleMouseMove = useCallback((e) => {
     if (!isDragging.current) return;
     const y = e.clientY;
@@ -43,12 +46,14 @@ function RoomList({
     }
   }, []);
 
+  // Mouse up => stop dragging
   const handleMouseUp = useCallback(() => {
     isDragging.current = false;
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
   }, [handleMouseMove]);
 
+  // Mouse down => start dragging
   const handleMouseDown = (e) => {
     isDragging.current = true;
     startY.current = e.clientY;
@@ -59,6 +64,7 @@ function RoomList({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
@@ -66,7 +72,6 @@ function RoomList({
     };
   }, [handleMouseMove, handleMouseUp]);
 
-  // ----- Render -----
   return (
     <div
       className={styles.roomListContainer}
@@ -74,16 +79,18 @@ function RoomList({
       onMouseDown={handleMouseDown}
       style={{ cursor: isDragging.current ? 'grabbing' : 'grab' }}
     >
-      {/* Render all rooms except the "Boxes" room (id=13) */}
-      {otherRooms.map((room) => {
-        const itemInstances = roomItemSelections[room.id] || [];
-        const selectedItemCount = itemInstances.length;
+      {/* Rooms except the 'Boxes' room */}
+      {otherRooms.map((room, index) => {
+        const roomId = room.id ?? `fallback-${index}`;
+        const itemInstances = roomItemSelections[roomId] || [];
         const isActive = selectedRoom && selectedRoom.id === room.id;
-        const roomName = room.name || `Room #${room.id}`;
+        const selectedItemCount = itemInstances.length;
+
+        const roomName = room.name || `Room #${roomId}`;
 
         return (
           <button
-            key={`room-${room.id}`} // ensure a unique key
+            key={`room-${roomId}`}
             onClick={(e) => {
               if (hasMoved.current) {
                 e.preventDefault();
@@ -111,10 +118,10 @@ function RoomList({
         );
       })}
 
-      {/* Render boxes room (id=13) last, if it exists */}
+      {/* Boxes room last, if it exists */}
       {boxesRoom && (
         <button
-          key={`room-${boxesRoom.id}`}
+          key={`room-${boxesRoom.id ?? 'boxes'}`}
           onClick={(e) => {
             if (hasMoved.current) {
               e.preventDefault();
@@ -135,9 +142,7 @@ function RoomList({
           aria-pressed={selectedRoom && selectedRoom.id === boxesRoom.id}
           aria-label={`Select ${boxesRoom.name || 'Boxes'}`}
         >
-          <p className={styles.roomName}>
-            {boxesRoom.name || 'Boxes'}
-          </p>
+          <p className={styles.roomName}>{boxesRoom.name || 'Boxes'}</p>
           <div className={styles.rightSection}>
             {roomItemSelections[boxesRoom.id]?.length > 0 && (
               <div className={styles.itemCount}>

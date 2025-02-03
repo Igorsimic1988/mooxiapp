@@ -142,9 +142,6 @@ function LeadManagementPanel({
   onLeadUpdated,
   onInventoryFullScreen, // <--- from parent
 }) {
-  // We removed local showInventory and local inventoryRoom states
-  // Instead, we rely on parent's onInventoryFullScreen() to open Inventory
-
   // status, activity, nextAction
   const [leadStatus, setLeadStatus]     = useState(lead.lead_status);
   const [leadActivity, setLeadActivity] = useState(lead.lead_activity || 'Contacting');
@@ -168,15 +165,15 @@ function LeadManagementPanel({
   const [inventoryOption, setInventoryOption] = useState(
     lead.inventory_option || 'Detailed Inventory Quote'
   );
-  const [showInventoryDropdown, setShowInventoryDropdown] = useState(false);
-  const inventoryRef = useRef(null);
 
   // show/hide dropdowns
-  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [showActivityDropdown, setShowActivityDropdown] = useState(false);
+  const [showInventoryDropdown, setShowInventoryDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown]       = useState(false);
+  const [showActivityDropdown, setShowActivityDropdown]   = useState(false);
   const [showEstimatorDropdown, setShowEstimatorDropdown] = useState(false);
 
   // Refs for outside-click detection
+  const inventoryRef         = useRef(null);
   const statusContainerRef   = useRef(null);
   const activityContainerRef = useRef(null);
 
@@ -203,6 +200,7 @@ function LeadManagementPanel({
   // Click outside => close dropdowns
   useEffect(() => {
     function handleClickOutside(e) {
+      // Status
       if (
         showStatusDropdown &&
         statusContainerRef.current &&
@@ -210,6 +208,7 @@ function LeadManagementPanel({
       ) {
         setShowStatusDropdown(false);
       }
+      // Activity
       if (
         showActivityDropdown &&
         activityContainerRef.current &&
@@ -217,6 +216,7 @@ function LeadManagementPanel({
       ) {
         setShowActivityDropdown(false);
       }
+      // Inventory
       if (
         showInventoryDropdown &&
         inventoryRef.current &&
@@ -238,7 +238,7 @@ function LeadManagementPanel({
     if (onEditLead) onEditLead(lead);
   };
 
-  // ----------- Status logic -----------
+  // -------------- Status logic --------------
   const handleToggleStatusDropdown = () => {
     setShowStatusDropdown((prev) => !prev);
   };
@@ -278,7 +278,7 @@ function LeadManagementPanel({
     }
   };
 
-  // ----------- Activity logic -----------
+  // -------------- Activity logic --------------
   const handleToggleActivityDropdown = () => {
     setShowActivityDropdown((prev) => !prev);
   };
@@ -322,7 +322,7 @@ function LeadManagementPanel({
     }
   };
 
-  // ----------- NextAction logic -----------
+  // -------------- NextAction logic --------------
   const handleNextActionClick = () => {
     setAnimateNextAction(true);
     setTimeout(() => setAnimateNextAction(false), 600);
@@ -364,16 +364,17 @@ function LeadManagementPanel({
     let newActivity = leadActivity;
     let newNextAction = nextAction;
 
+    //  --- If leadStatus = 'New Lead'
     if (leadStatus === 'New Lead') {
       if (nextAction === 'Attempt 1') {
-        newStatus = 'In Progress';
-        newActivity = 'Contacting';
+        newStatus     = 'In Progress';
+        newActivity   = 'Contacting';
         newNextAction = 'Attempt 2';
       } else if (nextAction.startsWith('Attempt')) {
         const attemptNum = parseInt(nextAction.replace('Attempt ', ''), 10);
         if (attemptNum >= 6) {
-          newStatus   = 'Bad Lead';
-          newActivity = getActivityOptions('Bad Lead')[0] || '';
+          newStatus     = 'Bad Lead';
+          newActivity   = getActivityOptions('Bad Lead')[0] || '';
           newNextAction = '—';
         } else {
           newNextAction = `Attempt ${attemptNum + 1}`;
@@ -382,28 +383,30 @@ function LeadManagementPanel({
         newNextAction = 'Attempt 1';
       }
     }
+    //  --- If leadStatus = 'In Progress'
     else if (leadStatus === 'In Progress') {
       if (!nextAction.startsWith('Attempt')) {
         newNextAction = 'Attempt 2';
       } else {
         const attemptNum = parseInt(nextAction.replace('Attempt ', ''), 10);
         if (attemptNum >= 6) {
-          newStatus   = 'Bad Lead';
-          newActivity = getActivityOptions('Bad Lead')[0] || '';
+          newStatus     = 'Bad Lead';
+          newActivity   = getActivityOptions('Bad Lead')[0] || '';
           newNextAction = '—';
         } else {
           newNextAction = `Attempt ${attemptNum + 1}`;
         }
       }
     }
+    //  --- If leadStatus = 'Quoted'
     else if (leadStatus === 'Quoted') {
       if (!nextAction.startsWith('Follow up')) {
         newNextAction = 'Follow up 1';
       } else {
         const fuNum = parseInt(nextAction.replace('Follow up ', ''), 10);
         if (fuNum >= 6) {
-          newStatus   = 'Declined';
-          newActivity = getActivityOptions('Declined')[0] || '';
+          newStatus     = 'Declined';
+          newActivity   = getActivityOptions('Declined')[0] || '';
           newNextAction = '—';
         } else {
           newNextAction = `Follow up ${fuNum + 1}`;
@@ -434,7 +437,7 @@ function LeadManagementPanel({
     }
   };
 
-  // ----------- Estimator logic -----------
+  // -------------- Estimator logic --------------
   const handleToggleEstimatorDropdown = () => {
     setShowEstimatorDropdown((prev) => !prev);
   };
@@ -456,7 +459,7 @@ function LeadManagementPanel({
     }
   };
 
-  // ----------- Calendar -----------
+  // -------------- Calendar logic --------------
   const handleToggleCalendar = () => {
     setShowCalendar((prev) => !prev);
   };
@@ -486,7 +489,7 @@ function LeadManagementPanel({
     }
   };
 
-  // ----------- Time (Survey Time) -----------
+  // -------------- Time logic --------------
   const handleSelectTime = (timeStr) => {
     setSelectedTime(timeStr);
     setShowTimeDropdown(false);
@@ -522,7 +525,7 @@ function LeadManagementPanel({
     leadStatus === 'In Progress' &&
     (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate');
 
-  // handle inventory dropdown
+  // -------------- Inventory logic --------------
   const handleSelectInventoryOption = (opt) => {
     setInventoryOption(opt.label);
     setShowInventoryDropdown(false);
@@ -842,35 +845,16 @@ function LeadManagementPanel({
             </div>
 
             {showInventoryDropdown && (
-              <ul
-                style={{
-                  position: 'absolute',
-                  top: '55px',
-                  left: 0,
-                  width: '100%',
-                  background: '#fff',
-                  border: '1px solid #ccc',
-                  borderRadius: '12px',
-                  padding: '8px 0',
-                  maxHeight: '220px',
-                  overflowY: 'auto',
-                  zIndex: 3100,
-                }}
-              >
+              <ul className={styles.inventoryDropdown}>
                 {inventoryDropdownOptions.map((opt) => {
                   const isSelected = opt.label === inventoryOption;
                   return (
                     <li
                       key={opt.label}
-                      style={{
-                        padding: '10px 15px',
-                        cursor: 'pointer',
-                        fontFamily: 'Satoshi, sans-serif',
-                        fontSize: '16px',
-                        fontWeight: 700,
-                        background: isSelected ? 'rgba(0,0,0,0.05)' : '#FFF',
-                        color: '#2F3236',
-                      }}
+                      className={`
+                        ${styles.inventoryOption}
+                        ${isSelected ? styles.selectedOption : ''}
+                      `}
                       onClick={() => handleSelectInventoryOption(opt)}
                     >
                       {opt.label}

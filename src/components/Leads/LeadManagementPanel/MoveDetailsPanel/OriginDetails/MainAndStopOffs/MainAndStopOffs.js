@@ -39,21 +39,13 @@ function MainAndStopOffs({
   const handleAddStopOff = () => {
     const newStopCount = stops.length; // e.g. if we already have 1 stop
     let newLabel = '';
-    
+
     if (placeType === 'destination') {
-      // Destination => first is "Main Drop off", subsequent => "Drop off 1, 2..."
-      if (newStopCount === 1) {
-        newLabel = 'Drop off 1';
-      } else {
-        newLabel = `Drop off ${newStopCount}`;
-      }
+      // All new stops => "Drop off 2, Drop off 3, etc."
+      newLabel = `Drop off ${newStopCount + 1}`;
     } else {
-      // Origin => first is "Main Address", subsequent => "Stop off 1, 2..."
-      if (newStopCount === 1) {
-        newLabel = 'Stop off 1';
-      } else {
-        newLabel = `Stop off ${newStopCount}`;
-      }
+      // All new stops => "Stop off 2, Stop off 3, etc."
+      newLabel = `Stop off ${newStopCount + 1}`;
     }
 
     const newStop = {

@@ -25,7 +25,6 @@ function generateTimeOptions() {
   let startMinutes = 7 * 60; // 7:00 AM
   const endMinutes = 24 * 60; // 1440
 
-  // Use < instead of <= to avoid duplicating 12:00
   while (startMinutes < endMinutes) {
     const hh = Math.floor(startMinutes / 60);
     const mm = startMinutes % 60;
@@ -48,7 +47,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
 
-  // ---------- For the Time Restrictions UI ----------
+  // ---------- TIME RESTRICTIONS UI ----------
   const timeRestrictionOptions = ['Not allowed', 'Allowed'];
   const timeRestrictionTypes = [
     'Elevator Usage',
@@ -63,7 +62,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
   ];
   const timeOptions = generateTimeOptions();
 
-  // ---------- PLACE/ACCESS/SERVICES POPUPS ----------
+  // ---------- POPUPS ----------
   const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
   const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
   const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false);
@@ -79,7 +78,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
           city: '',
           state: '',
           zip: '',
-          // Initialize timeRestrictions for each stop:
           timeRestrictions: {
             isEnabled: false,
             option: 'Select',
@@ -109,22 +107,50 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
     }
   }, [lead, onLeadUpdated]);
 
-  // Safely get the "current" origin stop
+  // ---------- Current Stop ----------
   const originStops = lead.originStops || [];
   const currentStop = originStops[selectedStopIndex] || {};
 
-  // If user types in an address field => update just that origin stop
+  /**
+   * PLACE => remove dotted if typeOfPlace, moveSize, howManyStories all set
+   */
+  function isPlaceDataComplete(stop) {
+    return (
+      stop.typeOfPlace?.trim() &&
+      stop.moveSize?.trim() &&
+      stop.howManyStories?.trim()
+    );
+  }
+
+  /**
+   * ACCESS => remove dotted if parkingAccess, distanceDoorTruck, howManySteps are set
+   */
+  function isAccessDataComplete(stop) {
+    return (
+      stop.parkingAccess?.trim() &&
+      stop.distanceDoorTruck?.trim() &&
+      stop.howManySteps?.trim()
+    );
+  }
+
+  /**
+   * SERVICES => remove dotted if packingOption is set
+   * (per your request: "for the dotted line to disappear on SERVICES there should be the input in packingOption")
+   */
+  function isServicesDataComplete(stop) {
+    return !!stop.packingOption?.trim();
+  }
+
+  // If user changes an address field => update that stop
   const handleStopFieldChange = (fieldName, newValue) => {
     const updatedStops = [...originStops];
     const stopCopy = { ...updatedStops[selectedStopIndex] };
-
     stopCopy[fieldName] = newValue;
     updatedStops[selectedStopIndex] = stopCopy;
-
     onLeadUpdated({ ...lead, originStops: updatedStops });
   };
 
-  // Helper: ensure there's a `timeRestrictions` object on the current stop
+  // ---------- Time restrictions ----------
   function getCurrentStopRestrictions() {
     if (!currentStop.timeRestrictions) {
       return {
@@ -137,11 +163,8 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
     }
     return currentStop.timeRestrictions;
   }
+  const currentTR = getCurrentStopRestrictions();
 
-  // ---------- TIME RESTRICTIONS: All handled per-stop ----------
-  const currentTR = getCurrentStopRestrictions(); // currentStop's timeRestrictions
-
-  // Dropdown open states + refs
   const optionDropdownRef = useRef(null);
   const typeDropdownRef = useRef(null);
   const startDropdownRef = useRef(null);
@@ -178,12 +201,10 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
     endDropdownOpen
   ]);
 
-  // A helper to update the timeRestrictions object in the current stop
   const updateCurrentStopRestrictions = (partialObj) => {
     const updatedStops = [...originStops];
-    let stopCopy = { ...updatedStops[selectedStopIndex] };
+    const stopCopy = { ...updatedStops[selectedStopIndex] };
 
-    // Ensure timeRestrictions is an object
     let tr = stopCopy.timeRestrictions || {
       isEnabled: false,
       option: 'Select',
@@ -191,8 +212,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
       startTime: '',
       endTime: '',
     };
-
-    // Merge partial updates
     tr = { ...tr, ...partialObj };
     stopCopy.timeRestrictions = tr;
 
@@ -200,34 +219,206 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
     onLeadUpdated({ ...lead, originStops: updatedStops });
   };
 
-  // Toggle
   const handleToggleTimeRestrictions = (value) => {
     updateCurrentStopRestrictions({ isEnabled: value });
   };
-
-  // Option
   const handleSelectTimeRestrictionsOption = (opt) => {
     setOptionDropdownOpen(false);
     updateCurrentStopRestrictions({ option: opt });
   };
-
-  // Type
   const handleSelectTimeRestrictionsType = (typ) => {
     setTypeDropdownOpen(false);
     updateCurrentStopRestrictions({ restrictionType: typ });
   };
-
-  // Start
   const handleSelectTimeRestrictionsStart = (startVal) => {
     setStartDropdownOpen(false);
     updateCurrentStopRestrictions({ startTime: startVal });
   };
-
-  // End
   const handleSelectTimeRestrictionsEnd = (endVal) => {
     setEndDropdownOpen(false);
     updateCurrentStopRestrictions({ endTime: endVal });
   };
+
+  /**
+   * PLACE Summary
+   * -------------
+   * line1 => typeOfPlace
+   * line2 => moveSize - howManyStories
+   * line3 => features + "COI"
+   */
+  function renderPlaceSummary(stop) {
+    const { typeOfPlace, moveSize, howManyStories, features, needsCOI } = stop || {};
+
+    // line1
+    const line1 = typeOfPlace?.trim() || '';
+    // line2
+    let line2 = '';
+    if (moveSize?.trim() && howManyStories?.trim()) {
+      line2 = `${moveSize} - ${howManyStories}`;
+    } else if (moveSize?.trim()) {
+      line2 = moveSize;
+    } else if (howManyStories?.trim()) {
+      line2 = howManyStories;
+    }
+    // line3
+    const feats = Array.isArray(features) ? [...features] : [];
+    if (needsCOI) feats.push('COI');
+    const line3 = feats.join(', ');
+
+    if (!line1 && !line2 && !line3) return null;
+
+    const lines = [];
+    if (line1) lines.push(line1);
+    if (line2) lines.push(line2);
+    if (line3) lines.push(line3);
+
+    return (
+      <div className={styles.placeSummaryContainer}>
+        {lines.map((text, idx) => (
+          <React.Fragment key={idx}>
+            <div className={styles.placeSummaryLine}>{text}</div>
+            <div style={{ height: '11px' }} />
+            <div className={styles.placeSummaryDivider} />
+            <div style={{ height: '9px' }} />
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  /**
+   * ACCESS Summary
+   * -------------
+   * line1 => biggestTruckAccess + " + shuttle" if shuttleTruckRequired
+   * line2 => parkingAccess + ", Elevator" if elevatorAtStop
+   * line3 => distanceDoorTruck + ", howManySteps"
+   */
+  function renderAccessSummary(stop) {
+    const {
+      biggestTruckAccess,
+      shuttleTruckRequired,
+      parkingAccess,
+      elevatorAtStop,
+      distanceDoorTruck,
+      howManySteps,
+    } = stop || {};
+
+    // line1
+    let line1 = biggestTruckAccess?.trim() || '';
+    if (line1 && shuttleTruckRequired) {
+      line1 += ' + shuttle';
+    }
+
+    // line2
+    let line2 = parkingAccess?.trim() || '';
+    if (line2 && elevatorAtStop) {
+      line2 += ', Elevator';
+    } else if (!line2 && elevatorAtStop) {
+      line2 = 'Elevator';
+    }
+
+    // line3
+    let line3 = distanceDoorTruck?.trim() || '';
+    if (line3 && howManySteps?.trim()) {
+      line3 += `, ${howManySteps}`;
+    } else if (!line3 && howManySteps?.trim()) {
+      line3 = howManySteps;
+    }
+
+    if (!line1 && !line2 && !line3) return null;
+
+    const lines = [];
+    if (line1) lines.push(line1);
+    if (line2) lines.push(line2);
+    if (line3) lines.push(line3);
+
+    return (
+      <div className={styles.placeSummaryContainer}>
+        {lines.map((text, idx) => (
+          <React.Fragment key={idx}>
+            <div className={styles.placeSummaryLine}>{text}</div>
+            <div style={{ height: '11px' }} />
+            <div className={styles.placeSummaryDivider} />
+            <div style={{ height: '9px' }} />
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  /**
+   * SERVICES Summary
+   * ---------------
+   * line1 => whatsMoving + ", " + packingOption (if both)
+   * line2 => if itemsToBeTakenApart => "Dissasambely", if hoistItems => "Hoisting", if craneNeeded => "Crane"
+   * line3 => a list of additionalServices, each prefixed with "+", separated by ", "
+   */
+  function renderServicesSummary(stop) {
+    const {
+      whatsMoving,
+      packingOption,
+      itemsToBeTakenApart,
+      hoistItems,
+      craneNeeded,
+      additionalServices,
+    } = stop || {};
+
+    // line1
+    let line1 = '';
+    if (whatsMoving?.trim() && packingOption?.trim()) {
+      line1 = `${whatsMoving}, ${packingOption}`;
+    } else if (whatsMoving?.trim()) {
+      line1 = whatsMoving;
+    } else if (packingOption?.trim()) {
+      line1 = packingOption;
+    }
+
+    // line2 => from booleans
+    const bits = [];
+    if (itemsToBeTakenApart) bits.push('Disassembly');
+    if (hoistItems) bits.push('Hoisting');
+    if (craneNeeded) bits.push('Crane');
+    const line2 = bits.join(', ');
+
+    // line3 => additionalServices => each item with a "+" prefix
+    let line3 = '';
+    if (Array.isArray(additionalServices) && additionalServices.length > 0) {
+      const plusList = additionalServices.map((svc) => `+${svc}`);
+      line3 = plusList.join(', ');
+    }
+
+    // If everything is empty => no summary
+    if (!line1 && !line2 && !line3) return null;
+
+    const lines = [];
+    if (line1) lines.push(line1);
+    if (line2) lines.push(line2);
+    if (line3) lines.push(line3);
+
+    return (
+      <div className={styles.placeSummaryContainer}>
+        {lines.map((text, idx) => (
+          <React.Fragment key={idx}>
+            <div className={styles.placeSummaryLine}>{text}</div>
+            <div style={{ height: '11px' }} />
+            <div className={styles.placeSummaryDivider} />
+            <div style={{ height: '9px' }} />
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  // Summaries
+  const placeSummaryElement = renderPlaceSummary(currentStop);
+  const accessSummaryElement = renderAccessSummary(currentStop);
+  const servicesSummaryElement = renderServicesSummary(currentStop);
+
+  // Classes to remove dotted border
+  const removeDottedPlace = isPlaceDataComplete(currentStop) ? styles.placeNoDotted : '';
+  const removeDottedAccess = isAccessDataComplete(currentStop) ? styles.accessNoDotted : '';
+  // Per your request => "for the dotted line to disappear on the SERVICES there should be the input in packingOption"
+  const removeDottedServices = isServicesDataComplete(currentStop) ? styles.servicesNoDotted : '';
 
   return (
     <div className={styles.originContainer}>
@@ -316,9 +507,8 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
 
             {/* PLACE card => entire area clickable */}
             <div
-              className={`${styles.propertyItem} ${styles.propertyItemPlace}`}
+              className={`${styles.propertyItem} ${styles.propertyItemPlace} ${removeDottedPlace}`}
               onClick={() => {
-                // Open PlacePopup with the "origin" tab, focusing on same selectedStopIndex
                 setIsPlacePopupOpen(true);
               }}
             >
@@ -333,11 +523,13 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
               </button>
             </div>
 
+            {/* The Place Summary */}
+            {placeSummaryElement}
+
             {/* ACCESS => entire area clickable */}
             <div
-              className={`${styles.propertyItem} ${styles.propertyItemAccess}`}
+              className={`${styles.propertyItem} ${styles.propertyItemAccess} ${removeDottedAccess}`}
               onClick={() => {
-                // Open AccessPopup with same tab & stop index
                 setIsAccessPopupOpen(true);
               }}
             >
@@ -352,11 +544,13 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
               </button>
             </div>
 
+            {/* The Access Summary */}
+            {accessSummaryElement}
+
             {/* SERVICES => entire area clickable */}
             <div
-              className={`${styles.propertyItem} ${styles.propertyItemServices}`}
+              className={`${styles.propertyItem} ${styles.propertyItemServices} ${removeDottedServices}`}
               onClick={() => {
-                // Open ServicesPopup with same tab & stop index
                 setIsServicesPopupOpen(true);
               }}
             >
@@ -370,9 +564,12 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
                 +
               </button>
             </div>
+
+            {/* The Services Summary */}
+            {servicesSummaryElement}
           </div>
 
-          {/* Time Restrictions - now per stop */}
+          {/* Time Restrictions - per stop */}
           <div className={styles.timeRestrictionsContainer}>
             <div className={styles.timeRestrictionsRow}>
               <span className={styles.timeRestrictionsText}>Time restrictions</span>
@@ -547,7 +744,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
                     )}
                   </div>
                 </div>
-                {/* AddButtonWrapper was removed as requested */}
               </div>
             )}
           </div>
@@ -573,7 +769,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
         </>
       )}
 
-      {/* The popup for "Place" */}
+      {/* POPUPS */}
       {isPlacePopupOpen && (
         <PlacePopup
           lead={lead}
@@ -584,7 +780,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
         />
       )}
 
-      {/* The popup for "Access" */}
       {isAccessPopupOpen && (
         <AccessPopup
           lead={lead}
@@ -595,7 +790,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
         />
       )}
 
-      {/* The popup for "Services" */}
       {isServicesPopupOpen && (
         <ServicesPopup
           lead={lead}

@@ -17,13 +17,13 @@ const packingOriginOptions = [
   'No Packing',
   'Partial Packing',
   'Full Packing',
-  'Custom ( tagged )',
+  'Custom Packing ( tagged )',
 ];
 
 const unpackingDestinationOptions = [
   'No Unpacking',
   'Full Unpacking',
-  'Custom ( tagged )',
+  'Custom Unpacking ( tagged )',
 ];
 
 // For blankets

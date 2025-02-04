@@ -1,5 +1,3 @@
-/* src/components/Leads/LeadManagementPanel/MoveDetailsPanel/DestinationDetails/DestinationDetails.module.css */
-
 .destinationContainer {
   padding: 16px 20px;
   border-radius: 16px;
@@ -21,7 +19,6 @@
   color: #2F3236;
   font-family: Satoshi, sans-serif;
   font-size: 20px;
-  font-style: normal;
   font-weight: 700;
   line-height: 33px;
 }
@@ -42,8 +39,6 @@
   justify-content: center;
   padding: 0;
 }
-
-/* Reuse a .propertySection etc. similar to origin code */
 
 .propertySection {
   display: flex;
@@ -69,7 +64,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  position: relative; /* for dropdowns if needed */
+  position: relative;
 }
 
 .addressInput {
@@ -109,7 +104,6 @@
   gap: 10px;
 }
 
-/* Property Info Section */
 .propertyInfoSection {
   display: flex;
   flex-direction: column;
@@ -168,9 +162,9 @@
   padding: 0;
 }
 
-/* PLACE style */
+/* PLACE dotted border */
 .propertyItemPlace {
-  border: 2px dashed rgba(89, 183, 121, 0.40);
+  border: 2px dashed rgba(89,183,121,0.40);
   background: linear-gradient(0deg, rgba(89,183,121,0.20) 0%, rgba(89,183,121,0.20) 100%), #FFF;
 }
 .propertyItemPlace .propertyItemText {
@@ -179,8 +173,12 @@
 .propertyItemPlaceButton {
   background: #59B779;
 }
+/* Remove dotted if typeOfPlace + howManyStories */
+.placeNoDotted {
+  border: none !important;
+}
 
-/* ACCESS style */
+/* ACCESS dotted border */
 .propertyItemAccess {
   border: 2px dashed rgba(250,166,26,0.40);
   background: linear-gradient(0deg, rgba(250,166,26,0.20) 0%, rgba(250,166,26,0.20) 100%), #FFF;
@@ -191,8 +189,12 @@
 .propertyItemAccessButton {
   background: #FAA61A;
 }
+/* Remove dotted if parkingAccess, distanceDoorTruck, howManySteps */
+.accessNoDotted {
+  border: none !important;
+}
 
-/* SERVICES style */
+/* SERVICES dotted border */
 .propertyItemServices {
   border: 2px dashed rgba(246,86,118,0.40);
   background: linear-gradient(0deg, rgba(246,86,118,0.20) 0%, rgba(246,86,118,0.20) 100%), #FFF;
@@ -202,6 +204,10 @@
 }
 .propertyItemServicesButton {
   background: #F65676;
+}
+/* Remove dotted if packingOption */
+.servicesNoDotted {
+  border: none !important;
 }
 
 /* Time Restrictions */
@@ -225,7 +231,6 @@
   font-weight: 700;
 }
 
-
 .timeRestrictionsContent {
   display: flex;
   flex-direction: column;
@@ -239,12 +244,11 @@
   gap: 10px;
 }
 
-/* Dropdown handling */
+/* Dropdown styling */
 .dropdownWrapper {
   position: relative;
   cursor: default;
 }
-
 .clickableArea {
   display: flex;
   align-items: center;
@@ -252,7 +256,6 @@
   width: 100%;
   cursor: pointer;
 }
-
 .dropdownMenu {
   position: absolute;
   top: 54px;
@@ -266,7 +269,6 @@
   max-height: 220px;
   overflow-y: auto;
 }
-
 .dropdownOption {
   padding: 10px 20px;
   font-family: Satoshi, sans-serif;
@@ -279,7 +281,6 @@
   background: #F2F5F8;
 }
 
-/* For the text values inside time restrictions */
 .inputValueText {
   color: #2F3236;
   font-weight: 700;
@@ -288,4 +289,23 @@
   width: 20px;
   height: 20px;
   color: #90A4B7;
+}
+
+/* Summaries */
+.placeSummaryContainer {
+  margin-top: 5px;
+}
+
+.placeSummaryLine {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.placeSummaryDivider {
+  width: 100%;
+  height: 1px;
+  background-color: #D8DCE0;
 }

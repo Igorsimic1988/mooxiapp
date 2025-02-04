@@ -40,10 +40,11 @@ function DestinationDetails({ lead, onLeadUpdated }) {
   // ---------- DESTINATION STOPS ----------
   const [selectedStopIndex, setSelectedStopIndex] = useState(0);
 
+  // Collapsible
   const [isCollapsed, setIsCollapsed] = useState(true);
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
 
-  // ---------- TIME RESTRICTIONS ----------
+  // Time restrictions
   const timeRestrictionOptions = ['Not allowed', 'Allowed'];
   const timeRestrictionTypes = [
     'Elevator Usage',
@@ -58,12 +59,12 @@ function DestinationDetails({ lead, onLeadUpdated }) {
   ];
   const timeOptions = generateTimeOptions();
 
-  // ---------- POPUPS FOR PLACE / ACCESS / SERVICES ----------
+  // Popups
   const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
   const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
   const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false);
 
-  // ---------- ENSURE DESTINATION STOPS EXIST ----------
+  // Ensure destinationStops exist
   useEffect(() => {
     if (!Array.isArray(lead.destinationStops) || lead.destinationStops.length === 0) {
       const defaultStops = [
@@ -91,16 +92,41 @@ function DestinationDetails({ lead, onLeadUpdated }) {
   const destinationStops = lead.destinationStops || [];
   const currentStop = destinationStops[selectedStopIndex] || {};
 
-  // If user types in an address field => update just that destination stop
-  function handleStopFieldChange(fieldName, newValue) {
-    const updatedStops = [...destinationStops];
-    const stopCopy = { ...updatedStops[selectedStopIndex] };
-    stopCopy[fieldName] = newValue;
-    updatedStops[selectedStopIndex] = stopCopy;
-    onLeadUpdated({ ...lead, destinationStops: updatedStops });
+  /**
+   * For PLACE => dotted line removed if typeOfPlace & howManyStories
+   */
+  function isPlaceDataComplete(stop) {
+    return !!(stop.typeOfPlace?.trim() && stop.howManyStories?.trim());
   }
 
-  // Helper => ensure there's a timeRestrictions object
+  /**
+   * For ACCESS => dotted line removed if parkingAccess, distanceDoorTruck, howManySteps
+   */
+  function isAccessDataComplete(stop) {
+    return (
+      stop.parkingAccess?.trim() &&
+      stop.distanceDoorTruck?.trim() &&
+      stop.howManySteps?.trim()
+    );
+  }
+
+  /**
+   * For SERVICES => dotted line removed if unpackingOption is set
+   */
+  function isServicesDataComplete(stop) {
+    return !!stop.unpackingOption?.trim();
+  }
+
+  // If user types in an address => update that stop
+  function handleStopFieldChange(fieldName, newValue) {
+    const updated = [...destinationStops];
+    const copy = { ...updated[selectedStopIndex] };
+    copy[fieldName] = newValue;
+    updated[selectedStopIndex] = copy;
+    onLeadUpdated({ ...lead, destinationStops: updated });
+  }
+
+  // Time restrictions
   function getCurrentStopRestrictions() {
     if (!currentStop.timeRestrictions) {
       return {
@@ -115,10 +141,9 @@ function DestinationDetails({ lead, onLeadUpdated }) {
   }
   const currentTR = getCurrentStopRestrictions();
 
-  // ---------- Time Restrictions handlers ----------
   function updateCurrentStopRestrictions(partialObj) {
-    const updatedStops = [...destinationStops];
-    let stopCopy = { ...updatedStops[selectedStopIndex] };
+    const updated = [...destinationStops];
+    const stopCopy = { ...updated[selectedStopIndex] };
 
     let tr = stopCopy.timeRestrictions || {
       isEnabled: false,
@@ -131,8 +156,8 @@ function DestinationDetails({ lead, onLeadUpdated }) {
     tr = { ...tr, ...partialObj };
     stopCopy.timeRestrictions = tr;
 
-    updatedStops[selectedStopIndex] = stopCopy;
-    onLeadUpdated({ ...lead, destinationStops: updatedStops });
+    updated[selectedStopIndex] = stopCopy;
+    onLeadUpdated({ ...lead, destinationStops: updated });
   }
 
   function handleToggleTimeRestrictions(value) {
@@ -146,16 +171,166 @@ function DestinationDetails({ lead, onLeadUpdated }) {
     setTypeDropdownOpen(false);
     updateCurrentStopRestrictions({ restrictionType: typ });
   }
-  function handleSelectTimeRestrictionsStart(start) {
+  function handleSelectTimeRestrictionsStart(startVal) {
     setStartDropdownOpen(false);
-    updateCurrentStopRestrictions({ startTime: start });
+    updateCurrentStopRestrictions({ startTime: startVal });
   }
-  function handleSelectTimeRestrictionsEnd(end) {
+  function handleSelectTimeRestrictionsEnd(endVal) {
     setEndDropdownOpen(false);
-    updateCurrentStopRestrictions({ endTime: end });
+    updateCurrentStopRestrictions({ endTime: endVal });
   }
 
-  // Dropdown states + refs for outside click
+  // ---------- Summaries ----------
+
+  /** PLACE (line1 => typeOfPlace, line2 => howManyStories, line3 => features+COI) */
+  function renderPlaceSummary(stop) {
+    const { typeOfPlace, howManyStories, features, needsCOI } = stop || {};
+
+    const line1 = typeOfPlace?.trim() || '';
+    const line2 = howManyStories?.trim() || '';
+
+    // Combine features + COI
+    const feats = Array.isArray(features) ? [...features] : [];
+    if (needsCOI) feats.push('COI');
+    const line3 = feats.join(', ');
+
+    if (!line1 && !line2 && !line3) return null;
+
+    const lines = [];
+    if (line1) lines.push(line1);
+    if (line2) lines.push(line2);
+    if (line3) lines.push(line3);
+
+    return (
+      <div className={styles.placeSummaryContainer}>
+        {lines.map((txt, idx) => (
+          <React.Fragment key={idx}>
+            <div className={styles.placeSummaryLine}>{txt}</div>
+            <div style={{ height: '11px' }} />
+            <div className={styles.placeSummaryDivider} />
+            <div style={{ height: '9px' }} />
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  /** ACCESS => same as origin */
+  function renderAccessSummary(stop) {
+    const {
+      biggestTruckAccess,
+      shuttleTruckRequired,
+      parkingAccess,
+      elevatorAtStop,
+      distanceDoorTruck,
+      howManySteps,
+    } = stop || {};
+
+    let line1 = biggestTruckAccess?.trim() || '';
+    if (line1 && shuttleTruckRequired) {
+      line1 += ' + shuttle';
+    }
+
+    let line2 = parkingAccess?.trim() || '';
+    if (line2 && elevatorAtStop) {
+      line2 += ', Elevator';
+    } else if (!line2 && elevatorAtStop) {
+      line2 = 'Elevator';
+    }
+
+    let line3 = distanceDoorTruck?.trim() || '';
+    if (line3 && howManySteps?.trim()) {
+      line3 += `, ${howManySteps}`;
+    } else if (!line3 && howManySteps?.trim()) {
+      line3 = howManySteps;
+    }
+
+    if (!line1 && !line2 && !line3) return null;
+
+    const lines = [];
+    if (line1) lines.push(line1);
+    if (line2) lines.push(line2);
+    if (line3) lines.push(line3);
+
+    return (
+      <div className={styles.placeSummaryContainer}>
+        {lines.map((text, idx) => (
+          <React.Fragment key={idx}>
+            <div className={styles.placeSummaryLine}>{text}</div>
+            <div style={{ height: '11px' }} />
+            <div className={styles.placeSummaryDivider} />
+            <div style={{ height: '9px' }} />
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  /** 
+   * SERVICES 
+   * line1 => only `unpackingOption`
+   * line2 => if itemsToBeAssembled => "Assembly", if hoistItems => "Hoisting", if craneNeeded => "Crane"
+   * line3 => additionalServices => each with "+"
+   */
+  function renderServicesSummary(stop) {
+    const {
+      unpackingOption,
+      itemsToBeAssembled,
+      hoistItems,
+      craneNeeded,
+      additionalServices,
+    } = stop || {};
+
+    // line1 => just unpackingOption
+    const line1 = unpackingOption?.trim() || '';
+
+    // line2 => "Assembly", "Hoisting", "Crane"
+    const line2Parts = [];
+    if (itemsToBeAssembled) line2Parts.push('Assembly');
+    if (hoistItems) line2Parts.push('Hoisting');
+    if (craneNeeded) line2Parts.push('Crane');
+    const line2 = line2Parts.join(', ');
+
+    // line3 => each additionalService => +service
+    let line3 = '';
+    if (Array.isArray(additionalServices) && additionalServices.length) {
+      const plusList = additionalServices.map(s => `+${s}`);
+      line3 = plusList.join(', ');
+    }
+
+    // If none => no summary
+    if (!line1 && !line2 && !line3) return null;
+
+    const lines = [];
+    if (line1) lines.push(line1);
+    if (line2) lines.push(line2);
+    if (line3) lines.push(line3);
+
+    return (
+      <div className={styles.placeSummaryContainer}>
+        {lines.map((txt, idx) => (
+          <React.Fragment key={idx}>
+            <div className={styles.placeSummaryLine}>{txt}</div>
+            <div style={{ height: '11px' }} />
+            <div className={styles.placeSummaryDivider} />
+            <div style={{ height: '9px' }} />
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  // Summaries
+  const placeSummary = renderPlaceSummary(currentStop);
+  const accessSummary = renderAccessSummary(currentStop);
+  const servicesSummary = renderServicesSummary(currentStop);
+
+  // Remove dotted border if conditions are met
+  const removePlaceDotted = isPlaceDataComplete(currentStop) ? styles.placeNoDotted : '';
+  const removeAccessDotted = isAccessDataComplete(currentStop) ? styles.accessNoDotted : '';
+  const removeServicesDotted = isServicesDataComplete(currentStop) ? styles.servicesNoDotted : '';
+
+  // Dropdown states + refs
   const [optionDropdownOpen, setOptionDropdownOpen] = useState(false);
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [startDropdownOpen, setStartDropdownOpen] = useState(false);
@@ -166,6 +341,7 @@ function DestinationDetails({ lead, onLeadUpdated }) {
   const startRef = useRef(null);
   const endRef = useRef(null);
 
+  // Outside-click detection for dropdowns
   useEffect(() => {
     function handleClickOutside(e) {
       if (optionDropdownOpen && optionRef.current && !optionRef.current.contains(e.target)) {
@@ -199,8 +375,8 @@ function DestinationDetails({ lead, onLeadUpdated }) {
           {/* Row of destination stops */}
           <MainAndStopOffs
             stops={destinationStops}
-            onStopsUpdated={(newStops) => {
-              onLeadUpdated({ ...lead, destinationStops: newStops });
+            onStopsUpdated={(updatedStops) => {
+              onLeadUpdated({ ...lead, destinationStops: updatedStops });
             }}
             selectedStopIndex={selectedStopIndex}
             setSelectedStopIndex={setSelectedStopIndex}
@@ -273,7 +449,7 @@ function DestinationDetails({ lead, onLeadUpdated }) {
 
             {/* PLACE */}
             <div
-              className={`${styles.propertyItem} ${styles.propertyItemPlace}`}
+              className={`${styles.propertyItem} ${styles.propertyItemPlace} ${removePlaceDotted}`}
               onClick={() => setIsPlacePopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
@@ -286,10 +462,11 @@ function DestinationDetails({ lead, onLeadUpdated }) {
                 +
               </button>
             </div>
+            {placeSummary}
 
             {/* ACCESS */}
             <div
-              className={`${styles.propertyItem} ${styles.propertyItemAccess}`}
+              className={`${styles.propertyItem} ${styles.propertyItemAccess} ${removeAccessDotted}`}
               onClick={() => setIsAccessPopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
@@ -302,10 +479,11 @@ function DestinationDetails({ lead, onLeadUpdated }) {
                 +
               </button>
             </div>
+            {accessSummary}
 
             {/* SERVICES */}
             <div
-              className={`${styles.propertyItem} ${styles.propertyItemServices}`}
+              className={`${styles.propertyItem} ${styles.propertyItemServices} ${removeServicesDotted}`}
               onClick={() => setIsServicesPopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
@@ -318,6 +496,7 @@ function DestinationDetails({ lead, onLeadUpdated }) {
                 +
               </button>
             </div>
+            {servicesSummary}
           </div>
 
           {/* Time Restrictions */}
@@ -335,7 +514,7 @@ function DestinationDetails({ lead, onLeadUpdated }) {
             {currentTR.isEnabled && (
               <div className={styles.timeRestrictionsContent}>
                 <div className={styles.timeRestrictionsInputsColumn}>
-                  {/* Option dropdown */}
+                  {/* Option */}
                   <div
                     className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
                     ref={optionRef}
@@ -375,7 +554,7 @@ function DestinationDetails({ lead, onLeadUpdated }) {
                     )}
                   </div>
 
-                  {/* Type dropdown */}
+                  {/* Type */}
                   <div
                     className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
                     ref={typeRef}
@@ -415,7 +594,7 @@ function DestinationDetails({ lead, onLeadUpdated }) {
                     )}
                   </div>
 
-                  {/* Start time dropdown */}
+                  {/* Start time */}
                   <div
                     className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
                     ref={startRef}
@@ -455,7 +634,7 @@ function DestinationDetails({ lead, onLeadUpdated }) {
                     )}
                   </div>
 
-                  {/* End time dropdown */}
+                  {/* End time */}
                   <div
                     className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
                     ref={endRef}
@@ -495,42 +674,37 @@ function DestinationDetails({ lead, onLeadUpdated }) {
                     )}
                   </div>
                 </div>
-                {/* No "Add" button (addButtonWrapper) */}
               </div>
             )}
           </div>
         </>
       )}
 
-      {/* The "Place" popup */}
+      {/* Popups */}
       {isPlacePopupOpen && (
         <PlacePopup
           lead={lead}
           onLeadUpdated={onLeadUpdated}
           setIsPlacePopupVisible={setIsPlacePopupOpen}
-          defaultTab="destination"      // <-- open on "destination" tab
+          defaultTab="destination"
           defaultStopIndex={selectedStopIndex}
         />
       )}
-
-      {/* The "Access" popup */}
       {isAccessPopupOpen && (
         <AccessPopup
           lead={lead}
           onLeadUpdated={onLeadUpdated}
           setIsAccessPopupVisible={setIsAccessPopupOpen}
-          defaultTab="destination"      // <-- open on "destination" tab
+          defaultTab="destination"
           defaultStopIndex={selectedStopIndex}
         />
       )}
-
-      {/* The "Services" popup */}
       {isServicesPopupOpen && (
         <ServicesPopup
           lead={lead}
           onLeadUpdated={onLeadUpdated}
           setIsServicesPopupVisible={setIsServicesPopupOpen}
-          defaultTab="destination"      // <-- open on "destination" tab
+          defaultTab="destination"
           defaultStopIndex={selectedStopIndex}
         />
       )}

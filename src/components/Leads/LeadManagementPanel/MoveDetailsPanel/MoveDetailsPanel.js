@@ -9,6 +9,8 @@ import { ReactComponent as ClockIcon } from '../../../../assets/icons/clock.svg'
 import SimpleToggle from '../../SimpleToggle/SimpleToggle';
 import OriginDetails from './OriginDetails/OriginDetails';
 import DestinationDetails from './DestinationDetails/DestinationDetails';
+import LogisticsDetails from './LogisticsDetails/LogisticsDetails';
+import EstimateDetails from './EstimateDetails/EstimateDetails';
 import styles from './MoveDetailsPanel.module.css';
 
 // Import your typeOfServiceChoices from the constants file
@@ -182,14 +184,31 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   // ---------- "Add Storage" ----------
   const handleToggleStorage = (value) => {
     setIsStorageToggled(value);
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        add_storage: value,
-        storage_items: value ? selectedStorage : '',
-      });
+
+    // If toggling storage OFF => also clear the delivery date visually
+    // and in the lead data:
+    if (!value) {
+      setDeliveryDate('');
+      if (onLeadUpdated) {
+        onLeadUpdated({
+          ...lead,
+          add_storage: false,
+          storage_items: '',
+          delivery_date: '',
+        });
+      }
+    } else {
+      // If toggling storage ON => keep current or set default
+      if (onLeadUpdated) {
+        onLeadUpdated({
+          ...lead,
+          add_storage: true,
+          storage_items: selectedStorage,
+        });
+      }
     }
   };
+
   const handleSelectStorage = (option) => {
     setSelectedStorage(option);
     setStorageDropdownOpen(false);
@@ -371,7 +390,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                 // cannot pick a date in the past
                 const disabled = dayDate < today;
                 // check if this day is the currently selected "moveDate"
-                const isSelected = selectedMoveDateObj && 
+                const isSelected = selectedMoveDateObj &&
                   dayDate.toDateString() === selectedMoveDateObj.toDateString();
 
                 return (
@@ -501,14 +520,24 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       <div className={styles.spacing30}></div>
 
       {/* ---------- DELIVERY DATE ---------- */}
-      <div className={styles.inputContainer} style={{ position: 'relative' }}>
+      {/* Disable this entire container if storage is NOT toggled */}
+      <div
+        className={`
+          ${styles.inputContainer} 
+          ${!isStorageToggled ? styles.disabledContainer : ''}
+        `}
+        style={{ position: 'relative' }}
+      >
         <button
           type="button"
           className={styles.dateButton}
           onClick={() => {
+            // If storage is not toggled, don't allow the calendar to open
+            if (!isStorageToggled) return;
             setShowDeliveryCalendar((prev) => !prev);
             setShowMoveCalendar(false);
           }}
+          disabled={!isStorageToggled}
         >
           <span className={styles.oneLineEllipsis}>
             <span className={styles.dateLabelPrefix}>Delivery Date:</span>
@@ -552,7 +581,8 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                 const disabled = dayDate < earliestDelivery;
 
                 // check if this day is the currently selected "deliveryDate"
-                const isSelected = selectedDeliveryDateObj &&
+                const isSelected =
+                  selectedDeliveryDateObj &&
                   dayDate.toDateString() === selectedDeliveryDateObj.toDateString();
 
                 return (
@@ -730,7 +760,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
       <div className={styles.spacing20}></div>
 
-      {/* The "OriginDetails" can open inventory. It calls onShowInventory() from props. */}
+      {/* Origin, Destination, Logistics, Estimate sections */}
       <OriginDetails 
         onShowInventory={onShowInventory} 
         lead={lead}                         
@@ -738,6 +768,14 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       />
       <DestinationDetails 
         lead={lead}                         
+        onLeadUpdated={onLeadUpdated}
+      />
+      <LogisticsDetails
+        lead={lead}
+        onLeadUpdated={onLeadUpdated}
+      />
+      <EstimateDetails
+        lead={lead}
         onLeadUpdated={onLeadUpdated}
       />
     </div>

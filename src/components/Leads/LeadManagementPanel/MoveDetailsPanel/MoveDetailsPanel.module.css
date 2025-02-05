@@ -1,3 +1,5 @@
+/* MoveDetailsPanel.module.css */
+
 .panelContainer {
   background: #F2F5F8;
   border-radius: 20px 20px 0px 0px;
@@ -86,6 +88,12 @@
   margin-bottom: 10px;
 }
 
+/* A class to visually show it's disabled (dim and no pointer events) */
+.disabledContainer {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
 /* Label & Value for normal input rows */
 .inputLabel {
   color: #6E7882;
@@ -98,7 +106,7 @@
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   font-weight: 700;
-  margin-left: 4px; /* optional small gap if you want */
+  margin-left: 4px; /* optional small gap */
 }
 
 /* For the Move/Delivery date label => add small margin-right for space */

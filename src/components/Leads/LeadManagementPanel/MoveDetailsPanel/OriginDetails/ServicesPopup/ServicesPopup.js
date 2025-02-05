@@ -260,7 +260,6 @@ function ServicesPopup({
   const [showUnpackingDropdown, setShowUnpackingDropdown] = useState(false);
   const [showBlanketsDropdown, setShowBlanketsDropdown] = useState(false);
 
-  // We'll create a small reusable DropdownButton for each dropdown:
   function DropdownButton({ label, value, onClick }) {
     const displayValue = value ? value : 'Select';
     return (
@@ -327,6 +326,8 @@ function ServicesPopup({
               selectedStopIndex={selectedStopIndex}
               setSelectedStopIndex={setSelectedStopIndex}
               placeType={selectedPlace}
+              // If user is on "destination" & lead.add_storage => show post-storage row
+              isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
             />
           </div>
         </div>
@@ -445,8 +446,8 @@ function ServicesPopup({
             )}
 
             {/* Group of 3 checkboxes => 
-                either (Items to be taken apart, Hoist, Crane) 
-                or (Items to be assembled, Hoist, Crane)
+                either (Items to be taken apart, Hoist, Crane) for origin
+                or (Items to be assembled, Hoist, Crane) for destination
             */}
             <div className={styles.checkboxesGroup}>
               {selectedPlace === 'origin' && (

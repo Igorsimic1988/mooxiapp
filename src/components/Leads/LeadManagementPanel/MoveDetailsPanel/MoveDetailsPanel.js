@@ -390,7 +390,8 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                 // cannot pick a date in the past
                 const disabled = dayDate < today;
                 // check if this day is the currently selected "moveDate"
-                const isSelected = selectedMoveDateObj &&
+                const isSelected =
+                  selectedMoveDateObj &&
                   dayDate.toDateString() === selectedMoveDateObj.toDateString();
 
                 return (
@@ -769,6 +770,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       <DestinationDetails 
         lead={lead}                         
         onLeadUpdated={onLeadUpdated}
+        isStorageToggled={isStorageToggled} 
       />
       <LogisticsDetails
         lead={lead}

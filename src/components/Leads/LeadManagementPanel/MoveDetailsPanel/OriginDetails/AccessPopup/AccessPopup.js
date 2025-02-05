@@ -75,8 +75,8 @@ const elevatorSizeOptions = [
  * Allows editing "Access" info for both Origin & Destination stops.
  *
  * PROPS:
- *   - lead                  => The entire lead object
- *   - onLeadUpdated         => Function(updatedLead)
+ *   - lead                   => The entire lead object
+ *   - onLeadUpdated          => Function(updatedLead)
  *   - setIsAccessPopupVisible => to close the popup
  *   - defaultTab: "origin" or "destination" => which tab to open first
  *   - defaultStopIndex: number => which stop is highlighted initially
@@ -255,7 +255,6 @@ function AccessPopup({
   const [showElevatorFloorsDropdown, setShowElevatorFloorsDropdown] = useState(false);
   const [showElevatorSizeDropdown, setShowElevatorSizeDropdown] = useState(false);
 
-  // We'll create a small helper component, so we keep the same style as in PlacePopup:
   function DropdownButton({ label, value, onClick }) {
     const displayValue = value ? value : 'Select';
     return (
@@ -325,6 +324,8 @@ function AccessPopup({
               selectedStopIndex={selectedStopIndex}
               setSelectedStopIndex={setSelectedStopIndex}
               placeType={selectedPlace}
+              // If user picks "destination" and lead.add_storage => show post-storage row
+              isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
             />
           </div>
         </div>

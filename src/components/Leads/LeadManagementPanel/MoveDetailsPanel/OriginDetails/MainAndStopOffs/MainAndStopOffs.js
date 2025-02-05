@@ -1,5 +1,3 @@
-// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/MainAndStopOffs/MainAndStopOffs.js
-
 import React from 'react';
 import styles from './MainAndStopOffs.module.css';
 
@@ -12,40 +10,73 @@ import styles from './MainAndStopOffs.module.css';
  *   - selectedStopIndex: which index is currently selected
  *   - setSelectedStopIndex: function => sets the current stop index
  *   - placeType: either "origin" or "destination" (optional; default "origin")
+ *   - isStorageToggled: boolean => if true (for destination), show the "Post Storage" row
+ *
+ * This component now supports TWO sets of stops in "destination":
+ *   1) Normal stops (postStorage === false)
+ *   2) Post-storage stops (postStorage === true), displayed in red.
+ * 
+ * The "Post Storage" row only appears if placeType="destination" AND isStorageToggled=true.
+ * By default, "Post Storage Main Drop off" is present (index 0 of the postStorage group).
  */
 function MainAndStopOffs({
   stops,
   onStopsUpdated,
   selectedStopIndex,
   setSelectedStopIndex,
-  placeType = 'origin', // 'origin' or 'destination'
+  placeType = 'origin',
+  isStorageToggled = false,
 }) {
-  // If the passed-in array is empty, create an initial main label (depending on placeType).
-  if (!Array.isArray(stops) || stops.length === 0) {
-    const mainLabel = (placeType === 'destination') ? 'Main Drop off' : 'Main Address';
-    stops = [
-      { label: mainLabel, address: '', apt: '', city: '', state: '', zip: '' },
-    ];
+  // Ensure stops is an array
+  if (!Array.isArray(stops)) stops = [];
+
+  // Filter out the two sets:
+  const normalStops = stops.filter((s) => !s.postStorage);
+  const postStorageStops = stops.filter((s) => s.postStorage);
+
+  // Current "selected" logic for highlighting
+  const isSelected = (globalIndex) => globalIndex === selectedStopIndex;
+
+  // We'll do "normalStops" first, then "postStorageStops".
+  function getGlobalIndexForNormal(i) {
+    return i; 
+  }
+  function getGlobalIndexForPostStorage(i) {
+    return normalStops.length + i; 
   }
 
-  // For highlighting
-  const isSelected = (index) => index === selectedStopIndex;
-  const getButtonClass = (index) =>
-    isSelected(index)
+  // Button classes
+  function getNormalButtonClass(globalIndex) {
+    return isSelected(globalIndex)
       ? `${styles.mainAddressButton} ${styles.buttonSelected}`
       : `${styles.mainAddressButton} ${styles.buttonUnselected}`;
+  }
+  function getPostStorageButtonClass(globalIndex) {
+    return isSelected(globalIndex)
+      ? `${styles.mainAddressButtonRed} ${styles.buttonSelectedRed}`
+      : `${styles.mainAddressButtonRed} ${styles.buttonUnselectedRed}`;
+  }
 
-  // 1) Add a new stop
-  const handleAddStopOff = () => {
-    const newStopCount = stops.length; // e.g. if we already have 1 stop
+  // Handle adding a new normal stop
+  const handleAddNormalStop = () => {
+    const updatedStops = [...stops];
+    const newStopCount = normalStops.length;
+
     let newLabel = '';
-
     if (placeType === 'destination') {
-      // All new stops => "Drop off 2, Drop off 3, etc."
-      newLabel = `Drop off ${newStopCount + 1}`;
+      // If no normal stops => call it "Main Drop off" else "Drop off #"
+      if (newStopCount === 0) {
+        newLabel = 'Main Drop off';
+      } else {
+        newLabel = `Drop off ${newStopCount + 1}`;
+      }
     } else {
-      // All new stops => "Stop off 2, Stop off 3, etc."
-      newLabel = `Stop off ${newStopCount + 1}`;
+      // For origin
+      if (newStopCount === 0) {
+        newLabel = 'Main Address';
+      } else {
+        newLabel = `Stop off ${newStopCount + 1}`;
+      }
     }
 
     const newStop = {
@@ -55,37 +86,94 @@ function MainAndStopOffs({
       city: '',
       state: '',
       zip: '',
+      postStorage: false,
     };
 
-    const updatedStops = [...stops, newStop];
+    updatedStops.push(newStop);
     onStopsUpdated(updatedStops);
-
-    // Switch selected index to the newly added stop
     setSelectedStopIndex(updatedStops.length - 1);
   };
 
-  // 2) Switch between existing stops
-  const handleSelectStopIndex = (index) => {
-    setSelectedStopIndex(index);
+  // Handle adding a new post-storage stop
+  const handleAddPostStorageStop = () => {
+    const updatedStops = [...stops];
+    const newStopCount = postStorageStops.length;
+
+    // The 0th is "Post Storage Main Drop off" by default (created in DestinationDetails).
+    // subsequent => "Post Storage Drop off #"
+    const newLabel = `Post Storage Drop off ${newStopCount + 1}`;
+
+    const newStop = {
+      label: newLabel,
+      address: '',
+      apt: '',
+      city: '',
+      state: '',
+      zip: '',
+      postStorage: true,
+    };
+
+    updatedStops.push(newStop);
+    onStopsUpdated(updatedStops);
+    setSelectedStopIndex(updatedStops.length - 1);
   };
+
+  // On click normal button => setSelectedStopIndex
+  function handleSelectNormalStop(i) {
+    const globalIndex = getGlobalIndexForNormal(i);
+    setSelectedStopIndex(globalIndex);
+  }
+
+  // On click postStorage button => setSelectedStopIndex
+  function handleSelectPostStorageStop(i) {
+    const globalIndex = getGlobalIndexForPostStorage(i);
+    setSelectedStopIndex(globalIndex);
+  }
 
   return (
     <div className={styles.addressRow}>
       <div className={styles.addressContainer}>
+        {/* Normal stops + plus */}
         <div className={styles.addressButtonsWrapper}>
-          {stops.map((stopObj, idx) => (
-            <button
-              key={idx}
-              className={getButtonClass(idx)}
-              onClick={() => handleSelectStopIndex(idx)}
-            >
-              {stopObj.label}
-            </button>
-          ))}
+          {normalStops.map((stopObj, i) => {
+            const globalIndex = getGlobalIndexForNormal(i);
+            return (
+              <button
+                key={`normal-${i}`}
+                className={getNormalButtonClass(globalIndex)}
+                onClick={() => handleSelectNormalStop(i)}
+              >
+                {stopObj.label}
+              </button>
+            );
+          })}
         </div>
-        <button className={styles.plusButton} onClick={handleAddStopOff}>
+        <button className={styles.plusButton} onClick={handleAddNormalStop}>
           +
         </button>
+
+        {/* If placeType="destination" and isStorageToggled => show "Post Storage" row */}
+        {placeType === 'destination' && isStorageToggled && (
+          <>
+            <div className={styles.addressButtonsWrapper} style={{ marginLeft: '5px' }}>
+              {postStorageStops.map((stopObj, i) => {
+                const globalIndex = getGlobalIndexForPostStorage(i);
+                return (
+                  <button
+                    key={`post-${i}`}
+                    className={getPostStorageButtonClass(globalIndex)}
+                    onClick={() => handleSelectPostStorageStop(i)}
+                  >
+                    {stopObj.label}
+                  </button>
+                );
+              })}
+            </div>
+            <button className={styles.plusButtonRed} onClick={handleAddPostStorageStop}>
+              +
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

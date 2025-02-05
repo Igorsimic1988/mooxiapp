@@ -1,5 +1,3 @@
-// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/DestinationDetails/DestinationDetails.js
-
 import React, { useEffect, useState, useRef } from 'react';
 import { ReactComponent as LocationIcon } from '../../../../../assets/icons/location.svg';
 import { ReactComponent as PlaceIcon } from '../../../../../assets/icons/place1.svg';
@@ -36,7 +34,7 @@ function generateTimeOptions() {
   return times;
 }
 
-function DestinationDetails({ lead, onLeadUpdated }) {
+function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
   // ---------- DESTINATION STOPS ----------
   const [selectedStopIndex, setSelectedStopIndex] = useState(0);
 
@@ -64,8 +62,8 @@ function DestinationDetails({ lead, onLeadUpdated }) {
   const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
   const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false);
 
-  // Ensure destinationStops exist
   useEffect(() => {
+    // Ensure destinationStops exist
     if (!Array.isArray(lead.destinationStops) || lead.destinationStops.length === 0) {
       const defaultStops = [
         {
@@ -82,26 +80,56 @@ function DestinationDetails({ lead, onLeadUpdated }) {
             startTime: '',
             endTime: '',
           },
+          postStorage: false, // normal
         },
       ];
       onLeadUpdated({ ...lead, destinationStops: defaultStops });
-    }
-  }, [lead, onLeadUpdated]);
+    } else {
+      // If we already have some stops, let's see if we need to create "Post Storage Main Drop off"
+      // whenever storage is toggled ON
+      if (isStorageToggled) {
+        const existing = lead.destinationStops;
+        const alreadyHasPostStorage = existing.some((s) => s.postStorage === true);
 
-  // Safely get the current stop
-  const destinationStops = lead.destinationStops || [];
+        if (!alreadyHasPostStorage) {
+          // Insert the "Post Storage Main Drop off"
+          const newStop = {
+            label: 'Post Storage Main Drop off',
+            address: '',
+            apt: '',
+            city: '',
+            state: '',
+            zip: '',
+            postStorage: true,
+            timeRestrictions: {
+              isEnabled: false,
+              option: 'Select',
+              restrictionType: 'Select',
+              startTime: '',
+              endTime: '',
+            },
+          };
+          const updatedStops = [...existing, newStop];
+          onLeadUpdated({ ...lead, destinationStops: updatedStops });
+        }
+      }
+    }
+    // We only want to run this "initialization" once per mount or when toggling storage,
+    // so let's add isStorageToggled in the dependency array:
+  }, [lead, onLeadUpdated, isStorageToggled]);
+
+  // Safely get the current array
+  const destinationStops = Array.isArray(lead.destinationStops)
+    ? lead.destinationStops
+    : [];
+
+  // The currently selected stop
   const currentStop = destinationStops[selectedStopIndex] || {};
 
-  /**
-   * For PLACE => dotted line removed if typeOfPlace & howManyStories
-   */
+  // isPlaceDataComplete, isAccessDataComplete, isServicesDataComplete
   function isPlaceDataComplete(stop) {
     return !!(stop.typeOfPlace?.trim() && stop.howManyStories?.trim());
   }
-
-  /**
-   * For ACCESS => dotted line removed if parkingAccess, distanceDoorTruck, howManySteps
-   */
   function isAccessDataComplete(stop) {
     return (
       stop.parkingAccess?.trim() &&
@@ -109,10 +137,6 @@ function DestinationDetails({ lead, onLeadUpdated }) {
       stop.howManySteps?.trim()
     );
   }
-
-  /**
-   * For SERVICES => dotted line removed if unpackingOption is set
-   */
   function isServicesDataComplete(stop) {
     return !!stop.unpackingOption?.trim();
   }
@@ -152,7 +176,6 @@ function DestinationDetails({ lead, onLeadUpdated }) {
       startTime: '',
       endTime: '',
     };
-
     tr = { ...tr, ...partialObj };
     stopCopy.timeRestrictions = tr;
 
@@ -180,16 +203,12 @@ function DestinationDetails({ lead, onLeadUpdated }) {
     updateCurrentStopRestrictions({ endTime: endVal });
   }
 
-  // ---------- Summaries ----------
-
-  /** PLACE (line1 => typeOfPlace, line2 => howManyStories, line3 => features+COI) */
+  // Summaries
   function renderPlaceSummary(stop) {
     const { typeOfPlace, howManyStories, features, needsCOI } = stop || {};
-
     const line1 = typeOfPlace?.trim() || '';
     const line2 = howManyStories?.trim() || '';
 
-    // Combine features + COI
     const feats = Array.isArray(features) ? [...features] : [];
     if (needsCOI) feats.push('COI');
     const line3 = feats.join(', ');
@@ -215,7 +234,6 @@ function DestinationDetails({ lead, onLeadUpdated }) {
     );
   }
 
-  /** ACCESS => same as origin */
   function renderAccessSummary(stop) {
     const {
       biggestTruckAccess,
@@ -266,12 +284,6 @@ function DestinationDetails({ lead, onLeadUpdated }) {
     );
   }
 
-  /** 
-   * SERVICES 
-   * line1 => only `unpackingOption`
-   * line2 => if itemsToBeAssembled => "Assembly", if hoistItems => "Hoisting", if craneNeeded => "Crane"
-   * line3 => additionalServices => each with "+"
-   */
   function renderServicesSummary(stop) {
     const {
       unpackingOption,
@@ -281,24 +293,20 @@ function DestinationDetails({ lead, onLeadUpdated }) {
       additionalServices,
     } = stop || {};
 
-    // line1 => just unpackingOption
     const line1 = unpackingOption?.trim() || '';
 
-    // line2 => "Assembly", "Hoisting", "Crane"
     const line2Parts = [];
     if (itemsToBeAssembled) line2Parts.push('Assembly');
     if (hoistItems) line2Parts.push('Hoisting');
     if (craneNeeded) line2Parts.push('Crane');
     const line2 = line2Parts.join(', ');
 
-    // line3 => each additionalService => +service
     let line3 = '';
     if (Array.isArray(additionalServices) && additionalServices.length) {
-      const plusList = additionalServices.map(s => `+${s}`);
+      const plusList = additionalServices.map((s) => `+${s}`);
       line3 = plusList.join(', ');
     }
 
-    // If none => no summary
     if (!line1 && !line2 && !line3) return null;
 
     const lines = [];
@@ -320,17 +328,14 @@ function DestinationDetails({ lead, onLeadUpdated }) {
     );
   }
 
-  // Summaries
   const placeSummary = renderPlaceSummary(currentStop);
   const accessSummary = renderAccessSummary(currentStop);
   const servicesSummary = renderServicesSummary(currentStop);
 
-  // Remove dotted border if conditions are met
   const removePlaceDotted = isPlaceDataComplete(currentStop) ? styles.placeNoDotted : '';
   const removeAccessDotted = isAccessDataComplete(currentStop) ? styles.accessNoDotted : '';
   const removeServicesDotted = isServicesDataComplete(currentStop) ? styles.servicesNoDotted : '';
 
-  // Dropdown states + refs
   const [optionDropdownOpen, setOptionDropdownOpen] = useState(false);
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [startDropdownOpen, setStartDropdownOpen] = useState(false);
@@ -341,7 +346,6 @@ function DestinationDetails({ lead, onLeadUpdated }) {
   const startRef = useRef(null);
   const endRef = useRef(null);
 
-  // Outside-click detection for dropdowns
   useEffect(() => {
     function handleClickOutside(e) {
       if (optionDropdownOpen && optionRef.current && !optionRef.current.contains(e.target)) {
@@ -372,7 +376,10 @@ function DestinationDetails({ lead, onLeadUpdated }) {
 
       {!isCollapsed && (
         <>
-          {/* Row of destination stops */}
+          {/* 
+            Row of destination stops 
+            Now includes normal + (optionally) post-storage 
+          */}
           <MainAndStopOffs
             stops={destinationStops}
             onStopsUpdated={(updatedStops) => {
@@ -381,6 +388,7 @@ function DestinationDetails({ lead, onLeadUpdated }) {
             selectedStopIndex={selectedStopIndex}
             setSelectedStopIndex={setSelectedStopIndex}
             placeType="destination"
+            isStorageToggled={isStorageToggled}
           />
 
           {/* Address Inputs */}

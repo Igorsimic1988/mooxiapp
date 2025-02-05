@@ -1,5 +1,3 @@
-// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/PlacePopup/PlacePopup.js
-
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './PlacePopup.module.css';
 
@@ -203,16 +201,6 @@ const furnishingEligibleTypes = new Set([
   'Government Institution',
 ]);
 
-/**
- * PlacePopup
- * ----------
- * PROPS:
- *   - lead
- *   - onLeadUpdated
- *   - setIsPlacePopupVisible
- *   - defaultTab: "origin" or "destination"
- *   - defaultStopIndex: number (which stop is highlighted initially)
- */
 function PlacePopup({
   lead,
   onLeadUpdated,
@@ -222,14 +210,11 @@ function PlacePopup({
 }) {
   const popupContentRef = useRef(null);
 
-  // Which place are we editing? "origin" or "destination"
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
-  // Local arrays for origin/destination
   const [localOriginStops, setLocalOriginStops] = useState([]);
   const [localDestinationStops, setLocalDestinationStops] = useState([]);
 
-  // We'll track separate selectedStopIndexes, respecting the defaultTab logic
   const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
     defaultTab === 'origin' ? defaultStopIndex : 0
   );
@@ -237,7 +222,6 @@ function PlacePopup({
     defaultTab === 'destination' ? defaultStopIndex : 0
   );
 
-  // On mount => copy from lead into local arrays
   useEffect(() => {
     const origin = Array.isArray(lead.originStops) && lead.originStops.length > 0
       ? lead.originStops
@@ -271,12 +255,10 @@ function PlacePopup({
     setLocalDestinationStops(destMapped);
   }, [lead]);
 
-  // If user clicks outside => close popup
   const handleClose = useCallback(() => {
     setIsPlacePopupVisible(false);
   }, [setIsPlacePopupVisible]);
 
-  // Outside-click detection
   useEffect(() => {
     function handleClickOutside(e) {
       if (
@@ -301,7 +283,6 @@ function PlacePopup({
     ? selectedStopIndexOrigin
     : selectedStopIndexDest;
 
-  // Switch the selected stop index appropriately
   function handleSetStopIndex(idx) {
     if (selectedPlace === 'origin') {
       setSelectedStopIndexOrigin(idx);
@@ -310,7 +291,6 @@ function PlacePopup({
     }
   }
 
-  // Called when user adds or removes a stop from MainAndStopOffs
   function handleStopsLocalUpdated(newStops) {
     if (selectedPlace === 'origin') {
       setLocalOriginStops(newStops);
@@ -319,10 +299,8 @@ function PlacePopup({
     }
   }
 
-  // The "current" stop from whichever array
   const currentStop = currentStops[stopIndex] || {};
 
-  // Helper => set a field in the current stop
   function setStopField(fieldName, newValue) {
     const updated = [...currentStops];
     const cloned = { ...updated[stopIndex] };
@@ -336,16 +314,13 @@ function PlacePopup({
     }
   }
 
-  // For origin: Move Size & Furnishing => only if origin
   const moveSizeOptions = moveSizeOptionsMap[currentStop.typeOfPlace] || [];
   const storiesApplicable = storiesEligibleTypes.has(currentStop.typeOfPlace);
 
-  // If moveSize is "One Item" or "Just a Few Items" => furnishing style is disabled
   const isMoveSizeBasic =
     currentStop.moveSize === 'One Item' || currentStop.moveSize === 'Just a Few Items';
   const furnishingDisabled = (!currentStop.moveSize || isMoveSizeBasic);
 
-  // Toggling the 4 feature checkboxes (basement, attic, etc.)
   function toggleFeature(feature) {
     const clonedFeatures = Array.isArray(currentStop.features)
       ? [...currentStop.features]
@@ -362,7 +337,7 @@ function PlacePopup({
     return Array.isArray(currentStop.features) && currentStop.features.includes(feature);
   }
 
-  // ---------- DROPDOWNS ----------
+  // Dropdown toggles
   const [showTypeOfPlaceDropdown, setShowTypeOfPlaceDropdown] = useState(false);
   const [showMoveSizeDropdown, setShowMoveSizeDropdown] = useState(false);
   const [showStoriesDropdown, setShowStoriesDropdown] = useState(false);
@@ -377,7 +352,6 @@ function PlacePopup({
   }
   function handleSelectTypeOfPlace(option) {
     if (option !== currentStop.typeOfPlace) {
-      // reset some fields if the type changes
       setStopField('moveSize', '');
       setStopField('howManyStories', '');
       setStopField('furnishingStyle', '');
@@ -386,7 +360,7 @@ function PlacePopup({
     setShowTypeOfPlaceDropdown(false);
   }
 
-  // MOVE SIZE (only for origin)
+  // MOVE SIZE (origin only)
   function handleToggleMoveSizeDropdown() {
     if (!currentStop.typeOfPlace) return;
     setShowMoveSizeDropdown((prev) => !prev);
@@ -402,7 +376,7 @@ function PlacePopup({
     setShowMoveSizeDropdown(false);
   }
 
-  // STORIES (both origin & destination if type is applicable)
+  // STORIES
   function handleToggleStoriesDropdown() {
     if (!storiesApplicable) return;
     setShowStoriesDropdown((prev) => !prev);
@@ -415,7 +389,7 @@ function PlacePopup({
     setShowStoriesDropdown(false);
   }
 
-  // FURNISHING (only if origin & not disabled)
+  // FURNISHING
   function handleToggleFurnishingDropdown() {
     if (furnishingDisabled) return;
     setShowFurnishingDropdown((prev) => !prev);
@@ -428,7 +402,7 @@ function PlacePopup({
     setShowFurnishingDropdown(false);
   }
 
-  // COI => for both
+  // COI
   function toggleCOI() {
     setStopField('needsCOI', !currentStop.needsCOI);
   }
@@ -443,9 +417,7 @@ function PlacePopup({
     setIsPlacePopupVisible(false);
   }
 
-  // Helpers to render label+value with the More icon on the RIGHT
   function DropdownButton({ label, value, onClick, disabled }) {
-    // If nothing selected => "Select"
     const displayValue = value ? value : 'Select';
     return (
       <button
@@ -466,7 +438,7 @@ function PlacePopup({
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
-        {/* HEADER => pinned at top */}
+        {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
             <HouseIcon className={styles.icon} />
@@ -479,7 +451,7 @@ function PlacePopup({
           </div>
         </div>
 
-        {/* TOP SECTION => pinned just below header => holds the radio + stopOffs */}
+        {/* TOP SECTION => radio + stopOffs */}
         <div className={styles.topSection}>
           {/* Radio group => origin/destination */}
           <div className={styles.radioGroup}>
@@ -508,17 +480,24 @@ function PlacePopup({
           </div>
 
           <div className={styles.stopOffsPaddingWrapper}>
+            {/* 
+               We don't have a direct "isStorageToggled" in the popup, 
+               but if the user picks "destination" and the actual lead has add_storage set, 
+               that would cause the postStorage row to appear. 
+               We'll pass isStorageToggled=lead.add_storage if the user chooses "destination".
+            */}
             <MainAndStopOffs
               stops={currentStops}
               onStopsUpdated={handleStopsLocalUpdated}
               selectedStopIndex={stopIndex}
               setSelectedStopIndex={handleSetStopIndex}
               placeType={selectedPlace}
+              isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
             />
           </div>
         </div>
 
-        {/* MAIN SCROLLABLE CONTENT => the origin/destination fields */}
+        {/* MAIN SCROLLABLE CONTENT */}
         <div className={styles.scrollableContent}>
           {/* ORIGIN BLOCK */}
           {selectedPlace === 'origin' && (
@@ -601,7 +580,7 @@ function PlacePopup({
                 )}
               </div>
 
-              {/* 4 features => basement, attic, shed, external storage */}
+              {/* FEATURES */}
               <div className={styles.featuresGrid}>
                 {['Basement', 'Attic', 'Shed', 'External Storage'].map((feature) => {
                   const checked = isFeatureChecked(feature);
@@ -649,7 +628,7 @@ function PlacePopup({
                 )}
               </div>
 
-              {/* COI checkbox */}
+              {/* COI */}
               <div style={{ marginTop: '16px' }}>
                 <label className={styles.featureCheckbox}>
                   <input
@@ -720,7 +699,7 @@ function PlacePopup({
                 )}
               </div>
 
-              {/* 4 features => basement, attic, shed, external storage */}
+              {/* FEATURES */}
               <div className={styles.featuresGrid}>
                 {['Basement', 'Attic', 'Shed', 'External Storage'].map((feature) => {
                   const checked = isFeatureChecked(feature);
@@ -739,7 +718,7 @@ function PlacePopup({
                 })}
               </div>
 
-              {/* COI checkbox */}
+              {/* COI */}
               <div className={styles.coiDestination}>
                 <label className={styles.featureCheckbox}>
                   <input
@@ -756,7 +735,7 @@ function PlacePopup({
           )}
         </div>
 
-        {/* FOOTER => pinned at bottom */}
+        {/* FOOTER */}
         <div className={styles.stickyFooter}>
           <button
             type="button"

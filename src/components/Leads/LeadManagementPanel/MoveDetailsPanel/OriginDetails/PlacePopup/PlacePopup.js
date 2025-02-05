@@ -210,11 +210,14 @@ function PlacePopup({
 }) {
   const popupContentRef = useRef(null);
 
+  // which place => 'origin' or 'destination'
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
+  // local arrays
   const [localOriginStops, setLocalOriginStops] = useState([]);
   const [localDestinationStops, setLocalDestinationStops] = useState([]);
 
+  // selectedStopIndex for each
   const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
     defaultTab === 'origin' ? defaultStopIndex : 0
   );
@@ -222,6 +225,7 @@ function PlacePopup({
     defaultTab === 'destination' ? defaultStopIndex : 0
   );
 
+  // On mount => copy from lead
   useEffect(() => {
     const origin = Array.isArray(lead.originStops) && lead.originStops.length > 0
       ? lead.originStops
@@ -255,6 +259,7 @@ function PlacePopup({
     setLocalDestinationStops(destMapped);
   }, [lead]);
 
+  // close if clicked outside
   const handleClose = useCallback(() => {
     setIsPlacePopupVisible(false);
   }, [setIsPlacePopupVisible]);
@@ -269,19 +274,14 @@ function PlacePopup({
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [handleClose]);
 
-  // Decide which array & selectedStopIndex are we editing
-  const currentStops = selectedPlace === 'origin'
-    ? localOriginStops
-    : localDestinationStops;
-
-  const stopIndex = selectedPlace === 'origin'
-    ? selectedStopIndexOrigin
-    : selectedStopIndexDest;
+  // decide which array + selectedStopIndex
+  const currentStops =
+    selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
+  const stopIndex =
+    selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
 
   function handleSetStopIndex(idx) {
     if (selectedPlace === 'origin') {
@@ -337,13 +337,13 @@ function PlacePopup({
     return Array.isArray(currentStop.features) && currentStop.features.includes(feature);
   }
 
-  // Dropdown toggles
+  // dropdown toggles
   const [showTypeOfPlaceDropdown, setShowTypeOfPlaceDropdown] = useState(false);
   const [showMoveSizeDropdown, setShowMoveSizeDropdown] = useState(false);
   const [showStoriesDropdown, setShowStoriesDropdown] = useState(false);
   const [showFurnishingDropdown, setShowFurnishingDropdown] = useState(false);
 
-  // TYPE OF PLACE
+  // Type of place
   function handleToggleTypeOfPlaceDropdown() {
     setShowTypeOfPlaceDropdown((prev) => !prev);
     setShowMoveSizeDropdown(false);
@@ -360,7 +360,7 @@ function PlacePopup({
     setShowTypeOfPlaceDropdown(false);
   }
 
-  // MOVE SIZE (origin only)
+  // Move Size (origin)
   function handleToggleMoveSizeDropdown() {
     if (!currentStop.typeOfPlace) return;
     setShowMoveSizeDropdown((prev) => !prev);
@@ -376,7 +376,7 @@ function PlacePopup({
     setShowMoveSizeDropdown(false);
   }
 
-  // STORIES
+  // Stories
   function handleToggleStoriesDropdown() {
     if (!storiesApplicable) return;
     setShowStoriesDropdown((prev) => !prev);
@@ -389,7 +389,7 @@ function PlacePopup({
     setShowStoriesDropdown(false);
   }
 
-  // FURNISHING
+  // Furnishing
   function handleToggleFurnishingDropdown() {
     if (furnishingDisabled) return;
     setShowFurnishingDropdown((prev) => !prev);
@@ -407,7 +407,7 @@ function PlacePopup({
     setStopField('needsCOI', !currentStop.needsCOI);
   }
 
-  // Save => store local arrays into lead
+  // Save
   function handleSave() {
     onLeadUpdated({
       ...lead,
@@ -435,6 +435,12 @@ function PlacePopup({
     );
   }
 
+  // We want to hide normal stops if this is "destination" + lead.add_storage + "All items"
+  const hideNormalStops =
+    selectedPlace === 'destination' &&
+    !!lead.add_storage &&
+    lead.storage_items === 'All items';
+
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
@@ -451,9 +457,9 @@ function PlacePopup({
           </div>
         </div>
 
-        {/* TOP SECTION => radio + stopOffs */}
+        {/* TOP SECTION => radio + stops */}
         <div className={styles.topSection}>
-          {/* Radio group => origin/destination */}
+          {/* Radio group */}
           <div className={styles.radioGroup}>
             <label className={styles.radioLabel}>
               <input
@@ -480,12 +486,6 @@ function PlacePopup({
           </div>
 
           <div className={styles.stopOffsPaddingWrapper}>
-            {/* 
-               We don't have a direct "isStorageToggled" in the popup, 
-               but if the user picks "destination" and the actual lead has add_storage set, 
-               that would cause the postStorage row to appear. 
-               We'll pass isStorageToggled=lead.add_storage if the user chooses "destination".
-            */}
             <MainAndStopOffs
               stops={currentStops}
               onStopsUpdated={handleStopsLocalUpdated}
@@ -493,13 +493,14 @@ function PlacePopup({
               setSelectedStopIndex={handleSetStopIndex}
               placeType={selectedPlace}
               isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
+              hideNormalStops={hideNormalStops}
             />
           </div>
         </div>
 
         {/* MAIN SCROLLABLE CONTENT */}
         <div className={styles.scrollableContent}>
-          {/* ORIGIN BLOCK */}
+          {/* ORIGIN FORM */}
           {selectedPlace === 'origin' && (
             <div className={styles.formFieldsWrapper}>
               {/* TYPE OF PLACE */}
@@ -560,9 +561,9 @@ function PlacePopup({
                   label="How many stories:"
                   value={currentStop.howManyStories}
                   onClick={handleToggleStoriesDropdown}
-                  disabled={!storiesApplicable}
+                  disabled={!storiesEligibleTypes.has(currentStop.typeOfPlace)}
                 />
-                {showStoriesDropdown && storiesApplicable && (
+                {showStoriesDropdown && storiesEligibleTypes.has(currentStop.typeOfPlace) && (
                   <ul className={styles.optionsList}>
                     {howManyStoriesOptions.map((option) => {
                       const isSelected = currentStop.howManyStories === option;
@@ -644,7 +645,7 @@ function PlacePopup({
             </div>
           )}
 
-          {/* DESTINATION BLOCK */}
+          {/* DESTINATION FORM */}
           {selectedPlace === 'destination' && (
             <div className={styles.formFieldsWrapper}>
               {/* TYPE OF PLACE */}

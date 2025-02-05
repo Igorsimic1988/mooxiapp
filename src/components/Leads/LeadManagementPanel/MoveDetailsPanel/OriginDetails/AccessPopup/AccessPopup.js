@@ -1,5 +1,3 @@
-// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/AccessPopup/AccessPopup.js
-
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './AccessPopup.module.css';
 
@@ -69,18 +67,6 @@ const elevatorSizeOptions = [
   'Large (9+ People)',
 ];
 
-/**
- * AccessPopup
- * -----------
- * Allows editing "Access" info for both Origin & Destination stops.
- *
- * PROPS:
- *   - lead                   => The entire lead object
- *   - onLeadUpdated          => Function(updatedLead)
- *   - setIsAccessPopupVisible => to close the popup
- *   - defaultTab: "origin" or "destination" => which tab to open first
- *   - defaultStopIndex: number => which stop is highlighted initially
- */
 function AccessPopup({
   lead,
   onLeadUpdated,
@@ -90,14 +76,14 @@ function AccessPopup({
 }) {
   const popupContentRef = useRef(null);
 
-  // Local arrays for origin & destination
+  // local arrays for origin & destination
   const [localOriginStops, setLocalOriginStops] = useState([]);
   const [localDestinationStops, setLocalDestinationStops] = useState([]);
 
-  // Which place? 'origin' or 'destination'
+  // 'origin' or 'destination'
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
-  // Separate selectedStopIndex for origin vs destination
+  // selectedStopIndex for each
   const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
     defaultTab === 'origin' ? defaultStopIndex : 0
   );
@@ -105,7 +91,7 @@ function AccessPopup({
     defaultTab === 'destination' ? defaultStopIndex : 0
   );
 
-  // On mount => copy from lead into local arrays
+  // Copy from lead
   useEffect(() => {
     const originStops = Array.isArray(lead.originStops) && lead.originStops.length > 0
       ? lead.originStops
@@ -129,7 +115,6 @@ function AccessPopup({
           zip: '',
         }];
 
-    // Map them to ensure each has the Access fields
     const mappedOrigin = originStops.map((stop) => ({
       ...stop,
       biggestTruckAccess: stop.biggestTruckAccess || '',
@@ -162,12 +147,11 @@ function AccessPopup({
     setLocalDestinationStops(mappedDestination);
   }, [lead]);
 
-  // If user clicks outside => close popup
+  // close if clicked outside
   const handleClose = useCallback(() => {
     setIsAccessPopupVisible(false);
   }, [setIsAccessPopupVisible]);
 
-  // Outside-click detection
   useEffect(() => {
     function handleClickOutside(e) {
       if (
@@ -183,14 +167,10 @@ function AccessPopup({
     };
   }, [handleClose]);
 
-  // Decide which array & selectedStopIndex
-  const currentStops =
-    selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
+  // Decide which array + selectedStopIndex
+  const currentStops = selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
+  const selectedStopIndex = selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
 
-  const selectedStopIndex =
-    selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
-
-  // A helper to switch indexes
   function setSelectedStopIndex(idx) {
     if (selectedPlace === 'origin') {
       setSelectedStopIndexOrigin(idx);
@@ -199,7 +179,6 @@ function AccessPopup({
     }
   }
 
-  // A helper to update the local stops array
   function handleStopsLocalUpdated(newStops) {
     if (selectedPlace === 'origin') {
       setLocalOriginStops(newStops);
@@ -208,10 +187,8 @@ function AccessPopup({
     }
   }
 
-  // The "current" stop
   const stop = currentStops[selectedStopIndex] || {};
 
-  // A helper to set a field
   function setStopField(fieldName, newValue) {
     const updated = [...currentStops];
     const cloned = { ...updated[selectedStopIndex] };
@@ -235,7 +212,7 @@ function AccessPopup({
     setIsAccessPopupVisible(false);
   }
 
-  // Toggling checkboxes
+  // toggles
   function toggleShuttleTruckRequired() {
     setStopField('shuttleTruckRequired', !stop.shuttleTruckRequired);
   }
@@ -246,7 +223,7 @@ function AccessPopup({
     setStopField('elevatorExclusive', !stop.elevatorExclusive);
   }
 
-  // ---------- Dropdown show/hide states ----------
+  // dropdown states
   const [showTruckAccessDropdown, setShowTruckAccessDropdown] = useState(false);
   const [showParkingDropdown, setShowParkingDropdown] = useState(false);
   const [showDistanceDropdown, setShowDistanceDropdown] = useState(false);
@@ -272,11 +249,17 @@ function AccessPopup({
     );
   }
 
+  // We want to hide normal stops if user picks "destination" + lead.add_storage + lead.storage_items === 'All items'
+  const hideNormalStops =
+    selectedPlace === 'destination' &&
+    !!lead.add_storage &&
+    lead.storage_items === 'All items';
+
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
         
-        {/* HEADER => pinned at top */}
+        {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
             <HouseIcon className={styles.icon} />
@@ -289,9 +272,8 @@ function AccessPopup({
           </div>
         </div>
 
-        {/* TOP SECTION => pinned below header => radio + stopoffs */}
+        {/* TOP SECTION => radio + stops */}
         <div className={styles.topSection}>
-          {/* Radio => origin/destination */}
           <div className={styles.radioGroup}>
             <label className={styles.radioLabel}>
               <input
@@ -303,7 +285,6 @@ function AccessPopup({
               />
               <span className={styles.radioText}>Origin</span>
             </label>
-
             <label className={styles.radioLabel}>
               <input
                 type="radio"
@@ -316,7 +297,6 @@ function AccessPopup({
             </label>
           </div>
 
-          {/* Stop-offs */}
           <div className={styles.stopOffsPaddingWrapper}>
             <MainAndStopOffs
               stops={currentStops}
@@ -324,13 +304,13 @@ function AccessPopup({
               selectedStopIndex={selectedStopIndex}
               setSelectedStopIndex={setSelectedStopIndex}
               placeType={selectedPlace}
-              // If user picks "destination" and lead.add_storage => show post-storage row
               isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
+              hideNormalStops={hideNormalStops}
             />
           </div>
         </div>
 
-        {/* MAIN SCROLLABLE CONTENT => the fields */}
+        {/* MAIN SCROLLABLE CONTENT => fields */}
         <div className={styles.scrollableContent}>
           <div className={styles.formFieldsWrapper}>
 
@@ -370,7 +350,7 @@ function AccessPopup({
               )}
             </div>
 
-            {/* 2) Shuttle Truck Required => checkbox */}
+            {/* Shuttle Truck? */}
             <div className={styles.shuttleCheckboxWrapper}>
               <label className={styles.featureCheckbox}>
                 <input
@@ -384,7 +364,7 @@ function AccessPopup({
               </label>
             </div>
 
-            {/* 3) Parking Access */}
+            {/* Parking Access */}
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Parking:"
@@ -420,7 +400,7 @@ function AccessPopup({
               )}
             </div>
 
-            {/* 4) Distance door to truck */}
+            {/* Distance Door->Truck */}
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Door to truck:"
@@ -456,7 +436,7 @@ function AccessPopup({
               )}
             </div>
 
-            {/* 5) How Many Steps */}
+            {/* Steps */}
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="How Many Steps:"
@@ -492,7 +472,7 @@ function AccessPopup({
               )}
             </div>
 
-            {/* 6) Terrain from door to truck */}
+            {/* Terrain */}
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Door to truck Terrain:"
@@ -528,10 +508,8 @@ function AccessPopup({
               )}
             </div>
 
-            {/* Extra spacing before Elevator toggle */}
+            {/* Elevator Toggle */}
             <div style={{ height: '25px' }} />
-
-            {/* Elevator Toggle (SimpleToggle) */}
             <div className={styles.elevatorToggleRow}>
               <span className={styles.elevatorToggleLabel}>
                 {selectedPlace === 'origin'
@@ -544,10 +522,9 @@ function AccessPopup({
               />
             </div>
 
-            {/* If elevatorAtStop => show "Exclusive use", Elevator floors, Elevator size */}
             {stop.elevatorAtStop && (
               <div className={styles.elevatorFieldsWrapper}>
-                {/* 1) Exclusive use checkbox */}
+                {/* Exclusive use */}
                 <div className={styles.exclusiveCheckbox}>
                   <label className={styles.featureCheckbox}>
                     <input
@@ -561,7 +538,7 @@ function AccessPopup({
                   </label>
                 </div>
 
-                {/* 2) Elevator floors => dropdown */}
+                {/* Elevator floors */}
                 <div className={styles.inputWrapper}>
                   <DropdownButton
                     label="Elevator floors:"
@@ -592,7 +569,7 @@ function AccessPopup({
                   )}
                 </div>
 
-                {/* 3) Elevator size => dropdown */}
+                {/* Elevator Size */}
                 <div className={styles.inputWrapper}>
                   <DropdownButton
                     label="Elevator Size:"

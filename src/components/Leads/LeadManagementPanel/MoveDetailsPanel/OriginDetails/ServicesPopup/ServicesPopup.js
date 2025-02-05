@@ -1,5 +1,3 @@
-// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/ServicesPopup/ServicesPopup.js
-
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './ServicesPopup.module.css';
 
@@ -8,7 +6,6 @@ import { ReactComponent as HouseIcon } from '../../../../../../assets/icons/hous
 import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Close.svg';
 import { ReactComponent as UnfoldMoreIcon } from '../../../../../../assets/icons/unfoldmore.svg';
 
-// Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 
 // Example data for drop-downs
@@ -26,7 +23,6 @@ const unpackingDestinationOptions = [
   'Custom Unpacking ( tagged )',
 ];
 
-// For blankets
 const blanketsOriginOptions = [
   'Needed',
   'Blankets not needed',
@@ -39,7 +35,7 @@ const blanketsDestinationOptions = [
   'Custom ( tagged )',
 ];
 
-// Additional Services => from your typeOfServiceChoices
+// Additional services
 const typeOfServiceChoices = [
   { id: 1, name: 'Moving' },
   { id: 2, name: 'Move items within premises' },
@@ -49,18 +45,6 @@ const typeOfServiceChoices = [
   { id: 6, name: 'Help with Unloading' },
 ];
 
-/**
- * ServicesPopup
- * -------------
- * Allows editing "Services" info for both Origin & Destination stops.
- *
- * Props:
- *   - lead
- *   - onLeadUpdated
- *   - setIsServicesPopupVisible
- *   - defaultTab: "origin" or "destination"
- *   - defaultStopIndex: number
- */
 function ServicesPopup({
   lead,
   onLeadUpdated,
@@ -70,14 +54,11 @@ function ServicesPopup({
 }) {
   const popupContentRef = useRef(null);
 
-  // local arrays for origin/destination stops
   const [localOriginStops, setLocalOriginStops] = useState([]);
   const [localDestinationStops, setLocalDestinationStops] = useState([]);
 
-  // which place: 'origin' or 'destination'
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
-  // track selectedStopIndex for each place
   const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
     defaultTab === 'origin' ? defaultStopIndex : 0
   );
@@ -85,7 +66,6 @@ function ServicesPopup({
     defaultTab === 'destination' ? defaultStopIndex : 0
   );
 
-  // On mount => copy data from lead => local arrays
   useEffect(() => {
     const originStops =
       Array.isArray(lead.originStops) && lead.originStops.length > 0
@@ -115,22 +95,14 @@ function ServicesPopup({
             },
           ];
 
-    // We'll add fields for the "Services" portion to each stop
     const mappedOrigin = originStops.map((stop) => ({
       ...stop,
-      // for origin only
       whatsMoving: stop.whatsMoving || '',
       packingOption: stop.packingOption || '',
       itemsToBeTakenApart: !!stop.itemsToBeTakenApart,
-
-      // shared
       hoistItems: !!stop.hoistItems,
       craneNeeded: !!stop.craneNeeded,
-
-      // blankets for origin
       blanketsOption: stop.blanketsOption || '',
-
-      // array of additional services
       additionalServices: Array.isArray(stop.additionalServices)
         ? [...stop.additionalServices]
         : [],
@@ -138,18 +110,11 @@ function ServicesPopup({
 
     const mappedDest = destStops.map((stop) => ({
       ...stop,
-      // for destination
       unpackingOption: stop.unpackingOption || '',
       itemsToBeAssembled: !!stop.itemsToBeAssembled,
-
-      // shared
       hoistItems: !!stop.hoistItems,
       craneNeeded: !!stop.craneNeeded,
-
-      // blankets for destination
       blanketsOption: stop.blanketsOption || '',
-
-      // additional services
       additionalServices: Array.isArray(stop.additionalServices)
         ? [...stop.additionalServices]
         : [],
@@ -159,7 +124,6 @@ function ServicesPopup({
     setLocalDestinationStops(mappedDest);
   }, [lead]);
 
-  // outside click => close
   const handleClose = useCallback(() => {
     setIsServicesPopupVisible(false);
   }, [setIsServicesPopupVisible]);
@@ -179,7 +143,7 @@ function ServicesPopup({
     };
   }, [handleClose]);
 
-  // decide which array + selectedStopIndex
+  // Decide which array
   const currentStops =
     selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
   const selectedStopIndex =
@@ -193,7 +157,6 @@ function ServicesPopup({
     }
   }
 
-  // handle stops updates
   function handleStopsLocalUpdated(newStops) {
     if (selectedPlace === 'origin') {
       setLocalOriginStops(newStops);
@@ -202,10 +165,8 @@ function ServicesPopup({
     }
   }
 
-  // get currentStop
   const stop = currentStops[selectedStopIndex] || {};
 
-  // helper => set a field
   function setStopField(fieldName, value) {
     const updated = [...currentStops];
     const cloned = { ...updated[selectedStopIndex] };
@@ -219,7 +180,6 @@ function ServicesPopup({
     }
   }
 
-  // save => merge to lead
   function handleSave() {
     onLeadUpdated({
       ...lead,
@@ -229,12 +189,10 @@ function ServicesPopup({
     setIsServicesPopupVisible(false);
   }
 
-  // to toggle a boolean
   function toggleField(fieldName) {
     setStopField(fieldName, !stop[fieldName]);
   }
 
-  // handle check/uncheck of Additional Services
   function toggleAdditionalService(serviceName) {
     const currentServices = Array.isArray(stop.additionalServices)
       ? [...stop.additionalServices]
@@ -254,7 +212,7 @@ function ServicesPopup({
     );
   }
 
-  // handle dropdown toggles
+  // dropdown toggles
   const [showWhatsMovingDropdown, setShowWhatsMovingDropdown] = useState(false);
   const [showPackingDropdown, setShowPackingDropdown] = useState(false);
   const [showUnpackingDropdown, setShowUnpackingDropdown] = useState(false);
@@ -277,11 +235,17 @@ function ServicesPopup({
     );
   }
 
+  // If it's "destination" & lead.add_storage & lead.storage_items === 'All items' => hide normal stops
+  const hideNormalStops =
+    selectedPlace === 'destination' &&
+    !!lead.add_storage &&
+    lead.storage_items === 'All items';
+
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
 
-        {/* HEADER => pinned at top */}
+        {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
             <HouseIcon className={styles.icon} />
@@ -294,9 +258,8 @@ function ServicesPopup({
           </div>
         </div>
 
-        {/* TOP SECTION => the radio + stopoffs pinned below header */}
+        {/* TOP SECTION => radio + stops */}
         <div className={styles.topSection}>
-          {/* Radio => origin/destination */}
           <div className={styles.radioGroup}>
             <label className={styles.radioLabel}>
               <input
@@ -318,7 +281,6 @@ function ServicesPopup({
             </label>
           </div>
 
-          {/* StopOffs row */}
           <div className={styles.stopOffsPaddingWrapper}>
             <MainAndStopOffs
               stops={currentStops}
@@ -326,8 +288,8 @@ function ServicesPopup({
               selectedStopIndex={selectedStopIndex}
               setSelectedStopIndex={setSelectedStopIndex}
               placeType={selectedPlace}
-              // If user is on "destination" & lead.add_storage => show post-storage row
               isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
+              hideNormalStops={hideNormalStops}
             />
           </div>
         </div>
@@ -372,7 +334,7 @@ function ServicesPopup({
                   )}
                 </div>
 
-                {/* 2) Packing Option => 21px spacing after it */}
+                {/* 2) Packing Option => 21px spacing */}
                 <div className={`${styles.dropdownWrapper} ${styles.packingOptionMargin}`}>
                   <DropdownButton
                     label="Packing Option:"
@@ -410,7 +372,7 @@ function ServicesPopup({
             {/* DESTINATION fields */}
             {selectedPlace === 'destination' && (
               <>
-                {/* 1) Unpacking Option => 21px spacing after it */}
+                {/* Unpacking Option */}
                 <div className={`${styles.dropdownWrapper} ${styles.unpackingOptionMargin}`}>
                   <DropdownButton
                     label="Unpacking:"
@@ -445,10 +407,7 @@ function ServicesPopup({
               </>
             )}
 
-            {/* Group of 3 checkboxes => 
-                either (Items to be taken apart, Hoist, Crane) for origin
-                or (Items to be assembled, Hoist, Crane) for destination
-            */}
+            {/* 3 checkboxes => ItemsToBeTakenApart OR ItemsToBeAssembled, hoistItems, craneNeeded */}
             <div className={styles.checkboxesGroup}>
               {selectedPlace === 'origin' && (
                 <label className={styles.featureCheckbox}>
@@ -480,7 +439,7 @@ function ServicesPopup({
                 </label>
               )}
 
-              {/* Hoist items? */}
+              {/* Hoist? */}
               <label className={styles.featureCheckbox}>
                 <input
                   type="checkbox"
@@ -492,7 +451,7 @@ function ServicesPopup({
                 <span className={styles.featureLabel}>Hoist items?</span>
               </label>
 
-              {/* Crane needed? */}
+              {/* Crane? */}
               <label className={styles.featureCheckbox}>
                 <input
                   type="checkbox"
@@ -546,7 +505,7 @@ function ServicesPopup({
               Additional Services
             </div>
 
-            {/* The vertical stack of checkboxes for the typeOfServiceChoices */}
+            {/* Additional Services checkboxes */}
             <div className={styles.additionalServicesList}>
               {typeOfServiceChoices.map((svc) => {
                 const checked = isServiceChecked(svc.name);
@@ -567,7 +526,7 @@ function ServicesPopup({
           </div>
         </div>
 
-        {/* STICKY FOOTER => Save button */}
+        {/* FOOTER => Save */}
         <div className={styles.stickyFooter}>
           <button
             type="button"

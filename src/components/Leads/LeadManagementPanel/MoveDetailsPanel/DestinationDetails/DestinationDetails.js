@@ -28,7 +28,6 @@ function generateTimeOptions() {
     if (displayHour === 0) displayHour = 12;
     const displayMin = String(mm).padStart(2, '0');
     times.push(`${displayHour}:${displayMin} ${suffix}`);
-
     startMinutes += 15;
   }
   return times;
@@ -42,29 +41,18 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
 
-  // Time restrictions
-  const timeRestrictionOptions = ['Not allowed', 'Allowed'];
-  const timeRestrictionTypes = [
-    'Elevator Usage',
-    'Place Access',
-    'Operating Hours',
-    'Permit Requests',
-    'Personal Plans',
-    'Loading Zone',
-    'Parking Zone',
-    'Community Rules',
-    'Other',
-  ];
-  const timeOptions = generateTimeOptions();
-
-  // Popups
+  // Pop-up states -- define them so we won't get "not defined" errors
   const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
   const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
   const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false);
 
+  // Decide if we should hide normal stops => user selected "All items" in storage
+  const hideNormalStops = isStorageToggled && lead.storage_items === 'All items';
+
+  // On mount or toggling => ensure we have a default normal stop + post‐storage if needed
   useEffect(() => {
-    // Ensure destinationStops exist
     if (!Array.isArray(lead.destinationStops) || lead.destinationStops.length === 0) {
+      // If no stops at all => create one normal stop
       const defaultStops = [
         {
           label: 'Main Drop off',
@@ -80,19 +68,17 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
             startTime: '',
             endTime: '',
           },
-          postStorage: false, // normal
+          postStorage: false,
         },
       ];
       onLeadUpdated({ ...lead, destinationStops: defaultStops });
     } else {
-      // If we already have some stops, let's see if we need to create "Post Storage Main Drop off"
-      // whenever storage is toggled ON
+      // If we have some stops, see if we need to create a Post Storage Main Drop off
+      // whenever isStorageToggled is true
       if (isStorageToggled) {
         const existing = lead.destinationStops;
-        const alreadyHasPostStorage = existing.some((s) => s.postStorage === true);
-
-        if (!alreadyHasPostStorage) {
-          // Insert the "Post Storage Main Drop off"
+        const hasPostStorage = existing.some((s) => s.postStorage === true);
+        if (!hasPostStorage) {
           const newStop = {
             label: 'Post Storage Main Drop off',
             address: '',
@@ -109,24 +95,36 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
               endTime: '',
             },
           };
-          const updatedStops = [...existing, newStop];
-          onLeadUpdated({ ...lead, destinationStops: updatedStops });
+          const updated = [...existing, newStop];
+          onLeadUpdated({ ...lead, destinationStops: updated });
         }
       }
     }
-    // We only want to run this "initialization" once per mount or when toggling storage,
-    // so let's add isStorageToggled in the dependency array:
   }, [lead, onLeadUpdated, isStorageToggled]);
 
-  // Safely get the current array
-  const destinationStops = Array.isArray(lead.destinationStops)
-    ? lead.destinationStops
-    : [];
+  // If panel is expanded and hideNormalStops is true => auto‐select the first post‐storage stop
+  useEffect(() => {
+    if (
+      !isCollapsed &&
+      hideNormalStops &&
+      Array.isArray(lead.destinationStops)
+    ) {
+      const psIndex = lead.destinationStops.findIndex((s) => s.postStorage === true);
+      if (psIndex >= 0 && psIndex !== selectedStopIndex) {
+        setSelectedStopIndex(psIndex);
+      }
+    }
+  }, [isCollapsed, hideNormalStops, lead.destinationStops, selectedStopIndex]);
 
+  // Gather stops
+  const destinationStops = Array.isArray(lead.destinationStops) ? lead.destinationStops : [];
   // The currently selected stop
   const currentStop = destinationStops[selectedStopIndex] || {};
 
-  // isPlaceDataComplete, isAccessDataComplete, isServicesDataComplete
+  // Generate time options for restrictions
+  const timeOptions = generateTimeOptions();
+
+  // ---------- Functions to check completeness ----------
   function isPlaceDataComplete(stop) {
     return !!(stop.typeOfPlace?.trim() && stop.howManyStories?.trim());
   }
@@ -141,7 +139,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
     return !!stop.unpackingOption?.trim();
   }
 
-  // If user types in an address => update that stop
+  // For address changes
   function handleStopFieldChange(fieldName, newValue) {
     const updated = [...destinationStops];
     const copy = { ...updated[selectedStopIndex] };
@@ -150,7 +148,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
     onLeadUpdated({ ...lead, destinationStops: updated });
   }
 
-  // Time restrictions
+  // ---------- Time Restrictions ----------
   function getCurrentStopRestrictions() {
     if (!currentStop.timeRestrictions) {
       return {
@@ -332,15 +330,18 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
   const accessSummary = renderAccessSummary(currentStop);
   const servicesSummary = renderServicesSummary(currentStop);
 
+  // Classes to remove dotted borders if certain fields are complete
   const removePlaceDotted = isPlaceDataComplete(currentStop) ? styles.placeNoDotted : '';
   const removeAccessDotted = isAccessDataComplete(currentStop) ? styles.accessNoDotted : '';
   const removeServicesDotted = isServicesDataComplete(currentStop) ? styles.servicesNoDotted : '';
 
+  // States for time restriction dropdowns
   const [optionDropdownOpen, setOptionDropdownOpen] = useState(false);
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [startDropdownOpen, setStartDropdownOpen] = useState(false);
   const [endDropdownOpen, setEndDropdownOpen] = useState(false);
 
+  // Refs for outside click detection
   const optionRef = useRef(null);
   const typeRef = useRef(null);
   const startRef = useRef(null);
@@ -363,7 +364,12 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [optionDropdownOpen, typeDropdownOpen, startDropdownOpen, endDropdownOpen]);
+  }, [
+    optionDropdownOpen,
+    typeDropdownOpen,
+    startDropdownOpen,
+    endDropdownOpen
+  ]);
 
   return (
     <div className={styles.destinationContainer}>
@@ -378,7 +384,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
         <>
           {/* 
             Row of destination stops 
-            Now includes normal + (optionally) post-storage 
+            If hideNormalStops => we only show the postStorage row
           */}
           <MainAndStopOffs
             stops={destinationStops}
@@ -389,6 +395,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
             setSelectedStopIndex={setSelectedStopIndex}
             placeType="destination"
             isStorageToggled={isStorageToggled}
+            hideNormalStops={hideNormalStops}
           />
 
           {/* Address Inputs */}
@@ -522,6 +529,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
             {currentTR.isEnabled && (
               <div className={styles.timeRestrictionsContent}>
                 <div className={styles.timeRestrictionsInputsColumn}>
+
                   {/* Option */}
                   <div
                     className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
@@ -530,7 +538,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                     <div
                       className={styles.clickableArea}
                       onClick={() => {
-                        setOptionDropdownOpen(!optionDropdownOpen);
+                        setOptionDropdownOpen((prev) => !prev);
                         setTypeDropdownOpen(false);
                         setStartDropdownOpen(false);
                         setEndDropdownOpen(false);
@@ -546,7 +554,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                     </div>
                     {optionDropdownOpen && (
                       <div className={styles.dropdownMenu}>
-                        {timeRestrictionOptions.map((opt) => (
+                        {['Not allowed', 'Allowed'].map((opt) => (
                           <div
                             key={opt}
                             className={styles.dropdownOption}
@@ -570,7 +578,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                     <div
                       className={styles.clickableArea}
                       onClick={() => {
-                        setTypeDropdownOpen(!typeDropdownOpen);
+                        setTypeDropdownOpen((prev) => !prev);
                         setOptionDropdownOpen(false);
                         setStartDropdownOpen(false);
                         setEndDropdownOpen(false);
@@ -586,7 +594,17 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                     </div>
                     {typeDropdownOpen && (
                       <div className={styles.dropdownMenu}>
-                        {timeRestrictionTypes.map((typ) => (
+                        {[
+                          'Elevator Usage',
+                          'Place Access',
+                          'Operating Hours',
+                          'Permit Requests',
+                          'Personal Plans',
+                          'Loading Zone',
+                          'Parking Zone',
+                          'Community Rules',
+                          'Other',
+                        ].map((typ) => (
                           <div
                             key={typ}
                             className={styles.dropdownOption}
@@ -610,7 +628,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                     <div
                       className={styles.clickableArea}
                       onClick={() => {
-                        setStartDropdownOpen(!startDropdownOpen);
+                        setStartDropdownOpen((prev) => !prev);
                         setOptionDropdownOpen(false);
                         setTypeDropdownOpen(false);
                         setEndDropdownOpen(false);
@@ -650,7 +668,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                     <div
                       className={styles.clickableArea}
                       onClick={() => {
-                        setEndDropdownOpen(!endDropdownOpen);
+                        setEndDropdownOpen((prev) => !prev);
                         setOptionDropdownOpen(false);
                         setTypeDropdownOpen(false);
                         setStartDropdownOpen(false);
@@ -681,6 +699,7 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                       </div>
                     )}
                   </div>
+
                 </div>
               </div>
             )}

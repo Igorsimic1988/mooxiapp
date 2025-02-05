@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import styles from './MainAndStopOffs.module.css';
 
 /**
@@ -7,17 +7,14 @@ import styles from './MainAndStopOffs.module.css';
  * PROPS:
  *   - stops: the array of stops (e.g. lead.originStops or lead.destinationStops)
  *   - onStopsUpdated: function(newStops) => pass updated array up
- *   - selectedStopIndex: which index is currently selected
- *   - setSelectedStopIndex: function => sets the current stop index
+ *   - selectedStopIndex: which index in the full stops array is currently selected
+ *   - setSelectedStopIndex: function => sets the current stop index (in the full array)
  *   - placeType: either "origin" or "destination" (optional; default "origin")
  *   - isStorageToggled: boolean => if true (for destination), show the "Post Storage" row
+ *   - hideNormalStops: boolean => if true, do NOT show the normal stops row (only postStorage)
  *
- * This component now supports TWO sets of stops in "destination":
- *   1) Normal stops (postStorage === false)
- *   2) Post-storage stops (postStorage === true), displayed in red.
- * 
- * The "Post Storage" row only appears if placeType="destination" AND isStorageToggled=true.
- * By default, "Post Storage Main Drop off" is present (index 0 of the postStorage group).
+ * We separate the "normal" stops from the "postStorage" stops, but we do NOT reorder them
+ * in the actual array. Instead, we keep track of their real array index for correct selection.
  */
 function MainAndStopOffs({
   stops,
@@ -26,33 +23,39 @@ function MainAndStopOffs({
   setSelectedStopIndex,
   placeType = 'origin',
   isStorageToggled = false,
+  hideNormalStops = false,
 }) {
   // Ensure stops is an array
   if (!Array.isArray(stops)) stops = [];
 
-  // Filter out the two sets:
-  const normalStops = stops.filter((s) => !s.postStorage);
-  const postStorageStops = stops.filter((s) => s.postStorage);
+  /**
+   * We map each stop => { originalStopObject, realIndex, postStorage: boolean }
+   * Then filter out normal vs. postStorage. This way we can display them in
+   * separate rows but still know their realIndex in the array.
+   */
+  const mappedStops = useMemo(() => {
+    return stops.map((stopObj, realIndex) => ({
+      ...stopObj,
+      realIndex,
+    }));
+  }, [stops]);
 
-  // Current "selected" logic for highlighting
-  const isSelected = (globalIndex) => globalIndex === selectedStopIndex;
+  const normalStops = mappedStops.filter((s) => !s.postStorage);
+  const postStorageStops = mappedStops.filter((s) => s.postStorage);
 
-  // We'll do "normalStops" first, then "postStorageStops".
-  function getGlobalIndexForNormal(i) {
-    return i; 
+  // Function: isSelected => compare with the "full array" selectedStopIndex
+  function isSelected(realIndex) {
+    return realIndex === selectedStopIndex;
   }
-  function getGlobalIndexForPostStorage(i) {
-    return normalStops.length + i; 
-  }
 
-  // Button classes
-  function getNormalButtonClass(globalIndex) {
-    return isSelected(globalIndex)
+  // Button classes for normal vs postStorage
+  function getNormalButtonClass(realIndex) {
+    return isSelected(realIndex)
       ? `${styles.mainAddressButton} ${styles.buttonSelected}`
       : `${styles.mainAddressButton} ${styles.buttonUnselected}`;
   }
-  function getPostStorageButtonClass(globalIndex) {
-    return isSelected(globalIndex)
+  function getPostStorageButtonClass(realIndex) {
+    return isSelected(realIndex)
       ? `${styles.mainAddressButtonRed} ${styles.buttonSelectedRed}`
       : `${styles.mainAddressButtonRed} ${styles.buttonUnselectedRed}`;
   }
@@ -60,18 +63,17 @@ function MainAndStopOffs({
   // Handle adding a new normal stop
   const handleAddNormalStop = () => {
     const updatedStops = [...stops];
+    // We'll push at the end. So newStop gets the largest index = updatedStops.length.
     const newStopCount = normalStops.length;
 
     let newLabel = '';
     if (placeType === 'destination') {
-      // If no normal stops => call it "Main Drop off" else "Drop off #"
       if (newStopCount === 0) {
         newLabel = 'Main Drop off';
       } else {
         newLabel = `Drop off ${newStopCount + 1}`;
       }
     } else {
-      // For origin
       if (newStopCount === 0) {
         newLabel = 'Main Address';
       } else {
@@ -89,8 +91,10 @@ function MainAndStopOffs({
       postStorage: false,
     };
 
-    updatedStops.push(newStop);
+    updatedStops.push(newStop);            // appended at end => new index = updatedStops.length-1
     onStopsUpdated(updatedStops);
+
+    // Make that newly created stop the selected index
     setSelectedStopIndex(updatedStops.length - 1);
   };
 
@@ -99,8 +103,6 @@ function MainAndStopOffs({
     const updatedStops = [...stops];
     const newStopCount = postStorageStops.length;
 
-    // The 0th is "Post Storage Main Drop off" by default (created in DestinationDetails).
-    // subsequent => "Post Storage Drop off #"
     const newLabel = `Post Storage Drop off ${newStopCount + 1}`;
 
     const newStop = {
@@ -115,59 +117,61 @@ function MainAndStopOffs({
 
     updatedStops.push(newStop);
     onStopsUpdated(updatedStops);
+
+    // The newly created is last => index = updatedStops.length - 1
     setSelectedStopIndex(updatedStops.length - 1);
   };
 
-  // On click normal button => setSelectedStopIndex
-  function handleSelectNormalStop(i) {
-    const globalIndex = getGlobalIndexForNormal(i);
-    setSelectedStopIndex(globalIndex);
+  // On click normal => select that stop's realIndex
+  function handleSelectNormalStop(sObj) {
+    setSelectedStopIndex(sObj.realIndex);
   }
 
-  // On click postStorage button => setSelectedStopIndex
-  function handleSelectPostStorageStop(i) {
-    const globalIndex = getGlobalIndexForPostStorage(i);
-    setSelectedStopIndex(globalIndex);
+  // On click postStorage => select that stop's realIndex
+  function handleSelectPostStorageStop(sObj) {
+    setSelectedStopIndex(sObj.realIndex);
   }
 
   return (
     <div className={styles.addressRow}>
       <div className={styles.addressContainer}>
-        {/* Normal stops + plus */}
-        <div className={styles.addressButtonsWrapper}>
-          {normalStops.map((stopObj, i) => {
-            const globalIndex = getGlobalIndexForNormal(i);
-            return (
-              <button
-                key={`normal-${i}`}
-                className={getNormalButtonClass(globalIndex)}
-                onClick={() => handleSelectNormalStop(i)}
-              >
-                {stopObj.label}
-              </button>
-            );
-          })}
-        </div>
-        <button className={styles.plusButton} onClick={handleAddNormalStop}>
-          +
-        </button>
+
+        {/* If NOT hiding normal stops => render normal row + plus */}
+        {!hideNormalStops && (
+          <>
+            <div className={styles.addressButtonsWrapper}>
+              {normalStops.map((sObj) => (
+                <button
+                  key={`normal-${sObj.realIndex}`}
+                  className={getNormalButtonClass(sObj.realIndex)}
+                  onClick={() => handleSelectNormalStop(sObj)}
+                >
+                  {sObj.label}
+                </button>
+              ))}
+            </div>
+            <button className={styles.plusButton} onClick={handleAddNormalStop}>
+              +
+            </button>
+          </>
+        )}
 
         {/* If placeType="destination" and isStorageToggled => show "Post Storage" row */}
         {placeType === 'destination' && isStorageToggled && (
           <>
-            <div className={styles.addressButtonsWrapper} style={{ marginLeft: '5px' }}>
-              {postStorageStops.map((stopObj, i) => {
-                const globalIndex = getGlobalIndexForPostStorage(i);
-                return (
-                  <button
-                    key={`post-${i}`}
-                    className={getPostStorageButtonClass(globalIndex)}
-                    onClick={() => handleSelectPostStorageStop(i)}
-                  >
-                    {stopObj.label}
-                  </button>
-                );
-              })}
+            <div
+              className={styles.addressButtonsWrapper}
+              style={{ marginLeft: hideNormalStops ? '0' : '8px' }}
+            >
+              {postStorageStops.map((sObj) => (
+                <button
+                  key={`post-${sObj.realIndex}`}
+                  className={getPostStorageButtonClass(sObj.realIndex)}
+                  onClick={() => handleSelectPostStorageStop(sObj)}
+                >
+                  {sObj.label}
+                </button>
+              ))}
             </div>
             <button className={styles.plusButtonRed} onClick={handleAddPostStorageStop}>
               +

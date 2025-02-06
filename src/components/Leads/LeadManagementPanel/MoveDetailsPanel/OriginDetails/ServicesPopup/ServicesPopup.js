@@ -1,3 +1,5 @@
+/* =========================== ServicesPopup.js =========================== */
+
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './ServicesPopup.module.css';
 
@@ -59,6 +61,7 @@ function ServicesPopup({
 
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
+  // separate indexes for origin/dest
   const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
     defaultTab === 'origin' ? defaultStopIndex : 0
   );
@@ -66,6 +69,7 @@ function ServicesPopup({
     defaultTab === 'destination' ? defaultStopIndex : 0
   );
 
+  // Copy from lead
   useEffect(() => {
     const originStops =
       Array.isArray(lead.originStops) && lead.originStops.length > 0
@@ -124,16 +128,14 @@ function ServicesPopup({
     setLocalDestinationStops(mappedDest);
   }, [lead]);
 
+  // close if clicked outside
   const handleClose = useCallback(() => {
     setIsServicesPopupVisible(false);
   }, [setIsServicesPopupVisible]);
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (
-        popupContentRef.current &&
-        !popupContentRef.current.contains(e.target)
-      ) {
+      if (popupContentRef.current && !popupContentRef.current.contains(e.target)) {
         handleClose();
       }
     }
@@ -143,13 +145,38 @@ function ServicesPopup({
     };
   }, [handleClose]);
 
+  // *** Auto-select first post if "destination" + "All items" hides normal stops ***
+  useEffect(() => {
+    if (selectedPlace === 'destination') {
+      const hideNormal = lead.add_storage && lead.storage_items === 'All items';
+      if (hideNormal) {
+        const stopsArr = localDestinationStops;
+        const current = stopsArr[selectedStopIndexDest];
+        if (current && !current.postStorage) {
+          // find first post-storage
+          const idx = stopsArr.findIndex((s) => s.postStorage);
+          if (idx !== -1 && idx !== selectedStopIndexDest) {
+            setSelectedStopIndexDest(idx);
+          }
+        }
+      }
+    }
+  }, [
+    selectedPlace,
+    lead.add_storage,
+    lead.storage_items,
+    localDestinationStops,
+    selectedStopIndexDest,
+  ]);
+
   // Decide which array
   const currentStops =
     selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
+
   const selectedStopIndex =
     selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
 
-  function setSelectedStopIndex(idx) {
+  function setSelectedStopIndexGlobal(idx) {
     if (selectedPlace === 'origin') {
       setSelectedStopIndexOrigin(idx);
     } else {
@@ -221,11 +248,7 @@ function ServicesPopup({
   function DropdownButton({ label, value, onClick }) {
     const displayValue = value ? value : 'Select';
     return (
-      <button
-        type="button"
-        className={styles.dropdownButton}
-        onClick={onClick}
-      >
+      <button type="button" className={styles.dropdownButton} onClick={onClick}>
         <span className={styles.oneLineEllipsis}>
           <span className={styles.dropdownPrefix}>{label}</span>
           <span className={styles.dropdownSelected}>{displayValue}</span>
@@ -235,7 +258,7 @@ function ServicesPopup({
     );
   }
 
-  // If it's "destination" & lead.add_storage & lead.storage_items === 'All items' => hide normal stops
+  // If it's "destination" + lead.add_storage + 'All items' => hide normal stops
   const hideNormalStops =
     selectedPlace === 'destination' &&
     !!lead.add_storage &&
@@ -244,7 +267,6 @@ function ServicesPopup({
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
-
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
@@ -286,7 +308,7 @@ function ServicesPopup({
               stops={currentStops}
               onStopsUpdated={handleStopsLocalUpdated}
               selectedStopIndex={selectedStopIndex}
-              setSelectedStopIndex={setSelectedStopIndex}
+              setSelectedStopIndex={setSelectedStopIndexGlobal}
               placeType={selectedPlace}
               isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
               hideNormalStops={hideNormalStops}
@@ -297,7 +319,6 @@ function ServicesPopup({
         {/* MAIN SCROLLABLE CONTENT */}
         <div className={styles.scrollableContent}>
           <div className={styles.formFieldsWrapper}>
-
             {/* ORIGIN fields */}
             {selectedPlace === 'origin' && (
               <>
@@ -407,7 +428,7 @@ function ServicesPopup({
               </>
             )}
 
-            {/* 3 checkboxes => ItemsToBeTakenApart OR ItemsToBeAssembled, hoistItems, craneNeeded */}
+            {/* 3 checkboxes => ItemsToBeTakenApart/ItemsToBeAssembled, hoistItems, craneNeeded */}
             <div className={styles.checkboxesGroup}>
               {selectedPlace === 'origin' && (
                 <label className={styles.featureCheckbox}>
@@ -501,9 +522,7 @@ function ServicesPopup({
             </div>
 
             {/* Additional Services header */}
-            <div className={styles.additionalServicesHeader}>
-              Additional Services
-            </div>
+            <div className={styles.additionalServicesHeader}>Additional Services</div>
 
             {/* Additional Services checkboxes */}
             <div className={styles.additionalServicesList}>
@@ -528,11 +547,7 @@ function ServicesPopup({
 
         {/* FOOTER => Save */}
         <div className={styles.stickyFooter}>
-          <button
-            type="button"
-            className={styles.saveButton}
-            onClick={handleSave}
-          >
+          <button type="button" className={styles.saveButton} onClick={handleSave}>
             Save
           </button>
         </div>

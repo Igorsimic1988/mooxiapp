@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { ReactComponent as LocationIcon } from '../../../../../assets/icons/location.svg';
 import { ReactComponent as PlaceIcon } from '../../../../../assets/icons/place1.svg';
 import { ReactComponent as AccessIcon } from '../../../../../assets/icons/access1.svg';
@@ -14,46 +14,64 @@ import ServicesPopup from '../OriginDetails/ServicesPopup/ServicesPopup';
 
 import styles from './DestinationDetails.module.css';
 
-/** Generate 15-min increments from 7:00 AM to 12:00 AM, excluding midnight duplication */
+/** Generate 15-min increments from 7:00 AM to midnight. */
 function generateTimeOptions() {
-  const times = [];
-  let startMinutes = 7 * 60; // 7:00 AM
-  const endMinutes = 24 * 60; // 1440
+  const result = [];
+  let totalMinutes = 7 * 60; // Start at 7:00 AM
+  while (totalMinutes < 24 * 60) {
+    const suffix = totalMinutes >= 12 * 60 ? 'PM' : 'AM';
 
-  while (startMinutes < endMinutes) {
-    const hh = Math.floor(startMinutes / 60);
-    const mm = startMinutes % 60;
-    const suffix = hh >= 12 ? 'PM' : 'AM';
-    let displayHour = hh % 12;
+    // Get the hour (integer) and minute
+    const hourVal = Math.floor(totalMinutes / 60);
+    const mm = totalMinutes % 60;
+
+    // Convert hourVal to 12-hour format
+    let displayHour = hourVal % 12;
     if (displayHour === 0) displayHour = 12;
-    const displayMin = String(mm).padStart(2, '0');
-    times.push(`${displayHour}:${displayMin} ${suffix}`);
-    startMinutes += 15;
-  }
-  return times;
-}
 
-function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
-  // ---------- DESTINATION STOPS ----------
+    const mmStr = String(mm).padStart(2, '0');
+    result.push(`${displayHour}:${mmStr} ${suffix}`);
+    totalMinutes += 15;
+  }
+  return result;
+}
+const timeOptions = generateTimeOptions();
+
+/**
+ * DestinationDetails
+ * ------------------
+ * For controlling / editing all "destinationStops".
+ */
+function DestinationDetails({
+  lead,
+  onLeadUpdated,
+  isStorageToggled,
+  isCollapsed,       // from parent
+  setIsCollapsed,    // from parent
+}) {
+  // Index of the currently selected stop
   const [selectedStopIndex, setSelectedStopIndex] = useState(0);
 
-  // Collapsible
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  // Toggle open/close
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
 
-  // Pop-up states -- define them so we won't get "not defined" errors
+  // Popups
   const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
   const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
   const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false);
 
-  // Decide if we should hide normal stops => user selected "All items" in storage
-  const hideNormalStops = isStorageToggled && lead.storage_items === 'All items';
+  // If "Add storage" is ON + user picked 'All items' => hide normal stops
+  const hideNormalStops =
+    isStorageToggled && lead.storage_items === 'All items';
 
-  // On mount or toggling => ensure we have a default normal stop + post‐storage if needed
+  /**
+   * 1) If no stops => create a normal "Main Drop off"
+   *    If storage toggled => ensure "Post Storage Main Drop off"
+   */
   useEffect(() => {
-    if (!Array.isArray(lead.destinationStops) || lead.destinationStops.length === 0) {
-      // If no stops at all => create one normal stop
-      const defaultStops = [
+    const existingStops = lead.destinationStops;
+    if (!Array.isArray(existingStops) || existingStops.length === 0) {
+      const initial = [
         {
           label: 'Main Drop off',
           address: '',
@@ -61,6 +79,8 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
           city: '',
           state: '',
           zip: '',
+          postStorage: false,
+          isActive: true,
           timeRestrictions: {
             isEnabled: false,
             option: 'Select',
@@ -68,78 +88,131 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
             startTime: '',
             endTime: '',
           },
-          postStorage: false,
         },
       ];
-      onLeadUpdated({ ...lead, destinationStops: defaultStops });
-    } else {
-      // If we have some stops, see if we need to create a Post Storage Main Drop off
-      // whenever isStorageToggled is true
-      if (isStorageToggled) {
-        const existing = lead.destinationStops;
-        const hasPostStorage = existing.some((s) => s.postStorage === true);
-        if (!hasPostStorage) {
-          const newStop = {
-            label: 'Post Storage Main Drop off',
-            address: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-            postStorage: true,
-            timeRestrictions: {
-              isEnabled: false,
-              option: 'Select',
-              restrictionType: 'Select',
-              startTime: '',
-              endTime: '',
-            },
-          };
-          const updated = [...existing, newStop];
-          onLeadUpdated({ ...lead, destinationStops: updated });
-        }
+      onLeadUpdated({ ...lead, destinationStops: initial });
+      return;
+    }
+
+    if (isStorageToggled) {
+      const alreadyHasPS = existingStops.some((s) => s.postStorage === true);
+      if (!alreadyHasPS) {
+        const psStop = {
+          label: 'Post Storage Main Drop off',
+          address: '',
+          apt: '',
+          city: '',
+          state: '',
+          zip: '',
+          postStorage: true,
+          isActive: true,
+          timeRestrictions: {
+            isEnabled: false,
+            option: 'Select',
+            restrictionType: 'Select',
+            startTime: '',
+            endTime: '',
+          },
+        };
+        onLeadUpdated({
+          ...lead,
+          destinationStops: [...existingStops, psStop],
+        });
       }
     }
   }, [lead, onLeadUpdated, isStorageToggled]);
 
-  // If panel is expanded and hideNormalStops is true => auto‐select the first post‐storage stop
+  // 2) Memo the array for performance
+  const destinationStops = useMemo(() => {
+    return Array.isArray(lead.destinationStops) ? lead.destinationStops : [];
+  }, [lead.destinationStops]);
+
+  /**
+   * 3) Hide normal stops if "All items"; or activate all if partial, etc.
+   */
   useEffect(() => {
-    if (
-      !isCollapsed &&
-      hideNormalStops &&
-      Array.isArray(lead.destinationStops)
-    ) {
-      const psIndex = lead.destinationStops.findIndex((s) => s.postStorage === true);
-      if (psIndex >= 0 && psIndex !== selectedStopIndex) {
-        setSelectedStopIndex(psIndex);
+    if (!destinationStops.length) return;
+
+    const updatedStops = [...destinationStops];
+    let changed = false;
+
+    if (hideNormalStops) {
+      // "All items" => normal => inactive, post => active
+      updatedStops.forEach((stop, i) => {
+        if (stop.postStorage) {
+          if (stop.isActive !== true) {
+            updatedStops[i] = { ...stop, isActive: true };
+            changed = true;
+          }
+        } else {
+          if (stop.isActive !== false) {
+            updatedStops[i] = { ...stop, isActive: false };
+            changed = true;
+          }
+        }
+      });
+    } else if (isStorageToggled) {
+      // partial => everything => active
+      updatedStops.forEach((stop, i) => {
+        if (!stop.isActive) {
+          updatedStops[i] = { ...stop, isActive: true };
+          changed = true;
+        }
+      });
+    } else {
+      // storage off => normal => active, post => inactive
+      updatedStops.forEach((stop, i) => {
+        if (stop.postStorage) {
+          if (stop.isActive !== false) {
+            updatedStops[i] = { ...stop, isActive: false };
+            changed = true;
+          }
+        } else {
+          if (!stop.isActive) {
+            updatedStops[i] = { ...stop, isActive: true };
+            changed = true;
+          }
+        }
+      });
+    }
+
+    if (changed) {
+      onLeadUpdated({ ...lead, destinationStops: updatedStops });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hideNormalStops, isStorageToggled, destinationStops]);
+
+  /**
+   * 4) If expanded & normal hidden => auto-select the *first post‐storage* if current is normal
+   */
+  useEffect(() => {
+    if (!isCollapsed && hideNormalStops && destinationStops.length > 0) {
+      const curStop = destinationStops[selectedStopIndex];
+      if (curStop && !curStop.postStorage) {
+        const postIdx = destinationStops.findIndex((s) => s.postStorage);
+        if (postIdx !== -1 && postIdx !== selectedStopIndex) {
+          setSelectedStopIndex(postIdx);
+        }
       }
     }
-  }, [isCollapsed, hideNormalStops, lead.destinationStops, selectedStopIndex]);
+  }, [isCollapsed, hideNormalStops, destinationStops, selectedStopIndex]);
 
-  // Gather stops
-  const destinationStops = Array.isArray(lead.destinationStops) ? lead.destinationStops : [];
-  // The currently selected stop
+  /**
+   * 5) If user turns OFF storage => if current is post => select 0
+   */
+  useEffect(() => {
+    if (!isStorageToggled && destinationStops.length > 0) {
+      const current = destinationStops[selectedStopIndex];
+      if (current && current.postStorage) {
+        setSelectedStopIndex(0);
+      }
+    }
+  }, [isStorageToggled, destinationStops, selectedStopIndex]);
+
+  // Currently selected
   const currentStop = destinationStops[selectedStopIndex] || {};
 
-  // Generate time options for restrictions
-  const timeOptions = generateTimeOptions();
-
-  // ---------- Functions to check completeness ----------
-  function isPlaceDataComplete(stop) {
-    return !!(stop.typeOfPlace?.trim() && stop.howManyStories?.trim());
-  }
-  function isAccessDataComplete(stop) {
-    return (
-      stop.parkingAccess?.trim() &&
-      stop.distanceDoorTruck?.trim() &&
-      stop.howManySteps?.trim()
-    );
-  }
-  function isServicesDataComplete(stop) {
-    return !!stop.unpackingOption?.trim();
-  }
-
-  // For address changes
+  // Update a field on the current stop
   function handleStopFieldChange(fieldName, newValue) {
     const updated = [...destinationStops];
     const copy = { ...updated[selectedStopIndex] };
@@ -148,38 +221,136 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
     onLeadUpdated({ ...lead, destinationStops: updated });
   }
 
-  // ---------- Time Restrictions ----------
-  function getCurrentStopRestrictions() {
-    if (!currentStop.timeRestrictions) {
-      return {
-        isEnabled: false,
-        option: 'Select',
-        restrictionType: 'Select',
-        startTime: '',
-        endTime: '',
-      };
+  // Deactivate => remove from array
+  function handleDeactivateThisStop() {
+    if (!currentStop) return;
+    if (
+      currentStop.label === 'Main Drop off' ||
+      currentStop.label === 'Post Storage Main Drop off'
+    ) {
+      return;
     }
-    return currentStop.timeRestrictions;
-  }
-  const currentTR = getCurrentStopRestrictions();
 
-  function updateCurrentStopRestrictions(partialObj) {
+    const updated = [...destinationStops];
+    updated.splice(selectedStopIndex, 1);
+
+    let newIndex = selectedStopIndex;
+    if (newIndex >= updated.length) {
+      newIndex = updated.length - 1;
+    }
+    if (newIndex < 0) newIndex = 0;
+
+    onLeadUpdated({ ...lead, destinationStops: updated });
+
+    if (updated.length > 0) {
+      setSelectedStopIndex(newIndex);
+    } else {
+      setSelectedStopIndex(0);
+    }
+  }
+
+  // Time Restrictions
+  function updateCurrentStopRestrictions(partial) {
     const updated = [...destinationStops];
     const stopCopy = { ...updated[selectedStopIndex] };
-
-    let tr = stopCopy.timeRestrictions || {
+    const oldTR = stopCopy.timeRestrictions || {
       isEnabled: false,
       option: 'Select',
       restrictionType: 'Select',
       startTime: '',
       endTime: '',
     };
-    tr = { ...tr, ...partialObj };
-    stopCopy.timeRestrictions = tr;
-
+    stopCopy.timeRestrictions = { ...oldTR, ...partial };
     updated[selectedStopIndex] = stopCopy;
+
     onLeadUpdated({ ...lead, destinationStops: updated });
   }
+  const currentTR = currentStop.timeRestrictions || {
+    isEnabled: false,
+    option: 'Select',
+    restrictionType: 'Select',
+    startTime: '',
+    endTime: '',
+  };
+
+  // Summaries
+  function isPlaceDataComplete(st) {
+    return st.typeOfPlace?.trim() && st.howManyStories?.trim();
+  }
+  const placeNoDotted = isPlaceDataComplete(currentStop)
+    ? styles.placeNoDotted
+    : '';
+
+  function isAccessDataComplete(st) {
+    return (
+      st.parkingAccess?.trim() &&
+      st.distanceDoorTruck?.trim() &&
+      st.howManySteps?.trim()
+    );
+  }
+  const accessNoDotted = isAccessDataComplete(currentStop)
+    ? styles.accessNoDotted
+    : '';
+
+  function isServicesDataComplete(st) {
+    return !!st.unpackingOption?.trim();
+  }
+  const servicesNoDotted = isServicesDataComplete(currentStop)
+    ? styles.servicesNoDotted
+    : '';
+
+  // For the Time Restriction dropdowns
+  const [optionDropdownOpen, setOptionDropdownOpen] = useState(false);
+  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const [startDropdownOpen, setStartDropdownOpen] = useState(false);
+  const [endDropdownOpen, setEndDropdownOpen] = useState(false);
+
+  const optionRef = useRef(null);
+  const typeRef = useRef(null);
+  const startRef = useRef(null);
+  const endRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (
+        optionDropdownOpen &&
+        optionRef.current &&
+        !optionRef.current.contains(e.target)
+      ) {
+        setOptionDropdownOpen(false);
+      }
+      if (
+        typeDropdownOpen &&
+        typeRef.current &&
+        !typeRef.current.contains(e.target)
+      ) {
+        setTypeDropdownOpen(false);
+      }
+      if (
+        startDropdownOpen &&
+        startRef.current &&
+        !startRef.current.contains(e.target)
+      ) {
+        setStartDropdownOpen(false);
+      }
+      if (
+        endDropdownOpen &&
+        endRef.current &&
+        !endRef.current.contains(e.target)
+      ) {
+        setEndDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [
+    optionDropdownOpen,
+    typeDropdownOpen,
+    startDropdownOpen,
+    endDropdownOpen,
+  ]);
 
   function handleToggleTimeRestrictions(value) {
     updateCurrentStopRestrictions({ isEnabled: value });
@@ -192,187 +363,23 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
     setTypeDropdownOpen(false);
     updateCurrentStopRestrictions({ restrictionType: typ });
   }
-  function handleSelectTimeRestrictionsStart(startVal) {
+  function handleSelectTimeRestrictionsStart(val) {
     setStartDropdownOpen(false);
-    updateCurrentStopRestrictions({ startTime: startVal });
+    updateCurrentStopRestrictions({ startTime: val });
   }
-  function handleSelectTimeRestrictionsEnd(endVal) {
+  function handleSelectTimeRestrictionsEnd(val) {
     setEndDropdownOpen(false);
-    updateCurrentStopRestrictions({ endTime: endVal });
+    updateCurrentStopRestrictions({ endTime: val });
   }
 
-  // Summaries
-  function renderPlaceSummary(stop) {
-    const { typeOfPlace, howManyStories, features, needsCOI } = stop || {};
-    const line1 = typeOfPlace?.trim() || '';
-    const line2 = howManyStories?.trim() || '';
-
-    const feats = Array.isArray(features) ? [...features] : [];
-    if (needsCOI) feats.push('COI');
-    const line3 = feats.join(', ');
-
-    if (!line1 && !line2 && !line3) return null;
-
-    const lines = [];
-    if (line1) lines.push(line1);
-    if (line2) lines.push(line2);
-    if (line3) lines.push(line3);
-
-    return (
-      <div className={styles.placeSummaryContainer}>
-        {lines.map((txt, idx) => (
-          <React.Fragment key={idx}>
-            <div className={styles.placeSummaryLine}>{txt}</div>
-            <div style={{ height: '11px' }} />
-            <div className={styles.placeSummaryDivider} />
-            <div style={{ height: '9px' }} />
-          </React.Fragment>
-        ))}
-      </div>
-    );
-  }
-
-  function renderAccessSummary(stop) {
-    const {
-      biggestTruckAccess,
-      shuttleTruckRequired,
-      parkingAccess,
-      elevatorAtStop,
-      distanceDoorTruck,
-      howManySteps,
-    } = stop || {};
-
-    let line1 = biggestTruckAccess?.trim() || '';
-    if (line1 && shuttleTruckRequired) {
-      line1 += ' + shuttle';
-    }
-
-    let line2 = parkingAccess?.trim() || '';
-    if (line2 && elevatorAtStop) {
-      line2 += ', Elevator';
-    } else if (!line2 && elevatorAtStop) {
-      line2 = 'Elevator';
-    }
-
-    let line3 = distanceDoorTruck?.trim() || '';
-    if (line3 && howManySteps?.trim()) {
-      line3 += `, ${howManySteps}`;
-    } else if (!line3 && howManySteps?.trim()) {
-      line3 = howManySteps;
-    }
-
-    if (!line1 && !line2 && !line3) return null;
-
-    const lines = [];
-    if (line1) lines.push(line1);
-    if (line2) lines.push(line2);
-    if (line3) lines.push(line3);
-
-    return (
-      <div className={styles.placeSummaryContainer}>
-        {lines.map((text, idx) => (
-          <React.Fragment key={idx}>
-            <div className={styles.placeSummaryLine}>{text}</div>
-            <div style={{ height: '11px' }} />
-            <div className={styles.placeSummaryDivider} />
-            <div style={{ height: '9px' }} />
-          </React.Fragment>
-        ))}
-      </div>
-    );
-  }
-
-  function renderServicesSummary(stop) {
-    const {
-      unpackingOption,
-      itemsToBeAssembled,
-      hoistItems,
-      craneNeeded,
-      additionalServices,
-    } = stop || {};
-
-    const line1 = unpackingOption?.trim() || '';
-
-    const line2Parts = [];
-    if (itemsToBeAssembled) line2Parts.push('Assembly');
-    if (hoistItems) line2Parts.push('Hoisting');
-    if (craneNeeded) line2Parts.push('Crane');
-    const line2 = line2Parts.join(', ');
-
-    let line3 = '';
-    if (Array.isArray(additionalServices) && additionalServices.length) {
-      const plusList = additionalServices.map((s) => `+${s}`);
-      line3 = plusList.join(', ');
-    }
-
-    if (!line1 && !line2 && !line3) return null;
-
-    const lines = [];
-    if (line1) lines.push(line1);
-    if (line2) lines.push(line2);
-    if (line3) lines.push(line3);
-
-    return (
-      <div className={styles.placeSummaryContainer}>
-        {lines.map((txt, idx) => (
-          <React.Fragment key={idx}>
-            <div className={styles.placeSummaryLine}>{txt}</div>
-            <div style={{ height: '11px' }} />
-            <div className={styles.placeSummaryDivider} />
-            <div style={{ height: '9px' }} />
-          </React.Fragment>
-        ))}
-      </div>
-    );
-  }
-
-  const placeSummary = renderPlaceSummary(currentStop);
-  const accessSummary = renderAccessSummary(currentStop);
-  const servicesSummary = renderServicesSummary(currentStop);
-
-  // Classes to remove dotted borders if certain fields are complete
-  const removePlaceDotted = isPlaceDataComplete(currentStop) ? styles.placeNoDotted : '';
-  const removeAccessDotted = isAccessDataComplete(currentStop) ? styles.accessNoDotted : '';
-  const removeServicesDotted = isServicesDataComplete(currentStop) ? styles.servicesNoDotted : '';
-
-  // States for time restriction dropdowns
-  const [optionDropdownOpen, setOptionDropdownOpen] = useState(false);
-  const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
-  const [startDropdownOpen, setStartDropdownOpen] = useState(false);
-  const [endDropdownOpen, setEndDropdownOpen] = useState(false);
-
-  // Refs for outside click detection
-  const optionRef = useRef(null);
-  const typeRef = useRef(null);
-  const startRef = useRef(null);
-  const endRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (optionDropdownOpen && optionRef.current && !optionRef.current.contains(e.target)) {
-        setOptionDropdownOpen(false);
-      }
-      if (typeDropdownOpen && typeRef.current && !typeRef.current.contains(e.target)) {
-        setTypeDropdownOpen(false);
-      }
-      if (startDropdownOpen && startRef.current && !startRef.current.contains(e.target)) {
-        setStartDropdownOpen(false);
-      }
-      if (endDropdownOpen && endRef.current && !endRef.current.contains(e.target)) {
-        setEndDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [
-    optionDropdownOpen,
-    typeDropdownOpen,
-    startDropdownOpen,
-    endDropdownOpen
-  ]);
+  // Decide if "Deactivate this stop" is visible
+  const isDeactivateVisible =
+    currentStop?.label !== 'Main Drop off' &&
+    currentStop?.label !== 'Post Storage Main Drop off';
 
   return (
     <div className={styles.destinationContainer}>
+      {/* HEADER */}
       <div className={styles.destinationHeader}>
         <span className={styles.destinationTitle}>Destination</span>
         <button className={styles.minusButton} onClick={toggleCollapse}>
@@ -382,15 +389,12 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
 
       {!isCollapsed && (
         <>
-          {/* 
-            Row of destination stops 
-            If hideNormalStops => we only show the postStorage row
-          */}
+          {/* The row of stops (normal + postStorage) */}
           <MainAndStopOffs
             stops={destinationStops}
-            onStopsUpdated={(updatedStops) => {
-              onLeadUpdated({ ...lead, destinationStops: updatedStops });
-            }}
+            onStopsUpdated={(updatedStops) =>
+              onLeadUpdated({ ...lead, destinationStops: updatedStops })
+            }
             selectedStopIndex={selectedStopIndex}
             setSelectedStopIndex={setSelectedStopIndex}
             placeType="destination"
@@ -398,9 +402,20 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
             hideNormalStops={hideNormalStops}
           />
 
-          {/* Address Inputs */}
+          {/* Address Fields */}
           <div className={styles.propertySection}>
-            <span className={styles.propertyAddressText}>Property Address</span>
+            <div className={styles.propertySectionHeader}>
+              <span className={styles.propertyAddressText}>Property Address</span>
+              {isDeactivateVisible && (
+                <button
+                  type="button"
+                  className={styles.deactivateStopLink}
+                  onClick={handleDeactivateThisStop}
+                >
+                  Remove this stop
+                </button>
+              )}
+            </div>
 
             <div className={styles.inputContainer}>
               <input
@@ -408,7 +423,9 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                 className={styles.addressInput}
                 placeholder="Property Address"
                 value={currentStop.address || ''}
-                onChange={(e) => handleStopFieldChange('address', e.target.value)}
+                onChange={(e) =>
+                  handleStopFieldChange('address', e.target.value)
+                }
               />
               <div className={styles.inputIconContainer}>
                 <LocationIcon className={styles.inputIcon} />
@@ -422,7 +439,9 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                   className={styles.addressInput}
                   placeholder="Apt/Suite"
                   value={currentStop.apt || ''}
-                  onChange={(e) => handleStopFieldChange('apt', e.target.value)}
+                  onChange={(e) =>
+                    handleStopFieldChange('apt', e.target.value)
+                  }
                 />
               </div>
               <div className={styles.inputContainer}>
@@ -431,7 +450,9 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                   className={styles.addressInput}
                   placeholder="City"
                   value={currentStop.city || ''}
-                  onChange={(e) => handleStopFieldChange('city', e.target.value)}
+                  onChange={(e) =>
+                    handleStopFieldChange('city', e.target.value)
+                  }
                 />
               </div>
             </div>
@@ -443,7 +464,9 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                   className={styles.addressInput}
                   placeholder="State"
                   value={currentStop.state || ''}
-                  onChange={(e) => handleStopFieldChange('state', e.target.value)}
+                  onChange={(e) =>
+                    handleStopFieldChange('state', e.target.value)
+                  }
                 />
               </div>
               <div className={styles.inputContainer}>
@@ -452,19 +475,21 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                   className={styles.addressInput}
                   placeholder="Zip code"
                   value={currentStop.zip || ''}
-                  onChange={(e) => handleStopFieldChange('zip', e.target.value)}
+                  onChange={(e) =>
+                    handleStopFieldChange('zip', e.target.value)
+                  }
                 />
               </div>
             </div>
           </div>
 
-          {/* Property Info Section */}
+          {/* Property Info: PLACE / ACCESS / SERVICES */}
           <div className={styles.propertyInfoSection}>
             <span className={styles.propertyText}>Property</span>
 
             {/* PLACE */}
             <div
-              className={`${styles.propertyItem} ${styles.propertyItemPlace} ${removePlaceDotted}`}
+              className={`${styles.propertyItem} ${styles.propertyItemPlace} ${placeNoDotted}`}
               onClick={() => setIsPlacePopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
@@ -477,11 +502,40 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                 +
               </button>
             </div>
-            {placeSummary}
+            {/* Place summary */}
+            {(() => {
+              if (!currentStop) return null;
+              const { typeOfPlace, howManyStories, features, needsCOI } =
+                currentStop;
+              const line1 = typeOfPlace?.trim() || '';
+              const line2 = howManyStories?.trim() || '';
+              const feats = Array.isArray(features) ? [...features] : [];
+              if (needsCOI) feats.push('COI');
+              const line3 = feats.join(', ');
+
+              if (!line1 && !line2 && !line3) return null;
+              const lines = [];
+              if (line1) lines.push(line1);
+              if (line2) lines.push(line2);
+              if (line3) lines.push(line3);
+
+              return (
+                <div className={styles.placeSummaryContainer}>
+                  {lines.map((txt, idx) => (
+                    <React.Fragment key={idx}>
+                      <div className={styles.placeSummaryLine}>{txt}</div>
+                      <div style={{ height: '11px' }} />
+                      <div className={styles.placeSummaryDivider} />
+                      <div style={{ height: '9px' }} />
+                    </React.Fragment>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* ACCESS */}
             <div
-              className={`${styles.propertyItem} ${styles.propertyItemAccess} ${removeAccessDotted}`}
+              className={`${styles.propertyItem} ${styles.propertyItemAccess} ${accessNoDotted}`}
               onClick={() => setIsAccessPopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
@@ -494,11 +548,60 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                 +
               </button>
             </div>
-            {accessSummary}
+            {/* Access summary */}
+            {(() => {
+              if (!currentStop) return null;
+              const {
+                biggestTruckAccess,
+                shuttleTruckRequired,
+                parkingAccess,
+                elevatorAtStop,
+                distanceDoorTruck,
+                howManySteps,
+              } = currentStop;
+
+              let line1 = biggestTruckAccess?.trim() || '';
+              if (line1 && shuttleTruckRequired) {
+                line1 += ' + shuttle';
+              }
+
+              let line2 = parkingAccess?.trim() || '';
+              if (line2 && elevatorAtStop) {
+                line2 += ', Elevator';
+              } else if (!line2 && elevatorAtStop) {
+                line2 = 'Elevator';
+              }
+
+              let line3 = distanceDoorTruck?.trim() || '';
+              if (line3 && howManySteps?.trim()) {
+                line3 += `, ${howManySteps}`;
+              } else if (!line3 && howManySteps?.trim()) {
+                line3 = howManySteps;
+              }
+
+              if (!line1 && !line2 && !line3) return null;
+              const lines = [];
+              if (line1) lines.push(line1);
+              if (line2) lines.push(line2);
+              if (line3) lines.push(line3);
+
+              return (
+                <div className={styles.placeSummaryContainer}>
+                  {lines.map((txt, idx) => (
+                    <React.Fragment key={idx}>
+                      <div className={styles.placeSummaryLine}>{txt}</div>
+                      <div style={{ height: '11px' }} />
+                      <div className={styles.placeSummaryDivider} />
+                      <div style={{ height: '9px' }} />
+                    </React.Fragment>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* SERVICES */}
             <div
-              className={`${styles.propertyItem} ${styles.propertyItemServices} ${removeServicesDotted}`}
+              className={`${styles.propertyItem} ${styles.propertyItemServices} ${servicesNoDotted}`}
               onClick={() => setIsServicesPopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
@@ -511,7 +614,51 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                 +
               </button>
             </div>
-            {servicesSummary}
+            {/* Services summary */}
+            {(() => {
+              if (!currentStop) return null;
+              const {
+                unpackingOption,
+                itemsToBeAssembled,
+                hoistItems,
+                craneNeeded,
+                additionalServices,
+              } = currentStop;
+
+              const line1 = unpackingOption?.trim() || '';
+              const line2Parts = [];
+              if (itemsToBeAssembled) line2Parts.push('Assembly');
+              if (hoistItems) line2Parts.push('Hoisting');
+              if (craneNeeded) line2Parts.push('Crane');
+              const line2 = line2Parts.join(', ');
+
+              let line3 = '';
+              if (
+                Array.isArray(additionalServices) &&
+                additionalServices.length > 0
+              ) {
+                line3 = additionalServices.map((svc) => `+${svc}`).join(', ');
+              }
+
+              if (!line1 && !line2 && !line3) return null;
+              const lines = [];
+              if (line1) lines.push(line1);
+              if (line2) lines.push(line2);
+              if (line3) lines.push(line3);
+
+              return (
+                <div className={styles.placeSummaryContainer}>
+                  {lines.map((txt, idx) => (
+                    <React.Fragment key={idx}>
+                      <div className={styles.placeSummaryLine}>{txt}</div>
+                      <div style={{ height: '11px' }} />
+                      <div className={styles.placeSummaryDivider} />
+                      <div style={{ height: '9px' }} />
+                    </React.Fragment>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Time Restrictions */}
@@ -529,7 +676,6 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
             {currentTR.isEnabled && (
               <div className={styles.timeRestrictionsContent}>
                 <div className={styles.timeRestrictionsInputsColumn}>
-
                   {/* Option */}
                   <div
                     className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
@@ -604,16 +750,16 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                           'Parking Zone',
                           'Community Rules',
                           'Other',
-                        ].map((typ) => (
+                        ].map((t) => (
                           <div
-                            key={typ}
+                            key={t}
                             className={styles.dropdownOption}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleSelectTimeRestrictionsType(typ);
+                              handleSelectTimeRestrictionsType(t);
                             }}
                           >
-                            {typ}
+                            {t}
                           </div>
                         ))}
                       </div>
@@ -644,16 +790,16 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                     </div>
                     {startDropdownOpen && (
                       <div className={styles.dropdownMenu}>
-                        {timeOptions.map((t) => (
+                        {timeOptions.map((val) => (
                           <div
-                            key={t}
+                            key={val}
                             className={styles.dropdownOption}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleSelectTimeRestrictionsStart(t);
+                              handleSelectTimeRestrictionsStart(val);
                             }}
                           >
-                            {t}
+                            {val}
                           </div>
                         ))}
                       </div>
@@ -684,22 +830,21 @@ function DestinationDetails({ lead, onLeadUpdated, isStorageToggled }) {
                     </div>
                     {endDropdownOpen && (
                       <div className={styles.dropdownMenu}>
-                        {timeOptions.map((t) => (
+                        {timeOptions.map((val) => (
                           <div
-                            key={t}
+                            key={val}
                             className={styles.dropdownOption}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleSelectTimeRestrictionsEnd(t);
+                              handleSelectTimeRestrictionsEnd(val);
                             }}
                           >
-                            {t}
+                            {val}
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
-
                 </div>
               </div>
             )}

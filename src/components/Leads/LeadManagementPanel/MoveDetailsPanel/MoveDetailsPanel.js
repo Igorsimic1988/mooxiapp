@@ -81,6 +81,44 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const [showStartTimeDropdown, setShowStartTimeDropdown] = useState(false);
   const [showIncrementsGrid, setShowIncrementsGrid] = useState(false);
 
+  // *** We'll store open/close states in lead.uiState to persist across re-mounts ***
+  // If lead.uiState doesn't exist, we create an empty object.
+  const uiState = lead.uiState || {};
+
+  // read from lead.uiState, default origin = false (open), others = true (collapsed)
+  const [isOriginCollapsed, setIsOriginCollapsed] = useState(
+    uiState.originCollapsed !== undefined ? uiState.originCollapsed : false
+  );
+  const [isDestinationCollapsed, setIsDestinationCollapsed] = useState(
+    uiState.destinationCollapsed !== undefined ? uiState.destinationCollapsed : true
+  );
+  const [isLogisticsCollapsed, setIsLogisticsCollapsed] = useState(
+    uiState.logisticsCollapsed !== undefined ? uiState.logisticsCollapsed : true
+  );
+  const [isEstimateCollapsed, setIsEstimateCollapsed] = useState(
+    uiState.estimateCollapsed !== undefined ? uiState.estimateCollapsed : true
+  );
+
+  // Whenever these collapse states change, we store them in lead.uiState.
+  useEffect(() => {
+    onLeadUpdated({
+      ...lead,
+      uiState: {
+        ...lead.uiState,
+        originCollapsed: isOriginCollapsed,
+        destinationCollapsed: isDestinationCollapsed,
+        logisticsCollapsed: isLogisticsCollapsed,
+        estimateCollapsed: isEstimateCollapsed,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isOriginCollapsed,
+    isDestinationCollapsed,
+    isLogisticsCollapsed,
+    isEstimateCollapsed,
+  ]);
+
   // For the calendars
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -533,7 +571,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           type="button"
           className={styles.dateButton}
           onClick={() => {
-            // If storage is not toggled, don't allow the calendar to open
             if (!isStorageToggled) return;
             setShowDeliveryCalendar((prev) => !prev);
             setShowMoveCalendar(false);
@@ -569,7 +606,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                   day
                 );
 
-                // earliest date depends on moveDate
                 let earliestDelivery = new Date(today.getTime());
                 if (moveDate) {
                   const moveDateObj = new Date(moveDate);
@@ -581,7 +617,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
                 const disabled = dayDate < earliestDelivery;
 
-                // check if this day is the currently selected "deliveryDate"
                 const isSelected =
                   selectedDeliveryDateObj &&
                   dayDate.toDateString() === selectedDeliveryDateObj.toDateString();
@@ -666,7 +701,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         />
       </div>
 
-      {/* If time promised => ARRIVAL TIME */}
       {isTimePromisedToggled && (
         <div
           className={styles.arrivalTimeInput}
@@ -687,7 +721,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             <ClockIcon className={styles.inputIcon} />
           </div>
 
-          {/* Start Time dropdown */}
           {showStartTimeDropdown && (
             <div
               className={styles.timeDropdown}
@@ -718,7 +751,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             </div>
           )}
 
-          {/* 2x2 grid => +2h, +4h, +6h, +8h */}
           {showIncrementsGrid && (
             <div
               className={styles.addHoursGrid}
@@ -747,7 +779,6 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                     setArrivalTime(rangeStr);
                     setShowIncrementsGrid(false);
 
-                    // Save in lead
                     handleSetArrivalTime(rangeStr);
                   }}
                 >
@@ -761,24 +792,35 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
       <div className={styles.spacing20}></div>
 
-      {/* Origin, Destination, Logistics, Estimate sections */}
-      <OriginDetails 
-        onShowInventory={onShowInventory} 
-        lead={lead}                         
+      {/* PASS in isCollapsed states from local state */}
+      <OriginDetails
+        onShowInventory={onShowInventory}
+        lead={lead}
         onLeadUpdated={onLeadUpdated}
+        isCollapsed={isOriginCollapsed}
+        setIsCollapsed={setIsOriginCollapsed}
       />
-      <DestinationDetails 
-        lead={lead}                         
+
+      <DestinationDetails
+        lead={lead}
         onLeadUpdated={onLeadUpdated}
-        isStorageToggled={isStorageToggled} 
+        isStorageToggled={isStorageToggled}
+        isCollapsed={isDestinationCollapsed}
+        setIsCollapsed={setIsDestinationCollapsed}
       />
+
       <LogisticsDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
+        isCollapsed={isLogisticsCollapsed}
+        setIsCollapsed={setIsLogisticsCollapsed}
       />
+
       <EstimateDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
+        isCollapsed={isEstimateCollapsed}
+        setIsCollapsed={setIsEstimateCollapsed}
       />
     </div>
   );

@@ -1,5 +1,3 @@
-// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/OriginDetails.js
-
 import React, { useEffect, useState, useRef } from 'react';
 import { ReactComponent as LocationIcon } from '../../../../../assets/icons/location.svg';
 import { ReactComponent as PlaceIcon } from '../../../../../assets/icons/place1.svg';
@@ -19,7 +17,7 @@ import ServicesPopup from './ServicesPopup/ServicesPopup';
 // Reusable row of stops
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
 
-/** Generate 15-min increments from 7:00 AM to 12:00 AM, excluding midnight duplication */
+/** Generate 15-min increments from 7:00 AM to midnight, excluding midnight duplication */
 function generateTimeOptions() {
   const times = [];
   let startMinutes = 7 * 60; // 7:00 AM
@@ -33,18 +31,22 @@ function generateTimeOptions() {
     if (displayHour === 0) displayHour = 12;
     const displayMin = String(mm).padStart(2, '0');
     times.push(`${displayHour}:${displayMin} ${suffix}`);
-
     startMinutes += 15;
   }
   return times;
 }
 
-function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
+function OriginDetails({
+  lead,
+  onLeadUpdated,
+  onShowInventory,
+  isCollapsed,       // <--- lifted from parent
+  setIsCollapsed,    // <--- lifted from parent
+}) {
   // ---------- ORIGIN STOPS ----------
   const [selectedStopIndex, setSelectedStopIndex] = useState(0);
 
-  // Collapsible
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Instead of local useState, we read isCollapsed from props:
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
 
   // ---------- TIME RESTRICTIONS UI ----------
@@ -112,6 +114,33 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
   const currentStop = originStops[selectedStopIndex] || {};
 
   /**
+   * Deactivate => remove this stop, unless it's "Main Address"
+   */
+  function handleDeactivateThisStop() {
+    if (!currentStop) return;
+
+    if (currentStop.label === 'Main Address') {
+      return;
+    }
+
+    const updated = [...originStops];
+    updated.splice(selectedStopIndex, 1);
+
+    let newIndex = selectedStopIndex;
+    if (newIndex >= updated.length) {
+      newIndex = updated.length - 1;
+    }
+    if (newIndex < 0) newIndex = 0;
+
+    onLeadUpdated({ ...lead, originStops: updated });
+    if (updated.length > 0) {
+      setSelectedStopIndex(newIndex);
+    } else {
+      setSelectedStopIndex(0);
+    }
+  }
+
+  /**
    * PLACE => remove dotted if typeOfPlace, moveSize, howManyStories all set
    */
   function isPlaceDataComplete(stop) {
@@ -135,7 +164,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
 
   /**
    * SERVICES => remove dotted if packingOption is set
-   * (per your request: "for the dotted line to disappear on SERVICES there should be the input in packingOption")
    */
   function isServicesDataComplete(stop) {
     return !!stop.packingOption?.trim();
@@ -241,7 +269,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
 
   /**
    * PLACE Summary
-   * -------------
    * line1 => typeOfPlace
    * line2 => moveSize - howManyStories
    * line3 => features + "COI"
@@ -249,9 +276,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
   function renderPlaceSummary(stop) {
     const { typeOfPlace, moveSize, howManyStories, features, needsCOI } = stop || {};
 
-    // line1
     const line1 = typeOfPlace?.trim() || '';
-    // line2
     let line2 = '';
     if (moveSize?.trim() && howManyStories?.trim()) {
       line2 = `${moveSize} - ${howManyStories}`;
@@ -260,7 +285,7 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
     } else if (howManyStories?.trim()) {
       line2 = howManyStories;
     }
-    // line3
+
     const feats = Array.isArray(features) ? [...features] : [];
     if (needsCOI) feats.push('COI');
     const line3 = feats.join(', ');
@@ -288,7 +313,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
 
   /**
    * ACCESS Summary
-   * -------------
    * line1 => biggestTruckAccess + " + shuttle" if shuttleTruckRequired
    * line2 => parkingAccess + ", Elevator" if elevatorAtStop
    * line3 => distanceDoorTruck + ", howManySteps"
@@ -303,13 +327,11 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
       howManySteps,
     } = stop || {};
 
-    // line1
     let line1 = biggestTruckAccess?.trim() || '';
     if (line1 && shuttleTruckRequired) {
       line1 += ' + shuttle';
     }
 
-    // line2
     let line2 = parkingAccess?.trim() || '';
     if (line2 && elevatorAtStop) {
       line2 += ', Elevator';
@@ -317,7 +339,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
       line2 = 'Elevator';
     }
 
-    // line3
     let line3 = distanceDoorTruck?.trim() || '';
     if (line3 && howManySteps?.trim()) {
       line3 += `, ${howManySteps}`;
@@ -348,14 +369,12 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
 
   /**
    * SERVICES Summary
-   * ---------------
-   * line1 => whatsMoving + ", " + packingOption (if both)
-   * line2 => if itemsToBeTakenApart => "Dissasambely", if hoistItems => "Hoisting", if craneNeeded => "Crane"
-   * line3 => a list of additionalServices, each prefixed with "+", separated by ", "
+   * line1 => packingOption
+   * line2 => itemsToBeTakenApart => "Disassembly", hoistItems => "Hoisting", craneNeeded => "Crane"
+   * line3 => additionalServices => each prefixed "+"
    */
   function renderServicesSummary(stop) {
     const {
-      whatsMoving,
       packingOption,
       itemsToBeTakenApart,
       hoistItems,
@@ -363,31 +382,19 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
       additionalServices,
     } = stop || {};
 
-    // line1
-    let line1 = '';
-    if (whatsMoving?.trim() && packingOption?.trim()) {
-      line1 = `${whatsMoving}, ${packingOption}`;
-    } else if (whatsMoving?.trim()) {
-      line1 = whatsMoving;
-    } else if (packingOption?.trim()) {
-      line1 = packingOption;
-    }
+    const line1 = packingOption?.trim() || '';
 
-    // line2 => from booleans
     const bits = [];
     if (itemsToBeTakenApart) bits.push('Disassembly');
     if (hoistItems) bits.push('Hoisting');
     if (craneNeeded) bits.push('Crane');
     const line2 = bits.join(', ');
 
-    // line3 => additionalServices => each item with a "+" prefix
     let line3 = '';
     if (Array.isArray(additionalServices) && additionalServices.length > 0) {
-      const plusList = additionalServices.map((svc) => `+${svc}`);
-      line3 = plusList.join(', ');
+      line3 = additionalServices.map((svc) => `+${svc}`).join(', ');
     }
 
-    // If everything is empty => no summary
     if (!line1 && !line2 && !line3) return null;
 
     const lines = [];
@@ -417,8 +424,10 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
   // Classes to remove dotted border
   const removeDottedPlace = isPlaceDataComplete(currentStop) ? styles.placeNoDotted : '';
   const removeDottedAccess = isAccessDataComplete(currentStop) ? styles.accessNoDotted : '';
-  // Per your request => "for the dotted line to disappear on the SERVICES there should be the input in packingOption"
   const removeDottedServices = isServicesDataComplete(currentStop) ? styles.servicesNoDotted : '';
+
+  // Decide if "Deactivate" is visible => hide if "Main Address"
+  const canDeactivate = currentStop.label !== 'Main Address';
 
   return (
     <div className={styles.originContainer}>
@@ -439,11 +448,25 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
             }}
             selectedStopIndex={selectedStopIndex}
             setSelectedStopIndex={setSelectedStopIndex}
+            placeType="origin"
           />
 
           {/* Address Inputs */}
           <div className={styles.propertySection}>
-            <span className={styles.propertyAddressText}>Property Address</span>
+            <div className={styles.propertySectionHeader}>
+              <span className={styles.propertyAddressText}>Property Address</span>
+
+              {/* Deactivate link => hidden if "Main Address" */}
+              {canDeactivate && (
+                <button
+                  type="button"
+                  className={styles.deactivateStopLink}
+                  onClick={handleDeactivateThisStop}
+                >
+                  Remove this stop
+                </button>
+              )}
+            </div>
 
             <div className={styles.inputContainer}>
               <input
@@ -779,7 +802,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
           defaultStopIndex={selectedStopIndex}
         />
       )}
-
       {isAccessPopupOpen && (
         <AccessPopup
           lead={lead}
@@ -789,7 +811,6 @@ function OriginDetails({ lead, onLeadUpdated, onShowInventory }) {
           defaultStopIndex={selectedStopIndex}
         />
       )}
-
       {isServicesPopupOpen && (
         <ServicesPopup
           lead={lead}

@@ -13,8 +13,7 @@ import styles from './MainAndStopOffs.module.css';
  *   - isStorageToggled: boolean => if true (for destination), show the "Post Storage" row
  *   - hideNormalStops: boolean => if true, do NOT show the normal stops row (only postStorage)
  *
- * We separate the "normal" stops from the "postStorage" stops, but we do NOT reorder them
- * in the actual array. Instead, we keep track of their real array index for correct selection.
+ * We separate "normal" stops from "postStorage" stops, but keep their real index for selection.
  */
 function MainAndStopOffs({
   stops,
@@ -28,11 +27,7 @@ function MainAndStopOffs({
   // Ensure stops is an array
   if (!Array.isArray(stops)) stops = [];
 
-  /**
-   * We map each stop => { originalStopObject, realIndex, postStorage: boolean }
-   * Then filter out normal vs. postStorage. This way we can display them in
-   * separate rows but still know their realIndex in the array.
-   */
+  // Map each => { ...stop, realIndex }
   const mappedStops = useMemo(() => {
     return stops.map((stopObj, realIndex) => ({
       ...stopObj,
@@ -40,15 +35,14 @@ function MainAndStopOffs({
     }));
   }, [stops]);
 
+  // Normal vs. postStorage
   const normalStops = mappedStops.filter((s) => !s.postStorage);
   const postStorageStops = mappedStops.filter((s) => s.postStorage);
 
-  // Function: isSelected => compare with the "full array" selectedStopIndex
   function isSelected(realIndex) {
     return realIndex === selectedStopIndex;
   }
 
-  // Button classes for normal vs postStorage
   function getNormalButtonClass(realIndex) {
     return isSelected(realIndex)
       ? `${styles.mainAddressButton} ${styles.buttonSelected}`
@@ -60,25 +54,18 @@ function MainAndStopOffs({
       : `${styles.mainAddressButtonRed} ${styles.buttonUnselectedRed}`;
   }
 
-  // Handle adding a new normal stop
+  // -------- Add normal stop --------
   const handleAddNormalStop = () => {
     const updatedStops = [...stops];
-    // We'll push at the end. So newStop gets the largest index = updatedStops.length.
     const newStopCount = normalStops.length;
 
-    let newLabel = '';
+    let newLabel;
     if (placeType === 'destination') {
-      if (newStopCount === 0) {
-        newLabel = 'Main Drop off';
-      } else {
-        newLabel = `Drop off ${newStopCount + 1}`;
-      }
+      newLabel =
+        newStopCount === 0 ? 'Main Drop off' : `Drop off ${newStopCount + 1}`;
     } else {
-      if (newStopCount === 0) {
-        newLabel = 'Main Address';
-      } else {
-        newLabel = `Stop off ${newStopCount + 1}`;
-      }
+      newLabel =
+        newStopCount === 0 ? 'Main Address' : `Stop off ${newStopCount + 1}`;
     }
 
     const newStop = {
@@ -89,36 +76,47 @@ function MainAndStopOffs({
       state: '',
       zip: '',
       postStorage: false,
+      isActive: true,
     };
-
-    updatedStops.push(newStop);            // appended at end => new index = updatedStops.length-1
+    updatedStops.push(newStop);
     onStopsUpdated(updatedStops);
-
-    // Make that newly created stop the selected index
     setSelectedStopIndex(updatedStops.length - 1);
   };
 
-  // Handle adding a new post-storage stop
+  // -------- Add post-storage stop --------
   const handleAddPostStorageStop = () => {
     const updatedStops = [...stops];
     const newStopCount = postStorageStops.length;
 
-    const newLabel = `Post Storage Drop off ${newStopCount + 1}`;
+    // If none => create "Post Storage Main Drop off"
+    if (newStopCount === 0) {
+      const newStop = {
+        label: 'Post Storage Main Drop off',
+        address: '',
+        apt: '',
+        city: '',
+        state: '',
+        zip: '',
+        postStorage: true,
+        isActive: true,
+      };
+      updatedStops.push(newStop);
+    } else {
+      // If already have 1 => create "Post Storage Drop off N"
+      const newLabel = `Post Storage Drop off ${newStopCount}`;
+      updatedStops.push({
+        label: newLabel,
+        address: '',
+        apt: '',
+        city: '',
+        state: '',
+        zip: '',
+        postStorage: true,
+        isActive: true,
+      });
+    }
 
-    const newStop = {
-      label: newLabel,
-      address: '',
-      apt: '',
-      city: '',
-      state: '',
-      zip: '',
-      postStorage: true,
-    };
-
-    updatedStops.push(newStop);
     onStopsUpdated(updatedStops);
-
-    // The newly created is last => index = updatedStops.length - 1
     setSelectedStopIndex(updatedStops.length - 1);
   };
 
@@ -136,7 +134,7 @@ function MainAndStopOffs({
     <div className={styles.addressRow}>
       <div className={styles.addressContainer}>
 
-        {/* If NOT hiding normal stops => render normal row + plus */}
+        {/* If NOT hiding normal => show them + plus */}
         {!hideNormalStops && (
           <>
             <div className={styles.addressButtonsWrapper}>
@@ -156,7 +154,7 @@ function MainAndStopOffs({
           </>
         )}
 
-        {/* If placeType="destination" and isStorageToggled => show "Post Storage" row */}
+        {/* If "destination" + storage => show post‐storage */}
         {placeType === 'destination' && isStorageToggled && (
           <>
             <div
@@ -173,7 +171,10 @@ function MainAndStopOffs({
                 </button>
               ))}
             </div>
-            <button className={styles.plusButtonRed} onClick={handleAddPostStorageStop}>
+            <button
+              className={styles.plusButtonRed}
+              onClick={handleAddPostStorageStop}
+            >
               +
             </button>
           </>

@@ -1,3 +1,5 @@
+/* =========================== AccessPopup.js =========================== */
+
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './AccessPopup.module.css';
 
@@ -83,7 +85,7 @@ function AccessPopup({
   // 'origin' or 'destination'
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
 
-  // selectedStopIndex for each
+  // separate indexes
   const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
     defaultTab === 'origin' ? defaultStopIndex : 0
   );
@@ -95,25 +97,29 @@ function AccessPopup({
   useEffect(() => {
     const originStops = Array.isArray(lead.originStops) && lead.originStops.length > 0
       ? lead.originStops
-      : [{
-          label: 'Main Address',
-          address: '',
-          apt: '',
-          city: '',
-          state: '',
-          zip: '',
-        }];
+      : [
+          {
+            label: 'Main Address',
+            address: '',
+            apt: '',
+            city: '',
+            state: '',
+            zip: '',
+          },
+        ];
 
     const destinationStops = Array.isArray(lead.destinationStops) && lead.destinationStops.length > 0
       ? lead.destinationStops
-      : [{
-          label: 'Main Address',
-          address: '',
-          apt: '',
-          city: '',
-          state: '',
-          zip: '',
-        }];
+      : [
+          {
+            label: 'Main Address',
+            address: '',
+            apt: '',
+            city: '',
+            state: '',
+            zip: '',
+          },
+        ];
 
     const mappedOrigin = originStops.map((stop) => ({
       ...stop,
@@ -147,7 +153,7 @@ function AccessPopup({
     setLocalDestinationStops(mappedDestination);
   }, [lead]);
 
-  // close if clicked outside
+  // Close if clicked outside
   const handleClose = useCallback(() => {
     setIsAccessPopupVisible(false);
   }, [setIsAccessPopupVisible]);
@@ -167,11 +173,39 @@ function AccessPopup({
     };
   }, [handleClose]);
 
-  // Decide which array + selectedStopIndex
-  const currentStops = selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
-  const selectedStopIndex = selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
+  // *** Auto-select first post if "destination" + "All items" hides normal stops ***
+  useEffect(() => {
+    if (selectedPlace === 'destination') {
+      const hideNormal = lead.add_storage && lead.storage_items === 'All items';
+      if (hideNormal) {
+        const stopsArr = localDestinationStops;
+        const curStop = stopsArr[selectedStopIndexDest];
+        if (curStop && !curStop.postStorage) {
+          // find first post-storage
+          const idx = stopsArr.findIndex((s) => s.postStorage);
+          if (idx !== -1 && idx !== selectedStopIndexDest) {
+            setSelectedStopIndexDest(idx);
+          }
+        }
+      }
+    }
+  }, [
+    selectedPlace,
+    lead.add_storage,
+    lead.storage_items,
+    localDestinationStops,
+    selectedStopIndexDest,
+  ]);
 
-  function setSelectedStopIndex(idx) {
+  // Decide which array + index
+  const currentStops =
+    selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
+
+  const selectedStopIndex =
+    selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
+
+  // setSelectedStopIndex => we track origin & dest separately
+  function setSelectedStopIndexGlobal(idx) {
     if (selectedPlace === 'origin') {
       setSelectedStopIndexOrigin(idx);
     } else {
@@ -235,11 +269,7 @@ function AccessPopup({
   function DropdownButton({ label, value, onClick }) {
     const displayValue = value ? value : 'Select';
     return (
-      <button
-        type="button"
-        className={styles.dropdownButton}
-        onClick={onClick}
-      >
+      <button type="button" className={styles.dropdownButton} onClick={onClick}>
         <span className={styles.oneLineEllipsis}>
           <span className={styles.dropdownPrefix}>{label}</span>
           <span className={styles.dropdownSelected}>{displayValue}</span>
@@ -249,7 +279,7 @@ function AccessPopup({
     );
   }
 
-  // We want to hide normal stops if user picks "destination" + lead.add_storage + lead.storage_items === 'All items'
+  // If user picks "destination" + lead.add_storage + "All items" => hide normal stops
   const hideNormalStops =
     selectedPlace === 'destination' &&
     !!lead.add_storage &&
@@ -258,7 +288,6 @@ function AccessPopup({
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
-        
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
@@ -302,7 +331,7 @@ function AccessPopup({
               stops={currentStops}
               onStopsUpdated={handleStopsLocalUpdated}
               selectedStopIndex={selectedStopIndex}
-              setSelectedStopIndex={setSelectedStopIndex}
+              setSelectedStopIndex={setSelectedStopIndexGlobal}
               placeType={selectedPlace}
               isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
               hideNormalStops={hideNormalStops}
@@ -313,7 +342,6 @@ function AccessPopup({
         {/* MAIN SCROLLABLE CONTENT => fields */}
         <div className={styles.scrollableContent}>
           <div className={styles.formFieldsWrapper}>
-
             {/* 1) Biggest Truck Access */}
             <div className={styles.inputWrapper}>
               <DropdownButton

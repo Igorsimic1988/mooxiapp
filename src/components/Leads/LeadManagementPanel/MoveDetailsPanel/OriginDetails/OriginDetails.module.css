@@ -452,3 +452,30 @@
   height: 1px;
   background-color: #D8DCE0;
 }
+
+.propertySectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* The link that says "Deactivate this stop" */
+.deactivateStopLink {
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  color: var(--Grey-Light, #90A4B7);
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: auto;
+  text-underline-offset: auto;
+  text-underline-position: from-font;
+  line-height: normal;
+  padding: 0;
+}

@@ -1,15 +1,11 @@
-// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/EstimateDetails/EstimateDetails.js
-
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './EstimateDetails.module.css';
 
 /**
  * Clone of DestinationDetails but with "Estimate" 
  * in the header and collapsed by default.
  */
-function EstimateDetails({ lead, onLeadUpdated }) {
-  // Collapsible state (closed by default)
-  const [isCollapsed, setIsCollapsed] = useState(true);
+function EstimateDetails({ lead, onLeadUpdated, isCollapsed, setIsCollapsed }) {
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
 
   return (

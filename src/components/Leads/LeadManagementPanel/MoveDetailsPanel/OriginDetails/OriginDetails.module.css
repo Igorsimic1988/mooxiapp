@@ -411,25 +411,6 @@
   color: #FFF;
 }
 
-.inventoryButtonSecondary {
-  border-radius: 12px;
-  border: 1px solid #3FA9F5;
-  background: #FFF;
-  height: 50px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 20px;
-}
-.inventoryButtonTextSecondary {
-  color: #2F3236;
-  font-family: Satoshi, sans-serif;
-  font-size: 15px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: normal;
-}
 
 /* ==================================== */
 /* Summary blocks (with extra line) */

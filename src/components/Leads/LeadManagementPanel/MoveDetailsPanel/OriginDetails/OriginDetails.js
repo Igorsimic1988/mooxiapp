@@ -782,11 +782,6 @@ function OriginDetails({
                 <span className={styles.inventoryButtonText}>Inventory</span>
                 <MyInventoryIcon className={styles.myInventoryIcon} />
               </button>
-              <button className={styles.inventoryButtonSecondary}>
-                <span className={styles.inventoryButtonTextSecondary}>
-                  Special Handling
-                </span>
-              </button>
             </div>
           </div>
         </>

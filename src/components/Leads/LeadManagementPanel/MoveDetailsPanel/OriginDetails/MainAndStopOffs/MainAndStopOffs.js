@@ -103,7 +103,7 @@ function MainAndStopOffs({
       updatedStops.push(newStop);
     } else {
       // If already have 1 => create "Post Storage Drop off N"
-      const newLabel = `Post Storage Drop off ${newStopCount}`;
+      const newLabel = `Post Storage Drop off ${newStopCount + 1}`;
       updatedStops.push({
         label: newLabel,
         address: '',

@@ -632,6 +632,7 @@ function Inventory({
           onUpdateItem={handleUpdateItem}
           onAddItem={handleAddItem}
           onStartFresh={handleStartFresh}
+          lead={lead}
         />
       )}
 
@@ -663,6 +664,7 @@ function Inventory({
         selectedRoom={selectedRoom}
         displayedRooms={stopData.displayedRooms}
         onCloseInventory={handleClose}
+        lead={lead}
       />
     </div>
   );

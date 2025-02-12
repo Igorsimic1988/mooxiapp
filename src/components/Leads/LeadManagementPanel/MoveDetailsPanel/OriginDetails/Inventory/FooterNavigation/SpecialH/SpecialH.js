@@ -10,7 +10,7 @@ import CustomSelect from './CustomSelect/CustomSelect';
 import { optionsData } from '../../../../../../../../data/constants/optionsData';
 import rooms from '../../../../../../../../data/constants/AllRoomsList';
 
-// Example incompatible + required tags
+// Incompatible + required tags logic (unchanged)
 const incompatibleTags = {
   cp_packed_by_movers: ['pbo_packed_by_customer'],
   pbo_packed_by_customer: [
@@ -28,7 +28,42 @@ const requiredTags = {
   crating: ['cp_packed_by_movers'],
 };
 
+/**
+ * Convert lead’s "label" into the “value” used in optionsData:
+ * e.g.  "Main Drop off" => "main_drop_off",
+ *       "Drop off 2" => "2_drop",
+ *       "Post Storage Drop off 3" => "post_storage_3_drop"
+ */
+function labelToDropTag(labelString) {
+  const trimmed = labelString.trim().toLowerCase();
+
+  // "Main Drop off"
+  if (trimmed === 'main drop off') {
+    return 'main_drop_off';
+  }
+  // "Drop off X"
+  const dropXMatch = trimmed.match(/^drop off\s+(\d+)$/);
+  if (dropXMatch) {
+    return `${dropXMatch[1]}_drop`;
+  }
+
+  // "Post Storage Main Drop off"
+  if (trimmed === 'post storage main drop off') {
+    return 'post_storage_main_drop';
+  }
+  // "Post Storage Drop off X"
+  const psDropXMatch = trimmed.match(/^post storage drop off\s+(\d+)$/);
+  if (psDropXMatch) {
+    return `post_storage_${psDropXMatch[1]}_drop`;
+  }
+
+  // fallback => just a simple slug
+  return trimmed.replace(/\s+/g, '_').replace(/[^\w_]/g, '');
+}
+
 function SpecialH({
+  // We still assume you pass in the entire lead, so we can see lead.destinationStops
+  lead, 
   setIsSpecialHVisible,
   roomItemSelections = {},
   setRoomItemSelections,
@@ -41,20 +76,20 @@ function SpecialH({
 
   const popupContentRef = useRef(null);
 
-  // Main selection: itemTags | locationTags
-  const [selectedOption, setSelectedOption] = useState("itemTags"); 
-  // Sub-option
-  const [selectedSubOption, setSelectedSubOption] = useState("packing"); 
-  // Current tag to apply/remove
+  // Main selection => "itemTags" or "locationTags"
+  const [selectedOption, setSelectedOption] = useState("itemTags");
+  // Sub‐option => "packing" / "extraAttention" (for itemTags) or "loadPoints" / "dropPoints" (for locationTags)
+  const [selectedSubOption, setSelectedSubOption] = useState("packing");
+  // The current tag to apply/remove
   const [currentTag, setCurrentTag] = useState('');
 
-  // Radiobutton for main selection
+  // Radiobutton options
   const mainOptions = [
     { value: 'itemTags', label: 'Item Tags' },
     { value: 'locationTags', label: 'Location Tags' },
   ];
 
-  // When main option changes => reset sub-option
+  // If user changes to itemTags => reset subOption to "packing"; locationTags => "loadPoints"
   useEffect(() => {
     if (selectedOption === 'itemTags') {
       setSelectedSubOption('packing');
@@ -63,28 +98,90 @@ function SpecialH({
     }
   }, [selectedOption]);
 
-  // Derive the array of possible tags from `optionsData`
-  const furtherOptions = useMemo(() => {
-    if (!optionsData[selectedOption]) return [];
-    const subObj = optionsData[selectedOption][selectedSubOption];
-    return Array.isArray(subObj) ? subObj : [];
-  }, [selectedOption, selectedSubOption]);
+  // =============== Compute the locationTags.dropPoints based on lead data ===============
+  // 1. We start with the entire array from `optionsData.locationTags.dropPoints`
+  const allDropPoints = optionsData.locationTags.dropPoints; 
+  // 2. The "base ones" we always keep visible:
+  const baseAlwaysVisible = [
+    'disposal',
+    'item_for_company_storage',
+    'help_with_unloading',
+    'hoisting_destination',
+    'crane_destination',
+  ];
+  // 3. The "destination-based" ones we only show if there are >=2 active stops
+  //    and the label matches. 
+  const activeStops = lead?.destinationStops?.filter(s => s.isActive) || [];
+  const hasMultipleActiveStops = activeStops.length >= 2;
 
-  // Pick first tag from the derived array
+  // Build a set of "active" values for those 2+ stops
+  const activeStopValues = new Set(); 
+  if (hasMultipleActiveStops) {
+    activeStops.forEach(stop => {
+      const dropVal = labelToDropTag(stop.label); 
+      activeStopValues.add(dropVal);
+    });
+  }
+
+  // 4. The final "filteredDropPoints" that we’ll place in the code below
+  const fullyFilteredDropPoints = allDropPoints.filter(dp => {
+    // If dp.value is in baseAlwaysVisible => always keep it
+    if (baseAlwaysVisible.includes(dp.value)) {
+      return true;
+    }
+    // else only keep it if we have multiple active stops
+    // AND dp.value is in activeStopValues
+    if (hasMultipleActiveStops && activeStopValues.has(dp.value)) {
+      return true;
+    }
+    return false;
+  });
+  // =============== End dynamic dropPoints ===============
+
+  // Now let's produce the correct array for the "furtherOptions" based on selectedOption + subOption
+  const furtherOptions = useMemo(() => {
+    if (selectedOption === 'itemTags') {
+      if (selectedSubOption === 'packing') {
+        return optionsData.itemTags.packing;
+      }
+      if (selectedSubOption === 'extraAttention') {
+        return optionsData.itemTags.extraAttention;
+      }
+      return [];
+    }
+    // locationTags
+    if (selectedSubOption === 'loadPoints') {
+      return optionsData.locationTags.loadPoints;
+    }
+    if (selectedSubOption === 'dropPoints') {
+      // Return the filtered array we built above
+      return fullyFilteredDropPoints;
+    }
+    return [];
+  }, [selectedOption, selectedSubOption, fullyFilteredDropPoints]);
+
+  // ========= Only reset currentTag if it's invalid in the new array =========
   useEffect(() => {
     if (furtherOptions.length > 0) {
-      setCurrentTag(furtherOptions[0].value);
+      // Check if currentTag is still valid among furtherOptions
+      const stillValid = furtherOptions.some(opt => opt.value === currentTag);
+      if (!stillValid) {
+        // If user-chosen tag is no longer in furtherOptions, default to first item
+        setCurrentTag(furtherOptions[0].value);
+      }
     } else {
+      // If no furtherOptions, clear out currentTag
       setCurrentTag('');
     }
-  }, [furtherOptions]);
+  }, [furtherOptions, currentTag]);
+  // ==========================================================================
 
-  // Tag selection
+  // Handler for the final dropdown
   const handleTagSelect = (tagValue) => {
     setCurrentTag(tagValue);
   };
 
-  // Clicking an item => toggle the `currentTag`
+  // Clicking an item => toggle the currentTag
   const handleItemClick = (roomId, itemId) => {
     if (!currentTag) {
       alert("Please select a tag from the dropdown before assigning.");
@@ -102,12 +199,11 @@ function SpecialH({
           if (hasTag) {
             // Remove it
             newTags = newTags.filter((t) => t !== currentTag);
-            // If removing 'excluded', nothing special
           } else {
             // Add the tag
             newTags.push(currentTag);
 
-            // If adding 'excluded', remove everything except 'pack_and_leave_behind'
+            // If "excluded" => remove all except 'excluded' or 'pack_and_leave_behind'
             if (currentTag === 'excluded') {
               newTags = newTags.filter(
                 (t) => t === 'excluded' || t === 'pack_and_leave_behind'
@@ -120,10 +216,13 @@ function SpecialH({
               // add required
               const reqs = requiredTags[currentTag] || [];
               reqs.forEach((reqT) => {
-                if (!newTags.includes(reqT)) newTags.push(reqT);
+                if (!newTags.includes(reqT)) {
+                  newTags.push(reqT);
+                }
               });
 
-              // If item_for_company_storage => possibly add keep_blanket_on, etc
+              // e.g. if user picks 'item_for_company_storage'
+              // and there's already some protective tag => add keep_blanket_on
               if (currentTag === 'item_for_company_storage') {
                 const protectiveTags = [
                   'blanket_wrapped',
@@ -156,7 +255,7 @@ function SpecialH({
     });
   };
 
-  // Close popup if clicked outside
+  // Close popup if user clicks outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -188,7 +287,7 @@ function SpecialH({
           </div>
         </div>
 
-        {/* Main radio group */}
+        {/* Main radio group => itemTags vs locationTags */}
         <div className={styles.radioGroup}>
           {mainOptions.map((opt) => (
             <label key={opt.value} className={styles.radioLabel}>
@@ -205,7 +304,7 @@ function SpecialH({
           ))}
         </div>
 
-        {/* Sub-options */}
+        {/* Sub-options => packing/extra vs loadPoints/dropPoints */}
         {selectedOption === 'itemTags' && (
           <div className={styles.buttonGroup}>
             <label className={styles.radioButtonLabel}>
@@ -219,7 +318,6 @@ function SpecialH({
               />
               <span className={styles.radioButtonText}>Packing</span>
             </label>
-
             <label className={styles.radioButtonLabel}>
               <input
                 type="radio"
@@ -247,7 +345,6 @@ function SpecialH({
               />
               <span className={styles.radioButtonText}>Load Points</span>
             </label>
-
             <label className={styles.radioButtonLabel}>
               <input
                 type="radio"
@@ -262,7 +359,7 @@ function SpecialH({
           </div>
         )}
 
-        {/* CustomSelect for the final set of options */}
+        {/* The Tag dropdown */}
         <div className={styles.selectOptionsGroup}>
           {furtherOptions.length > 0 && (
             <CustomSelect
@@ -274,7 +371,7 @@ function SpecialH({
           )}
         </div>
 
-        {/* List items for each displayed room that has items */}
+        {/* The items for each displayed room */}
         <div className={styles.roomLists}>
           {Object.keys(roomItemSelections)
             .filter((roomId) => {
@@ -286,16 +383,16 @@ function SpecialH({
               );
             })
             .sort((a, b) => {
+              // Put '13' (Boxes) at end, if you prefer
               if (a === '13') return 1;
               if (b === '13') return -1;
               return parseInt(a) - parseInt(b);
             })
             .map((roomId) => {
               const numericId = parseInt(roomId, 10);
-              const roomObj = rooms.find((r) => r.id === numericId) || {
-                id: numericId,
-                name: `Room #${roomId}`
-              };
+              const roomObj =
+                rooms.find((r) => r.id === numericId) ||
+                { id: numericId, name: `Room #${roomId}` };
 
               const itemArray = roomItemSelections[roomId] || [];
               return (

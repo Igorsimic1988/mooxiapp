@@ -24,6 +24,7 @@ function FooterNavigation({
   selectedRoom,
   displayedRooms,
   onCloseInventory,
+  lead,
 }) {
 
   const [isMyInventoryVisible, setIsMyInventoryVisible] = useState(false);
@@ -95,6 +96,7 @@ function FooterNavigation({
           setRoomItemSelections={setRoomItemSelections}
           selectedRoom={selectedRoom}
           displayedRooms={displayedRooms}
+          lead={lead}
         />
       )}
 
@@ -106,6 +108,7 @@ function FooterNavigation({
           setRoomItemSelections={setRoomItemSelections}
           selectedRoom={selectedRoom}
           displayedRooms={displayedRooms}
+          lead={lead}
         />
       )}
     </footer>

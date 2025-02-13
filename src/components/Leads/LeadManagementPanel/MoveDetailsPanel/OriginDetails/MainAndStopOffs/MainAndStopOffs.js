@@ -61,9 +61,11 @@ function MainAndStopOffs({
 
     let newLabel;
     if (placeType === 'destination') {
+      // For destination:
       newLabel =
         newStopCount === 0 ? 'Main Drop off' : `Drop off ${newStopCount + 1}`;
     } else {
+      // For origin:
       newLabel =
         newStopCount === 0 ? 'Main Address' : `Stop off ${newStopCount + 1}`;
     }
@@ -102,7 +104,7 @@ function MainAndStopOffs({
       };
       updatedStops.push(newStop);
     } else {
-      // If already have 1 => create "Post Storage Drop off N"
+      // Otherwise => "Post Storage Drop off N"
       const newLabel = `Post Storage Drop off ${newStopCount + 1}`;
       updatedStops.push({
         label: newLabel,
@@ -130,11 +132,26 @@ function MainAndStopOffs({
     setSelectedStopIndex(sObj.realIndex);
   }
 
+  // Decide if we should show the plus button for normal stops
+  // - If hideNormalStops => no plus
+  // - If placeType === 'destination', limit to max 9 normal stops
+  const canAddMoreNormal =
+    !hideNormalStops &&
+    (placeType !== 'destination' || normalStops.length < 9);
+
+  // Decide if we should show the plus button for post-storage stops
+  // - Must be destination + isStorageToggled
+  // - Limit to max 9 post-storage stops
+  const canAddMorePostStorage =
+    placeType === 'destination' &&
+    isStorageToggled &&
+    postStorageStops.length < 9;
+
   return (
     <div className={styles.addressRow}>
       <div className={styles.addressContainer}>
 
-        {/* If NOT hiding normal => show them + plus */}
+        {/* Normal stops row (unless hideNormalStops) */}
         {!hideNormalStops && (
           <>
             <div className={styles.addressButtonsWrapper}>
@@ -148,13 +165,16 @@ function MainAndStopOffs({
                 </button>
               ))}
             </div>
-            <button className={styles.plusButton} onClick={handleAddNormalStop}>
-              +
-            </button>
+
+            {canAddMoreNormal && (
+              <button className={styles.plusButton} onClick={handleAddNormalStop}>
+                +
+              </button>
+            )}
           </>
         )}
 
-        {/* If "destination" + storage => show post‐storage */}
+        {/* Post-storage row (only if placeType === 'destination' && isStorageToggled) */}
         {placeType === 'destination' && isStorageToggled && (
           <>
             <div
@@ -171,12 +191,15 @@ function MainAndStopOffs({
                 </button>
               ))}
             </div>
-            <button
-              className={styles.plusButtonRed}
-              onClick={handleAddPostStorageStop}
-            >
-              +
-            </button>
+
+            {canAddMorePostStorage && (
+              <button
+                className={styles.plusButtonRed}
+                onClick={handleAddPostStorageStop}
+              >
+                +
+              </button>
+            )}
           </>
         )}
       </div>

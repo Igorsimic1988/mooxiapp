@@ -431,6 +431,7 @@ function InventoryDesktop({
           onAddItem={handleAddItem}
           itemInstance={currentItemInstance}
           onStartFresh={handleStartFresh}
+          lead={lead}
         />
       )}
 
@@ -441,6 +442,7 @@ function InventoryDesktop({
           roomItemSelections={roomItemSelections}
           setRoomItemSelections={setRoomItemSelections}
           displayedRooms={displayedRoomIds} // numeric IDs
+          lead={lead}
         />
       )}
 
@@ -451,6 +453,7 @@ function InventoryDesktop({
           roomItemSelections={roomItemSelections}
           setRoomItemSelections={setRoomItemSelections}
           displayedRooms={displayedRoomIds} // numeric IDs
+          lead={lead}
         />
       )}
     </div>

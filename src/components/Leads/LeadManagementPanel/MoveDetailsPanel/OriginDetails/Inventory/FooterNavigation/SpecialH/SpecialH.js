@@ -10,7 +10,9 @@ import CustomSelect from './CustomSelect/CustomSelect';
 import { optionsData } from '../../../../../../../../data/constants/optionsData';
 import rooms from '../../../../../../../../data/constants/AllRoomsList';
 
-// Incompatible + required tags logic (unchanged)
+/** 
+ * Incompatible + required tags
+ */
 const incompatibleTags = {
   cp_packed_by_movers: ['pbo_packed_by_customer'],
   pbo_packed_by_customer: [
@@ -29,10 +31,39 @@ const requiredTags = {
 };
 
 /**
- * Convert lead’s "label" into the “value” used in optionsData:
- * e.g.  "Main Drop off" => "main_drop_off",
- *       "Drop off 2" => "2_drop",
- *       "Post Storage Drop off 3" => "post_storage_3_drop"
+ * These location tags are exclusive with one another:
+ * only ONE from this set can be present on the item at a time.
+ */
+const EXCLUSIVE_LOCATION_TAGS = [
+  'moving_within_premises',
+  'help_with_loading',
+  'disposal',
+  'help_with_unloading',
+  'main_drop_off',
+  '2_drop',
+  '3_drop',
+  '4_drop',
+  '5_drop',
+  '6_drop',
+  '7_drop',
+  '8_drop',
+  '9_drop',
+  'post_storage_main_drop',
+  'post_storage_2_drop',
+  'post_storage_3_drop',
+  'post_storage_4_drop',
+  'post_storage_5_drop',
+  'post_storage_6_drop',
+  'post_storage_7_drop',
+  'post_storage_8_drop',
+  'post_storage_9_drop',
+];
+
+/**
+ * Convert lead’s "label" => the “value” used in optionsData
+ * e.g. "Main Drop off" => "main_drop_off"
+ *      "Drop off 2" => "2_drop"
+ *      "Post Storage Drop off 3" => "post_storage_3_drop"
  */
 function labelToDropTag(labelString) {
   const trimmed = labelString.trim().toLowerCase();
@@ -57,12 +88,11 @@ function labelToDropTag(labelString) {
     return `post_storage_${psDropXMatch[1]}_drop`;
   }
 
-  // fallback => just a simple slug
+  // fallback => simple slug
   return trimmed.replace(/\s+/g, '_').replace(/[^\w_]/g, '');
 }
 
 function SpecialH({
-  // We still assume you pass in the entire lead, so we can see lead.destinationStops
   lead, 
   setIsSpecialHVisible,
   roomItemSelections = {},
@@ -76,20 +106,19 @@ function SpecialH({
 
   const popupContentRef = useRef(null);
 
-  // Main selection => "itemTags" or "locationTags"
+  // Main radio: "itemTags" or "locationTags"
   const [selectedOption, setSelectedOption] = useState("itemTags");
-  // Sub‐option => "packing" / "extraAttention" (for itemTags) or "loadPoints" / "dropPoints" (for locationTags)
+  // Sub-radio: "packing"/"extraAttention" (for itemTags) or "loadPoints"/"dropPoints" (for locationTags)
   const [selectedSubOption, setSelectedSubOption] = useState("packing");
-  // The current tag to apply/remove
   const [currentTag, setCurrentTag] = useState('');
 
-  // Radiobutton options
+  // Radiobutton for main selection
   const mainOptions = [
     { value: 'itemTags', label: 'Item Tags' },
     { value: 'locationTags', label: 'Location Tags' },
   ];
 
-  // If user changes to itemTags => reset subOption to "packing"; locationTags => "loadPoints"
+  // Sub-option resets
   useEffect(() => {
     if (selectedOption === 'itemTags') {
       setSelectedSubOption('packing');
@@ -98,10 +127,10 @@ function SpecialH({
     }
   }, [selectedOption]);
 
-  // =============== Compute the locationTags.dropPoints based on lead data ===============
-  // 1. We start with the entire array from `optionsData.locationTags.dropPoints`
+  /** 
+   *  We do the dynamic dropPoints logic based on lead data
+   */
   const allDropPoints = optionsData.locationTags.dropPoints; 
-  // 2. The "base ones" we always keep visible:
   const baseAlwaysVisible = [
     'disposal',
     'item_for_company_storage',
@@ -109,36 +138,24 @@ function SpecialH({
     'hoisting_destination',
     'crane_destination',
   ];
-  // 3. The "destination-based" ones we only show if there are >=2 active stops
-  //    and the label matches. 
   const activeStops = lead?.destinationStops?.filter(s => s.isActive) || [];
   const hasMultipleActiveStops = activeStops.length >= 2;
 
-  // Build a set of "active" values for those 2+ stops
-  const activeStopValues = new Set(); 
+  const activeStopValues = new Set();
   if (hasMultipleActiveStops) {
     activeStops.forEach(stop => {
-      const dropVal = labelToDropTag(stop.label); 
+      const dropVal = labelToDropTag(stop.label);
       activeStopValues.add(dropVal);
     });
   }
-
-  // 4. The final "filteredDropPoints" that we’ll place in the code below
+  // Filter the dropPoints
   const fullyFilteredDropPoints = allDropPoints.filter(dp => {
-    // If dp.value is in baseAlwaysVisible => always keep it
-    if (baseAlwaysVisible.includes(dp.value)) {
-      return true;
-    }
-    // else only keep it if we have multiple active stops
-    // AND dp.value is in activeStopValues
-    if (hasMultipleActiveStops && activeStopValues.has(dp.value)) {
-      return true;
-    }
+    if (baseAlwaysVisible.includes(dp.value)) return true;
+    if (hasMultipleActiveStops && activeStopValues.has(dp.value)) return true;
     return false;
   });
-  // =============== End dynamic dropPoints ===============
 
-  // Now let's produce the correct array for the "furtherOptions" based on selectedOption + subOption
+  // figure out final dropdown options
   const furtherOptions = useMemo(() => {
     if (selectedOption === 'itemTags') {
       if (selectedSubOption === 'packing') {
@@ -154,34 +171,31 @@ function SpecialH({
       return optionsData.locationTags.loadPoints;
     }
     if (selectedSubOption === 'dropPoints') {
-      // Return the filtered array we built above
       return fullyFilteredDropPoints;
     }
     return [];
   }, [selectedOption, selectedSubOption, fullyFilteredDropPoints]);
 
-  // ========= Only reset currentTag if it's invalid in the new array =========
+  // If the array changes, ensure currentTag is still valid
   useEffect(() => {
     if (furtherOptions.length > 0) {
-      // Check if currentTag is still valid among furtherOptions
       const stillValid = furtherOptions.some(opt => opt.value === currentTag);
       if (!stillValid) {
-        // If user-chosen tag is no longer in furtherOptions, default to first item
         setCurrentTag(furtherOptions[0].value);
       }
     } else {
-      // If no furtherOptions, clear out currentTag
       setCurrentTag('');
     }
   }, [furtherOptions, currentTag]);
-  // ==========================================================================
 
-  // Handler for the final dropdown
   const handleTagSelect = (tagValue) => {
     setCurrentTag(tagValue);
   };
 
-  // Clicking an item => toggle the currentTag
+  /** 
+   *  When user clicks an item => toggle the `currentTag`.
+   *  Also remove any other tags from the EXCLUSIVE_LOCATION_TAGS set if we are adding a new one.
+   */
   const handleItemClick = (roomId, itemId) => {
     if (!currentTag) {
       alert("Please select a tag from the dropdown before assigning.");
@@ -194,14 +208,26 @@ function SpecialH({
       const newItems = itemsInRoom.map((inst) => {
         if (inst.id === itemId) {
           let newTags = Array.isArray(inst.tags) ? [...inst.tags] : [];
-          const hasTag = newTags.includes(currentTag);
+          const alreadyHas = newTags.includes(currentTag);
 
-          if (hasTag) {
+          if (alreadyHas) {
             // Remove it
             newTags = newTags.filter((t) => t !== currentTag);
           } else {
-            // Add the tag
+            // Add the new tag
             newTags.push(currentTag);
+
+            // ========== EXCLUSIVE TAGS LOGIC ==========
+            if (EXCLUSIVE_LOCATION_TAGS.includes(currentTag)) {
+              // remove all other exclusive ones from newTags
+              newTags = newTags.filter(t => {
+                if (t === currentTag) return true; // keep the newly added one
+                // remove if it's in EXCLUSIVE_LOCATION_TAGS
+                if (EXCLUSIVE_LOCATION_TAGS.includes(t)) return false;
+                return true;
+              });
+            }
+            // ==========================================
 
             // If "excluded" => remove all except 'excluded' or 'pack_and_leave_behind'
             if (currentTag === 'excluded') {
@@ -222,7 +248,7 @@ function SpecialH({
               });
 
               // e.g. if user picks 'item_for_company_storage'
-              // and there's already some protective tag => add keep_blanket_on
+              // and there's a protective tag => add keep_blanket_on
               if (currentTag === 'item_for_company_storage') {
                 const protectiveTags = [
                   'blanket_wrapped',
@@ -255,7 +281,7 @@ function SpecialH({
     });
   };
 
-  // Close popup if user clicks outside
+  // Close popup if outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -318,6 +344,7 @@ function SpecialH({
               />
               <span className={styles.radioButtonText}>Packing</span>
             </label>
+
             <label className={styles.radioButtonLabel}>
               <input
                 type="radio"
@@ -371,7 +398,7 @@ function SpecialH({
           )}
         </div>
 
-        {/* The items for each displayed room */}
+        {/* List items for each displayed room */}
         <div className={styles.roomLists}>
           {Object.keys(roomItemSelections)
             .filter((roomId) => {
@@ -383,7 +410,7 @@ function SpecialH({
               );
             })
             .sort((a, b) => {
-              // Put '13' (Boxes) at end, if you prefer
+              // optionally put '13' at the end
               if (a === '13') return 1;
               if (b === '13') return -1;
               return parseInt(a) - parseInt(b);
@@ -407,7 +434,9 @@ function SpecialH({
                         id={inst.id}
                         item={inst.item}
                         tags={inst.tags}
-                        isSelected={!!currentTag && inst.tags.includes(currentTag)}
+                        isSelected={
+                          !!currentTag && inst.tags.includes(currentTag)
+                        }
                         onItemClick={() => handleItemClick(roomId, inst.id)}
                       />
                     ))}

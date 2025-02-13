@@ -46,13 +46,31 @@ import { ReactComponent as HelpWithUnloadingIcon } from "../../../../../../../..
 import { ReactComponent as HoistingDestinationIcon } from "../../../../../../../../assets/icons/hoisting_destination.svg";
 import { ReactComponent as CraneDestinationIcon } from "../../../../../../../../assets/icons/crane_destination.svg";
 
-/** Numeric drop points */
+/** Numeric drop points (already have 2_drop, 3_drop, etc.) */
 import { ReactComponent as MainDropOffIcon } from "../../../../../../../../assets/icons/main_drop_off.svg";
 import { ReactComponent as TwoDropIcon } from "../../../../../../../../assets/icons/2_drop.svg";
 import { ReactComponent as ThreeDropIcon } from "../../../../../../../../assets/icons/3_drop.svg";
 import { ReactComponent as PostStorageMainDropIcon } from "../../../../../../../../assets/icons/post_storage_main_drop.svg";
 import { ReactComponent as PostStorage2DropIcon } from "../../../../../../../../assets/icons/post_storage_2_drop.svg";
 import { ReactComponent as PostStorage3DropIcon } from "../../../../../../../../assets/icons/post_storage_3_drop.svg";
+
+/** 
+ * ============== ADDITIONAL DROP ICON IMPORTS ==============
+ * for 4_drop through 9_drop, and post_storage_4_drop through post_storage_9_drop
+ */
+import { ReactComponent as FourDropIcon } from "../../../../../../../../assets/icons/4_drop.svg";
+import { ReactComponent as FiveDropIcon } from "../../../../../../../../assets/icons/5_drop.svg";
+import { ReactComponent as SixDropIcon } from "../../../../../../../../assets/icons/6_drop.svg";
+import { ReactComponent as SevenDropIcon } from "../../../../../../../../assets/icons/7_drop.svg";
+import { ReactComponent as EightDropIcon } from "../../../../../../../../assets/icons/8_drop.svg";
+import { ReactComponent as NineDropIcon } from "../../../../../../../../assets/icons/9_drop.svg";
+
+import { ReactComponent as PostStorage4DropIcon } from "../../../../../../../../assets/icons/post_storage_4_drop.svg";
+import { ReactComponent as PostStorage5DropIcon } from "../../../../../../../../assets/icons/post_storage_5_drop.svg";
+import { ReactComponent as PostStorage6DropIcon } from "../../../../../../../../assets/icons/post_storage_6_drop.svg";
+import { ReactComponent as PostStorage7DropIcon } from "../../../../../../../../assets/icons/post_storage_7_drop.svg";
+import { ReactComponent as PostStorage8DropIcon } from "../../../../../../../../assets/icons/post_storage_8_drop.svg";
+import { ReactComponent as PostStorage9DropIcon } from "../../../../../../../../assets/icons/post_storage_9_drop.svg";
 
 /**
  * Convert "Drop off 2" => "2_drop", "Post Storage Drop off 3" => "post_storage_3_drop"
@@ -118,14 +136,28 @@ const tagIcons = {
   hoisting_destination: HoistingDestinationIcon,
   crane_destination: CraneDestinationIcon,
 
-  // Numeric stops
+  // Numeric stops already present:
   main_drop_off: MainDropOffIcon,
   '2_drop': TwoDropIcon,
   '3_drop': ThreeDropIcon,
   post_storage_main_drop: PostStorageMainDropIcon,
   'post_storage_2_drop': PostStorage2DropIcon,
   'post_storage_3_drop': PostStorage3DropIcon,
-  // etc if needed: 4_drop, 5_drop, ...
+
+  // Additional numeric stops up to 9:
+  '4_drop': FourDropIcon,
+  '5_drop': FiveDropIcon,
+  '6_drop': SixDropIcon,
+  '7_drop': SevenDropIcon,
+  '8_drop': EightDropIcon,
+  '9_drop': NineDropIcon,
+
+  post_storage_4_drop: PostStorage4DropIcon,
+  post_storage_5_drop: PostStorage5DropIcon,
+  post_storage_6_drop: PostStorage6DropIcon,
+  post_storage_7_drop: PostStorage7DropIcon,
+  post_storage_8_drop: PostStorage8DropIcon,
+  post_storage_9_drop: PostStorage9DropIcon,
 };
 
 /** 
@@ -139,7 +171,7 @@ function isNumericDropBeyond3(tagValue) {
     const num = parseInt(m1[1], 10);
     return num > 3; 
   }
-  // e.g. "post_storage_7_drop"
+  // e.g. "post_storage_(\d+)_drop"
   const m2 = tagValue.match(/^post_storage_(\d+)_drop$/);
   if (m2) {
     const num = parseInt(m2[1], 10);
@@ -238,6 +270,7 @@ function MyInventory({
         return Array.isArray(arr) && arr.length > 0;
       })
       .sort((a, b) => {
+        // Put "13" last (some special logic?), otherwise sort numerically
         if (a === '13') return 1;
         if (b === '13') return -1;
         return parseInt(a) - parseInt(b);
@@ -343,7 +376,7 @@ function MyInventory({
           ))}
         </div>
 
-        {/* ================= LIST OF ITEMS TAB ================= */}
+        {/* ================ LIST OF ITEMS TAB ================ */}
         {selectedOption === 'listOfItems' && (
           <>
             {roomsWithItems.length > 0 ? (
@@ -365,8 +398,8 @@ function MyInventory({
                       <h3 className={styles.roomName}>{room.roomName}</h3>
                       <div className={styles.itemsTable}>
                         {room.groupedItems.map((itm, idxItem) => {
-                          // If a tag is a numeric drop (like 4_drop) and it’s not in active stops, skip it
-                          // But ALWAYS keep your 5 special tags
+                          // Filter numeric drop tags that are not in active stops
+                          // (except the 5 special tags).
                           const filteredTags = itm.tags.filter(tVal => {
                             const isDrop = optionsData.locationTags.dropPoints.some(
                               (dp) => dp.value === tVal
@@ -374,7 +407,6 @@ function MyInventory({
                             // If it's a numeric stop (like "4_drop") and not active => hide
                             // But if it's one of the 5 special => keep
                             if (isDrop) {
-                              // is it one of your 5?
                               if (
                                 tVal === 'disposal' ||
                                 tVal === 'item_for_company_storage' ||
@@ -458,7 +490,7 @@ function MyInventory({
           </>
         )}
 
-        {/* ================= DESCRIPTIVE SYMBOLS TAB ================= */}
+        {/* ============== DESCRIPTIVE SYMBOLS TAB ============== */}
         {selectedOption === 'descriptiveSymbols' && (
           <div className={`${styles.content} ${styles.descriptiveContent}`}>
             <div className={styles.descriptiveSymbolsContainer}>

@@ -7,7 +7,7 @@ import { ReactComponent as CameraIcon } from '../../../../../../../../../assets/
 import { ReactComponent as UploadIcon } from '../../../../../../../../../assets/icons/upload.svg';
 import { ReactComponent as LinkIcon } from '../../../../../../../../../assets/icons/pastelink.svg';
 import { optionsData } from '../../../../../../../../../data/constants/optionsData';
-import Select, { components as RSComponents } from 'react-select'; // rename to RSComponents
+import Select, { components as RSComponents } from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import packingOptions from '../../../../../../../../../data/constants/packingOptions';
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
@@ -44,8 +44,51 @@ const MultiValue = (props) => {
  * ==============================================
  */
 
+/**
+ * 1) Build a big array of location tags that must be mutually exclusive
+ *    (only one among them can be selected).
+ */
+const EXCLUSIVE_LOCATION_TAGS = [
+  'disposal',
+  'item_for_company_storage',
+  'help_with_unloading',
+  'hoisting_destination',
+  'crane_destination',
+  'main_drop_off',
+  '2_drop',
+  '3_drop',
+  '4_drop',
+  '5_drop',
+  '6_drop',
+  '7_drop',
+  '8_drop',
+  '9_drop',
+  'post_storage_main_drop',
+  'post_storage_2_drop',
+  'post_storage_3_drop',
+  'post_storage_4_drop',
+  'post_storage_5_drop',
+  'post_storage_6_drop',
+  'post_storage_7_drop',
+  'post_storage_8_drop',
+  'post_storage_9_drop',
+];
+
 /** 
- * Custom react-select styles
+ * This helper returns an object specifying that each tag
+ * in EXCLUSIVE_LOCATION_TAGS is incompatible with all others in that list.
+ */
+function buildExclusiveIncompat(tagsArr) {
+  const output = {};
+  for (const tag of tagsArr) {
+    output[tag] = tagsArr.filter((t) => t !== tag);
+  }
+  return output;
+}
+const LOCATION_EXCLUSIVES = buildExclusiveIncompat(EXCLUSIVE_LOCATION_TAGS);
+
+/** 
+ * The custom react-select styles
  */
 const customSelectStyles = {
   multiValueRemove: (base) => ({
@@ -69,10 +112,11 @@ const customSelectStyles = {
 };
 
 /** 
- * Incompatible and required tags, made static outside the component
- * so they won't cause re‐render issues with useCallback.
+ * Incompatible and required tags
+ * We merge the location exclusives with our existing item-based pairs.
  */
 const INCOMPATIBLE_TAGS = {
+  // Existing item-based pairs:
   cp_packed_by_movers: ['pbo_packed_by_customer'],
   pbo_packed_by_customer: [
     'cp_packed_by_movers',
@@ -83,6 +127,9 @@ const INCOMPATIBLE_TAGS = {
   paper_blanket_wrapped: ['purchased_blankets'],
   purchased_blankets: ['paper_blanket_wrapped'],
   pack_and_leave_behind: ['pbo_packed_by_customer'],
+
+  // All the location tags that are mutually exclusive:
+  ...LOCATION_EXCLUSIVES,
 };
 
 const REQUIRED_TAGS = {
@@ -238,7 +285,7 @@ function ItemPopup({
       ...optionsData.locationTags.dropPoints,
     ];
 
-    // 1) If we have existing tags from currentItemInstance
+    // If we have existing tags from currentItemInstance
     if (currentItemInstance && currentItemInstance.tags) {
       const selectedOptions = currentItemInstance.tags
         .map((tg) => allOptions.find((o) => o.value === tg))
@@ -265,7 +312,7 @@ function ItemPopup({
         )
       );
     }
-    // 2) else if the "item" itself has default tags
+    // else if the "item" itself has default tags
     else if (item.tags && item.tags.length > 0) {
       const selectedOptions = item.tags
         .map((tg) => allOptions.find((o) => o.value === tg))
@@ -328,6 +375,7 @@ function ItemPopup({
     setCameraImages(currentItemInstance?.cameraImages || []);
   }, [currentItemInstance, item]);
 
+  // Handlers for cuft/lbs/notes
   const handleCuftChange = (e) => setCuft(e.target.value);
   const handleLbsChange = (e) => setLbs(e.target.value);
   const handleNotesChange = (e) => setNotes(e.target.value);
@@ -337,6 +385,7 @@ function ItemPopup({
     const updated = selectedOptions || [];
     const oldAllTags = getAllSelectedTags();
 
+    // figure out which tag was just added or removed
     const newlyChanged = updated.length > oldAllTags.length
       ? updated.find((opt) => !oldAllTags.includes(opt.value))
       : oldAllTags.find(
@@ -347,11 +396,13 @@ function ItemPopup({
       setOptions(updated);
       return;
     }
-    const tagValue = newlyChanged.value;
 
-    // Remove incompatible
+    const tagValue = newlyChanged.value;
     const incompArr = INCOMPATIBLE_TAGS[tagValue] || [];
+
+    // If user just added a tag
     if (updated.length > oldAllTags.length) {
+      // remove any incompatible tags from all 4 multi-select states
       setSelectedPackingTags((prev) =>
         prev.filter((opt) => !incompArr.includes(opt.value))
       );
@@ -365,7 +416,7 @@ function ItemPopup({
         prev.filter((opt) => !incompArr.includes(opt.value))
       );
 
-      // Add required
+      // Then add any required tags
       const reqs = REQUIRED_TAGS[tagValue] || [];
       reqs.forEach((reqTag) => {
         const found = findOptionByValue(reqTag);
@@ -378,7 +429,7 @@ function ItemPopup({
     setOptions(updated);
   };
 
-  // Helper: find an option by `.value`
+  // Helper: find an option by .value
   const findOptionByValue = (value) => {
     const everything = [
       ...optionsData.itemTags.packing,
@@ -413,14 +464,14 @@ function ItemPopup({
     }
   };
 
-  // Actually save item
+  // Save item
   const handleSaveItem = (overrides = {}) => {
-    const selected = getAllSelectedTags();
+    const selectedTags = getAllSelectedTags();
     const newInstance = {
       id: currentItemInstance ? currentItemInstance.id : uuidv4(),
       itemId: item.id.toString(),
       item: { ...item },
-      tags: selected,
+      tags: selectedTags,
       count: itemCount,
       notes,
       cuft,
@@ -476,7 +527,7 @@ function ItemPopup({
     []
   );
 
-  // Final arrays for each select
+  // The final arrays for each select
   const allSelectedTags = getAllSelectedTags();
   const filteredPackingOptions = filterOptions(optionsData.itemTags.packing, allSelectedTags);
   const filteredExtraAttentionOptions = filterOptions(optionsData.itemTags.extraAttention, allSelectedTags);
@@ -552,7 +603,7 @@ function ItemPopup({
     reader.readAsDataURL(file);
   };
 
-  // Link
+  // Link logic
   const handleLinkClick = () => {
     if (link) {
       setIsLinkOptionsVisible((p) => !p);
@@ -576,6 +627,7 @@ function ItemPopup({
   };
   const handleLinkInputChange = (e) => setLinkInput(e.target.value);
 
+  // Basic URL validation
   const validateURL = (url) => {
     const pattern = new RegExp(
       '^(https?:\\/\\/)' +
@@ -605,7 +657,7 @@ function ItemPopup({
     setIsLinkOptionsVisible(false);
   };
 
-  // Outside clicks
+  // Clicking outside => close popups
   useEffect(() => {
     const handleClickOutside = (evt) => {
       if (
@@ -634,11 +686,13 @@ function ItemPopup({
     };
   }, [isLinkOptionsVisible, isEditingLink, isPreviewVisible]);
 
-  // Close preview
+  // Close the image preview
   const closePreview = () => {
     setIsPreviewVisible(false);
     setPreviewImage(null);
   };
+
+  // Deleting an image from preview
   const handleDeleteImage = () => {
     if (uploadedImages.includes(previewImage)) {
       const newUpl = uploadedImages.filter((img) => img !== previewImage);
@@ -668,7 +722,7 @@ function ItemPopup({
     }
   }, [isPreviewVisible]);
 
-  // Render
+  // Render the popup
   return (
     <div className={styles.popup} onClick={onClose}>
       <div
@@ -786,7 +840,9 @@ function ItemPopup({
               style={{ cursor: 'pointer', position: 'relative' }}
             >
               <CameraIcon className={styles.icon} />
-              <div>{cameraImages.length > 0 ? 'View Camera Roll' : 'Camera Roll'}</div>
+              <div>
+                {cameraImages.length > 0 ? 'View Camera Roll' : 'Camera Roll'}
+              </div>
             </div>
             <input
               type="file"
@@ -806,7 +862,9 @@ function ItemPopup({
               style={{ cursor: 'pointer', position: 'relative' }}
             >
               <UploadIcon className={styles.icon} />
-              <div>{uploadedImages.length > 0 ? 'View Upload' : 'Upload'}</div>
+              <div>
+                {uploadedImages.length > 0 ? 'View Upload' : 'Upload'}
+              </div>
             </div>
             <input
               type="file"

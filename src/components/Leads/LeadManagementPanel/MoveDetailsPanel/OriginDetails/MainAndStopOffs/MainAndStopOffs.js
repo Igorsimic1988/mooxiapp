@@ -6,14 +6,13 @@ import styles from './MainAndStopOffs.module.css';
  * ---------------
  * PROPS:
  *   - stops: the array of stops (e.g. lead.originStops or lead.destinationStops)
- *   - onStopsUpdated: function(newStops) => pass updated array up
- *   - selectedStopIndex: which index in the full stops array is currently selected
- *   - setSelectedStopIndex: function => sets the current stop index (in the full array)
- *   - placeType: either "origin" or "destination" (optional; default "origin")
- *   - isStorageToggled: boolean => if true (for destination), show the "Post Storage" row
- *   - hideNormalStops: boolean => if true, do NOT show the normal stops row (only postStorage)
- *
- * We separate "normal" stops from "postStorage" stops, but keep their real index for selection.
+ *   - onStopsUpdated: function(newStops)
+ *   - selectedStopIndex: number
+ *   - setSelectedStopIndex: function
+ *   - placeType: "origin" | "destination" (optional; default "origin")
+ *   - isStorageToggled: boolean (only relevant for destination)
+ *   - hideNormalStops: boolean
+ *   - hidePlusButtons: boolean => if true, hide the "+" buttons
  */
 function MainAndStopOffs({
   stops,
@@ -23,11 +22,10 @@ function MainAndStopOffs({
   placeType = 'origin',
   isStorageToggled = false,
   hideNormalStops = false,
+  hidePlusButtons = false, // <-- new prop
 }) {
-  // Ensure stops is an array
   if (!Array.isArray(stops)) stops = [];
 
-  // Map each => { ...stop, realIndex }
   const mappedStops = useMemo(() => {
     return stops.map((stopObj, realIndex) => ({
       ...stopObj,
@@ -35,7 +33,6 @@ function MainAndStopOffs({
     }));
   }, [stops]);
 
-  // Normal vs. postStorage
   const normalStops = mappedStops.filter((s) => !s.postStorage);
   const postStorageStops = mappedStops.filter((s) => s.postStorage);
 
@@ -54,18 +51,15 @@ function MainAndStopOffs({
       : `${styles.mainAddressButtonRed} ${styles.buttonUnselectedRed}`;
   }
 
-  // -------- Add normal stop --------
   const handleAddNormalStop = () => {
     const updatedStops = [...stops];
     const newStopCount = normalStops.length;
 
     let newLabel;
     if (placeType === 'destination') {
-      // For destination:
       newLabel =
         newStopCount === 0 ? 'Main Drop off' : `Drop off ${newStopCount + 1}`;
     } else {
-      // For origin:
       newLabel =
         newStopCount === 0 ? 'Main Address' : `Stop off ${newStopCount + 1}`;
     }
@@ -85,14 +79,12 @@ function MainAndStopOffs({
     setSelectedStopIndex(updatedStops.length - 1);
   };
 
-  // -------- Add post-storage stop --------
   const handleAddPostStorageStop = () => {
     const updatedStops = [...stops];
     const newStopCount = postStorageStops.length;
 
-    // If none => create "Post Storage Main Drop off"
     if (newStopCount === 0) {
-      const newStop = {
+      updatedStops.push({
         label: 'Post Storage Main Drop off',
         address: '',
         apt: '',
@@ -101,10 +93,8 @@ function MainAndStopOffs({
         zip: '',
         postStorage: true,
         isActive: true,
-      };
-      updatedStops.push(newStop);
+      });
     } else {
-      // Otherwise => "Post Storage Drop off N"
       const newLabel = `Post Storage Drop off ${newStopCount + 1}`;
       updatedStops.push({
         label: newLabel,
@@ -122,26 +112,20 @@ function MainAndStopOffs({
     setSelectedStopIndex(updatedStops.length - 1);
   };
 
-  // On click normal => select that stop's realIndex
   function handleSelectNormalStop(sObj) {
     setSelectedStopIndex(sObj.realIndex);
   }
 
-  // On click postStorage => select that stop's realIndex
   function handleSelectPostStorageStop(sObj) {
     setSelectedStopIndex(sObj.realIndex);
   }
 
-  // Decide if we should show the plus button for normal stops
-  // - If hideNormalStops => no plus
-  // - If placeType === 'destination', limit to max 9 normal stops
+  // Decide if we can add more normal stops
   const canAddMoreNormal =
     !hideNormalStops &&
     (placeType !== 'destination' || normalStops.length < 9);
 
-  // Decide if we should show the plus button for post-storage stops
-  // - Must be destination + isStorageToggled
-  // - Limit to max 9 post-storage stops
+  // Decide if we can add more post-storage stops
   const canAddMorePostStorage =
     placeType === 'destination' &&
     isStorageToggled &&
@@ -151,7 +135,7 @@ function MainAndStopOffs({
     <div className={styles.addressRow}>
       <div className={styles.addressContainer}>
 
-        {/* Normal stops row (unless hideNormalStops) */}
+        {/* Normal stops row */}
         {!hideNormalStops && (
           <>
             <div className={styles.addressButtonsWrapper}>
@@ -165,8 +149,7 @@ function MainAndStopOffs({
                 </button>
               ))}
             </div>
-
-            {canAddMoreNormal && (
+            {!hidePlusButtons && canAddMoreNormal && (
               <button className={styles.plusButton} onClick={handleAddNormalStop}>
                 +
               </button>
@@ -174,7 +157,7 @@ function MainAndStopOffs({
           </>
         )}
 
-        {/* Post-storage row (only if placeType === 'destination' && isStorageToggled) */}
+        {/* Post-storage row */}
         {placeType === 'destination' && isStorageToggled && (
           <>
             <div
@@ -191,8 +174,7 @@ function MainAndStopOffs({
                 </button>
               ))}
             </div>
-
-            {canAddMorePostStorage && (
+            {!hidePlusButtons && canAddMorePostStorage && (
               <button
                 className={styles.plusButtonRed}
                 onClick={handleAddPostStorageStop}

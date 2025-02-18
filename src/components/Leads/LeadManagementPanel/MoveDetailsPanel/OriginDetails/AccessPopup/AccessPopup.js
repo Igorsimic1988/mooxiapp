@@ -1,5 +1,3 @@
-/* =========================== AccessPopup.js =========================== */
-
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './AccessPopup.module.css';
 
@@ -8,10 +6,7 @@ import { ReactComponent as HouseIcon } from '../../../../../../assets/icons/hous
 import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Close.svg';
 import { ReactComponent as UnfoldMoreIcon } from '../../../../../../assets/icons/unfoldmore.svg';
 
-// Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
-
-// Import the toggle
 import SimpleToggle from '../../../../SimpleToggle/SimpleToggle';
 
 /** Dropdown options */
@@ -285,6 +280,9 @@ function AccessPopup({
     !!lead.add_storage &&
     lead.storage_items === 'All items';
 
+  // Filter out inactive stops
+  const activeStops = currentStops.filter((s) => s.isActive !== false);
+
   return (
     <div className={styles.popup}>
       <div className={styles.popupContent} ref={popupContentRef}>
@@ -326,17 +324,23 @@ function AccessPopup({
             </label>
           </div>
 
-          <div className={styles.stopOffsPaddingWrapper}>
-            <MainAndStopOffs
-              stops={currentStops}
-              onStopsUpdated={handleStopsLocalUpdated}
-              selectedStopIndex={selectedStopIndex}
-              setSelectedStopIndex={setSelectedStopIndexGlobal}
-              placeType={selectedPlace}
-              isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
-              hideNormalStops={hideNormalStops}
-            />
-          </div>
+          {/* Only show .stopOffsPaddingWrapper if more than 1 *active* stop */}
+          {activeStops.length > 1 && (
+            <div className={styles.stopOffsPaddingWrapper}>
+              <MainAndStopOffs
+                stops={currentStops}
+                onStopsUpdated={handleStopsLocalUpdated}
+                selectedStopIndex={selectedStopIndex}
+                setSelectedStopIndex={setSelectedStopIndexGlobal}
+                placeType={selectedPlace}
+                isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
+                hideNormalStops={hideNormalStops}
+
+                /* Hide the plus buttons: */
+                hidePlusButtons
+              />
+            </div>
+          )}
         </div>
 
         {/* MAIN SCROLLABLE CONTENT => fields */}

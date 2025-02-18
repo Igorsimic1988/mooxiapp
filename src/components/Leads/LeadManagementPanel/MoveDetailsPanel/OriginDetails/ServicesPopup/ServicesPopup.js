@@ -1,5 +1,3 @@
-/* =========================== ServicesPopup.js =========================== */
-
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './ServicesPopup.module.css';
 
@@ -246,7 +244,7 @@ function ServicesPopup({
   const [showBlanketsDropdown, setShowBlanketsDropdown] = useState(false);
 
   function DropdownButton({ label, value, onClick }) {
-    const displayValue = value ? value : 'Select';
+    const displayValue = value || 'Select';
     return (
       <button type="button" className={styles.dropdownButton} onClick={onClick}>
         <span className={styles.oneLineEllipsis}>
@@ -263,6 +261,9 @@ function ServicesPopup({
     selectedPlace === 'destination' &&
     !!lead.add_storage &&
     lead.storage_items === 'All items';
+
+  // Filter out inactive stops
+  const activeStops = currentStops.filter((s) => s.isActive !== false);
 
   return (
     <div className={styles.popup}>
@@ -303,17 +304,23 @@ function ServicesPopup({
             </label>
           </div>
 
-          <div className={styles.stopOffsPaddingWrapper}>
-            <MainAndStopOffs
-              stops={currentStops}
-              onStopsUpdated={handleStopsLocalUpdated}
-              selectedStopIndex={selectedStopIndex}
-              setSelectedStopIndex={setSelectedStopIndexGlobal}
-              placeType={selectedPlace}
-              isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
-              hideNormalStops={hideNormalStops}
-            />
-          </div>
+          {/* Only show .stopOffsPaddingWrapper if there's more than 1 active stop */}
+          {activeStops.length > 1 && (
+            <div className={styles.stopOffsPaddingWrapper}>
+              <MainAndStopOffs
+                stops={currentStops}
+                onStopsUpdated={handleStopsLocalUpdated}
+                selectedStopIndex={selectedStopIndex}
+                setSelectedStopIndex={setSelectedStopIndexGlobal}
+                placeType={selectedPlace}
+                isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
+                hideNormalStops={hideNormalStops}
+
+                /* Hide the plus buttons: */
+                hidePlusButtons
+              />
+            </div>
+          )}
         </div>
 
         {/* MAIN SCROLLABLE CONTENT */}

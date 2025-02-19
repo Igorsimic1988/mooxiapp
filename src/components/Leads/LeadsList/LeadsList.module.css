@@ -207,6 +207,13 @@
   max-height: 20px;
 }
 
+/* existing rules above... */
+
+.completedText {
+  color: #3fa9f5 !important; /* ensures we override the default #90A4B7 */
+}
+
+
 /* Media query for smaller screens */
 @media (max-width: 392px) {
   .dateText {

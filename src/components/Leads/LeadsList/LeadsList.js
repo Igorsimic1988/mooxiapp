@@ -1,9 +1,6 @@
-// src/components/Leads/LeadsList/LeadsList.js
-
 import React from 'react';
 import styles from './LeadsList.module.css';
 
-// Import status icons
 import { ReactComponent as InProgressIcon } from '../../../assets/icons/inProgress.svg';
 import { ReactComponent as QuotedIcon } from '../../../assets/icons/quoted.svg';
 import { ReactComponent as BadLeadIcon } from '../../../assets/icons/badlead.svg';
@@ -13,11 +10,12 @@ import { ReactComponent as OnHoldIcon } from '../../../assets/icons/onhold.svg';
 import { ReactComponent as CanceledIcon } from '../../../assets/icons/canceled.svg';
 
 /**
- * Format creation_date_time as mm/dd/yyyy
+ * Format creation_date_time => mm/dd/yyyy
  */
 function formatDate(isoString) {
   if (!isoString) return '';
   const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return '';
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   const yy = d.getFullYear();
@@ -25,7 +23,7 @@ function formatDate(isoString) {
 }
 
 /**
- * Format phone number, e.g. (555) 123-4567
+ * Format phone => (555) 123-4567
  */
 function formatPhone(phone) {
   if (!phone) return '';
@@ -71,16 +69,12 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
       onScroll={onScroll}
     >
       {leads.map((lead) => {
-        // Default color/icon if not found
         const { color, Icon } = statusMapping[lead.lead_status] || {
           color: '#FAA61A',
           Icon: InProgressIcon,
         };
 
-        // By default:
-        //  - top line => lead_status + icon
-        //  - middle line => next_action if "Active Leads", else lead_activity
-        //  - bottom line => sales_name
+        // Default top/middle/bottom
         let topLineText     = lead.lead_status;
         let showTopLineIcon = true;
         let middleLineText  = (activeTab === 'Active Leads')
@@ -88,15 +82,22 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
           : lead.lead_activity;
         let bottomLineText  = lead.sales_name;
 
-        // For "My Appointments":
-        //  - top line => lead_activity (NO ICON).
-        //  - middle line => e.g. "Jul 23 10:00 AM"
-        //  - bottom line => lead.estimator
+        // We'll handle adding a .completedText class if needed:
+        let bottomLineClasses = `${styles.truncate} ${styles.salesName}`;
+
+        // My Appointments
         if (activeTab === 'My Appointments') {
           topLineText     = lead.lead_activity || '';
           showTopLineIcon = false;
           middleLineText  = `${formatMonthDay(lead.survey_date)} ${lead.survey_time || ''}`.trim();
-          bottomLineText  = lead.estimator || '';
+
+          // If next_action === "Completed" => bottom line is "Completed" in #3fa9f5
+          if (lead.next_action === 'Completed') {
+            bottomLineText    = 'Completed';
+            bottomLineClasses = `${styles.truncate} ${styles.salesName} ${styles.completedText}`;
+          } else {
+            bottomLineText = lead.estimator || '';
+          }
         }
 
         return (
@@ -105,7 +106,7 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
             key={lead.job_number}
             onClick={() => onLeadClick(lead)}
           >
-            {/* ---- Column 1: Company + JobNum + Date ---- */}
+            {/* Column 1 */}
             <div className={styles.companyInfo}>
               <div className={`${styles.truncate} ${styles.companyName}`}>
                 {lead.company_name}
@@ -120,7 +121,7 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
               </div>
             </div>
 
-            {/* ---- Column 2: Customer info ---- */}
+            {/* Column 2 */}
             <div className={styles.customerInfo}>
               <div className={styles.customerRow}>
                 {lead.is_new ? (
@@ -146,9 +147,8 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
               </div>
             </div>
 
-            {/* ---- Column 3: Top / Middle / Bottom lines ---- */}
+            {/* Column 3 */}
             <div className={styles.leadStatusInfo}>
-              {/* top line => either lead_status + icon, or lead_activity alone */}
               <div className={styles.statusRow}>
                 <span
                   className={`${styles.truncate} ${styles.leadStatus}`}
@@ -161,13 +161,11 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
                 )}
               </div>
 
-              {/* middle line => depends on tab */}
               <div className={`${styles.truncate} ${styles.nextAction}`}>
                 {middleLineText}
               </div>
 
-              {/* bottom line => either sales_name or estimator */}
-              <div className={`${styles.truncate} ${styles.salesName}`}>
+              <div className={bottomLineClasses}>
                 {bottomLineText}
               </div>
             </div>

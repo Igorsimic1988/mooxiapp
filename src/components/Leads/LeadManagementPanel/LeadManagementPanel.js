@@ -12,7 +12,6 @@ import { ReactComponent as OnHoldIcon } from '../../../assets/icons/onhold.svg';
 import { ReactComponent as CanceledIcon } from '../../../assets/icons/canceled.svg';
 import { ReactComponent as BookedIcon } from '../../../assets/icons/booked.svg';
 
-// Other icons
 import { ReactComponent as UnfoldMoreIcon } from '../../../assets/icons/unfoldmore.svg';
 import { ReactComponent as UserIcon } from '../../../assets/icons/user.svg';
 import { ReactComponent as SpecialHIcon } from '../../../assets/icons/specialh.svg';
@@ -23,42 +22,38 @@ import styles from './LeadManagementPanel.module.css';
 
 import PossibleSalesReps from '../../../data/constants/PossibleSalesReps';
 
-/** Status definitions */
+// 1) IMPORT THE updateLead SERVICE
+import { updateLead } from '../../../services/leadService';
+
 const statusOptions = [
-  { label: 'New Lead',    color: '#59B779', icon: null,               isDisabled: true },
+  { label: 'New Lead', color: '#59B779', icon: null, isDisabled: true },
   { label: 'In Progress', color: '#FAA61A', icon: <InProgressIcon />, isDisabled: false },
-  { label: 'Quoted',      color: '#FFC61E', icon: <QuotedIcon />,      isDisabled: false },
-  { label: 'Bad Lead',    color: '#f65676', icon: <BadLeadIcon />,     isDisabled: false },
-  { label: 'Declined',    color: '#D9534F', icon: <DeclinedIcon />,    isDisabled: false },
-  { label: 'Booked',      color: '#3fa9f5', icon: <BookedIcon />,      isDisabled: false },
-  { label: 'Move on Hold',color: '#616161', icon: <OnHoldIcon />,      isDisabled: false },
-  { label: 'Cancaled',    color: '#2f3236', icon: <CanceledIcon />,    isDisabled: false },
+  { label: 'Quoted', color: '#FFC61E', icon: <QuotedIcon />, isDisabled: false },
+  { label: 'Bad Lead', color: '#f65676', icon: <BadLeadIcon />, isDisabled: false },
+  { label: 'Declined', color: '#D9534F', icon: <DeclinedIcon />, isDisabled: false },
+  { label: 'Booked', color: '#3fa9f5', icon: <BookedIcon />, isDisabled: false },
+  { label: 'Move on Hold', color: '#616161', icon: <OnHoldIcon />, isDisabled: false },
+  { label: 'Cancaled', color: '#2f3236', icon: <CanceledIcon />, isDisabled: false },
 ];
 
-/** Activities by status */
+// Which activities belong to which status
 function getActivityOptions(status) {
   switch (status) {
-    case 'New Lead':
-      return ['Contacting'];
-    case 'In Progress':
-      return ['Contacting', 'Info Gathering', 'In Home Estimate', 'Virtual Estimate'];
-    case 'Quoted':
-      return ['Quote Follow Up', 'Awaiting Decision', 'Negotiation'];
-    case 'Bad Lead':
-      return ['Invalid Contact', 'Duplicate Lead', 'Not Qulified', 'Spam'];
-    case 'Declined':
-      return ['Not Reachable', 'Pricing Issue', 'Chose Competitor', 'Timing Conflict', 'Service Not Needed'];
-    case 'Booked':
-      return ['Regular Booked', 'Booked on 1st Call', 'Booked Online'];
-    case 'Cancaled':
-      return ['Customer Canceled', 'Company Canceled'];
-    default:
-      // "Move on Hold" => no activity
-      return [];
+    case 'New Lead':     return ['Contacting'];
+    case 'In Progress':  return ['Contacting', 'Info Gathering', 'In Home Estimate', 'Virtual Estimate'];
+    case 'Quoted':       return ['Quote Follow Up', 'Awaiting Decision', 'Negotiation'];
+    case 'Bad Lead':     return ['Invalid Contact', 'Duplicate Lead', 'Not Qulified', 'Spam'];
+    case 'Declined':     return ['Not Reachable', 'Pricing Issue', 'Chose Competitor', 'Timing Conflict', 'Service Not Needed'];
+    case 'Booked':       return ['Regular Booked', 'Booked on 1st Call', 'Booked Online'];
+    case 'Cancaled':     return ['Customer Canceled', 'Company Canceled'];
+    case 'Move on Hold': return [];
+    default:             return [];
   }
 }
 
-/** Time slots from 7:00 AM to 9:00 PM */
+// We also hide NextAction if lead is in these statuses
+const HIDDEN_STATUSES = ['Bad Lead', 'Declined', 'Booked', 'Move on Hold', 'Cancaled'];
+
 function generateTimeSlots() {
   const slots = [];
   let hour = 7;
@@ -67,10 +62,8 @@ function generateTimeSlots() {
     const suffix = hour >= 12 ? 'PM' : 'AM';
     let displayHour = hour % 12;
     if (displayHour === 0) displayHour = 12;
-
     const mm = minute.toString().padStart(2, '0');
     slots.push(`${displayHour}:${mm} ${suffix}`);
-
     minute += 15;
     if (minute >= 60) {
       minute = 0;
@@ -81,174 +74,113 @@ function generateTimeSlots() {
 }
 const timeSlots = generateTimeSlots();
 
-/** HIDDEN_STATUSES => hide NextAction */
-const HIDDEN_STATUSES = ['Bad Lead', 'Declined', 'Booked', 'Move on Hold', 'Cancaled'];
-
-/** The inventory dropdown options */
 const inventoryDropdownOptions = [
-  {
-    label: 'Detailed Inventory Quote',
-    textColor: '#3FA9F5',
-    iconBg: '#3FA9F5',
-  },
-  {
-    label: 'Quick Estimate',
-    textColor: '#faa612',
-    iconBg: '#faa612',
-  },
-  {
-    label: 'I Know My Shipment Size',
-    textColor: '#616161',
-    iconBg: '#90a4b7',
-  },
+  { label: 'Detailed Inventory Quote', textColor: '#3FA9F5', iconBg: '#3FA9F5' },
+  { label: 'Quick Estimate',           textColor: '#faa612', iconBg: '#faa612' },
+  { label: 'I Know My Shipment Size',  textColor: '#616161', iconBg: '#90a4b7' },
 ];
 
-/**
- * Helper to format phone number
- */
+/** Format phone number */
 function formatPhoneNumber(digits) {
   if (!digits) return '';
   const raw = digits.replace(/\D/g, '');
   if (!raw) return '';
-
   let trimmed = raw;
-  if (trimmed.length > 10) {
-    trimmed = trimmed.slice(-10);
-  }
-
+  if (trimmed.length > 10) trimmed = trimmed.slice(-10);
   const area = trimmed.slice(0, 3);
   const mid  = trimmed.slice(3, 6);
   const last = trimmed.slice(6);
   if (!area) return '';
-  if (!mid)  return `(${area}`;
+  if (!mid) return `(${area}`;
   if (!last) return `(${area}) ${mid}`;
   return `(${area}) ${mid}-${last}`;
 }
 
-/**
- * LeadManagementPanel
- *
- * Props:
- *  - lead: the current lead object
- *  - onClose: (optional) close the panel
- *  - onEditLead: invoked if user clicks the Edit icon
- *  - onLeadUpdated: invoked whenever the lead is updated
- *  - onInventoryFullScreen: function => signals the parent (Leads) to open full-screen Inventory
- */
 function LeadManagementPanel({
   lead,
   onClose,
   onEditLead,
   onLeadUpdated,
-  onInventoryFullScreen, // <--- from parent
+  onInventoryFullScreen,
 }) {
-  // status, activity, nextAction
-  const [leadStatus, setLeadStatus]     = useState(lead.lead_status);
+  // Local state
+  const [leadStatus, setLeadStatus] = useState(lead.lead_status);
   const [leadActivity, setLeadActivity] = useState(lead.lead_activity || 'Contacting');
-  const [nextAction, setNextAction]     = useState(lead.next_action || '—');
-  const [hideNextActionAfterSurvey, setHideNextActionAfterSurvey] = useState(false);
+  const [nextAction, setNextAction] = useState(lead.next_action || '');
+  const [selectedEstimator, setSelectedEstimator] = useState(lead.estimator || '');
+  const [selectedDate, setSelectedDate] = useState(lead.survey_date || '');
+  const [selectedTime, setSelectedTime] = useState(lead.survey_time || '');
+  const [inventoryOption, setInventoryOption] = useState(lead.inventory_option || 'Detailed Inventory Quote');
 
-  // [ANIMATION] nextAction bounce
+  const [hideNextActionAfterSurvey, setHideNextActionAfterSurvey] = useState(false);
   const [animateNextAction, setAnimateNextAction] = useState(false);
 
-  // parse date/time
-  function convertToDateString(possibleDate) {
-    if (!possibleDate) return '';
-    const d = new Date(possibleDate);
-    return isNaN(d) ? '' : d.toDateString();
-  }
-  const [selectedEstimator, setSelectedEstimator] = useState(lead.estimator || '');
-  const [selectedDate, setSelectedDate]           = useState(convertToDateString(lead.survey_date));
-  const [selectedTime, setSelectedTime]           = useState(lead.survey_time || '');
-
-  // inventory option => read from lead.inventory_option
-  const [inventoryOption, setInventoryOption] = useState(
-    lead.inventory_option || 'Detailed Inventory Quote'
-  );
-
-  // show/hide dropdowns
   const [showInventoryDropdown, setShowInventoryDropdown] = useState(false);
-  const [showStatusDropdown, setShowStatusDropdown]       = useState(false);
-  const [showActivityDropdown, setShowActivityDropdown]   = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showActivityDropdown, setShowActivityDropdown] = useState(false);
   const [showEstimatorDropdown, setShowEstimatorDropdown] = useState(false);
-
-  // Refs for outside-click detection
-  const inventoryRef         = useRef(null);
-  const statusContainerRef   = useRef(null);
-  const activityContainerRef = useRef(null);
-
-  // Calendar
-  const [showCalendar, setShowCalendar]   = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [daysInMonth, setDaysInMonth]     = useState([]);
-
-  // Time
+  const [daysInMonth, setDaysInMonth] = useState([]);
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
 
-  // Build days array whenever user changes month
+  const inventoryRef = useRef(null);
+  const statusContainerRef = useRef(null);
+  const activityContainerRef = useRef(null);
+
+  // Build days array
   useEffect(() => {
     const y = calendarMonth.getFullYear();
     const m = calendarMonth.getMonth();
     const totalDays = new Date(y, m + 1, 0).getDate();
     const arr = [];
-    for (let i = 1; i <= totalDays; i++) {
-      arr.push(i);
-    }
+    for (let i = 1; i <= totalDays; i++) arr.push(i);
     setDaysInMonth(arr);
   }, [calendarMonth]);
 
-  // Click outside => close dropdowns
+  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e) {
-      // Status
-      if (
-        showStatusDropdown &&
-        statusContainerRef.current &&
-        !statusContainerRef.current.contains(e.target)
-      ) {
+      if (showStatusDropdown && statusContainerRef.current && !statusContainerRef.current.contains(e.target)) {
         setShowStatusDropdown(false);
       }
-      // Activity
-      if (
-        showActivityDropdown &&
-        activityContainerRef.current &&
-        !activityContainerRef.current.contains(e.target)
-      ) {
+      if (showActivityDropdown && activityContainerRef.current && !activityContainerRef.current.contains(e.target)) {
         setShowActivityDropdown(false);
       }
-      // Inventory
-      if (
-        showInventoryDropdown &&
-        inventoryRef.current &&
-        !inventoryRef.current.contains(e.target)
-      ) {
+      if (showInventoryDropdown && inventoryRef.current && !inventoryRef.current.contains(e.target)) {
         setShowInventoryDropdown(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [
-    showStatusDropdown,
-    showActivityDropdown,
-    showInventoryDropdown,
-  ]);
+  }, [showStatusDropdown, showActivityDropdown, showInventoryDropdown]);
 
-  // "Edit" => pop up form
+  // Actually call updateLead => get updated lead => call parent onLeadUpdated
+  async function doUpdateLead(changes) {
+    try {
+      const updatedLead = await updateLead(lead.lead_id, changes);
+      if (onLeadUpdated) {
+        onLeadUpdated(updatedLead);
+      }
+    } catch (err) {
+      console.error('Failed to update lead:', err);
+    }
+  }
+
   const handleEditClick = () => {
     if (onEditLead) onEditLead(lead);
   };
 
-  // -------------- Status logic --------------
-  const handleToggleStatusDropdown = () => {
-    setShowStatusDropdown((prev) => !prev);
-  };
-  const handleSelectStatus = (option) => {
+  // STATUS
+  const handleToggleStatusDropdown = () => setShowStatusDropdown((prev) => !prev);
+
+  const handleSelectStatus = async (option) => {
     if (option.isDisabled) return;
     setShowStatusDropdown(false);
 
     const newStatus = option.label;
     let newActivity = getActivityOptions(newStatus)[0] || '';
-    let newNextAction = nextAction;
+    let newNextAction = nextAction || '';
 
     if (HIDDEN_STATUSES.includes(newStatus)) {
       newNextAction = '';
@@ -264,43 +196,33 @@ function LeadManagementPanel({
     setLeadActivity(newActivity);
     setNextAction(newNextAction);
 
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        lead_status: newStatus,
-        lead_activity: newActivity,
-        next_action: newNextAction,
-        estimator: selectedEstimator,
-        survey_date: selectedDate,
-        survey_time: selectedTime,
-        inventory_option: inventoryOption,
-      });
-    }
+    await doUpdateLead({
+      lead_status: newStatus,
+      lead_activity: newActivity,
+      next_action: newNextAction,
+      estimator: selectedEstimator,
+      survey_date: selectedDate,
+      survey_time: selectedTime,
+      inventory_option: inventoryOption,
+    });
   };
 
-  // -------------- Activity logic --------------
-  const handleToggleActivityDropdown = () => {
-    setShowActivityDropdown((prev) => !prev);
-  };
-  const handleSelectActivity = (activityValue) => {
+  // ACTIVITY
+  const handleToggleActivityDropdown = () => setShowActivityDropdown((prev) => !prev);
+
+  const handleSelectActivity = async (activityValue) => {
     setShowActivityDropdown(false);
 
     const oldActivity = leadActivity;
     let newNextAction = nextAction;
 
-    // If user picks "In Home Estimate" or "Virtual Estimate" => NextAction = "Schedule Survey"
-    if (
-      leadStatus === 'In Progress' &&
-      (activityValue === 'In Home Estimate' || activityValue === 'Virtual Estimate')
-    ) {
+    if (leadStatus === 'In Progress' && ['In Home Estimate', 'Virtual Estimate'].includes(activityValue)) {
       newNextAction = 'Schedule Survey';
       setHideNextActionAfterSurvey(false);
-    }
-    // If switching away from "In Home/Virtual"
-    else if (
+    } else if (
       leadStatus === 'In Progress' &&
-      (oldActivity === 'In Home Estimate' || oldActivity === 'Virtual Estimate') &&
-      (activityValue !== 'In Home Estimate' && activityValue !== 'Virtual Estimate')
+      ['In Home Estimate', 'Virtual Estimate'].includes(oldActivity) &&
+      !['In Home Estimate', 'Virtual Estimate'].includes(activityValue)
     ) {
       newNextAction = 'Attempt 1';
     }
@@ -308,55 +230,49 @@ function LeadManagementPanel({
     setLeadActivity(activityValue);
     setNextAction(newNextAction);
 
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        lead_status: leadStatus,
-        lead_activity: activityValue,
-        next_action: newNextAction,
-        estimator: selectedEstimator,
-        survey_date: selectedDate,
-        survey_time: selectedTime,
-        inventory_option: inventoryOption,
-      });
-    }
+    await doUpdateLead({
+      lead_status: leadStatus,
+      lead_activity: activityValue,
+      next_action: newNextAction,
+      estimator: selectedEstimator,
+      survey_date: selectedDate,
+      survey_time: selectedTime,
+      inventory_option: inventoryOption,
+    });
   };
 
-  // -------------- NextAction logic --------------
-  const handleNextActionClick = () => {
+  // NEXT ACTION
+  const handleNextActionClick = async () => {
     setAnimateNextAction(true);
     setTimeout(() => setAnimateNextAction(false), 600);
 
     if (nextAction === 'Schedule Survey') {
       setNextAction('Survey Completed');
-      if (onLeadUpdated) {
-        onLeadUpdated({
-          ...lead,
-          lead_status: leadStatus,
-          lead_activity: leadActivity,
-          next_action: 'Survey Completed',
-          estimator: selectedEstimator,
-          survey_date: selectedDate,
-          survey_time: selectedTime,
-          inventory_option: inventoryOption,
-        });
-      }
+      await doUpdateLead({
+        lead_status: leadStatus,
+        lead_activity: leadActivity,
+        next_action: 'Survey Completed',
+        estimator: selectedEstimator,
+        survey_date: selectedDate,
+        survey_time: selectedTime,
+        inventory_option: inventoryOption,
+      });
       return;
     }
+
+    // CHANGE #1: If nextAction === 'Survey Completed', we set it to 'Completed' (so it won't reappear)
     if (nextAction === 'Survey Completed') {
       setHideNextActionAfterSurvey(true);
-      if (onLeadUpdated) {
-        onLeadUpdated({
-          ...lead,
-          lead_status: leadStatus,
-          lead_activity: leadActivity,
-          next_action: 'Survey Completed',
-          estimator: selectedEstimator,
-          survey_date: selectedDate,
-          survey_time: selectedTime,
-          inventory_option: inventoryOption,
-        });
-      }
+      setNextAction('Completed'); // push 'Completed' into the lead
+      await doUpdateLead({
+        lead_status: leadStatus,
+        lead_activity: leadActivity,
+        next_action: 'Completed', // store 'Completed' in the DB
+        estimator: selectedEstimator,
+        survey_date: selectedDate,
+        survey_time: selectedTime,
+        inventory_option: inventoryOption,
+      });
       return;
     }
 
@@ -364,57 +280,51 @@ function LeadManagementPanel({
     let newActivity = leadActivity;
     let newNextAction = nextAction;
 
-    //  --- If leadStatus = 'New Lead'
     if (leadStatus === 'New Lead') {
       if (nextAction === 'Attempt 1') {
-        newStatus     = 'In Progress';
-        newActivity   = 'Contacting';
+        newStatus = 'In Progress';
+        newActivity = 'Contacting';
         newNextAction = 'Attempt 2';
       } else if (nextAction.startsWith('Attempt')) {
         const attemptNum = parseInt(nextAction.replace('Attempt ', ''), 10);
         if (attemptNum >= 6) {
-          newStatus     = 'Bad Lead';
-          newActivity   = getActivityOptions('Bad Lead')[0] || '';
-          newNextAction = '—';
+          newStatus = 'Bad Lead';
+          newActivity = getActivityOptions('Bad Lead')[0] || '';
+          newNextAction = '';
         } else {
           newNextAction = `Attempt ${attemptNum + 1}`;
         }
       } else {
         newNextAction = 'Attempt 1';
       }
-    }
-    //  --- If leadStatus = 'In Progress'
-    else if (leadStatus === 'In Progress') {
+    } else if (leadStatus === 'In Progress') {
       if (!nextAction.startsWith('Attempt')) {
         newNextAction = 'Attempt 2';
       } else {
         const attemptNum = parseInt(nextAction.replace('Attempt ', ''), 10);
         if (attemptNum >= 6) {
-          newStatus     = 'Bad Lead';
-          newActivity   = getActivityOptions('Bad Lead')[0] || '';
-          newNextAction = '—';
+          newStatus = 'Bad Lead';
+          newActivity = getActivityOptions('Bad Lead')[0] || '';
+          newNextAction = '';
         } else {
           newNextAction = `Attempt ${attemptNum + 1}`;
         }
       }
-    }
-    //  --- If leadStatus = 'Quoted'
-    else if (leadStatus === 'Quoted') {
+    } else if (leadStatus === 'Quoted') {
       if (!nextAction.startsWith('Follow up')) {
         newNextAction = 'Follow up 1';
       } else {
         const fuNum = parseInt(nextAction.replace('Follow up ', ''), 10);
         if (fuNum >= 6) {
-          newStatus     = 'Declined';
-          newActivity   = getActivityOptions('Declined')[0] || '';
-          newNextAction = '—';
+          newStatus = 'Declined';
+          newActivity = getActivityOptions('Declined')[0] || '';
+          newNextAction = '';
         } else {
           newNextAction = `Follow up ${fuNum + 1}`;
         }
       }
     }
 
-    // If new status is hidden => nextAction=''
     if (HIDDEN_STATUSES.includes(newStatus)) {
       newNextAction = '';
     }
@@ -423,138 +333,113 @@ function LeadManagementPanel({
     setLeadActivity(newActivity);
     setNextAction(newNextAction);
 
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        lead_status: newStatus,
-        lead_activity: newActivity,
-        next_action: newNextAction,
-        estimator: selectedEstimator,
-        survey_date: selectedDate,
-        survey_time: selectedTime,
-        inventory_option: inventoryOption,
-      });
-    }
+    await doUpdateLead({
+      lead_status: newStatus,
+      lead_activity: newActivity,
+      next_action: newNextAction,
+      estimator: selectedEstimator,
+      survey_date: selectedDate,
+      survey_time: selectedTime,
+      inventory_option: inventoryOption,
+    });
   };
 
-  // -------------- Estimator logic --------------
-  const handleToggleEstimatorDropdown = () => {
-    setShowEstimatorDropdown((prev) => !prev);
-  };
-  const handleSelectEstimator = (repName) => {
+  // ESTIMATOR
+  const handleToggleEstimatorDropdown = () => setShowEstimatorDropdown((prev) => !prev);
+
+  const handleSelectEstimator = async (repName) => {
     setSelectedEstimator(repName);
     setShowEstimatorDropdown(false);
 
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        lead_status: leadStatus,
-        lead_activity: leadActivity,
-        next_action: nextAction,
-        estimator: repName,
-        survey_date: selectedDate,
-        survey_time: selectedTime,
-        inventory_option: inventoryOption,
-      });
-    }
+    await doUpdateLead({
+      lead_status: leadStatus,
+      lead_activity: leadActivity,
+      next_action: nextAction,
+      estimator: repName,
+      survey_date: selectedDate,
+      survey_time: selectedTime,
+      inventory_option: inventoryOption,
+    });
   };
 
-  // -------------- Calendar logic --------------
-  const handleToggleCalendar = () => {
-    setShowCalendar((prev) => !prev);
-  };
+  // CALENDAR
+  const handleToggleCalendar = () => setShowCalendar((prev) => !prev);
+
   const goPrevMonth = () => {
     setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   };
   const goNextMonth = () => {
     setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
-  const handleDayClick = (dayNum) => {
+
+  const handleDayClick = async (dayNum) => {
     const dateObj = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNum);
     const newDateString = dateObj.toDateString();
     setSelectedDate(newDateString);
     setShowCalendar(false);
 
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        lead_status: leadStatus,
-        lead_activity: leadActivity,
-        next_action: nextAction,
-        estimator: selectedEstimator,
-        survey_date: newDateString,
-        survey_time: selectedTime,
-        inventory_option: inventoryOption,
-      });
-    }
+    await doUpdateLead({
+      lead_status: leadStatus,
+      lead_activity: leadActivity,
+      next_action: nextAction,
+      estimator: selectedEstimator,
+      survey_date: newDateString,
+      survey_time: selectedTime,
+      inventory_option: inventoryOption,
+    });
   };
 
-  // -------------- Time logic --------------
-  const handleSelectTime = (timeStr) => {
+  // TIME
+  const handleSelectTime = async (timeStr) => {
     setSelectedTime(timeStr);
     setShowTimeDropdown(false);
 
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        lead_status: leadStatus,
-        lead_activity: leadActivity,
-        next_action: nextAction,
-        estimator: selectedEstimator,
-        survey_date: selectedDate,
-        survey_time: timeStr,
-        inventory_option: inventoryOption,
-      });
-    }
+    await doUpdateLead({
+      lead_status: leadStatus,
+      lead_activity: leadActivity,
+      next_action: nextAction,
+      estimator: selectedEstimator,
+      survey_date: selectedDate,
+      survey_time: timeStr,
+      inventory_option: inventoryOption,
+    });
   };
 
-  // figure out lead status color/icon
-  const currentStatusObj = statusOptions.find((opt) => opt.label === leadStatus);
-  const statusColor = currentStatusObj ? currentStatusObj.color : '#59B779';
-  const statusIcon  = currentStatusObj ? currentStatusObj.icon : null;
-
-  // hide nextAction if status in HIDDEN_STATUSES or "Survey Completed"
-  const hideNextAction = HIDDEN_STATUSES.includes(leadStatus) || hideNextActionAfterSurvey;
-  const hideActivityButton = leadStatus === 'Move on Hold';
-
-  // possible activity options
-  const activityOptions = getActivityOptions(leadStatus);
-
-  // show estimator/date/time if needed
-  const showEstimatorDateTimeInputs =
-    leadStatus === 'In Progress' &&
-    (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate');
-
-  // -------------- Inventory logic --------------
-  const handleSelectInventoryOption = (opt) => {
+  // INVENTORY
+  const handleSelectInventoryOption = async (opt) => {
     setInventoryOption(opt.label);
     setShowInventoryDropdown(false);
 
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        inventory_option: opt.label,
-        lead_status: leadStatus,
-        lead_activity: leadActivity,
-        next_action: nextAction,
-        estimator: selectedEstimator,
-        survey_date: selectedDate,
-        survey_time: selectedTime,
-      });
-    }
+    await doUpdateLead({
+      lead_status: leadStatus,
+      lead_activity: leadActivity,
+      next_action: nextAction,
+      estimator: selectedEstimator,
+      survey_date: selectedDate,
+      survey_time: selectedTime,
+      inventory_option: opt.label,
+    });
   };
 
-  const selectedInvObj = inventoryDropdownOptions.find(o => o.label === inventoryOption)
-    || inventoryDropdownOptions[0];
+  const currentStatusObj = statusOptions.find((opt) => opt.label === leadStatus);
+  const statusColor = currentStatusObj ? currentStatusObj.color : '#59B779';
+  const statusIcon = currentStatusObj ? currentStatusObj.icon : null;
 
-  // format phone
-  const displayPhone = formatPhoneNumber(lead.customer_phone_number);
+  // CHANGE #2: We hide the Next Action if it's a hidden status or "Completed" was set
+  const hideNextAction = HIDDEN_STATUSES.includes(leadStatus)
+    || hideNextActionAfterSurvey
+    || nextAction === 'Completed'; // <--- so if nextAction was changed to 'Completed', it stays hidden
+
+  const hideActivityButton = leadStatus === 'Move on Hold';
+  const activityOptions = getActivityOptions(leadStatus);
+
+  const rawPhone = lead.customer_phone_number || '';
+  const displayPhone = formatPhoneNumber(rawPhone);
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.panelContainer}>
-
-        {/* ---------- Top Row ---------- */}
+        {/* ~ Top Row ~ */}
         <div className={styles.topRow}>
           <div className={styles.leftSection}>
             <CustomerUserIcon className={styles.customerIcon} />
@@ -571,7 +456,7 @@ function LeadManagementPanel({
           </div>
         </div>
 
-        {/* ---------- Contact Row ---------- */}
+        {/* ~ Contact Row ~ */}
         <div className={styles.contactRow}>
           <div className={styles.infoChip}>{displayPhone}</div>
           <div className={styles.emailRow}>
@@ -584,64 +469,48 @@ function LeadManagementPanel({
           </div>
         </div>
 
-        {/* ---------- Status + Activity Buttons ---------- */}
+        {/* ~ Status + Activity ~ */}
         <div className={styles.buttonsRow}>
-
-          {/* STATUS */}
+          {/* Status */}
           <div ref={statusContainerRef} style={{ position: 'relative', width: '100%' }}>
-            <button
-              type="button"
-              className={styles.statusButton}
-              onClick={handleToggleStatusDropdown}
-            >
+            <button type="button" className={styles.statusButton} onClick={handleToggleStatusDropdown}>
               <div className={styles.statusContent}>
                 <span className={styles.statusTextLabel}>Status:</span>
-                <span
-                  className={styles.statusTextValue}
-                  style={{ color: statusColor }}
-                >
+                <span className={styles.statusTextValue} style={{ color: statusColor }}>
                   {leadStatus}
                 </span>
               </div>
               {leadStatus !== 'New Lead' && (
-                <div className={styles.statusIconContainer}>
-                  {statusIcon}
-                </div>
+                <div className={styles.statusIconContainer}>{statusIcon}</div>
               )}
             </button>
 
             {showStatusDropdown && (
               <ul className={styles.statusDropdown}>
-                {statusOptions
-                  .filter((opt) => opt.label !== 'New Lead')
-                  .map((option) => {
-                    const isSelected = option.label === leadStatus;
-                    return (
-                      <li
-                        key={option.label}
-                        className={`
-                          ${styles.statusOption}
-                          ${isSelected ? styles.selectedOption : ''}
-                        `}
-                        style={{ color: option.color }}
-                        onClick={() => handleSelectStatus(option)}
-                      >
-                        {option.label}
-                      </li>
-                    );
-                  })}
+                {statusOptions.filter((o) => o.label !== 'New Lead').map((option) => {
+                  const isSelected = option.label === leadStatus;
+                  return (
+                    <li
+                      key={option.label}
+                      className={`
+                        ${styles.statusOption}
+                        ${isSelected ? styles.selectedOption : ''}
+                      `}
+                      style={{ color: option.color }}
+                      onClick={() => handleSelectStatus(option)}
+                    >
+                      {option.label}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
 
-          {/* ACTIVITY (hidden if Move on Hold) */}
+          {/* Activity */}
           {!hideActivityButton && (
             <div ref={activityContainerRef} style={{ position: 'relative', width: '100%' }}>
-              <button
-                type="button"
-                className={styles.activityButton}
-                onClick={handleToggleActivityDropdown}
-              >
+              <button type="button" className={styles.activityButton} onClick={handleToggleActivityDropdown}>
                 <div className={styles.activityContent}>
                   <span className={styles.activityLabel}>Activity:</span>
                   <span className={styles.activityValue}>{leadActivity}</span>
@@ -672,124 +541,128 @@ function LeadManagementPanel({
           )}
         </div>
 
-        {/* If (status=In Progress + "In Home"/"Virtual") => show Estimator + Date + Time */}
-        {showEstimatorDateTimeInputs && (
-          <div className={styles.estimateExtraContainer}>
-            {/* Estimator */}
-            <div className={styles.inputContainer} style={{ position: 'relative' }}>
-              <button
-                type="button"
-                className={styles.estimatorButton}
-                onClick={handleToggleEstimatorDropdown}
-              >
-                <div className={styles.estimatorLeft}>
-                  <span className={styles.estimatorLabel}>Estimator:</span>
-                  <span className={styles.estimatorValue}>
-                    {selectedEstimator || 'Select'}
-                  </span>
-                </div>
-                <UnfoldMoreIcon className={styles.unfoldIcon} />
-              </button>
-              {showEstimatorDropdown && (
-                <ul className={styles.estimatorDropdown}>
-                  {PossibleSalesReps.map((rep) => (
-                    <li
-                      key={rep.id}
-                      className={styles.estimatorOption}
-                      onClick={() => handleSelectEstimator(rep.name)}
-                    >
-                      {rep.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Date */}
-            <div className={styles.inputContainer} style={{ position: 'relative' }}>
-              <button
-                type="button"
-                className={styles.estimatorDateButton}
-                onClick={handleToggleCalendar}
-              >
-                <span className={selectedDate ? styles.dateSelected : styles.datePlaceholder}>
-                  {selectedDate || 'Date'}
-                </span>
-                <div className={styles.calendarRightIconWrapper}>
-                  <CalendarIcon className={styles.calendarIcon} />
-                </div>
-              </button>
-              {showCalendar && (
-                <div className={styles.calendarPopup}>
-                  <div className={styles.calendarHeader}>
-                    <button onClick={goPrevMonth}>Prev</button>
-                    <span>
-                      {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
-                      {calendarMonth.getFullYear()}
+        {/* ~ Estimator / Survey Date/Time ~ */}
+        {leadStatus === 'In Progress' &&
+          (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate') && (
+            <div className={styles.estimateExtraContainer}>
+              {/* Estimator */}
+              <div className={styles.inputContainer} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className={styles.estimatorButton}
+                  onClick={handleToggleEstimatorDropdown}
+                >
+                  <div className={styles.estimatorLeft}>
+                    <span className={styles.estimatorLabel}>Estimator:</span>
+                    <span className={styles.estimatorValue}>
+                      {selectedEstimator || 'Select'}
                     </span>
-                    <button onClick={goNextMonth}>Next</button>
                   </div>
-                  <div className={styles.calendarGrid}>
-                    {daysInMonth.map((dayNum) => (
-                      <button
-                        key={dayNum}
-                        type="button"
-                        className={styles.calendarDay}
-                        onClick={() => handleDayClick(dayNum)}
+                  <UnfoldMoreIcon className={styles.unfoldIcon} />
+                </button>
+                {showEstimatorDropdown && (
+                  <ul className={styles.estimatorDropdown}>
+                    {PossibleSalesReps.map((rep) => (
+                      <li
+                        key={rep.id}
+                        className={styles.estimatorOption}
+                        onClick={() => handleSelectEstimator(rep.name)}
                       >
-                        {dayNum}
-                      </button>
+                        {rep.name}
+                      </li>
                     ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Survey Date */}
+              <div className={styles.inputContainer} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className={styles.estimatorDateButton}
+                  onClick={handleToggleCalendar}
+                >
+                  <span className={selectedDate ? styles.dateSelected : styles.datePlaceholder}>
+                    {selectedDate || 'Date'}
+                  </span>
+                  <div className={styles.calendarRightIconWrapper}>
+                    <CalendarIcon className={styles.calendarIcon} />
                   </div>
-                </div>
+                </button>
+                {showCalendar && (
+                  <div className={styles.calendarPopup}>
+                    <div className={styles.calendarHeader}>
+                      <button onClick={goPrevMonth}>Prev</button>
+                      <span>
+                        {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
+                        {calendarMonth.getFullYear()}
+                      </span>
+                      <button onClick={goNextMonth}>Next</button>
+                    </div>
+                    <div className={styles.calendarGrid}>
+                      {daysInMonth.map((dayNum) => (
+                        <button
+                          key={dayNum}
+                          type="button"
+                          className={styles.calendarDay}
+                          onClick={() => handleDayClick(dayNum)}
+                        >
+                          {dayNum}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Survey Time */}
+              <div className={styles.inputContainer} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className={styles.estimatorTimeButton}
+                  onClick={() => setShowTimeDropdown((p) => !p)}
+                >
+                  <span className={selectedTime ? styles.timeSelected : styles.timePlaceholder}>
+                    {selectedTime || 'Time'}
+                  </span>
+                  <UnfoldMoreIcon className={styles.unfoldIcon} />
+                </button>
+                {showTimeDropdown && (
+                  <ul className={styles.timeDropdown}>
+                    {timeSlots.map((ts) => (
+                      <li
+                        key={ts}
+                        className={styles.timeOption}
+                        onClick={() => handleSelectTime(ts)}
+                      >
+                        {ts}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Next Action */}
+              {!hideNextAction && (
+                <button
+                  className={`
+                    ${styles.nextActionButton}
+                    ${animateNextAction ? styles.animateNextAction : ''}
+                  `}
+                  onClick={handleNextActionClick}
+                >
+                  <span className={styles.nextActionLabel}>Next Action:</span>
+                  <span className={styles.nextActionValue}>{nextAction}</span>
+                </button>
               )}
             </div>
+          )}
 
-            {/* Time */}
-            <div className={styles.inputContainer} style={{ position: 'relative' }}>
-              <button
-                type="button"
-                className={styles.estimatorTimeButton}
-                onClick={() => setShowTimeDropdown((prev) => !prev)}
-              >
-                <span className={selectedTime ? styles.timeSelected : styles.timePlaceholder}>
-                  {selectedTime || 'Time'}
-                </span>
-                <UnfoldMoreIcon className={styles.unfoldIcon} />
-              </button>
-              {showTimeDropdown && (
-                <ul className={styles.timeDropdown}>
-                  {timeSlots.map((ts) => (
-                    <li
-                      key={ts}
-                      className={styles.timeOption}
-                      onClick={() => handleSelectTime(ts)}
-                    >
-                      {ts}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Next Action if not hidden */}
-            {!hideNextAction && (
-              <button
-                className={`
-                  ${styles.nextActionButton}
-                  ${animateNextAction ? styles.animateNextAction : ''}
-                `}
-                onClick={handleNextActionClick}
-              >
-                <span className={styles.nextActionLabel}>Next Action:</span>
-                <span className={styles.nextActionValue}>{nextAction}</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* If not in "In Home/Virtual" but still have Next Action => show button */}
-        {!showEstimatorDateTimeInputs && !hideNextAction && (
+        {/* If not in "In Home/Virtual" but still show Next Action if available */}
+        {!(
+          leadStatus === 'In Progress' &&
+          (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate')
+        ) && !hideNextAction && (
           <button
             className={`
               ${styles.nextActionButton}
@@ -803,17 +676,14 @@ function LeadManagementPanel({
           </button>
         )}
 
-        {/* Source & Previous Requests */}
+        {/* Source, etc. */}
         <div className={styles.sourceSection}>
           <span className={styles.sourceLabel}>Source:</span>
-          <span className={styles.sourceValue}>
-            {lead.source || 'Yelp'}
-          </span>
+          <span className={styles.sourceValue}>{lead.source || 'Yelp'}</span>
         </div>
         <div className={styles.previousRequestsLabel}>Previous Requests:</div>
 
         <div className={styles.requestsButtonsContainer}>
-          {/* Hide "Invite Customer" via CSS */}
           <button className={`${styles.inviteButton} ${styles.hiddenButton}`}>
             <span className={styles.inviteText}>Invite Customer</span>
             <div className={styles.inviteIconContainer}>
@@ -821,7 +691,7 @@ function LeadManagementPanel({
             </div>
           </button>
 
-          {/* Inventory Button => small dropdown for 3 options */}
+          {/* Inventory Option */}
           <div
             className={styles.inventoryButton}
             style={{ position: 'relative' }}
@@ -833,13 +703,13 @@ function LeadManagementPanel({
           >
             <span
               className={styles.inventoryText}
-              style={{ color: selectedInvObj.textColor }}
+              style={{ color: inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.textColor || '#3FA9F5' }}
             >
               {inventoryOption}
             </span>
             <div
               className={styles.inventoryIconContainer}
-              style={{ backgroundColor: selectedInvObj.iconBg }}
+              style={{ backgroundColor: inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.iconBg || '#3FA9F5' }}
             >
               <SpecialHIcon className={styles.specialHIcon} />
             </div>
@@ -867,10 +737,8 @@ function LeadManagementPanel({
         </div>
       </div>
 
-      {/* The MoveDetailsPanel below can still show "Inventory" button,
-          but we'll call `onInventoryFullScreen()` to open the parent's Inventory. */}
       <MoveDetailsPanel
-        onShowInventory={onInventoryFullScreen}  // <--- call parent's method
+        onShowInventory={onInventoryFullScreen}
         lead={lead}
         onLeadUpdated={onLeadUpdated}
       />

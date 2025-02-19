@@ -9,59 +9,9 @@ import LeadsActionButtons from './LeadsActionButtons/LeadsActionButtons';
 import AddNewLeadButton from './AddNewLeadButton/AddNewLeadButton';
 import LeadsList from './LeadsList/LeadsList';
 import LeadManagementPanel from './LeadManagementPanel/LeadManagementPanel';
-
-// Import Inventory (full-screen)
 import Inventory from './LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory';
-
-// local leads data
 import actualLeads from '../../data/constants/actualLeads';
-
-// Popup
 import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
-
-/**
- * Filter leads by activeTab
- */
-function filterLeadsByTab(leads, activeTab) {
-  if (!Array.isArray(leads)) return [];
-  switch (activeTab) {
-    case 'Active Leads':
-      return leads.filter((ld) => {
-        const st = ld.lead_status;
-        const na = ld.next_action;
-        const isActive =
-          st === 'New Lead' ||
-          st === 'In Progress' ||
-          st === 'Quoted' ||
-          st === 'Move on Hold';
-        // If "In Progress" => exclude if next_action="Survey Completed"
-        if (st === 'In Progress' && na === 'Survey Completed') {
-          return false;
-        }
-        return isActive;
-      });
-    case 'Closed Leads':
-      return leads.filter(
-        (ld) => ld.lead_status === 'Bad Lead' || ld.lead_status === 'Declined'
-      );
-    case 'My Appointments':
-      return leads.filter(
-        (ld) =>
-          ld.lead_status === 'In Progress' &&
-          (ld.lead_activity === 'In Home Estimate' ||
-            ld.lead_activity === 'Virtual Estimate') &&
-          ld.next_action === 'Survey Completed'
-      );
-    case 'Pending':
-      return leads.filter((ld) => ld.lead_status === '');
-    case 'Booked':
-      return leads.filter(
-        (ld) => ld.lead_status === 'Booked' || ld.lead_status === 'Cancaled'
-      );
-    default:
-      return leads;
-  }
-}
 
 /**
  * Parse lead.survey_date + survey_time => JS Date
@@ -86,32 +36,85 @@ function parseSurveyDateTime(lead) {
   return d;
 }
 
-function Leads() {
-  // Defensive
-  const [leads, setLeads] = useState(Array.isArray(actualLeads) ? [...actualLeads] : []);
+/**
+ * Filter leads by activeTab
+ */
+function filterLeadsByTab(leads, activeTab) {
+  if (!Array.isArray(leads)) return [];
 
-  // Pagination
+  switch (activeTab) {
+    case 'Active Leads':
+      return leads.filter((ld) => {
+        const st  = ld.lead_status;
+        const na  = ld.next_action;
+        const act = ld.lead_activity;
+
+        // We define "isActive" as:
+        const isActive =
+          st === 'New Lead' ||
+          st === 'In Progress' ||
+          st === 'Quoted' ||
+          st === 'Move on Hold';
+
+        if (!isActive) {
+          return false;
+        }
+
+        // If In Progress => exclude if next_action is "Survey Completed" or "Completed"
+        if (st === 'In Progress') {
+          if (na === 'Survey Completed' || na === 'Completed') {
+            return false;
+          }
+          // Also exclude if lead_activity is In Home Estimate / Virtual Estimate
+          if (act === 'In Home Estimate' || act === 'Virtual Estimate') {
+            return false;
+          }
+        }
+        return true;
+      });
+
+    case 'Closed Leads':
+      return leads.filter(
+        (ld) => ld.lead_status === 'Bad Lead' || ld.lead_status === 'Declined'
+      );
+
+    case 'My Appointments':
+      // Includes next_action === 'Survey Completed' OR 'Completed'
+      return leads.filter(
+        (ld) =>
+          ld.lead_status === 'In Progress' &&
+          (ld.lead_activity === 'In Home Estimate' || ld.lead_activity === 'Virtual Estimate') &&
+          (ld.next_action === 'Survey Completed' || ld.next_action === 'Completed')
+      );
+
+    case 'Pending':
+      return leads.filter((ld) => ld.lead_status === '');
+
+    case 'Booked':
+      return leads.filter(
+        (ld) => ld.lead_status === 'Booked' || ld.lead_status === 'Cancaled'
+      );
+
+    default:
+      return leads;
+  }
+}
+
+function Leads() {
+  const [leads, setLeads] = useState(Array.isArray(actualLeads) ? [...actualLeads] : []);
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 20;
 
-  // The current tab
   const [activeTab, setActiveTab] = useState('Active Leads');
-
-  // If a lead is selected => show details
   const [selectedLead, setSelectedLead] = useState(null);
 
-  // Scroll tracking
   const leadsListRef = useRef(null);
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Popup
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
 
-  // If true => show Inventory in full-screen
   const [showInventoryFullScreen, setShowInventoryFullScreen] = useState(false);
-
-  // LIFTED STATE => for Inventory
   const [inventoryRoom, setInventoryRoom] = useState(null);
 
   // On mount => set app height
@@ -132,9 +135,17 @@ function Leads() {
   // 2) Filter by activeTab
   let filteredLeads = filterLeadsByTab(sortedLeads, activeTab);
 
-  // 2.5) If My Appointments => sort ascending by date/time
+  // 2.5) If My Appointments => custom sort:
   if (activeTab === 'My Appointments') {
     filteredLeads.sort((a, b) => {
+      // 1) next_action='Completed' => rank 0 => goes on top
+      const rankA = (a.next_action === 'Completed') ? 0 : 1;
+      const rankB = (b.next_action === 'Completed') ? 0 : 1;
+      if (rankA !== rankB) {
+        return rankA - rankB; // 0 => appear first
+      }
+
+      // 2) among the rest => sort ascending by survey date/time
       const dateA = parseSurveyDateTime(a);
       const dateB = parseSurveyDateTime(b);
       if (!dateA && !dateB) return 0;
@@ -158,7 +169,6 @@ function Leads() {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  // Selecting a lead => show details
   const handleLeadClick = (lead) => {
     if (leadsListRef.current) {
       setScrollPosition(leadsListRef.current.scrollTop);
@@ -166,7 +176,6 @@ function Leads() {
     setSelectedLead(lead);
   };
 
-  // Closing lead => arrow
   const handleBack = () => {
     setSelectedLead(null);
     setTimeout(() => {
@@ -181,20 +190,18 @@ function Leads() {
     setLeads((prev) => [...prev, newLead]);
   };
 
-  // Update lead => console.log it
+  // Update lead
   const handleLeadUpdated = (updatedLead) => {
-    console.log('Updated lead data => ', updatedLead); // <-- ADDED LINE
-
+    console.log('Updated lead data => ', updatedLead);
     setLeads((prevLeads) =>
       prevLeads.map((ld) => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
     );
-
     if (selectedLead && selectedLead.lead_id === updatedLead.lead_id) {
       setSelectedLead(updatedLead);
     }
   };
 
-  // Editing lead => open popup
+  // Edit lead
   const handleEditLead = (lead) => {
     setEditingLead(lead);
     setShowLeadForm(true);
@@ -206,7 +213,7 @@ function Leads() {
     setCurrentPage(1);
   };
 
-  // Inventory => open or close
+  // Inventory => open/close
   const openInventoryFullScreen = () => {
     setShowInventoryFullScreen(true);
   };
@@ -214,10 +221,9 @@ function Leads() {
     setShowInventoryFullScreen(false);
   };
 
-  // Decide if we are in "desktop" mode
   const isDesktopScreen = window.innerWidth >= 1024;
 
-  // If Inventory is open => show it full-screen
+  // If Inventory is open => show full-screen
   if (showInventoryFullScreen) {
     return (
       <div className={styles.container}>
@@ -231,7 +237,6 @@ function Leads() {
           onCloseInventory={closeInventoryFullScreen}
           isDesktopInventory={isDesktopScreen}
         />
-
         <Inventory
           lead={selectedLead}
           onCloseInventory={closeInventoryFullScreen}
@@ -242,7 +247,7 @@ function Leads() {
     );
   }
 
-  // Otherwise => normal leads UI
+  // Otherwise => normal UI
   return (
     <div className={styles.container}>
       <HeaderDashboard

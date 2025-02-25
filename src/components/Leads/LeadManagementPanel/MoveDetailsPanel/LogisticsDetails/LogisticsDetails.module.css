@@ -63,22 +63,22 @@
 }
 
 /*
-   Each group is a .row with 10px between items
-   and 20px margin-top after each row
+   Each row has a 10px gap.
+   If there's a row after another, 20px margin-top.
 */
 .row {
   display: flex;
-  gap: 10px;
   width: 100%;
-  flex-wrap: wrap; /* wrap to next line if needed */
+  gap: 10px;
+  flex-wrap: wrap; /* wrap if needed */
 }
 .row + .row {
   margin-top: 20px;
 }
 
 /***********************************************
- * The "logisticsButton" style for dropdown fields
- * (Rate Type, Truck Size, "Details" toggles, etc.)
+ * The "logisticsButton" style
+ * (Travel Time, Min/Max hours, etc.)
  ***********************************************/
 .logisticsButton {
   display: flex;
@@ -95,9 +95,9 @@
   border-radius: 12px;
   border: 1px solid #D8DCE0;
   cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
+  user-select: none;
+  position: relative;
 }
 
 .dropdownLabel {
@@ -105,7 +105,7 @@
   align-items: center;
   gap: 6px;
   flex: 1;
-  min-width: 0; /* allow text to truncate if needed */
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -137,9 +137,10 @@
 }
 
 /***********************************************
- * Rate Type + Truck Size Dropdown styling
+ * Rate Type + Truck Size, etc. Dropdown styling
  ***********************************************/
-.rateTypeWrapper, .truckSizeWrapper {
+.rateTypeWrapper,
+.truckSizeWrapper {
   position: relative;
   width: 100%;
 }
@@ -150,7 +151,7 @@
   left: 0;
   width: 100%;
   background: #fff;
-  border: 1px solid #ccc;
+  border: 1px solid #D8DCE0;
   border-radius: 12px;
   padding: 8px 0;
   margin-top: 5px;
@@ -177,63 +178,49 @@
 }
 
 /***********************************************
- * The new editable input style
+ * Editable Input Style (Number of Trucks, etc.)
  ***********************************************/
 .logisticsInputContainer {
-  display: flex;
-  align-items: center;
+  width: 100%;
   height: 50px;
-  padding: 0 20px;
-  background-color: #FFF;
   border: 1px solid #D8DCE0;
   border-radius: 12px;
-  width: 100%;
+  background-color: #FFF;
   box-sizing: border-box;
-  gap: 5px;
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-.inputPrefix {
+.inputLabel {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 5px;
+
   font-family: Satoshi, sans-serif;
   font-weight: 500;
   font-size: 16px;
   color: #6E7882;
-  flex-shrink: 0;
-  white-space: nowrap;
 }
 
 .logisticsInput {
   border: none;
   outline: none;
   background: transparent;
+
   font-family: Satoshi, sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: #2F3236;
-  width: 100%;
-  min-width: 0; /* allow text to fill leftover space */
-  text-align: left;
-  overflow: hidden; /* hide overflow if too long */
+
+  width: auto;
+  min-width: 2ch;
   white-space: nowrap;
-}
-
-.inputSuffix,
-.inputSuffixDollar {
-  font-family: Satoshi, sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  flex-shrink: 0;
-  margin-left: 4px;
-  white-space: nowrap;
-}
-
-/* e.g. "cuft" or "lbs" suffix */
-.inputSuffix {
-  color: #6E7882;
-}
-
-/* If you want a $ suffix in front/behind your typed value */
-.inputSuffixDollar {
-  color: #90A4B7;
+  padding: 0;
+  margin: 0;
 }
 
 /***********************************************
@@ -247,7 +234,7 @@
 }
 
 /***********************************************
- * Work Time Headline + Row
+ * Work Time Headline
  ***********************************************/
 .workTimeHeadline {
   margin-top: 20px;
@@ -256,13 +243,7 @@
   font-size: 18px;
   font-weight: 700;
   line-height: normal;
-}
-
-/* This row has two items: Min. hours + Max. hours */
-.workTimeRow {
-  margin-top: 6px; /* gap from headline */
-  display: flex;
-  gap: 10px; /* space between the two fields */
+  margin-bottom: 6px;
 }
 
 /***********************************************
@@ -273,9 +254,6 @@
   display: flex;
 }
 
-/* Reuse .logisticsButton style for the "Details" button
-   or define a separate .detailsButton if you like.
-   We'll define it separately for the + / - icon. */
 .detailsButton {
   display: flex;
   align-items: center;
@@ -302,7 +280,7 @@
   line-height: 24px;
   font-weight: 500;
   text-align: center;
-  color: #3FA9F5; /* or #D9D9D9 if you want the gray color */
+  color: #3FA9F5;
   margin-left: 8px;
 }
 
@@ -318,4 +296,78 @@
   font-size: 14px;
   font-weight: 400;
   color: #2F3236;
+}
+
+/***********************************************
+ * The calendar popup for Earliest Delivery
+ ***********************************************/
+.calendarPopup {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 10px;
+  z-index: 6000;
+}
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.calendarHeader button {
+  background: #eee;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.calendarDay {
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 6px;
+  height: 35px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2F3236;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendarDay:hover {
+  background: #F2F5F8;
+}
+.selectedDay {
+  background: rgba(0,0,0,0.1) !important;
+}
+
+/***********************************************
+ * (OPTIONAL) Same approach as MoveDetailsPanel 
+ * for the icon on the right 
+ ***********************************************/
+.calendarRightIconWrapper {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  background: #90A4B7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendarIcon {
+  width: 16px;
+  height: 16px;
+  color: #FFF;
 }

@@ -1,0 +1,86 @@
+/* src/components/common/DeleteButton.module.css */
+
+.navItem {
+    min-height: 100%;
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center; 
+    padding-top: 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  
+  .iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .navIcon {
+    width: 24px;
+    height: 24px;
+    color: #697785;
+    fill: currentColor; 
+  }
+  
+  .navText {
+    margin-top: 7px;
+    color: #90A4B7;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.68rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+  
+  .activeDelete .navText {
+    color: #F65676;
+    font-weight: 900;
+  }
+  
+  .activeDelete .navIcon {
+    color: #F65676;
+  }
+
+  
+
+  @media (min-width: 1024px) {
+    .navItem {
+      width: 60px;
+      height: 50px; /* Use height instead of max-height */
+      min-height: unset; /* Override min-height */
+      flex: unset; /* Override flex property */
+      flex-shrink: 0;
+      border-radius: 12px;
+      background: #90A4B7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      padding: 0; /* Reset padding */
+    }
+  
+    .navIcon {
+      width: 24px;
+      height: 24px;
+      color: #FFFFFF; /* Icon is white by default on desktop */
+    }
+  
+    .navText {
+      display: none; /* Hide text on desktop */
+    }
+  
+    /* Active State on Desktop */
+    .activeDelete.navItem {
+      background: #F65676; /* Red background when active */
+    }
+  
+    .activeDelete .navIcon {
+      color: #FFFFFF; /* Keep icon white when active */
+    }
+  }

@@ -1,0 +1,115 @@
+.addressRow {
+  margin-top: 10px;
+}
+
+.addressContainer {
+  border-radius: 12px;
+  background: #F2F5F8;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 5px;
+  gap: 8px;
+  /* Scroll horizontally if too many buttons */
+  overflow-x: auto;
+  white-space: nowrap;
+  max-width: min-content;
+}
+
+.addressButtonsWrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Normal Buttons */
+.mainAddressButton {
+  height: 40px;
+  padding: 0 15px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: normal;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buttonSelected {
+  background-color: #3FA9F5;
+  color: #FFF;
+}
+.buttonUnselected {
+  background-color: #90A4B7;
+  color: #FFF;
+}
+
+/* Post Storage Buttons (red style) */
+.mainAddressButtonRed {
+  height: 40px;
+  padding: 0 15px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: normal;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buttonSelectedRed {
+  background-color: #FF5F5F;  /* a deeper red for selected */
+  color: #FFF;
+}
+.buttonUnselectedRed {
+  background-color: #90A4B7; /* a lighter red for not selected */
+  color: #FFF;
+}
+
+/* Plus Button (for normal stops) */
+.plusButton {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;  /* preserve 40px width */
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #90A4B7;
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: normal;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Plus Button for post-storage stops => red */
+.plusButtonRed {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #90A4B7;
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: normal;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

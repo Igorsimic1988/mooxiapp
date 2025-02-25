@@ -1,0 +1,38 @@
+/* src/components/Inventory/InventoryDesktop/CreateQuoteButton/CreateQuoteButton.module.css */
+
+.createQuoteButton {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center the content horizontally */
+    width: 100%;
+    height: 50px;
+    border: none;
+    border-radius: 16px;
+    background: #59B779;
+    cursor: pointer;
+    max-width: 430px;;
+  }
+  
+  .buttonText {
+    color: #FFF;
+    font-family: 'Satoshi', sans-serif;
+    font-size: 0.93rem;
+    font-weight: 700;
+  }
+  
+  .iconContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: #FFF;
+  }
+  
+  .icon {
+    width: 16px;
+    height: 16px;
+  }
+  

@@ -1,0 +1,39 @@
+/* src/components/Inventory/HouseHeader/AddRoomButton/AddRoomButton.module.css */
+
+.addRoomButton {
+    display: flex;
+    width: 139px;
+    height: 50px;
+    padding: 10px 10px 10px 18px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 12px;
+    background-color: rgba(144, 164, 183, 0.15);
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  
+  .addRoomText {
+    color: #6E7882;
+    font-family: 'Satoshi';
+    font-size: 0.9375rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    min-width: fit-content;
+  }
+  
+  .addRoomIcon {
+    width: 30px;
+    height: 30px;
+    display: block;
+  }
+  
+  @media (min-width: 1024px) {
+    .addRoomButton {
+      width: 100%; /* Full width on desktop screens */
+    }
+  }

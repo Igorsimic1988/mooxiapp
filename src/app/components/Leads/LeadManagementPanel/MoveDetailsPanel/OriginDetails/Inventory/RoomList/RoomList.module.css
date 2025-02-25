@@ -1,0 +1,112 @@
+/* src/components/Inventory/RoomList/RoomList.module.css */
+
+.roomListContainer {
+  background-color: #F2F5F8;
+  display: flex;
+  flex-direction: column; /* Stack items vertically */
+  align-items: stretch; /* Stretch items to fill the container's width */
+  margin: 0 auto;
+  width: 100%; /* Ensure the container takes full available width */
+  max-width: 100%;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  padding-bottom: 10px;
+  cursor: pointer;
+  user-select: none; 
+}
+
+.roomListContainer::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in WebKit browsers */
+}
+
+.roomButton {
+  background-color: white;
+  border-radius: 10px;
+  border: none;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Distribute space between room name and right section */
+  padding: 0 18px; /* Padding on left and right */
+  margin-bottom: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  text-align: left;
+  transition: background-color 0.2s, transform 0.2s;
+  width: 100%; /* Ensure the button occupies full width */
+  box-sizing: border-box; /* Include padding and border in the width */
+  flex: none; /* Prevent flex properties from affecting width and height */
+}
+
+.roomButton:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-2px); /* Slight lift on hover for better UX */
+}
+
+.roomName {
+  color: #2F3236;
+  font-family: 'Satoshi', sans-serif; /* Use quotes for font-family names with spaces */
+  font-size: 0.9375rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+}
+
+.itemCount {
+  margin-right: 8px;
+  font-size: 0.68rem;
+  color: #FFF;
+  text-align: center;
+  font-family: 'Satoshi', sans-serif;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  border-radius: 60px;
+  background: #59B779;
+  display: flex;
+  width: 30px;
+  height: 30px;
+  padding: 5px 6px;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.moreIcon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  padding: 3px 4px;
+  align-items: center;
+  gap: 10px;
+}
+
+.moreIcon svg {
+  width: 100%;
+  height: 100%;
+  color: #90A4B7;
+}
+
+.roomButton.active {
+  background-color: #90A4B7;
+}
+
+.roomButton.active .roomName {
+  color: #FFF;
+}
+
+.roomButton.active .moreIcon svg {
+  color: #fff;
+}
+
+.roomListContainer,
+.roomListContainer * {
+  user-select: none;
+}

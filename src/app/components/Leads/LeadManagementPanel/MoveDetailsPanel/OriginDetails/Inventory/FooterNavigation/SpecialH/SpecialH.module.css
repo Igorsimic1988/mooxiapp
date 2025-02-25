@@ -1,0 +1,244 @@
+/* Styles for the popup overlay */
+.popup {
+    position: fixed;
+    top: 0;
+    right: 0; /* Align to the right side */
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.15); /* Semi-transparent background */
+    display: flex;
+    justify-content: flex-end; /* Align content to the right */
+    align-items: stretch; /* Stretch content to fill height */
+    z-index: 1000; /* Ensure it overlays other content */
+  }
+  
+  /* Styles for the popup content */
+  .popupContent {
+    border-radius: 20px 0px 0px 0px;
+    background-color: #fff;
+    width: calc(100% - 16px);
+    max-width: 400px; /* Max width of 400px */
+    height: 100%; /* Full height */
+    box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3); /* Add a shadow for depth */
+    display: flex;
+    flex-direction: column; /* Arrange child elements vertically */
+    background-color: #F2F5F8;
+  }
+
+.tabNavigation,
+.buttonGroup,
+.dropdownSection {
+  flex-shrink: 0; /* Prevent these sections from shrinking */
+}
+
+.header {
+    width: 100%;
+    min-height: 60px;
+    border-radius: 20px 0px 0px 0px;
+    background:  #90A4B7;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header .title {
+    display: flex;
+    align-items: center;
+  }
+
+  .header p {
+    color: white;
+    font-family: Satoshi;
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-left: 10px;
+  }
+
+  .icon {
+    width: 24px;
+    height: 24px;
+    margin-left: 30px;
+      color: white;
+  }
+
+  .closeIcon {
+    color: white;
+  }
+
+  .closeButton {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    
+  }
+
+  .closeButton button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    outline: none; /* Removes the default focus outline */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;      /* Set the desired width */
+    height: 50px;     /* Set the desired height */
+    padding: 0;       /* Remove padding if needed */
+    margin: 0;        /* Adjust margins if necessary */
+  }
+
+  .radioGroup {
+    padding-left: 35px;
+    width: 100%;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    border-top: 1px solid #D8DCE0;
+    border-bottom: 1px solid #D8DCE0;
+    background: #FFF;
+    flex-shrink: 0;
+  }
+
+  .radioInput {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .radioText {
+    display: inline-block;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #90A4B7;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .radioInput:checked + .radioText {
+    color: #2F3236;
+    border-bottom: 3px solid #3FA9F5;
+  }
+
+
+  .buttonGroup {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-bottom: 1px solid #D8DCE0;
+    background: #FFF;
+    padding-left: 35px; /* Adds 35px padding to the left */
+    padding-right: 35px; /* Adds 35px padding to the right */
+    box-sizing: border-box;
+  }
+
+  .radioButtonInput {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .radioButtonLabel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1; 
+  }
+
+  .radioButtonText {
+    /* Removed fixed width to allow flexibility */
+    display: flex;
+    height: 40px;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0; /* Prevents buttons from shrinking below their content */
+    border-radius: 8px;
+    background-color: rgba(63, 169, 245, 0.15); /* Default background */
+    color: #3FA9F5; /* Default text color */
+    font-family: 'Satoshi', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    /* Flex properties for flexibility */
+    flex: 1 1 160px; /* flex-grow:1, flex-shrink:1, flex-basis:160px */
+    max-width: 200px; /* Optional: Set a maximum width */
+    min-width: 120px; /* Optional: Set a minimum width */
+  }
+
+  .radioButtonInput:checked + .radioButtonText {
+    background-color: #3FA9F5; /* Selected background */
+    color: #FFF; /* Selected text color */
+  }
+
+  .selectOptionsGroup {
+    padding-left: 35px;
+    padding-right: 35px;
+    width: 100%;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F2F5F8;
+
+  }
+
+
+  .roomLists {
+    flex-grow: 1; /* Takes up remaining space */
+    overflow-y: auto; /* Enables vertical scrolling */
+    margin-top: 8px;
+  }
+
+  .itemList {
+    display: grid; /* Enables grid layout */
+    grid-template-columns: repeat(auto-fill, minmax(101px, 1fr)); /* Responsive grid */       /* Allows items to wrap to the next line */
+      gap: 10px;               /* Defines space between items */
+      padding-top: 10px; 
+      padding-left: 5px;
+      padding-right: 7px;             /* Removes default padding */
+      margin: 0;               /* Removes default margin */
+      list-style: none;        /* Removes default list bullets */
+      margin-bottom: 8px;
+      margin-left: 3px;
+    }
+
+    .roomNameWrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 350px;
+      height: 26px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      background-color: #E4EAEF;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .roomName {
+      color: #90A4B7;
+      text-align: center;
+      font-family: Satoshi;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+
+    }
+
+    

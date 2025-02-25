@@ -1,0 +1,462 @@
+.originContainer {
+  padding: 16px 20px 16px 20px;
+  border-radius: 16px;
+  background: #FFF;
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* 20px between origin header, address row, etc. */
+}
+
+.originHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.originTitle {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 33px;
+}
+
+.minusButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #3FA9F5;
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 20px; 
+  font-weight: 700;
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.addressContainer {
+  border-radius: 12px;
+  background: #F2F5F8;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; 
+  padding: 5px;
+  gap: 4px;
+  /* Scroll horizontally if too many buttons */
+  overflow-x: auto;
+  white-space: nowrap;
+  max-width: fit-content;
+}
+
+.addressButtonsWrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mainAddressButton {
+  height: 40px;
+  padding: 0 15px;
+  border-radius: 10px;
+  background: #3FA9F5;
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: normal;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plusButton {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;  /* preserve 40px width */
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #90A4B7;
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: normal;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Property section for address fields */
+.propertySection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.propertyAddressText {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.inputContainer {
+  width: 100%;
+  height: 50px;
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  background: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.addressInput {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700; /* bold text inside input */
+  color: #2F3236;
+  width: 100%;      
+}
+
+.addressInput::placeholder {
+  color: #6E7882;
+  font-weight: 500;
+}
+
+.inputLabel {
+  color: #6E7882;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.inputIconContainer {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #90A4B7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inputIcon {
+  width: 16px;
+  height: 16px;
+  color: #FFF;
+}
+
+.twoInputsRow {
+  display: flex;
+  gap: 10px;
+}
+
+/* Property Info Section */
+.propertyInfoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.propertyText {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* Base .propertyItem styles for all cards */
+.propertyItem {
+  width: 100%;
+  height: 50px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.propertyItemLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.propertyItemIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.propertyItemText {
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  text-transform: uppercase;
+}
+
+.propertyItemPlusButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* PLACE section: dotted border + tinted background */
+.propertyItemPlace {
+  border: 2px dashed rgba(89,183,121,0.40);
+  background: linear-gradient(0deg, rgba(89,183,121,0.20) 0%, rgba(89,183,121,0.20) 100%), #FFF;
+}
+.propertyItemPlace .propertyItemText {
+  color: #59B779; /* green text */
+}
+.propertyItemPlaceButton {
+  background: #59B779; /* green button */
+}
+/* If typeOfPlace, moveSize, howManyStories => remove dotted border for PLACE */
+.placeNoDotted {
+  border: none !important;
+}
+
+/* ACCESS section => dotted border + tinted background */
+.propertyItemAccess {
+  border: 2px dashed rgba(250,166,26,0.40);
+  background: linear-gradient(0deg, rgba(250,166,26,0.20) 0%, rgba(250,166,26,0.20) 100%), #FFF;
+}
+.propertyItemAccess .propertyItemText {
+  color: #FAA61A;
+}
+.propertyItemAccessButton {
+  background: #FAA61A;
+}
+/* If parkingAccess, distanceDoorTruck, howManySteps => remove dotted border for ACCESS */
+.accessNoDotted {
+  border: none !important;
+}
+
+/* SERVICES section => dotted border + pink tinted background */
+.propertyItemServices {
+  border: 2px dashed rgba(246,86,118,0.40);
+  background: linear-gradient(0deg, rgba(246,86,118,0.20) 0%, rgba(246,86,118,0.20) 100%), #FFF;
+}
+.propertyItemServices .propertyItemText {
+  color: #F65676;
+}
+.propertyItemServicesButton {
+  background: #F65676;
+}
+/* If packingOption => remove dotted border for SERVICES */
+.servicesNoDotted {
+  border: none !important;
+}
+
+/* Time Restrictions Section */
+.timeRestrictionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 21px;
+  margin-top: 10px;
+}
+.timeRestrictionsRow {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.timeRestrictionsText {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+.timeRestrictionsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.timeRestrictionsInputsColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inputValueText {
+  color: #2F3236;
+  font-weight: 700;
+}
+.moreIcon {
+  width: 20px;
+  height: 20px;
+  color: #90A4B7;
+}
+
+.dropdownWrapper {
+  position: relative;
+  cursor: default;
+}
+
+.clickableArea {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 54px;
+  left: 0;
+  width: 100%;
+  background: #FFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  z-index: 999;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.dropdownOption {
+  padding: 10px 20px;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2F3236;
+  line-height: normal;
+  cursor: pointer;
+}
+.dropdownOption:hover {
+  background: #F2F5F8;
+}
+
+/* Inventory Section */
+.inventorySection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.inventoryTitle {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+.inventoryButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.inventoryButtonPrimary {
+  border-radius: 12px;
+  background: #3FA9F5;
+  height: 50px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  gap: 7px;
+}
+.inventoryButtonText {
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+}
+.myInventoryIcon {
+  width: 24px;
+  height: 24px;
+  color: #FFF;
+}
+
+
+/* ==================================== */
+/* Summary blocks (with extra line) */
+/* ==================================== */
+.placeSummaryContainer {
+  margin-top: 5px;
+}
+
+.placeSummaryLine {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.placeSummaryDivider {
+  width: 100%;
+  height: 1px;
+  background-color: #D8DCE0;
+}
+
+.propertySectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* The link that says "Deactivate this stop" */
+.deactivateStopLink {
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  color: var(--Grey-Light, #90A4B7);
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-skip-ink: none;
+  text-decoration-thickness: auto;
+  text-underline-offset: auto;
+  text-underline-position: from-font;
+  line-height: normal;
+  padding: 0;
+}

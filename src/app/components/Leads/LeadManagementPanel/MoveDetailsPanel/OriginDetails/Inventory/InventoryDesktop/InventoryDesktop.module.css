@@ -1,0 +1,406 @@
+
+
+
+.inventoryDesktopContainer {
+    display: grid;
+    grid-template-columns: 315px minmax(430px, 1fr) 1fr;
+    grid-template-rows: 90px 1fr 90px;
+    grid-template-areas:
+      "topRowCol1 topRowCol2 topRowCol3"
+      "middleRowCol1 middleRowCol2 middleRowCol3"
+      "bottomRowCol1 bottomRowCol2 bottomRowCol3";
+    height: 100vh;
+    width: 100%;
+    padding: 20px 20px 15px 20px;
+    background-color: #f1f4f7;
+    box-sizing: border-box;
+    column-gap: 20px;
+    overflow: hidden;
+    margin-top: -20px;
+    border-radius: 20px 0px 0px 0px;
+  }
+
+  .inventoryDesktopContainer.expanded {
+    grid-template-areas:
+      "topRowCol1 topRowCol2 topRowCol3"
+      "middleRowCol1 middleRowCol2 middleRowCol2"
+      "bottomRowCol1 bottomRowCol2 bottomRowCol3";
+    /* Keep the grid-template-columns the same */
+    grid-template-columns: 315px minmax(430px, 1fr) 1fr;
+  }
+
+  .inventoryDesktopContainer.expanded .middleRowCol3 {
+    display: none;
+  }
+  
+  
+  /* Top Row */
+  .topRowCol1 {
+    grid-area: topRowCol1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .topRowCol2 {
+    grid-area: topRowCol2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+  }
+  
+  .topRowCol3 {
+    grid-area: topRowCol3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Middle Row */
+  .middleRowCol1 {
+    grid-area: middleRowCol1;
+    display: flex;
+    flex-direction: column; /* Stack HouseInfo and RoomList vertically */
+    box-sizing: border-box;
+    overflow: hidden; /* Hide overflow to prevent scrollbars on this container */
+    filter: drop-shadow(0px 1px 16px rgba(0, 0, 0, 0.08));
+    border-radius: 16px 16px 16px 16px;
+  }
+  
+  .houseInfo {
+    flex-shrink: 0; /* Prevent HouseInfo from shrinking */
+    background-color: white;
+    height: 60px;
+    border-radius: 16px 16px 0 0;
+    padding-left: 20px;
+    display: flex;
+   align-items: center;
+  }
+  
+  .roomListContainer {
+    flex-grow: 1; /* Allow RoomList to fill remaining space */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border-top: 1px solid #D8DCE0;
+    background-color: #f2f5f8;
+    padding: 10px 12px;
+  }
+  
+  /* Scrollbar styling for RoomList */
+  .roomListContainer::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .roomListContainer::-webkit-scrollbar-track {
+    background: #f2f5f8;
+  }
+  
+  .roomListContainer::-webkit-scrollbar-thumb {
+    background-color: #c1c7cd;
+    border-radius: 4px;
+    border: 2px solid #f2f5f8;
+  }
+  
+  .roomListContainer::-webkit-scrollbar-thumb:hover {
+    background-color: #a0a6ac;
+  }
+  
+  /* Scrollbar styling for Firefox */
+  .roomListContainer {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c7cd #f2f5f8;
+  }
+  
+  /* Ensure the middle row columns take available height */
+  /* .middleRowCol1,
+  .middleRowCol2,
+  .middleRowCol3 {
+   height: 100%;
+  } */
+  
+  .middleRowCol2 {
+    grid-area: middleRowCol2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 16px;
+    filter: drop-shadow(0px 1px 16px rgba(0, 0, 0, 0.08));
+    background-color: #f2f5f8;
+    min-height: 0;
+  }
+  
+  .middleRowCol3 {
+    grid-area: middleRowCol3;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 16px;
+    filter: drop-shadow(0px 1px 16px rgba(0, 0, 0, 0.08));
+    background-color: #f2f5f8;
+    min-height: 0;
+  }
+
+  .middleRowCol3 .commonItemsBanner {
+    border-radius: 8px;
+    background: #E4EAEF;
+    margin-left: 20px; /* Adjusted margins to match the layout */
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+  }
+  
+  /* Bottom Row */
+  .bottomRowCol1 {
+    grid-area: bottomRowCol1;
+    display: flex;
+    align-items: center;
+  }
+  
+  .bottomRowCol2 {
+    grid-area: bottomRowCol2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+  .bottomRowCol3 {
+    grid-area: bottomRowCol3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Ensure the middle row columns take available height */
+  .middleRowCol1,
+  .middleRowCol2,
+  .middleRowCol3 {
+    height: 100%;
+  }
+  
+  /* First column fixed width, doesn't expand or shrink */
+  .middleRowCol1 {
+    width: 315px;
+  }
+  
+  /* Second column minimum width and flexible expansion */
+  .middleRowCol2 {
+    min-width: 430px;
+  }
+
+  .itemsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: white;
+    height: 60px;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 1px solid #D8DCE0;
+    padding-left: 20px;
+    padding-right: 15px;
+  }
+  
+  .itemsHeaderText {
+    color: #2F3236;
+    font-family: Satoshi;
+    font-size: 1.12rem;
+    font-weight: 700;
+  }
+  
+  .expandCollapseButton {
+    width: 30px;
+    height: 30px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .expandCollapseButton svg {
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* Spacer */
+  .itemsSpacer {
+    height: 11px;
+  }
+  
+  /* Common Items Banner */
+  .commonItemsBanner {
+    border-radius: 8px;
+    background: #E4EAEF;
+    margin-left: 56px;
+    margin-right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+  }
+  
+  .commonItemsBanner p {
+    color: #90A4B7;
+    text-align: center;
+    font-family: Satoshi;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  /* Items Content Container */
+.itemsContentContainer {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  /* overflow: hidden; */
+  height: calc(100% - 97px);
+  min-height: 0;
+}
+
+.alphabetButtonsWrapper {
+  flex: 0 0 auto; /* Prevent shrinking and growing */
+  display: flex;
+  flex-direction: column;
+  width: 55px;
+  height: calc(100% + 27px);
+  min-height: 0;
+  margin-top: -27px;
+  overflow: hidden;
+}
+/* Item List Placeholder */
+.itemListPlaceholder {
+  flex-grow: 1;
+  padding: 0px 10px 10px 0px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  border-radius: 0 0 16px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c7cd #f2f5f8;
+  scrollbar-gutter: stable;
+}
+
+.myItemsListPlaceholder {
+  padding-left: 15px;
+}
+
+
+.itemListPlaceholder::-webkit-scrollbar {
+  width: 8px;
+}
+
+.itemListPlaceholder::-webkit-scrollbar-track {
+  background: #f2f5f8;
+}
+
+.itemListPlaceholder::-webkit-scrollbar-thumb {
+  background-color: #c1c7cd;
+  border-radius: 4px;
+  border: 2px solid #f2f5f8;
+}
+
+.itemListPlaceholder::-webkit-scrollbar-thumb:hover {
+  background-color: #a0a6ac;
+}
+
+/* Scrollbar styling for Firefox */
+
+/* Adjust .middleRowCol2 to allow content to expand */
+.middleRowCol2 > * {
+  flex-shrink: 0;
+}
+
+/* Ensure the itemsContentContainer fills available space */
+.itemsContentContainer {
+  flex-grow: 1;
+}
+
+/* Adjust AlphabetButtons within itemsContentContainer */
+.itemsContentContainer .alphabetButtons {
+  flex-shrink: 0;
+  width: auto; /* Let it size based on content */
+}
+
+/* Left Group for My Inventory and Special Handling */
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* 20px gap between buttons */
+}
+
+/* My Inventory Button */
+.myInventoryButton {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 13px 18px;
+  background: #3FA9F5;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 0.93rem;
+  font-weight: 700;
+  height: 50px; /* Ensure consistent height */
+}
+
+.myInventoryButton span {
+  display: flex;
+  align-items: center;
+}
+
+.myInventoryIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  fill: #FFF; /* Ensure the icon is white */
+}
+
+/* Special Handling Button */
+.specialHButton {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px 10px 10px;
+  background-color: rgba(144, 164, 183, 0.15);
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  color: #6E7882;
+  font-family: Satoshi, sans-serif;
+  font-size: 0.93rem;
+  font-weight: 700;
+  height: 50px;
+}
+
+.specialHButton span {
+  display: flex;
+  align-items: center;
+}
+
+.specialHIcon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: #90A4B7; /* Match the text color */
+}
+
+/* Delete Button Adjustments */
+.bottomRowCol2 > :last-child {
+  margin-left: auto; /* Push DeleteButton to the right */
+}
+
+
+
+
+
+
+
+
+  

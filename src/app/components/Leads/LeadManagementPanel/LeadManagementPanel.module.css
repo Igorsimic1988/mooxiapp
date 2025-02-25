@@ -1,0 +1,737 @@
+/* ===== Wrapper + Panel Container ===== */
+.wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.panelContainer {
+  padding: 0px 20px 30px 20px;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+}
+.panelContainer::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in Chrome, Safari, Opera */
+}
+
+/* ===== Top Row (Name + Score + More Button) ===== */
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+}
+
+.customerIcon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  color: #3FA9F5;
+}
+
+.customerName {
+  margin-left: 13px;
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+}
+
+.scoreContainer {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #F6F6F6;
+}
+
+.scoreLabel {
+  color: #90A4B7;
+  text-align: right;
+  font-family: Satoshi, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.scoreValue {
+  margin-left: 3px;
+  color: #3FA9F5;
+  font-family: Satoshi, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.moreButton {
+  background: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  margin-left: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.moreIcon {
+  width: 15px;
+  height: 24px;
+  color: #90A4B7;
+}
+
+/* ===== Contact Row (Phone + Email + Edit) ===== */
+.contactRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.infoChip {
+  border-radius: 8px;
+  background: #F2F5F8;
+  padding: 6px 9px;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2F3236;
+  flex: 0 1 auto;
+}
+
+.emailRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 1 auto;
+}
+
+.editButton {
+  width: 30px;
+  height: 30px;
+  background: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.editIcon {
+  width: 30px;
+  height: 30px;
+  color: #2F3236;
+}
+
+/* ===== Buttons Row (Status + Activity) ===== */
+.buttonsRow {
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  width: 100%;
+  padding: 0px 0px 10px 0px;
+}
+
+/* --- Status Button + Dropdown --- */
+.statusButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F2F5F8;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0 20px;
+  height: 50px;
+  min-width: 100%;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.statusContent {
+  display: flex;
+  align-items: center;
+}
+
+.statusTextLabel {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.statusTextValue {
+  margin-left: 4px;
+  color: #FAA61A; /* default fallback color (In Progress) */
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.statusIconContainer {
+  width: 30px;
+  height: 30px;
+  background: #90A4B7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  color: #FFF;
+}
+
+.statusIcon {
+  width: 20px;
+  height: 20px;
+  color: #FFF;
+}
+
+/* The dropdown list for status */
+.statusDropdown {
+  position: absolute;
+  left: 0;
+  top: 48px;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  margin-top: 5px;
+  list-style: none;
+  padding: 8px 0;
+  max-height: 312px;
+  overflow-y: auto;
+  z-index: 3000;
+}
+
+.statusOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  background: #FFF;
+}
+.statusOption:hover {
+  background: rgba(0,0,0,0.05);
+}
+.disabledOption {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.selectedOption {
+  background: rgba(0,0,0,0.1);
+}
+
+/* --- Activity Button + Dropdown --- */
+.activityButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0 25px 0 20px;
+  height: 50px;
+  min-width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.activityContent {
+  display: flex;
+  align-items: center;
+}
+
+.activityLabel {
+  color: #6E7882;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.activityValue {
+  margin-left: 4px;
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.unfoldIcon {
+  width: 20px;
+  height: 20px;
+  color: #2F3236;
+}
+
+.activityDropdown {
+  position: absolute;
+  left: 0;
+  top: 48px;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  margin-top: 5px;
+  list-style: none;
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 3000;
+}
+
+.activityOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  background: #FFF;
+}
+.activityOption:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* --- Next Action Button --- */
+.nextActionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0 20px;
+  height: 50px;
+  min-width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nextActionLabel {
+  color: #6E7882;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.nextActionValue {
+  margin-left: 4px;
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* ===== For the Estimator / Date / Time inputs ===== */
+.estimateExtraContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estimator button */
+.estimatorButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  height: 50px;
+  width: 100%;
+  padding: 0 20px;
+  font-family: Satoshi, sans-serif;
+  color: #2F3236;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.estimatorLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.estimatorLabel {
+  font-weight: 500;
+  color: #6e7882;
+}
+.estimatorValue {
+  font-weight: 700;
+  color: #2F3236;
+}
+
+.estimatorDropdown {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  list-style: none;
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 3100;
+}
+
+.estimatorOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2F3236;
+}
+.estimatorOption:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Date button */
+.estimatorDateButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  height: 50px;
+  width: 100%;
+  cursor: pointer;
+  padding: 0 20px;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #6e7882;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.datePlaceholder {
+  font-weight: 500;
+  color: #6E7882;
+}
+.dateSelected {
+  font-weight: 700;
+  color: #2F3236;
+}
+
+.calendarRightIconWrapper {
+  width: 30px;
+  height: 30px;
+  background: #90A4B7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendarIcon {
+  width: 16px;
+  height: 16px;
+  color: #fff;
+}
+
+/* Calendar popup */
+.calendarPopup {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 10px;
+  z-index: 3100;
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.calendarHeader button {
+  background: #eee;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.calendarDay {
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 8px;
+  height: 35px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2F3236;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendarDay:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Time button */
+.estimatorTimeButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  height: 50px;
+  width: 100%;
+  cursor: pointer;
+  padding: 0 20px;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #6e7882;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.timePlaceholder {
+  font-weight: 500;
+  color: #6E7882;
+}
+.timeSelected {
+  font-weight: 700;
+  color: #2F3236;
+}
+
+.timeDropdown {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  list-style: none;
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 3100;
+}
+
+.timeOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2F3236;
+}
+.timeOption:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* ===== Source & Previous Requests ===== */
+.sourceSection {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sourceLabel {
+  color: #90A4B7;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.sourceValue {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.previousRequestsLabel {
+  margin-top: 10px;
+  color: #90A4B7;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+/* ===== Requests Buttons ===== */
+.requestsButtonsContainer {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Invite Button (HIDDEN via CSS) */
+.inviteButton {
+  width: 100%;
+  height: 50px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(0deg, rgba(89, 183, 121, 0.20) 0%, rgba(89, 183, 121, 0.20) 100%), #FFF;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0 20px;
+  justify-content: space-between;
+}
+.hiddenButton {
+  display: none !important;
+}
+
+.inviteText {
+  color: #59B779;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.inviteIconContainer {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #59B779;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userIcon {
+  width: 16px;
+  height: 16px;
+  color: #FFF;
+}
+
+/* Inventory Button + Dropdown */
+.inventoryButton {
+  width: 100%;
+  height: 50px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(63, 169, 245, 0.20);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0 20px;
+  justify-content: space-between;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.inventoryText {
+  color: #3FA9F5;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.inventoryIconContainer {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #3FA9F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.specialHIcon {
+  width: 16px;
+  height: 16px;
+  color: #FFF;
+}
+
+.inventoryDropdown {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 8px 0;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 3100;
+}
+
+.inventoryOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2F3236;
+  background: #FFF;
+}
+.inventoryOption:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Reuse .selectedOption for highlight */
+.selectedOption {
+  background: rgba(0,0,0,0.1);
+}
+
+/* --- NextAction Animation Keyframes --- */
+@keyframes nextActionBounce {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.08); }
+  50% { transform: scale(0.96); }
+  75% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.animateNextAction {
+  animation: nextActionBounce 0.6s ease-out;
+}

@@ -1,0 +1,141 @@
+.popup {
+    position: fixed;
+    top: 0;
+    right: 0; /* Align to the right side */
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.15); /* Semi-transparent background */
+    display: flex;
+    justify-content: flex-end; /* Align content to the right */
+    align-items: stretch; /* Stretch content to fill height */
+    z-index: 1000; /* Ensure it overlays other content */
+  }
+
+  .popupContent {
+    border-radius: 20px 0px 0px 0px;
+    background-color: #F2F5F8;
+    width: calc(100% - 16px);
+    max-width: 400px; /* Max width of 400px */
+    height: 100%; /* Full height */
+    box-shadow: 0px 1px 26px 0px rgba(0, 0, 0, 0.3); /* Add a shadow for depth */
+    display: flex;
+    flex-direction: column; /* Arrange child elements vertically */
+  }
+
+  .header {
+    width: 100%;
+    min-height: 60px;
+    border-radius: 20px 0px 0px 0px;
+    background: #90A4B7;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header .title {
+    display: flex;
+    align-items: center;
+  }
+
+  .header p {
+    color: white;
+    font-family: Satoshi, sans-serif; /* Ensure 'Satoshi' font is available */
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-left: 10px;
+  }
+
+  .icon {
+    width: 24px;
+    height: 24px;
+    margin-left: 30px;
+  }
+
+  .closeIcon {
+    color: white;
+  }
+  
+  .closeButton {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+  }
+  
+  .closeButton button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    outline: none; /* Removes the default focus outline */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px; /* Set the desired width */
+    height: 50px; /* Set the desired height */
+    padding: 0; /* Remove padding if needed */
+    margin: 0; /* Adjust margins if necessary */
+  }
+
+  .body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .roomListContainer {
+    background-color: #F2F5F8;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin: 0 auto;
+    max-width: 100%;
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    padding-bottom: 30px;
+  }
+
+  .roomListContainer::-webkit-scrollbar {
+    display: none; /* WebKit */
+  }
+
+  .roomButton {
+    align-self: flex-start;
+    background-color: white;
+    border-radius: 10px;
+    border: none;
+    height: 50px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    text-align: left;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+
+  .roomName {
+    flex: 1;
+    color: #2F3236;
+    font-family: 'Satoshi', sans-serif; /* Ensure 'Satoshi' font is available */
+    font-size: 0.9375rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+
+  .selected {
+    background-color: rgba(63, 169, 245, 0.15); /* Example selected background color */
+  }
+
+  .selected .roomName {
+  color: #3FA9F5; /* Example selected text color */
+}

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import styles from './SearchHeader.module.css';
-import { ReactComponent as SearchIcon } from '../../../../../../../assets/icons/search.svg';
+import SearchIcon from '../../../../../../../assets/icons/search.svg';
 
 function SearchHeader({ roomName, searchQuery, onSearch, onSearchClick, onSearchFocus }) {
   const isActive = searchQuery.trim() !== '';

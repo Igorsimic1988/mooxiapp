@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { ReactComponent as LocationIcon } from '../../../../../assets/icons/location.svg';
-import { ReactComponent as PlaceIcon } from '../../../../../assets/icons/place1.svg';
-import { ReactComponent as AccessIcon } from '../../../../../assets/icons/access1.svg';
-import { ReactComponent as ServicesIcon } from '../../../../../assets/icons/services1.svg';
-import { ReactComponent as UnfoldMoreIcon } from '../../../../../assets/icons/unfoldmore.svg';
+import LocationIcon from '../../../../../assets/icons/location.svg';
+import PlaceIcon from '../../../../../assets/icons/place1.svg';
+import AccessIcon from '../../../../../assets/icons/access1.svg';
+import ServicesIcon from '../../../../../assets/icons/services1.svg';
+import UnfoldMoreIcon from '../../../../../assets/icons/unfoldmore.svg';
 
 import SimpleToggle from '../../../SimpleToggle/SimpleToggle';
 import MainAndStopOffs from '../OriginDetails/MainAndStopOffs/MainAndStopOffs';

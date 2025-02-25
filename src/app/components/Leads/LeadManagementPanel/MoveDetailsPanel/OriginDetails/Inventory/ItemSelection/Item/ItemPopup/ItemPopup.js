@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styles from './ItemPopup.module.css';
-import { ReactComponent as CloseIcon } from '../../../../../../../../../assets/icons/Close.svg';
-import { ReactComponent as CameraIcon } from '../../../../../../../../../assets/icons/cameraroll.svg';
-import { ReactComponent as UploadIcon } from '../../../../../../../../../assets/icons/upload.svg';
-import { ReactComponent as LinkIcon } from '../../../../../../../../../assets/icons/pastelink.svg';
+import CloseIcon from '../../../../../../../../../assets/icons/Close.svg';
+import CameraIcon from '../../../../../../../../../assets/icons/cameraroll.svg';
+import UploadIcon from '../../../../../../../../../assets/icons/upload.svg';
+import LinkIcon from '../../../../../../../../../assets/icons/pastelink.svg';
 import { optionsData } from '../../../../../../../../../data/constants/optionsData';
 import Select, { components as RSComponents } from 'react-select';
 import { v4 as uuidv4 } from 'uuid';

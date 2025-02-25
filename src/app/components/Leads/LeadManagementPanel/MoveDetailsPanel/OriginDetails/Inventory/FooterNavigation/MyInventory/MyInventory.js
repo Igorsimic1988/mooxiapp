@@ -3,74 +3,74 @@ import styles from "./MyInventory.module.css";
 import rooms from '../../../../../../../../data/constants/AllRoomsList';
 import { optionsData } from '../../../../../../../../data/constants/optionsData';
 
-import { ReactComponent as MyInventoryPopupIcon } from "../../../../../../../../assets/icons/MyInventoryPopupIcon.svg";
-import { ReactComponent as CloseIcon } from "../../../../../../../../assets/icons/Close.svg";
+import MyInventoryPopupIcon from "../../../../../../../../assets/icons/MyInventoryPopupIcon.svg";
+import CloseIcon from "../../../../../../../../assets/icons/Close.svg";
 
 /** 
  * ============== ICON IMPORTS ==============
  *  Include all tags, including your five special ones
  */
-import { ReactComponent as CpPackedByMoversIcon } from "../../../../../../../../assets/icons/cp_packed_by_movers.svg";
-import { ReactComponent as PboPackedByCustomerIcon } from "../../../../../../../../assets/icons/pbo_packed_by_customer.svg";
-import { ReactComponent as CratingIcon } from "../../../../../../../../assets/icons/crating.svg";
-import { ReactComponent as BlanketWrappedIcon } from "../../../../../../../../assets/icons/blanket_wrapped.svg";
-import { ReactComponent as PaperBlanketWrappedIcon } from "../../../../../../../../assets/icons/paper_blanket_wrapped.svg";
-import { ReactComponent as PurchasedBlanketsIcon } from "../../../../../../../../assets/icons/purchased_blankets.svg";
-import { ReactComponent as PackAndLeaveBehindIcon } from "../../../../../../../../assets/icons/pack_and_leave_behind.svg";
-import { ReactComponent as KeepBlanketOnIcon } from "../../../../../../../../assets/icons/keep_blanket_on.svg";
-import { ReactComponent as UnpackingIcon } from "../../../../../../../../assets/icons/unpacking.svg";
-import { ReactComponent as InspectAndRepackIcon } from "../../../../../../../../assets/icons/inspect_and_repack.svg";
-import { ReactComponent as BulkyIcon } from "../../../../../../../../assets/icons/bulky.svg";
-import { ReactComponent as DisassemblyIcon } from "../../../../../../../../assets/icons/disassembly.svg";
-import { ReactComponent as AssemblyIcon } from "../../../../../../../../assets/icons/assembly.svg";
-import { ReactComponent as PressboardIcon } from "../../../../../../../../assets/icons/pressboard.svg";
-import { ReactComponent as FragileIcon } from "../../../../../../../../assets/icons/fragile.svg";
-import { ReactComponent as MayorApplianceIcon } from "../../../../../../../../assets/icons/mayor_appliance.svg";
-import { ReactComponent as ExtraordinaryValueIcon } from "../../../../../../../../assets/icons/extraordinary_value.svg";
-import { ReactComponent as KitFurnitureAssemblyIcon } from "../../../../../../../../assets/icons/kit_furniture_assembly.svg";
-import { ReactComponent as ExcludedIcon } from "../../../../../../../../assets/icons/excluded.svg";
-import { ReactComponent as MayNotShipIcon } from "../../../../../../../../assets/icons/may_not_ship.svg";
-import { ReactComponent as ItemInClosetIcon } from "../../../../../../../../assets/icons/item_in_closet.svg";
-import { ReactComponent as HoistingOriginIcon } from "../../../../../../../../assets/icons/hoisting_origin.svg";
-import { ReactComponent as CraneOriginIcon } from "../../../../../../../../assets/icons/crane_origin.svg";
-import { ReactComponent as MovingWithinPremisesIcon } from "../../../../../../../../assets/icons/moving_within_premises.svg";
-import { ReactComponent as HelpWithLoadingIcon } from "../../../../../../../../assets/icons/help_with_loading.svg";
+import CpPackedByMoversIcon from "../../../../../../../../assets/icons/cp_packed_by_movers.svg";
+import PboPackedByCustomerIcon from "../../../../../../../../assets/icons/pbo_packed_by_customer.svg";
+import CratingIcon from "../../../../../../../../assets/icons/crating.svg";
+import BlanketWrappedIcon from "../../../../../../../../assets/icons/blanket_wrapped.svg";
+import PaperBlanketWrappedIcon from "../../../../../../../../assets/icons/paper_blanket_wrapped.svg";
+import PurchasedBlanketsIcon from "../../../../../../../../assets/icons/purchased_blankets.svg";
+import PackAndLeaveBehindIcon from "../../../../../../../../assets/icons/pack_and_leave_behind.svg";
+import KeepBlanketOnIcon from "../../../../../../../../assets/icons/keep_blanket_on.svg";
+import UnpackingIcon from "../../../../../../../../assets/icons/unpacking.svg";
+import InspectAndRepackIcon from "../../../../../../../../assets/icons/inspect_and_repack.svg";
+import BulkyIcon from "../../../../../../../../assets/icons/bulky.svg";
+import DisassemblyIcon from "../../../../../../../../assets/icons/disassembly.svg";
+import AssemblyIcon from "../../../../../../../../assets/icons/assembly.svg";
+import PressboardIcon from "../../../../../../../../assets/icons/pressboard.svg";
+import FragileIcon from "../../../../../../../../assets/icons/fragile.svg";
+import MayorApplianceIcon from "../../../../../../../../assets/icons/mayor_appliance.svg";
+import ExtraordinaryValueIcon from "../../../../../../../../assets/icons/extraordinary_value.svg";
+import KitFurnitureAssemblyIcon from "../../../../../../../../assets/icons/kit_furniture_assembly.svg";
+import ExcludedIcon from "../../../../../../../../assets/icons/excluded.svg";
+import MayNotShipIcon from "../../../../../../../../assets/icons/may_not_ship.svg";
+import ItemInClosetIcon from "../../../../../../../../assets/icons/item_in_closet.svg";
+import HoistingOriginIcon from "../../../../../../../../assets/icons/hoisting_origin.svg";
+import CraneOriginIcon from "../../../../../../../../assets/icons/crane_origin.svg";
+import MovingWithinPremisesIcon from "../../../../../../../../assets/icons/moving_within_premises.svg";
+import HelpWithLoadingIcon from "../../../../../../../../assets/icons/help_with_loading.svg";
 
 /** 
  * The five special tags 
  * (which are also in dropPoints, but we want them always visible).
  */
-import { ReactComponent as DisposalIcon } from "../../../../../../../../assets/icons/disposal.svg";
-import { ReactComponent as ItemForCompanyStorageIcon } from "../../../../../../../../assets/icons/item_for_company_storage.svg";
-import { ReactComponent as HelpWithUnloadingIcon } from "../../../../../../../../assets/icons/help_with_unloading.svg";
-import { ReactComponent as HoistingDestinationIcon } from "../../../../../../../../assets/icons/hoisting_destination.svg";
-import { ReactComponent as CraneDestinationIcon } from "../../../../../../../../assets/icons/crane_destination.svg";
+import  DisposalIcon from "../../../../../../../../assets/icons/disposal.svg";
+import  ItemForCompanyStorageIcon from "../../../../../../../../assets/icons/item_for_company_storage.svg";
+import  HelpWithUnloadingIcon from "../../../../../../../../assets/icons/help_with_unloading.svg";
+import  HoistingDestinationIcon from "../../../../../../../../assets/icons/hoisting_destination.svg";
+import  CraneDestinationIcon from "../../../../../../../../assets/icons/crane_destination.svg";
 
 /** Numeric drop points (already have 2_drop, 3_drop, etc.) */
-import { ReactComponent as MainDropOffIcon } from "../../../../../../../../assets/icons/main_drop_off.svg";
-import { ReactComponent as TwoDropIcon } from "../../../../../../../../assets/icons/2_drop.svg";
-import { ReactComponent as ThreeDropIcon } from "../../../../../../../../assets/icons/3_drop.svg";
-import { ReactComponent as PostStorageMainDropIcon } from "../../../../../../../../assets/icons/post_storage_main_drop.svg";
-import { ReactComponent as PostStorage2DropIcon } from "../../../../../../../../assets/icons/post_storage_2_drop.svg";
-import { ReactComponent as PostStorage3DropIcon } from "../../../../../../../../assets/icons/post_storage_3_drop.svg";
+import  MainDropOffIcon from "../../../../../../../../assets/icons/main_drop_off.svg";
+import  TwoDropIcon from "../../../../../../../../assets/icons/2_drop.svg";
+import  ThreeDropIcon from "../../../../../../../../assets/icons/3_drop.svg";
+import  PostStorageMainDropIcon from "../../../../../../../../assets/icons/post_storage_main_drop.svg";
+import  PostStorage2DropIcon from "../../../../../../../../assets/icons/post_storage_2_drop.svg";
+import  PostStorage3DropIcon from "../../../../../../../../assets/icons/post_storage_3_drop.svg";
 
 /** 
  * ============== ADDITIONAL DROP ICON IMPORTS ==============
  * for 4_drop through 9_drop, and post_storage_4_drop through post_storage_9_drop
  */
-import { ReactComponent as FourDropIcon } from "../../../../../../../../assets/icons/4_drop.svg";
-import { ReactComponent as FiveDropIcon } from "../../../../../../../../assets/icons/5_drop.svg";
-import { ReactComponent as SixDropIcon } from "../../../../../../../../assets/icons/6_drop.svg";
-import { ReactComponent as SevenDropIcon } from "../../../../../../../../assets/icons/7_drop.svg";
-import { ReactComponent as EightDropIcon } from "../../../../../../../../assets/icons/8_drop.svg";
-import { ReactComponent as NineDropIcon } from "../../../../../../../../assets/icons/9_drop.svg";
+import  FourDropIcon from "../../../../../../../../assets/icons/4_drop.svg";
+import  FiveDropIcon from "../../../../../../../../assets/icons/5_drop.svg";
+import  SixDropIcon from "../../../../../../../../assets/icons/6_drop.svg";
+import  SevenDropIcon from "../../../../../../../../assets/icons/7_drop.svg";
+import  EightDropIcon from "../../../../../../../../assets/icons/8_drop.svg";
+import  NineDropIcon from "../../../../../../../../assets/icons/9_drop.svg";
 
-import { ReactComponent as PostStorage4DropIcon } from "../../../../../../../../assets/icons/post_storage_4_drop.svg";
-import { ReactComponent as PostStorage5DropIcon } from "../../../../../../../../assets/icons/post_storage_5_drop.svg";
-import { ReactComponent as PostStorage6DropIcon } from "../../../../../../../../assets/icons/post_storage_6_drop.svg";
-import { ReactComponent as PostStorage7DropIcon } from "../../../../../../../../assets/icons/post_storage_7_drop.svg";
-import { ReactComponent as PostStorage8DropIcon } from "../../../../../../../../assets/icons/post_storage_8_drop.svg";
-import { ReactComponent as PostStorage9DropIcon } from "../../../../../../../../assets/icons/post_storage_9_drop.svg";
+import  PostStorage4DropIcon from "../../../../../../../../assets/icons/post_storage_4_drop.svg";
+import  PostStorage5DropIcon from "../../../../../../../../assets/icons/post_storage_5_drop.svg";
+import  PostStorage6DropIcon from "../../../../../../../../assets/icons/post_storage_6_drop.svg";
+import  PostStorage7DropIcon from "../../../../../../../../assets/icons/post_storage_7_drop.svg";
+import  PostStorage8DropIcon from "../../../../../../../../assets/icons/post_storage_8_drop.svg";
+import  PostStorage9DropIcon from "../../../../../../../../assets/icons/post_storage_9_drop.svg";
 
 /**
  * Convert "Drop off 2" => "2_drop", "Post Storage Drop off 3" => "post_storage_3_drop"

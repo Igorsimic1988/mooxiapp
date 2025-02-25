@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import styles from './AddRoomButton.module.css';
-import { ReactComponent as AddRoomIcon } from '../../../../../../../../assets/icons/addroom.svg';
+import AddRoomIcon from '../../../../../../../../assets/icons/addroom.svg';
 import AddRoomPopup from '../AddRoomPopup/AddRoomPopup';
 
 function AddRoomButton({ rooms, displayedRooms, onToggleRoom }) {

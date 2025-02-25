@@ -20,10 +20,10 @@ import ItemPopup from '../ItemSelection/Item/ItemPopup/ItemPopup';
 import MyInventory from '../FooterNavigation/MyInventory/MyInventory';
 import SpecialH from '../FooterNavigation/SpecialH/SpecialH';
 import DeleteButton from '../FooterNavigation/DeleteButton/DeleteButton';
-import { ReactComponent as ExpandIcon } from '../../../../../../../assets/icons/expand.svg';
-import { ReactComponent as CollapseIcon } from '../../../../../../../assets/icons/collapse.svg';
-import { ReactComponent as MyInventoryIcon } from '../../../../../../../assets/icons/MyInventoryPopupIcon.svg';
-import { ReactComponent as SpecialHIcon } from '../../../../../../../assets/icons/specialh.svg';
+import ExpandIcon from '../../../../../../../assets/icons/expand.svg';
+import CollapseIcon from '../../../../../../../assets/icons/collapse.svg';
+import MyInventoryIcon from '../../../../../../../assets/icons/MyInventoryPopupIcon.svg';
+import SpecialHIcon from '../../../../../../../assets/icons/specialh.svg';
 
 // Data + Utils
 import allItems from '../../../../../../../data/constants/funitureItems';

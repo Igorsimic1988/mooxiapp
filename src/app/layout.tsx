@@ -24,6 +24,36 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <link rel="icon" href="%PUBLIC_URL%/favicon.png" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#3FA9F5" />
+        
+        <meta
+          name="description"
+          content="Mooxy | Pioneering the Future of Moving."
+        />
+        
+        <link rel="apple-touch-icon" href="%PUBLIC_URL%/iPhone.png" />
+        
+        <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+        
+        <title>Mooxy | Pioneering the Future of Moving.</title>
+
+        <meta property="og:title" content="Mooxy | Pioneering the Future of Moving." />
+        <meta property="og:description" content="Experience the best moving services with Mooxy. We make your move seamless and stress-free." />
+        <meta property="og:url" content="https://www.mooxy.com/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="%PUBLIC_URL%/logo512.png" />
+        <meta property="og:image:width" content="512" />
+        <meta property="og:image:height" content="512" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Mooxy | Pioneering the Future of Moving." />
+        <meta name="twitter:description" content="Experience the best moving services with Mooxy. We make your move seamless and stress-free." />
+        <meta name="twitter:image" content="%PUBLIC_URL%/logo512.png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

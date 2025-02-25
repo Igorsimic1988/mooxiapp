@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styles from './ItemCard.module.css';
-import { ReactComponent as CheckmarkIcon } from '../../../../../../../../../assets/icons/checksmall.svg'; // Adjust the path as needed
+import CheckmarkIcon from '../../../../../../../../../assets/icons/checksmall.svg'; // Adjust the path as needed
 
 function ItemCard({ id, item, tags, onItemClick, isSelected }) {
   return (

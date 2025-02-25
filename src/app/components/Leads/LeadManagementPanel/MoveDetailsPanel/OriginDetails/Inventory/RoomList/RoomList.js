@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useCallback } from 'react';
 import styles from './RoomList.module.css';
-import { ReactComponent as More } from '../../../../../../../assets/icons/more.svg';
+import More from '../../../../../../../assets/icons/more.svg';
 
 /**
  * RoomList

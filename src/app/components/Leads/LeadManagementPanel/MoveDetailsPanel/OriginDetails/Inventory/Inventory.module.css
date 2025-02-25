@@ -1,9 +1,4 @@
-/* Reset box-sizing for consistency */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+
 
 .inventoryContainer {
   display: flex;
@@ -46,11 +41,4 @@
   background-color: #fff; /* Optional background color */
   border-top: 1px solid #ccc; /* Optional border */
   z-index: 1000; /* Ensures it stays above other elements */
-}
-
-/* Optional: Prevent scrollbar on body */
-body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
 }

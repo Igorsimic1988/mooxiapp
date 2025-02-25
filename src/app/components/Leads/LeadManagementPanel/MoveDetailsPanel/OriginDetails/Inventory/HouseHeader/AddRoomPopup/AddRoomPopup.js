@@ -2,8 +2,8 @@
 
 import React, { useRef, useEffect } from 'react';
 import styles from './AddRoomPopup.module.css';
-import { ReactComponent as CloseIcon } from '../../../../../../../../assets/icons/Close.svg';
-import { ReactComponent as AddRoomIcon } from '../../../../../../../../assets/icons/addroomreservation.svg';
+import CloseIcon from '../../../../../../../../assets/icons/Close.svg';
+import AddRoomIcon from '../../../../../../../../assets/icons/addroomreservation.svg';
 
 /**
  * AddRoomPopup

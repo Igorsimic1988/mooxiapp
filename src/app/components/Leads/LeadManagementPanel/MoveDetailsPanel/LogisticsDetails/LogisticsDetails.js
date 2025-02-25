@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from './LogisticsDetails.module.css';
 
 // Icon for dropdown only
-import { ReactComponent as UnfoldMoreIcon } from '../../../../../assets/icons/unfoldmore.svg';
+import UnfoldMoreIcon from '../../../../../assets/icons/unfoldmore.svg';
 import PackingDay from './PackingDay/PackingDay';
 
 // Rate Type and Truck Size Options

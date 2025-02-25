@@ -1,14 +1,14 @@
 import React from 'react';
 import styles from './LeadsList.module.css';
+import Image from 'next/image';
 
-import { ReactComponent as InProgressIcon } from '../../../assets/icons/inProgress.svg';
-import { ReactComponent as QuotedIcon } from '../../../assets/icons/quoted.svg';
-import { ReactComponent as BadLeadIcon } from '../../../assets/icons/badlead.svg';
-import { ReactComponent as DeclinedIcon } from '../../../assets/icons/declined.svg';
-import { ReactComponent as BookedIcon } from '../../../assets/icons/booked.svg';
-import { ReactComponent as OnHoldIcon } from '../../../assets/icons/onhold.svg';
-import { ReactComponent as CanceledIcon } from '../../../assets/icons/canceled.svg';
-
+import InProgressIcon from '../../../assets/icons/inProgress.svg';
+import QuotedIcon from '../../../assets/icons/quoted.svg';
+import BadLeadIcon from '../../../assets/icons/badlead.svg';
+import DeclinedIcon from '../../../assets/icons/declined.svg';
+import BookedIcon from '../../../assets/icons/booked.svg';
+import OnHoldIcon from '../../../assets/icons/onhold.svg';
+import CanceledIcon from '../../../assets/icons/canceled.svg';
 /**
  * Format creation_date_time => mm/dd/yyyy
  */
@@ -157,7 +157,7 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
                   {topLineText}
                 </span>
                 {showTopLineIcon && Icon && (
-                  <Icon className={styles.statusIcon} style={{ color }} />
+                  <Image src={Icon} alt="status" className={styles.statusIcon} />
                 )}
               </div>
 

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styles from './DeleteButton.module.css';
-import { ReactComponent as DeleteIcon } from '../../../../../../../../assets/icons/deletemobile.svg';
+import DeleteIcon from '../../../../../../../../assets/icons/deletemobile.svg';
 
 function DeleteButton({ isActive, onClick, className = '' }) {
   return (

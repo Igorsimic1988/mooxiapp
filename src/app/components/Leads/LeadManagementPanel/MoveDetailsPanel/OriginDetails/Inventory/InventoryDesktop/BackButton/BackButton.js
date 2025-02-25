@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styles from './BackButton.module.css';
-import { ReactComponent as ArrowIcon } from '../../../../../../../../assets/icons/arrowforward.svg';
+import ArrowIcon from '../../../../../../../../assets/icons/arrowforward.svg';
 
 function BackButton({ onClick }) {
   return (

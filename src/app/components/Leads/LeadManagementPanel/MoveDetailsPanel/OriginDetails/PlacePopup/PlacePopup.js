@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './PlacePopup.module.css';
 
 // Icons
-import { ReactComponent as HouseIcon } from '../../../../../../assets/icons/house.svg';
-import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Close.svg';
-import { ReactComponent as UnfoldMoreIcon } from '../../../../../../assets/icons/unfoldmore.svg';
+import HouseIcon from '../../../../../../assets/icons/house.svg';
+import CloseIcon from '../../../../../../assets/icons/Close.svg';
+import UnfoldMoreIcon from '../../../../../../assets/icons/unfoldmore.svg';
 
 // Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';

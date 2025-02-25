@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import styles from './Item.module.css';
-import { ReactComponent as ThreeDots } from '../../../../../../../../assets/icons/more.svg';
+import ThreeDots from '../../../../../../../../assets/icons/more.svg';
 
 function Item({
   item,

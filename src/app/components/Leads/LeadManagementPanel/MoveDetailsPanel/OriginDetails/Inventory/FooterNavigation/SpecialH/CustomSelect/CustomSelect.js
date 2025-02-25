@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './CustomSelect.module.css';
-import { ReactComponent as DropdownIcon } from '../../../../../../../../../assets/icons/unfoldmore.svg'; // Adjust the path as needed
+import DropdownIcon from '../../../../../../../../../assets/icons/unfoldmore.svg'; // Adjust the path as needed
 
 function CustomSelect({ options, selectedOption, onOptionChange, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);

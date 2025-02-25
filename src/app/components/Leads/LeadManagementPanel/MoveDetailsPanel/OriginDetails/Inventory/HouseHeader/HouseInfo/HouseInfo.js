@@ -2,8 +2,8 @@
 
 import React, { useMemo, useEffect, useRef } from 'react';
 import styles from './HouseInfo.module.css';
-import { ReactComponent as HouseIcon } from '../../../../../../../../assets/icons/house.svg';
-import { ReactComponent as MoreIcon } from '../../../../../../../../assets/icons/unfoldmore.svg';
+import HouseIcon from '../../../../../../../../assets/icons/house.svg';
+import MoreIcon from '../../../../../../../../assets/icons/unfoldmore.svg';
 
 /**
  * HouseInfo:

@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ReactComponent as LocationIcon } from '../../../../../assets/icons/location.svg';
-import { ReactComponent as PlaceIcon } from '../../../../../assets/icons/place1.svg';
-import { ReactComponent as AccessIcon } from '../../../../../assets/icons/access1.svg';
-import { ReactComponent as ServicesIcon } from '../../../../../assets/icons/services1.svg';
-import { ReactComponent as UnfoldMoreIcon } from '../../../../../assets/icons/unfoldmore.svg';
-import { ReactComponent as MyInventoryIcon } from '../../../../../assets/icons/myinventory.svg';
+import Image from 'next/image';
+import LocationIcon from '../../../../../assets/icons/location.svg';
+import PlaceIcon from '../../../../../assets/icons/place1.svg';
+import AccessIcon from '../../../../../assets/icons/access1.svg';
+import ServicesIcon from '../../../../../assets/icons/services1.svg';
+import UnfoldMoreIcon from '../../../../../assets/icons/unfoldmore.svg';
+import MyInventoryIcon from '../../../../../assets/icons/myinventory.svg';
 
 import SimpleToggle from '../../../SimpleToggle/SimpleToggle';
 import styles from './OriginDetails.module.css';
@@ -477,7 +478,7 @@ function OriginDetails({
                 onChange={(e) => handleStopFieldChange('address', e.target.value)}
               />
               <div className={styles.inputIconContainer}>
-                <LocationIcon className={styles.inputIcon} />
+                <Image src={LocationIcon} alt="Location Icon" className={styles.inputIcon} />
               </div>
             </div>
 
@@ -536,7 +537,7 @@ function OriginDetails({
               }}
             >
               <div className={styles.propertyItemLeft}>
-                <PlaceIcon className={styles.propertyItemIcon} />
+                <Image src={PlaceIcon} alt="Place Icon" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>PLACE</span>
               </div>
               <button
@@ -557,7 +558,7 @@ function OriginDetails({
               }}
             >
               <div className={styles.propertyItemLeft}>
-                <AccessIcon className={styles.propertyItemIcon} />
+                <Image src={AccessIcon} alt="Access Icon" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>ACCESS</span>
               </div>
               <button
@@ -578,7 +579,7 @@ function OriginDetails({
               }}
             >
               <div className={styles.propertyItemLeft}>
-                <ServicesIcon className={styles.propertyItemIcon} />
+                <Image src={ServicesIcon} alt="Services Icon" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>SERVICES</span>
               </div>
               <button
@@ -627,7 +628,7 @@ function OriginDetails({
                           {currentTR.option}
                         </span>
                       </span>
-                      <UnfoldMoreIcon className={styles.moreIcon} />
+                      <Image src={UnfoldMoreIcon} alt="Location Menu Icon" className={styles.moreIcon} />
                     </div>
                     {optionDropdownOpen && (
                       <div className={styles.dropdownMenu}>
@@ -667,7 +668,7 @@ function OriginDetails({
                           {currentTR.restrictionType}
                         </span>
                       </span>
-                      <UnfoldMoreIcon className={styles.moreIcon} />
+                      <Image src={UnfoldMoreIcon} alt="Location Menu Icon" className={styles.moreIcon} />
                     </div>
                     {typeDropdownOpen && (
                       <div className={styles.dropdownMenu}>
@@ -707,7 +708,7 @@ function OriginDetails({
                           {currentTR.startTime || 'Select'}
                         </span>
                       </span>
-                      <UnfoldMoreIcon className={styles.moreIcon} />
+                      <Image src={UnfoldMoreIcon} alt="Location Menu Icon" className={styles.moreIcon} />
                     </div>
                     {startDropdownOpen && (
                       <div className={styles.dropdownMenu}>
@@ -747,7 +748,7 @@ function OriginDetails({
                           {currentTR.endTime || 'Select'}
                         </span>
                       </span>
-                      <UnfoldMoreIcon className={styles.moreIcon} />
+                      <Image src={UnfoldMoreIcon} alt="Location Menu Icon" className={styles.moreIcon} />
                     </div>
                     {endDropdownOpen && (
                       <div className={styles.dropdownMenu}>
@@ -780,7 +781,7 @@ function OriginDetails({
                 onClick={onShowInventory}
               >
                 <span className={styles.inventoryButtonText}>Inventory</span>
-                <MyInventoryIcon className={styles.myInventoryIcon} />
+                <Image src={MyInventoryIcon} alt="My Inventory Icon" className={styles.myInventoryIcon} />
               </button>
             </div>
           </div>

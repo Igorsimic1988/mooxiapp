@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styles from './CreateQuoteButton.module.css';
-import { ReactComponent as CreateQuoteIcon } from '../../../../../../../../assets/icons/createquoteDesktop.svg';
+import CreateQuoteIcon from '../../../../../../../../assets/icons/createquoteDesktop.svg';
 
 function CreateQuoteButton({ onClick }) {
   return (

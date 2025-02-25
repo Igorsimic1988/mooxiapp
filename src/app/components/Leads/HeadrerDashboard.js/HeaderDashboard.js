@@ -1,11 +1,12 @@
 // src/components/Leads/HeadrerDashboard.js/HeaderDashboard.js
 
 import React from 'react';
-import { ReactComponent as AddBars } from '../../../assets/icons/barsStaggered.svg';
-import { ReactComponent as NotificationBell } from '../../../assets/icons/notificationBell.svg';
-import { ReactComponent as MessageIcon } from '../../../assets/icons/message.svg';
-import { ReactComponent as ForwardArrow } from '../../../assets/icons/arrowforward.svg';
+import AddBars from '../../../assets/icons/barsStaggered.svg';
+import NotificationBell from '../../../assets/icons/notificationBell.svg';
+import MessageIcon from '../../../assets/icons/message.svg';
+import ForwardArrow from '../../../assets/icons/arrowforward.svg';
 import styles from './HeaderDashboard.module.css';
+import Image from 'next/image';
 
 /**
  * HeaderDashboard
@@ -52,14 +53,9 @@ function HeaderDashboard({
     <div className={`${styles.headerContainer} ${isLeadSelected ? styles.leadSelected : ''}`}>
       <div className={styles.topBar}>
         <div className={styles.leftGroup}>
-          <AddBars className={styles.addBarsIcon} />
-          <div className={styles.verticalDivider} />
-
+          <Image src={AddBars} alt="logo" className={styles.addBarsIcon} />
           {(isInInventory || isLeadSelected) ? (
-            <ForwardArrow
-              className={styles.forwardArrowIcon}
-              onClick={handleArrowClick}
-            />
+            <Image src={ForwardArrow} alt="logo" className={styles.forwardArrowIcon} onClick={handleArrowClick} />
           ) : (
             <span className={styles.homeText}>Home</span>
           )}
@@ -75,11 +71,11 @@ function HeaderDashboard({
         <div className={styles.rightGroup}>
           <div className={styles.messageGroup}>
             <div className={styles.messageBadge}>3</div>
-            <MessageIcon className={styles.messageIcon} />
+            <Image src={MessageIcon} alt="logo" className={styles.messageIcon} />
           </div>
           <div className={styles.notificationGroup}>
             <div className={styles.notificationBadge} />
-            <NotificationBell className={styles.notificationIcon} />
+            <Image src={NotificationBell} alt="logo" className={styles.notificationIcon} />
           </div>
         </div>
       </div>

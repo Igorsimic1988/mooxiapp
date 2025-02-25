@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './AccessPopup.module.css';
 
 // Icons
-import { ReactComponent as HouseIcon } from '../../../../../../assets/icons/house.svg';
-import { ReactComponent as CloseIcon } from '../../../../../../assets/icons/Close.svg';
-import { ReactComponent as UnfoldMoreIcon } from '../../../../../../assets/icons/unfoldmore.svg';
+import HouseIcon from '../../../../../../assets/icons/house.svg';
+import CloseIcon from '../../../../../../assets/icons/Close.svg';
+import UnfoldMoreIcon from '../../../../../../assets/icons/unfoldmore.svg';
 
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 import SimpleToggle from '../../../../SimpleToggle/SimpleToggle';

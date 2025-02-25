@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import styles from "./SpecialH.module.css";
 import ItemCard from './ItemCard/ItemCard';
 
-import { ReactComponent as SpecialHPopupIcon } from "../../../../../../../../assets/icons/SpecialHPopupIcon.svg";
-import { ReactComponent as CloseIcon } from "../../../../../../../../assets/icons/Close.svg";
+import SpecialHPopupIcon from "../../../../../../../../assets/icons/SpecialHPopupIcon.svg";
+import CloseIcon from "../../../../../../../../assets/icons/Close.svg";
 
 import { generateGroupingKey } from '../../utils/generateGroupingKey';
 import CustomSelect from './CustomSelect/CustomSelect';

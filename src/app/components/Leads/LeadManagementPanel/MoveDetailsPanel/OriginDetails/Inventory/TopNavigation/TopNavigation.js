@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './TopNavigation.module.css';
-import { ReactComponent as AddBars } from '../../../../../../../assets/icons/barsStaggered.svg';
-import { ReactComponent as ForwardArrow } from '../../../../../../../assets/icons/arrowforward.svg';
+import AddBars from '../../../../../../../assets/icons/barsStaggered.svg';
+import ForwardArrow from '../../../../../../../assets/icons/arrowforward.svg';
 
 function TopNavigation({ inRoom, roomName, onBack, onCloseInventory }) {
   // Handlers for the menu icon (AddBars)

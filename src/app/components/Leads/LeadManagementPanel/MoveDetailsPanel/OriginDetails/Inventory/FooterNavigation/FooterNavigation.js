@@ -5,10 +5,10 @@ import styles from './FooterNavigation.module.css';
 import SpecialH from './SpecialH/SpecialH';
 import MyInventory from './MyInventory/MyInventory';
 
-import { ReactComponent as CreateQuote } from '../../../../../../../assets/icons/createquoteicon.svg';
-import { ReactComponent as MyInventoryIcon } from '../../../../../../../assets/icons/myinventory.svg';
-import { ReactComponent as SpecialHIcon } from '../../../../../../../assets/icons/specialh.svg';
-import { ReactComponent as BackArrow } from '../../../../../../../assets/icons/arrowforward.svg';
+import CreateQuote from '../../../../../../../assets/icons/createquoteicon.svg';
+import MyInventoryIcon from '../../../../../../../assets/icons/myinventory.svg';
+import SpecialHIcon from '../../../../../../../assets/icons/specialh.svg';
+import BackArrow from '../../../../../../../assets/icons/arrowforward.svg';
 
 import DeleteButton from './DeleteButton/DeleteButton'; // Import the new component
 

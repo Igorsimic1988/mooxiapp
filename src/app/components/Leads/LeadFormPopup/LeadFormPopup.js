@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import styles from './LeadFormPopup.module.css';
-
+import Image from 'next/image';
 // Icons
-import { ReactComponent as CloseIcon } from '../../../assets/icons/Close.svg';
-import { ReactComponent as CustomerUserIcon } from '../../../assets/icons/customeruser.svg';
-import { ReactComponent as UnfoldMoreIcon } from '../../../assets/icons/unfoldmore.svg';
-import { ReactComponent as CalendarIcon } from '../../../assets/icons/calendar.svg';
+import CloseIcon from '../../../assets/icons/Close.svg';
+import CustomerUserIcon from '../../../assets/icons/customeruser.svg';
+import  UnfoldMoreIcon from '../../../assets/icons/unfoldmore.svg';
+import CalendarIcon from '../../../assets/icons/calendar.svg';
 
 // Toggles
 import SimpleToggle from '../SimpleToggle/SimpleToggle';
@@ -300,12 +300,12 @@ function LeadFormPopup({
         {/* ---------- HEADER ---------- */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <CustomerUserIcon className={styles.customerUserIcon} width={24} height={24} />
+            <Image src={CustomerUserIcon} alt="Customer User" className={styles.customerUserIcon} />
             {editingLead ? <p>Edit Lead</p> : <p>New Lead</p>}
           </div>
           <div className={styles.closeButton}>
             <button type="button" onClick={onClose} aria-label="Close">
-              <CloseIcon className={styles.closeIcon} />
+              <Image src={CloseIcon} alt="Close" className={styles.closeIcon} />
             </button>
           </div>
         </div>
@@ -330,7 +330,7 @@ function LeadFormPopup({
                   <span className={styles.dropdownSelected}>{selectedCompany}</span>
                 )}
               </div>
-              <UnfoldMoreIcon className={styles.dropdownIcon} />
+              <Image src={CustomerUserIcon} alt="Customer User" className={styles.customerUserIcon} />
             </button>
 
             {showCompanyDropdown && (
@@ -406,7 +406,7 @@ function LeadFormPopup({
                     <span className={styles.dropdownSelected}>{selectedSource}</span>
                   )}
                 </div>
-                <UnfoldMoreIcon className={styles.dropdownIcon} />
+                <Image src={CustomerUserIcon} alt="Customer User" className={styles.customerUserIcon} />
               </button>
 
               {showSourceDropdown && (
@@ -451,7 +451,7 @@ function LeadFormPopup({
                     <span className={styles.dropdownPlaceholder}>Select</span>
                   )}
                 </div>
-                <UnfoldMoreIcon className={styles.dropdownIcon} />
+                <Image src={CustomerUserIcon} alt="Customer User" className={styles.customerUserIcon} />
               </button>
 
               {showTypeOfServiceDropdown && (
@@ -504,7 +504,7 @@ function LeadFormPopup({
                   {selectedMoveDate || 'Move Date'}
                 </span>
                 <div className={styles.calendarIconWrapper}>
-                  <CalendarIcon className={styles.calendarIcon} />
+                  <Image src={CalendarIcon} alt="Calendar" className={styles.calendarIcon} />
                 </div>
               </button>
 

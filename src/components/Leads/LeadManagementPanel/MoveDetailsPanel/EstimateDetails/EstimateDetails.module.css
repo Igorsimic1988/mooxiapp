@@ -1,56 +1,237 @@
-/* src/components/Leads/LeadManagementPanel/MoveDetailsPanel/EstimateDetails/EstimateDetails.module.css */
-
+/* src/components/LeadManagementPanel/MoveDetailsPanel/EstimateDetails/EstimateDetails.module.css */
 .estimateContainer {
-    padding: 16px 20px;
-    border-radius: 16px;
-    background: #FFF;
-    box-shadow: 0px 1px 16px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-top: 10px;
-  }
-  
-  .estimateHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .estimateTitle {
-    color: #2F3236;
-    font-family: Satoshi, sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 33px;
-  }
-  
-  .minusButton {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-    background: #3FA9F5;
-    border: none;
-    cursor: pointer;
-    color: #FFF;
-    font-family: Satoshi, sans-serif;
-    font-size: 20px; 
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
-  
-  .innerContent {
-    /* Just a placeholder style block */
-    padding: 10px 0;
-  }
-  
-  .placeholderText {
-    color: #6E7882;
-    font-size: 14px;
-    font-family: Satoshi, sans-serif;
-    margin: 0;
-  }
-  
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: #FFF;
+  box-shadow: 0px 1px 16px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.estimateHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.estimateTitle {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 33px;
+}
+
+.minusButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #3FA9F5;
+  border: none;
+  cursor: pointer;
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.innerContent {
+  padding: 10px 0;
+}
+
+/* Invoice row on top */
+.invoiceWrapper {
+  margin-bottom: 20px;
+}
+
+.extraInputsContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+/* each row has a 10px gap, next row => 20px margin-top */
+.row {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.row + .row {
+  margin-top: 20px;
+}
+
+.estimateButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 50px;
+  padding: 0 20px;
+  background-color: #FFF;
+  color: #2F3236;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  cursor: pointer;
+  box-sizing: border-box;
+  user-select: none;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.dropdownLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dropdownPrefix {
+  font-weight: 500;
+  color: #6E7882;
+  font-size: 16px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.dropdownSelected {
+  font-weight: 700;
+  color: #2F3236;
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.dropdownIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #2F3236;
+  margin-left: 8px;
+}
+
+.rateTypeWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.rateTypeDropdown {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #D8DCE0;
+  border-radius: 12px;
+  padding: 8px 0;
+  margin-top: 5px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 5000;
+  list-style: none;
+}
+
+.rateTypeOption {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2F3236;
+  background: #FFF;
+}
+.rateTypeOption:hover {
+  background: rgba(0,0,0,0.05);
+}
+.selectedOption {
+  background: rgba(0,0,0,0.1);
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: #D8DCE0;
+}
+
+.placeholderText {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f2f5f8;
+  border-radius: 12px;
+  color: #6E7882;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+}
+
+/* Pricing row styles */
+.pricingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 50px;
+  width: 100%;
+}
+
+.pricingLabel {
+  color: #6E7882;
+  font-family: Satoshi, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.pricingValue {
+  color: #2F3236;
+  text-align: right;
+  font-family: Satoshi, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  min-width: 80px;
+  width: auto;
+}
+
+.pricingValue:focus {
+  border-bottom: 1px solid #3FA9F5;
+}
+
+/* Special styling for specific pricing rows */
+.grandTotalLabel {
+  color: #2F3236;
+  font-weight: 700;
+}
+
+.importantLabel {
+  color: #2F3236;
+  font-weight: 700;
+}
+
+.balanceDueLabel {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.balanceDueValue {
+  color: #3FA9F5;
+  font-family: Satoshi, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}

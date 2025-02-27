@@ -1,5 +1,3 @@
-// src/components/Leads/Leads.js
-
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Leads.module.css';
 import HeaderDashboard from './HeadrerDashboard.js/HeaderDashboard';
@@ -45,8 +43,8 @@ function filterLeadsByTab(leads, activeTab) {
   switch (activeTab) {
     case 'Active Leads':
       return leads.filter((ld) => {
-        const st  = ld.lead_status;
-        const na  = ld.next_action;
+        const st = ld.lead_status;
+        const na = ld.next_action;
         const act = ld.lead_activity;
 
         // We define "isActive" as:
@@ -139,8 +137,8 @@ function Leads() {
   if (activeTab === 'My Appointments') {
     filteredLeads.sort((a, b) => {
       // 1) next_action='Completed' => rank 0 => goes on top
-      const rankA = (a.next_action === 'Completed') ? 0 : 1;
-      const rankB = (b.next_action === 'Completed') ? 0 : 1;
+      const rankA = a.next_action === 'Completed' ? 0 : 1;
+      const rankB = b.next_action === 'Completed' ? 0 : 1;
       if (rankA !== rankB) {
         return rankA - rankB; // 0 => appear first
       }

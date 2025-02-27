@@ -1,3 +1,4 @@
+// src/components/LeadManagementPanel/MoveDetailsPanel/LogisticsDetails/LogisticsDetails.js
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './LogisticsDetails.module.css';
 
@@ -72,130 +73,172 @@ function LogisticsDetails({
   isCollapsed,
   setIsCollapsed,
 }) {
+  // Initialize nested objects if they don't exist
+  const movingDay = lead?.movingDay || {};
+  const packingDay = lead?.packingDay || {};
+
   // Collapsible panel toggle
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
 
-  // If the lead has a packing day stored, we want to show that initially
-  // We also check if the user had "Moving" or "Packing" as last day, or default to "Moving"
+  // If the lead has a packing day stored, show that initially
+  // We'll store either 'packing' or 'moving' in local state
   const [activeDay, setActiveDay] = useState(
-    lead?.activeDay === 'Packing' ? 'Packing' : 'Moving'
+    lead?.activeDay === 'packing' ? 'packing' : 'moving'
   );
 
-  // If lead.hasPackingDay is true, we let the user see "Packing" day, otherwise they only see "Moving"
-  // We'll pass "hasPackingDay" to <PackingDay>, which can change it by calling onLeadUpdated
+  // If lead.hasPackingDay => show "packing" UI, else only "moving"
   const hasPackingDay = Boolean(lead?.hasPackingDay);
 
-  // ---------- MOVING SECTION measurements (so the container doesn't shrink) ----------
+  // ---------- For measuring the MOVING section height ----------
   const movingSectionRef = useRef(null);
   const [movingHeight, setMovingHeight] = useState(0);
 
+
+  // Keep local state in sync with lead prop changes
   useEffect(() => {
-    if (movingSectionRef.current) {
-      setMovingHeight(movingSectionRef.current.offsetHeight);
-    }
-  }, []);
+    // Get nested objects, creating defaults if necessary
+    const movingData = lead?.movingDay || {};
+    const packingData = lead?.packingDay || {};
+    
+    // Update rate type
+    setRateType(movingData.rateType ?? 'Hourly Rate');
+    
+    // Update moving day fields
+    setNumTrucks(movingData.numTrucks ?? '1');
+    setNumMovers(movingData.numMovers ?? '2');
+    setHourlyRate(movingData.hourlyRate ?? '180');
+    setVolume(movingData.volume ?? '1000');
+    setWeight(movingData.weight ?? '7000');
+    setPricePerCuft(movingData.pricePerCuft ?? '4.50');
+    setPricePerLbs(movingData.pricePerLbs ?? '0.74');
+    setTravelTime(movingData.travelTime ?? '1.00 h');
+    setMovingMin(movingData.movingMin ?? '3h');
+    setMinimumCuft(movingData.minimumCuft ?? '0.00');
+    setMinimumLbs(movingData.minimumLbs ?? '0');
+    
+    // Update pickup/delivery window fields
+    setPickupWindow(movingData.pickupWindow ?? '1 day');
+    setEarliestDeliveryDate(movingData.earliestDeliveryDate ?? '');
+    setDeliveryWindow(movingData.deliveryWindow ?? '7 days');
+    
+    // Special handling for work time fields to preserve relationship
+    const newMinHours = movingData.minHours ?? '1.00 h';
+    const newMaxHours = movingData.maxHours ?? '2.00 h';
+    
+    // Parse to numeric values for comparison
+    const minValue = parseQuarterHours(newMinHours);
+    const maxValue = parseQuarterHours(newMaxHours);
+    
+    // Set min and max hours while preserving their relationship
+    setMinHours(newMinHours);
+    setMaxHours(maxValue < minValue ? newMinHours : newMaxHours);
+    
+    // Update packing day fields
+    setNumPackers(packingData.numPackers ?? '2');
+    setPackingHourlyRate(packingData.packingHourlyRate ?? '120');
+    setPackingTravelTime(packingData.packingTravelTime ?? '0.45 h');
+    setPackingMinimum(packingData.packingMinimum ?? '2h');
+    
+    // Special handling for packing work time fields to preserve relationship
+    const newPackingMinHours = packingData.packingMinHours ?? '1.00 h';
+    const newPackingMaxHours = packingData.packingMaxHours ?? '2.00 h';
+    
+    // Parse to numeric values for comparison
+    const packingMinValue = parseQuarterHours(newPackingMinHours);
+    const packingMaxValue = parseQuarterHours(newPackingMaxHours);
+    
+    // Set packing min and max hours while preserving their relationship
+    setPackingMinHours(newPackingMinHours);
+    setPackingMaxHours(packingMaxValue < packingMinValue ? newPackingMinHours : newPackingMaxHours);
+  }, [lead]);
 
   // =========== MOVING: Rate Type ===========
-  const [rateType, setRateType] = useState(lead?.rateType ?? 'Hourly Rate');
+  const [rateType, setRateType] = useState(movingDay?.rateType ?? 'Hourly Rate');
   const [showRateTypeDropdown, setShowRateTypeDropdown] = useState(false);
   const rateTypeDropdownRef = useRef(null);
 
   // =========== MOVING day fields ===========
-  const [numTrucks, setNumTrucks] = useState(lead?.numTrucks ?? '1');
-  const [numMovers, setNumMovers] = useState(lead?.numMovers ?? '2');
-  const [hourlyRate, setHourlyRate] = useState(lead?.hourlyRate ?? '180');
-  const [volume, setVolume] = useState(lead?.volume ?? '1000');
-  const [weight, setWeight] = useState(lead?.weight ?? '7000');
-  const [pricePerCuft, setPricePerCuft] = useState(lead?.pricePerCuft ?? '4.50');
-  const [pricePerLbs, setPricePerLbs] = useState(lead?.pricePerLbs ?? '0.74');
+  const [numTrucks, setNumTrucks] = useState(movingDay?.numTrucks ?? '1');
+  const [numMovers, setNumMovers] = useState(movingDay?.numMovers ?? '2');
+  const [hourlyRate, setHourlyRate] = useState(movingDay?.hourlyRate ?? '180');
+  const [volume, setVolume] = useState(movingDay?.volume ?? '1000');
+  const [weight, setWeight] = useState(movingDay?.weight ?? '7000');
+  const [pricePerCuft, setPricePerCuft] = useState(movingDay?.pricePerCuft ?? '4.50');
+  const [pricePerLbs, setPricePerLbs] = useState(movingDay?.pricePerLbs ?? '0.74');
 
-  const [travelTime, setTravelTime] = useState(lead?.travelTime ?? '1.00 h');
+  const [travelTime, setTravelTime] = useState(movingDay?.travelTime ?? '1.00 h');
   const [showTravelTimeDropdown, setShowTravelTimeDropdown] = useState(false);
 
-  // For "Hourly Rate" => a 'Work time minimum' dropdown,
-  // For "Volume Based" => "Minimum Cuft" input,
+  // For "Hourly Rate" => "Work time minimum" dropdown
+  // For "Volume Based" => "Minimum Cuft" input
   // For "Weight Based" => "Minimum Lbs" input
-  const [movingMin, setMovingMin] = useState(lead?.movingMin ?? '3h');
+  const [movingMin, setMovingMin] = useState(movingDay?.movingMin ?? '3h');
   const [showMovingMinDropdown, setShowMovingMinDropdown] = useState(false);
 
-  // For "Minimum Cuft"
-  const [minimumCuft, setMinimumCuft] = useState(lead?.minimumCuft ?? '0.00');
-  function handleMinimumCuftChange(e) {
-    let val = e.target.value;
-    val = val.replace(/[^0-9.]/g, '');
-    const parts = val.split('.');
-    if (parts.length > 2) {
-      val = parts[0] + '.' + parts[1];
-    }
-    const [intPart, fracPart] = val.split('.');
-    if (fracPart?.length > 2) {
-      val = intPart + '.' + fracPart.slice(0, 2);
-    }
-    if (!val) val = '0.00';
-    setMinimumCuft(val);
-    // Also update the lead
-    if (onLeadUpdated) {
-      onLeadUpdated({ ...lead, minimumCuft: val });
-    }
-  }
+  const [minimumCuft, setMinimumCuft] = useState(movingDay?.minimumCuft ?? '0.00');
+  const [minimumLbs, setMinimumLbs] = useState(movingDay?.minimumLbs ?? '0');
 
-  // For "Minimum Lbs"
-  const [minimumLbs, setMinimumLbs] = useState(lead?.minimumLbs ?? '0');
-  function handleMinimumLbsChange(e) {
-    let val = e.target.value.replace(/\D+/g, '');
-    if (!val) val = '0';
-    setMinimumLbs(val);
-    if (onLeadUpdated) {
-      onLeadUpdated({ ...lead, minimumLbs: val });
-    }
-  }
-
-  // For volume/weight => pickupWindow, earliestDeliveryDate, deliveryWindow
-  const [pickupWindow, setPickupWindow] = useState(lead?.pickupWindow ?? '1 day');
+  // volume/weight => pickupWindow, earliestDeliveryDate, deliveryWindow
+  const [pickupWindow, setPickupWindow] = useState(movingDay?.pickupWindow ?? '1 day');
   const [showPickupWindowDropdown, setShowPickupWindowDropdown] = useState(false);
 
-  const [earliestDeliveryDate, setEarliestDeliveryDate] = useState(lead?.earliestDeliveryDate ?? '');
+  const [earliestDeliveryDate, setEarliestDeliveryDate] = useState(movingDay?.earliestDeliveryDate ?? '');
   const [showEarliestDeliveryCalendar, setShowEarliestDeliveryCalendar] = useState(false);
   const earliestCalRef = useRef(null);
 
-  const [deliveryWindow, setDeliveryWindow] = useState(lead?.deliveryWindow ?? '7 days');
+  const [deliveryWindow, setDeliveryWindow] = useState(movingDay?.deliveryWindow ?? '7 days');
   const [showDeliveryWindowDropdown, setShowDeliveryWindowDropdown] = useState(false);
 
   // "Work time" => minHours, maxHours (only for Hourly)
-  const [minHours, setMinHours] = useState(lead?.minHours ?? '1.00 h');
-  const [maxHours, setMaxHours] = useState(lead?.maxHours ?? '2.00 h');
+  const [minHours, setMinHours] = useState(movingDay?.minHours ?? '1.00 h');
+  const [maxHours, setMaxHours] = useState(movingDay?.maxHours ?? '2.00 h');
   const [showMinHoursDropdown, setShowMinHoursDropdown] = useState(false);
   const [showMaxHoursDropdown, setShowMaxHoursDropdown] = useState(false);
   const [showWorkTimeDetails, setShowWorkTimeDetails] = useState(false);
 
   // =========== PACKING day fields ===========
-  // Only relevant if lead.hasPackingDay === true
-  const [numPackers, setNumPackers] = useState(lead?.numPackers ?? '2');
-  const [packingHourlyRate, setPackingHourlyRate] = useState(lead?.packingHourlyRate ?? '120');
-  const [packingTravelTime, setPackingTravelTime] = useState(lead?.packingTravelTime ?? '0.45 h');
+  const [numPackers, setNumPackers] = useState(packingDay?.numPackers ?? '2');
+  const [packingHourlyRate, setPackingHourlyRate] = useState(packingDay?.packingHourlyRate ?? '120');
+  const [packingTravelTime, setPackingTravelTime] = useState(packingDay?.packingTravelTime ?? '0.45 h');
   const [showPackingTravelTimeDropdown, setShowPackingTravelTimeDropdown] = useState(false);
 
-  const [packingMinimum, setPackingMinimum] = useState(lead?.packingMinimum ?? '2h');
+  const [packingMinimum, setPackingMinimum] = useState(packingDay?.packingMinimum ?? '2h');
   const [showPackingMinDropdown, setShowPackingMinDropdown] = useState(false);
 
-  const [packingMinHours, setPackingMinHours] = useState(lead?.packingMinHours ?? '1.00 h');
-  const [packingMaxHours, setPackingMaxHours] = useState(lead?.packingMaxHours ?? '2.00 h');
+  const [packingMinHours, setPackingMinHours] = useState(packingDay?.packingMinHours ?? '1.00 h');
+  const [packingMaxHours, setPackingMaxHours] = useState(packingDay?.packingMaxHours ?? '2.00 h');
   const [showPackingMinHoursDropdown, setShowPackingMinHoursDropdown] = useState(false);
   const [showPackingMaxHoursDropdown, setShowPackingMaxHoursDropdown] = useState(false);
   const [showPackingDetails, setShowPackingDetails] = useState(false);
 
-  // Determine if "Hourly", "Volume", or "Weight"
+  // Are we 'Hourly', 'Volume', or 'Weight'?
   const isHourly = rateType === 'Hourly Rate';
   const isVolume = rateType === 'Volume Based';
   const isWeight = rateType === 'Weight Based';
 
-  // ---------- Handlers for onChange => update lead in parent ----------
-
-  function handleUpdateLeadField(fieldName, value) {
+  // ---------- update lead in parent ----------
+  // Helper function to update movingDay object
+  function handleUpdateMovingDay(updates) {
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
-        [fieldName]: value,
+        movingDay: {
+          ...lead.movingDay || {},
+          ...updates
+        }
+      });
+    }
+  }
+  
+  // Helper function to update packingDay object
+  function handleUpdatePackingDay(updates) {
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        packingDay: {
+          ...lead.packingDay || {},
+          ...updates
+        }
       });
     }
   }
@@ -204,96 +247,169 @@ function LogisticsDetails({
   function handleNumTrucksChange(e) {
     const val = e.target.value.replace(/\D+/g, '');
     setNumTrucks(val || '0');
-    handleUpdateLeadField('numTrucks', val || '0');
+    handleUpdateMovingDay({ numTrucks: val || '0' });
   }
+  
   function handleNumMoversChange(e) {
     const val = e.target.value.replace(/\D+/g, '');
     setNumMovers(val || '0');
-    handleUpdateLeadField('numMovers', val || '0');
+    handleUpdateMovingDay({ numMovers: val || '0' });
   }
+  
   function handleHourlyRateChange(e) {
     const val = e.target.value.replace(/[^0-9.]/g, '');
     setHourlyRate(val || '0');
-    handleUpdateLeadField('hourlyRate', val || '0');
+    handleUpdateMovingDay({ hourlyRate: val || '0' });
   }
+  
   function handleVolumeChange(e) {
     const val = e.target.value.replace(/\D+/g, '');
     setVolume(val || '0');
-    handleUpdateLeadField('volume', val || '0');
+    handleUpdateMovingDay({ volume: val || '0' });
   }
+  
   function handleWeightChange(e) {
     const val = e.target.value.replace(/\D+/g, '');
     setWeight(val || '0');
-    handleUpdateLeadField('weight', val || '0');
+    handleUpdateMovingDay({ weight: val || '0' });
   }
+  
   function handlePricePerCuftChange(e) {
     const val = e.target.value.replace(/[^0-9.]/g, '');
     setPricePerCuft(val || '0');
-    handleUpdateLeadField('pricePerCuft', val || '0');
+    handleUpdateMovingDay({ pricePerCuft: val || '0' });
   }
+  
   function handlePricePerLbsChange(e) {
     const val = e.target.value.replace(/[^0-9.]/g, '');
     setPricePerLbs(val || '0');
-    handleUpdateLeadField('pricePerLbs', val || '0');
+    handleUpdateMovingDay({ pricePerLbs: val || '0' });
   }
 
-  // For the old clamp min/max hours => MOVING (Hourly)
+  // clamp min/max => MOVING (Hourly)
   function handleSelectMinHours(label) {
-    setMinHours(label);
-    handleUpdateLeadField('minHours', label);
-
     const minValue = parseQuarterHours(label);
     const maxValue = parseQuarterHours(maxHours);
+    
+    // Update local state
+    setMinHours(label);
+    
     if (maxValue < minValue) {
+      // If new min is greater than current max, update both at once
       setMaxHours(label);
-      handleUpdateLeadField('maxHours', label);
+      
+      // Update lead with both values at once
+      handleUpdateMovingDay({
+        minHours: label,
+        maxHours: label
+      });
+    } else {
+      // Otherwise just update minHours
+      handleUpdateMovingDay({ minHours: label });
     }
   }
-  function handleSelectMaxHours(label) {
-    setMaxHours(label);
-    handleUpdateLeadField('maxHours', label);
 
+  function handleSelectMaxHours(label) {
     const newMaxValue = parseQuarterHours(label);
     const minValue = parseQuarterHours(minHours);
+    
+    // Update local state
+    setMaxHours(label);
+    
     if (newMaxValue < minValue) {
+      // If new max is less than current min, update both at once
       setMinHours(label);
-      handleUpdateLeadField('minHours', label);
+      
+      // Update lead with both values at once
+      handleUpdateMovingDay({
+        minHours: label,
+        maxHours: label
+      });
+    } else {
+      // Otherwise just update maxHours
+      handleUpdateMovingDay({ maxHours: label });
     }
+  }
+
+  // For Volume => Minimum Cuft
+  function handleMinimumCuftChange(e) {
+    let val = e.target.value.replace(/[^0-9.]/g, '');
+    const parts = val.split('.');
+    if (parts.length > 2) {
+      val = parts[0] + '.' + parts[1];
+    }
+    const [intPart, fracPart] = val.split('.');
+    if (fracPart && fracPart.length > 2) {
+      val = intPart + '.' + fracPart.slice(0, 2);
+    }
+    if (!val) val = '0.00';
+    setMinimumCuft(val);
+    handleUpdateMovingDay({ minimumCuft: val });
+  }
+
+  // For Weight => Minimum Lbs
+  function handleMinimumLbsChange(e) {
+    let val = e.target.value.replace(/\D+/g, '');
+    if (!val) val = '0';
+    setMinimumLbs(val);
+    handleUpdateMovingDay({ minimumLbs: val });
   }
 
   // PACKING numeric handlers
   function handleNumPackersChange(e) {
     const val = e.target.value.replace(/\D+/g, '');
     setNumPackers(val || '0');
-    handleUpdateLeadField('numPackers', val || '0');
+    handleUpdatePackingDay({ numPackers: val || '0' });
   }
+  
   function handlePackingHourlyRateChange(e) {
     const val = e.target.value.replace(/[^0-9.]/g, '');
     setPackingHourlyRate(val || '0');
-    handleUpdateLeadField('packingHourlyRate', val || '0');
+    handleUpdatePackingDay({ packingHourlyRate: val || '0' });
   }
 
-  // clamp min/max for packing
+  // clamp min/max => PACKING
   function handleSelectPackingMinHours(label) {
-    setPackingMinHours(label);
-    handleUpdateLeadField('packingMinHours', label);
-
     const minValue = parseQuarterHours(label);
     const maxValue = parseQuarterHours(packingMaxHours);
+    
+    // Update local state
+    setPackingMinHours(label);
+    
     if (maxValue < minValue) {
+      // If new min is greater than current max, update both at once
       setPackingMaxHours(label);
-      handleUpdateLeadField('packingMaxHours', label);
+      
+      // Update lead with both values at once
+      handleUpdatePackingDay({
+        packingMinHours: label,
+        packingMaxHours: label
+      });
+    } else {
+      // Otherwise just update packingMinHours
+      handleUpdatePackingDay({ packingMinHours: label });
     }
   }
-  function handleSelectPackingMaxHours(label) {
-    setPackingMaxHours(label);
-    handleUpdateLeadField('packingMaxHours', label);
 
+  function handleSelectPackingMaxHours(label) {
     const newMaxValue = parseQuarterHours(label);
     const minValue = parseQuarterHours(packingMinHours);
+    
+    // Update local state
+    setPackingMaxHours(label);
+    
     if (newMaxValue < minValue) {
+      // If new max is less than current min, update both at once
       setPackingMinHours(label);
-      handleUpdateLeadField('packingMinHours', label);
+      
+      // Update lead with both values at once
+      handleUpdatePackingDay({
+        packingMinHours: label,
+        packingMaxHours: label
+      });
+    } else {
+      // Otherwise just update packingMaxHours
+      handleUpdatePackingDay({ packingMaxHours: label });
     }
   }
 
@@ -315,14 +431,16 @@ function LogisticsDetails({
   function handlePrevMonth() {
     setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   }
+  
   function handleNextMonth() {
     setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   }
+  
   function handleSelectEarliestDate(dateObj) {
     const dateStr = dateObj.toDateString();
     setEarliestDeliveryDate(dateStr);
     setShowEarliestDeliveryCalendar(false);
-    handleUpdateLeadField('earliestDeliveryDate', dateStr);
+    handleUpdateMovingDay({ earliestDeliveryDate: dateStr });
   }
 
   // ---------- Close all dropdowns if user clicks outside ----------
@@ -409,9 +527,35 @@ function LogisticsDetails({
     showPackingMaxHoursDropdown
   ]);
 
-  // Determine if we are showing "Moving" or "Packing" (only if hasPackingDay)
-  const showMovingSection = !hasPackingDay || activeDay === 'Moving';
-  const showPackingSection = hasPackingDay && activeDay === 'Packing';
+
+  
+
+  // Are we showing "moving" or "packing"?
+  const showMovingSection = !hasPackingDay || activeDay === 'moving';
+  const showPackingSection = hasPackingDay && activeDay === 'packing';
+
+  useEffect(() => {
+    // Only measure height when the moving section is visible and after it's fully rendered
+    if (movingSectionRef.current && (showMovingSection || !hasPackingDay)) {
+      // Use setTimeout to ensure the section is fully rendered
+      const timer = setTimeout(() => {
+        const height = movingSectionRef.current.offsetHeight;
+        if (height > 0) {
+          setMovingHeight(height);
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [
+    // Recalculate height when these values change as they affect section visibility
+    showMovingSection, 
+    hasPackingDay, 
+    isHourly, 
+    isVolume, 
+    isWeight,
+    showWorkTimeDetails
+  ]);
 
   return (
     <div className={styles.logisticsContainer}>
@@ -423,33 +567,34 @@ function LogisticsDetails({
       </div>
 
       {!isCollapsed && (
-        <div
-          className={styles.innerContent}
-          style={{ minHeight: movingHeight ? `${movingHeight}px` : 'auto' }}
-        >
+      <div
+      className={styles.innerContent}
+      style={{ 
+        minHeight: movingHeight ? `${movingHeight}px` : 'auto',
+        transition: 'min-height 0.2s ease-in-out' // Optional: add smooth transition
+      }}
+    >
           {/* "Add Packing Day" or highlight "Moving"/"Packing" */}
           <div className={styles.packingDayWrapper}>
             <PackingDay
               lead={lead}
               onDaySelected={(day) => {
-                setActiveDay(day);
-                // Optionally store the activeDay in the lead
-                if (onLeadUpdated) {
-                  onLeadUpdated({ ...lead, activeDay: day });
-                }
+                // Only update local state - PackingDay component
+                // will handle updating the lead itself via onLeadUpdated
+                setActiveDay(day.toLowerCase());
               }}
-              onLeadUpdated={onLeadUpdated} // so that "hasPackingDay" can be toggled
+              onLeadUpdated={onLeadUpdated}
             />
           </div>
 
           <div className={styles.extraInputsContainer}>
 
-            {/* ================= MOVING SECTION ================= */}
+            {/* ====== MOVING SECTION ====== */}
             <div
               ref={movingSectionRef}
               style={{ display: showMovingSection ? 'block' : 'none' }}
             >
-              {/* Rate Type dropdown */}
+              {/* Rate Type */}
               <div className={styles.row}>
                 <div className={styles.rateTypeWrapper} ref={rateTypeDropdownRef}>
                   <button
@@ -479,7 +624,7 @@ function LogisticsDetails({
                             onClick={() => {
                               setRateType(opt);
                               setShowRateTypeDropdown(false);
-                              handleUpdateLeadField('rateType', opt);
+                              handleUpdateMovingDay({ rateType: opt });
                             }}
                           >
                             {opt}
@@ -599,7 +744,7 @@ function LogisticsDetails({
                     }}
                   >
                     <div className={styles.dropdownLabel}>
-                      <span className={styles.dropdownPrefix}>Travel Time (h):</span>
+                      <span className={styles.dropdownPrefix}>Travel Time:</span>
                       <span className={styles.dropdownSelected}>{travelTime}</span>
                     </div>
                     <UnfoldMoreIcon className={styles.dropdownIcon} />
@@ -620,7 +765,7 @@ function LogisticsDetails({
                                 e.stopPropagation();
                                 setTravelTime(opt);
                                 setShowTravelTimeDropdown(false);
-                                handleUpdateLeadField('travelTime', opt);
+                                handleUpdateMovingDay({ travelTime: opt });
                               }}
                             >
                               {opt}
@@ -666,7 +811,7 @@ function LogisticsDetails({
                                 evt.stopPropagation();
                                 setMovingMin(opt);
                                 setShowMovingMinDropdown(false);
-                                handleUpdateLeadField('movingMin', opt);
+                                handleUpdateMovingDay({ movingMin: opt });
                               }}
                             >
                               {opt}
@@ -744,7 +889,7 @@ function LogisticsDetails({
                                 e.stopPropagation();
                                 setPickupWindow(opt);
                                 setShowPickupWindowDropdown(false);
-                                handleUpdateLeadField('pickupWindow', opt);
+                                handleUpdateMovingDay({ pickupWindow: opt });
                               }}
                             >
                               {opt}
@@ -863,7 +1008,7 @@ function LogisticsDetails({
                                 e.stopPropagation();
                                 setDeliveryWindow(opt);
                                 setShowDeliveryWindowDropdown(false);
-                                handleUpdateLeadField('deliveryWindow', opt);
+                                handleUpdateMovingDay({ deliveryWindow: opt });
                               }}
                             >
                               {opt}
@@ -987,10 +1132,9 @@ function LogisticsDetails({
               )}
             </div>
 
-            {/* ================= PACKING SECTION ================= */}
+            {/* ====== PACKING SECTION ====== */}
             {showPackingSection && (
               <div>
-                {/* (We removed the old divider) */}
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
@@ -1032,7 +1176,7 @@ function LogisticsDetails({
                         }}
                       >
                         <div className={styles.dropdownLabel}>
-                          <span className={styles.dropdownPrefix}>Packers Travel Time (h):</span>
+                          <span className={styles.dropdownPrefix}>Packers Travel Time:</span>
                           <span className={styles.dropdownSelected}>{packingTravelTime}</span>
                         </div>
                         <UnfoldMoreIcon className={styles.dropdownIcon} />
@@ -1053,7 +1197,7 @@ function LogisticsDetails({
                                     e.stopPropagation();
                                     setPackingTravelTime(opt);
                                     setShowPackingTravelTimeDropdown(false);
-                                    handleUpdateLeadField('packingTravelTime', opt);
+                                    handleUpdatePackingDay({ packingTravelTime: opt });
                                   }}
                                 >
                                   {opt}
@@ -1097,7 +1241,7 @@ function LogisticsDetails({
                                     e.stopPropagation();
                                     setPackingMinimum(opt);
                                     setShowPackingMinDropdown(false);
-                                    handleUpdateLeadField('packingMinimum', opt);
+                                    handleUpdatePackingDay({ packingMinimum: opt });
                                   }}
                                 >
                                   {opt}

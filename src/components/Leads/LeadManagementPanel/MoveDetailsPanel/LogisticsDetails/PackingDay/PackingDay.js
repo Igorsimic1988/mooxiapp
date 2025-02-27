@@ -1,3 +1,4 @@
+// src/components/LeadManagementPanel/MoveDetailsPanel/LogisticsDetails/PackingDay/PackingDay.js
 import React, { useState, useEffect } from 'react';
 import styles from './PackingDay.module.css';
 
@@ -5,58 +6,83 @@ import styles from './PackingDay.module.css';
  * This component shows either:
  * - "Add Packing Day" if lead.hasPackingDay=false
  * - Otherwise, two buttons: "Packing Day" / "Moving Day"
- * We also show a "Remove packing day" if selectedDay==='packing'.
+ * We also show a "Remove packing day" if `selectedDay==='packing'`.
  */
 function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
   // We read the initial "hasPackingDay" from lead
   const [hasPackingDay, setHasPackingDay] = useState(Boolean(lead?.hasPackingDay));
 
-  // If hasPackingDay=true => which button is highlighted? (packing vs. moving)
-  // We'll read from lead.activeDay or default 'packing'
-  // But we might also override it if the user calls onDaySelected
+  // If hasPackingDay=true => which button is highlighted? default 'packing'
+  // but if lead.activeDay==='moving', we highlight that
   const [selectedDay, setSelectedDay] = useState(
     lead?.activeDay === 'packing' ? 'packing' : 'moving'
   );
 
-  // If lead changes externally, we might want to reflect that
-  // (only if you anticipate the lead prop might be replaced).
-  // For simplicity, a one-time load is often enough. Otherwise:
+  // Update local state when lead prop changes
   useEffect(() => {
     setHasPackingDay(Boolean(lead?.hasPackingDay));
     if (lead?.activeDay === 'packing') {
       setSelectedDay('packing');
-    } else if (lead?.activeDay === 'moving') {
+    } else {
       setSelectedDay('moving');
     }
-  }, [lead]);
+  }, [lead?.hasPackingDay, lead?.activeDay]);
 
   const handleAddPackingDay = () => {
+    // Update local state
     setHasPackingDay(true);
     setSelectedDay('packing');
+    
+    // Update parent component and persist changes
     if (onLeadUpdated) {
-      onLeadUpdated({ ...lead, hasPackingDay: true });
+      onLeadUpdated({
+        ...lead,
+        hasPackingDay: true,
+        activeDay: 'packing',  // store as lowercase
+      });
     }
+    
+    // Notify parent about selected day
     if (onDaySelected) {
-      onDaySelected('Packing');
+      onDaySelected('packing');
     }
   };
 
   const handleSelectDay = (day) => {
+    // Update local state
     setSelectedDay(day);
+    
+    // Update parent component
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        activeDay: day, // store exactly 'packing' or 'moving'
+      });
+    }
+    
+    // Notify parent about selected day
     if (onDaySelected) {
-      const capitalized = day === 'packing' ? 'Packing' : 'Moving';
-      onDaySelected(capitalized);
+      onDaySelected(day);
     }
   };
 
   const handleRemovePackingDay = () => {
+    // Update local state
     setHasPackingDay(false);
     setSelectedDay('moving');
+    
+    // Update parent component and persist changes
     if (onLeadUpdated) {
-      onLeadUpdated({ ...lead, hasPackingDay: false });
+      onLeadUpdated({
+        ...lead,
+        hasPackingDay: false,
+        activeDay: 'moving',
+      });
     }
+    
+    // Notify parent about selected day
     if (onDaySelected) {
-      onDaySelected('Moving');
+      onDaySelected('moving');
     }
   };
 

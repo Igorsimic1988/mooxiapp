@@ -88,7 +88,7 @@ function formatPhoneNumber(digits) {
   let trimmed = raw;
   if (trimmed.length > 10) trimmed = trimmed.slice(-10);
   const area = trimmed.slice(0, 3);
-  const mid  = trimmed.slice(3, 6);
+  const mid = trimmed.slice(3, 6);
   const last = trimmed.slice(6);
   if (!area) return '';
   if (!mid) return `(${area}`;
@@ -216,7 +216,10 @@ function LeadManagementPanel({
     const oldActivity = leadActivity;
     let newNextAction = nextAction;
 
-    if (leadStatus === 'In Progress' && ['In Home Estimate', 'Virtual Estimate'].includes(activityValue)) {
+    if (
+      leadStatus === 'In Progress' &&
+      ['In Home Estimate', 'Virtual Estimate'].includes(activityValue)
+    ) {
       newNextAction = 'Schedule Survey';
       setHideNextActionAfterSurvey(false);
     } else if (
@@ -260,14 +263,14 @@ function LeadManagementPanel({
       return;
     }
 
-    // CHANGE #1: If nextAction === 'Survey Completed', we set it to 'Completed' (so it won't reappear)
+    // If nextAction === 'Survey Completed', we set it to 'Completed'
     if (nextAction === 'Survey Completed') {
       setHideNextActionAfterSurvey(true);
-      setNextAction('Completed'); // push 'Completed' into the lead
+      setNextAction('Completed');
       await doUpdateLead({
         lead_status: leadStatus,
         lead_activity: leadActivity,
-        next_action: 'Completed', // store 'Completed' in the DB
+        next_action: 'Completed',
         estimator: selectedEstimator,
         survey_date: selectedDate,
         survey_time: selectedTime,
@@ -425,10 +428,11 @@ function LeadManagementPanel({
   const statusColor = currentStatusObj ? currentStatusObj.color : '#59B779';
   const statusIcon = currentStatusObj ? currentStatusObj.icon : null;
 
-  // CHANGE #2: We hide the Next Action if it's a hidden status or "Completed" was set
-  const hideNextAction = HIDDEN_STATUSES.includes(leadStatus)
-    || hideNextActionAfterSurvey
-    || nextAction === 'Completed'; // <--- so if nextAction was changed to 'Completed', it stays hidden
+  // We hide Next Action if it's a hidden status or "Completed" was set
+  const hideNextAction =
+    HIDDEN_STATUSES.includes(leadStatus) ||
+    hideNextActionAfterSurvey ||
+    nextAction === 'Completed';
 
   const hideActivityButton = leadStatus === 'Move on Hold';
   const activityOptions = getActivityOptions(leadStatus);
@@ -473,7 +477,11 @@ function LeadManagementPanel({
         <div className={styles.buttonsRow}>
           {/* Status */}
           <div ref={statusContainerRef} style={{ position: 'relative', width: '100%' }}>
-            <button type="button" className={styles.statusButton} onClick={handleToggleStatusDropdown}>
+            <button
+              type="button"
+              className={styles.statusButton}
+              onClick={handleToggleStatusDropdown}
+            >
               <div className={styles.statusContent}>
                 <span className={styles.statusTextLabel}>Status:</span>
                 <span className={styles.statusTextValue} style={{ color: statusColor }}>
@@ -487,22 +495,23 @@ function LeadManagementPanel({
 
             {showStatusDropdown && (
               <ul className={styles.statusDropdown}>
-                {statusOptions.filter((o) => o.label !== 'New Lead').map((option) => {
-                  const isSelected = option.label === leadStatus;
-                  return (
-                    <li
-                      key={option.label}
-                      className={`
-                        ${styles.statusOption}
-                        ${isSelected ? styles.selectedOption : ''}
-                      `}
-                      style={{ color: option.color }}
-                      onClick={() => handleSelectStatus(option)}
-                    >
-                      {option.label}
-                    </li>
-                  );
-                })}
+                {statusOptions
+                  .filter((o) => o.label !== 'New Lead')
+                  .map((option) => {
+                    const isSelected = option.label === leadStatus;
+                    return (
+                      <li
+                        key={option.label}
+                        className={`${styles.statusOption} ${
+                          isSelected ? styles.selectedOption : ''
+                        }`}
+                        style={{ color: option.color }}
+                        onClick={() => handleSelectStatus(option)}
+                      >
+                        {option.label}
+                      </li>
+                    );
+                  })}
               </ul>
             )}
           </div>
@@ -510,7 +519,11 @@ function LeadManagementPanel({
           {/* Activity */}
           {!hideActivityButton && (
             <div ref={activityContainerRef} style={{ position: 'relative', width: '100%' }}>
-              <button type="button" className={styles.activityButton} onClick={handleToggleActivityDropdown}>
+              <button
+                type="button"
+                className={styles.activityButton}
+                onClick={handleToggleActivityDropdown}
+              >
                 <div className={styles.activityContent}>
                   <span className={styles.activityLabel}>Activity:</span>
                   <span className={styles.activityValue}>{leadActivity}</span>
@@ -525,10 +538,9 @@ function LeadManagementPanel({
                     return (
                       <li
                         key={act}
-                        className={`
-                          ${styles.activityOption}
-                          ${isSelected ? styles.selectedOption : ''}
-                        `}
+                        className={`${styles.activityOption} ${
+                          isSelected ? styles.selectedOption : ''
+                        }`}
                         onClick={() => handleSelectActivity(act)}
                       >
                         {act}
@@ -645,10 +657,9 @@ function LeadManagementPanel({
               {/* Next Action */}
               {!hideNextAction && (
                 <button
-                  className={`
-                    ${styles.nextActionButton}
-                    ${animateNextAction ? styles.animateNextAction : ''}
-                  `}
+                  className={`${styles.nextActionButton} ${
+                    animateNextAction ? styles.animateNextAction : ''
+                  }`}
                   onClick={handleNextActionClick}
                 >
                   <span className={styles.nextActionLabel}>Next Action:</span>
@@ -658,16 +669,15 @@ function LeadManagementPanel({
             </div>
           )}
 
-        {/* If not in "In Home/Virtual" but still show Next Action if available */}
+        {/* If not "In Home/Virtual" but still show Next Action if available */}
         {!(
           leadStatus === 'In Progress' &&
           (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate')
         ) && !hideNextAction && (
           <button
-            className={`
-              ${styles.nextActionButton}
-              ${animateNextAction ? styles.animateNextAction : ''}
-            `}
+            className={`${styles.nextActionButton} ${
+              animateNextAction ? styles.animateNextAction : ''
+            }`}
             style={{ marginTop: '10px' }}
             onClick={handleNextActionClick}
           >
@@ -703,13 +713,21 @@ function LeadManagementPanel({
           >
             <span
               className={styles.inventoryText}
-              style={{ color: inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.textColor || '#3FA9F5' }}
+              style={{
+                color:
+                  inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.textColor ||
+                  '#3FA9F5',
+              }}
             >
               {inventoryOption}
             </span>
             <div
               className={styles.inventoryIconContainer}
-              style={{ backgroundColor: inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.iconBg || '#3FA9F5' }}
+              style={{
+                backgroundColor:
+                  inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.iconBg ||
+                  '#3FA9F5',
+              }}
             >
               <SpecialHIcon className={styles.specialHIcon} />
             </div>
@@ -721,10 +739,9 @@ function LeadManagementPanel({
                   return (
                     <li
                       key={opt.label}
-                      className={`
-                        ${styles.inventoryOption}
-                        ${isSelected ? styles.selectedOption : ''}
-                      `}
+                      className={`${styles.inventoryOption} ${
+                        isSelected ? styles.selectedOption : ''
+                      }`}
                       onClick={() => handleSelectInventoryOption(opt)}
                     >
                       {opt.label}

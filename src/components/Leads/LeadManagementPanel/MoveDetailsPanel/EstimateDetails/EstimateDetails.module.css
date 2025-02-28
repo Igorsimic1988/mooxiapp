@@ -183,20 +183,25 @@
   align-items: center;
   height: 50px;
   width: 100%;
+  overflow: hidden;
 }
 
 .pricingLabel {
   color: #6E7882;
   font-family: Satoshi, sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
 }
 
 .pricingValue {
   color: #2F3236;
   text-align: right;
   font-family: Satoshi, sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   background: transparent;
   border: none;
@@ -205,6 +210,8 @@
   margin: 0;
   min-width: 80px;
   width: auto;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .pricingValue:focus {
@@ -215,23 +222,44 @@
 .grandTotalLabel {
   color: #2F3236;
   font-weight: 700;
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grandTotalValue {
+  color: #2F3236;
+  font-weight: 700;
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .importantLabel {
   color: #2F3236;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .balanceDueLabel {
   color: #2F3236;
   font-family: Satoshi, sans-serif;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .balanceDueValue {
   color: #3FA9F5;
   font-family: Satoshi, sans-serif;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
 }

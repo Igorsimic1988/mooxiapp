@@ -62,6 +62,17 @@ function parseQuarterHours(str) {
   return hour + decimalPart / 60;
 }
 
+/** Format date as "Mmm dd yyyy" */
+function formatDate(date) {
+  if (!date) return '';
+  const dateObj = new Date(date);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = months[dateObj.getMonth()];
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const year = dateObj.getFullYear();
+  return `${month} ${day} ${year}`;
+}
+
 /** On-focus => select all text in the input */
 function handleFocusSelectAll(e) {
   e.target.select();
@@ -437,11 +448,15 @@ function LogisticsDetails({
   }
   
   function handleSelectEarliestDate(dateObj) {
+    // Store the date string in the internal format for persistence
     const dateStr = dateObj.toDateString();
     setEarliestDeliveryDate(dateStr);
     setShowEarliestDeliveryCalendar(false);
     handleUpdateMovingDay({ earliestDeliveryDate: dateStr });
   }
+
+  // Format the earliest delivery date for display
+  const formattedEarliestDeliveryDate = earliestDeliveryDate ? formatDate(earliestDeliveryDate) : 'Select';
 
   // ---------- Close all dropdowns if user clicks outside ----------
   useEffect(() => {
@@ -909,9 +924,9 @@ function LogisticsDetails({
                     }}
                   >
                     <div className={styles.dropdownLabel}>
-                      <span className={styles.dropdownPrefix}>Earliest Delivery Date:</span>
+                      <span className={styles.dropdownPrefix}>Earliest Del.:</span>
                       <span className={styles.dropdownSelected}>
-                        {earliestDeliveryDate || 'Select'}
+                        {formattedEarliestDeliveryDate}
                       </span>
                     </div>
                     <div className={styles.calendarRightIconWrapper}>
@@ -1023,6 +1038,7 @@ function LogisticsDetails({
 
               {isHourly && (
                 <>
+                  <div className={styles.divider}></div>
                   <div className={styles.workTimeHeadline}>Work time</div>
                   <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
                     <div
@@ -1134,7 +1150,7 @@ function LogisticsDetails({
 
             {/* ====== PACKING SECTION ====== */}
             {showPackingSection && (
-              <div>
+              <div style={{ marginTop: '20px' }}>
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
@@ -1255,6 +1271,7 @@ function LogisticsDetails({
                   </>
                 )}
 
+                <div className={styles.divider}></div>
                 <div className={styles.workTimeHeadline}>Packers Work time</div>
                 <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
                   <div

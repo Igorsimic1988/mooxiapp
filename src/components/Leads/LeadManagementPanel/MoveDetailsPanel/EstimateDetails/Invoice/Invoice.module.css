@@ -65,7 +65,7 @@
   /* "Remove invoice" pinned at bottom-right within .invoiceRow */
   .removeInvoiceLink {
     position: absolute;
-    bottom: 0;
+    bottom: -30px;
     right: 0;
     background: none;
     border: none;

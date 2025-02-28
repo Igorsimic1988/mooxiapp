@@ -9,9 +9,7 @@ import Invoice from './Invoice/Invoice';
 const RATE_TYPE_OPTIONS = ['Flat Rate', 'Price Range', 'Single Estimate', 'Minimum Estimate'];
 
 /** On-focus => select all text in the input */
-function handleFocusSelectAll(e) {
-  e.target.select();
-}
+
 
 function EstimateDetails({
   lead,            // The entire lead object
@@ -21,7 +19,6 @@ function EstimateDetails({
 }) {
   // Initialize nested objects if they don't exist
   const estimate = lead?.estimate || {};
-  const invoice = lead?.invoice || {};
 
   // Collapsible panel toggle
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
@@ -63,7 +60,7 @@ function EstimateDetails({
   useEffect(() => {
     // Get nested objects, creating defaults if necessary
     const estimateData = lead?.estimate || {};
-    const invoiceData = lead?.invoice || {};
+  
     
     // Update rate type
     setRateType(estimateData.rateType ?? 'Flat Rate');
@@ -96,18 +93,7 @@ function EstimateDetails({
     }
   }
   
-  // Helper function to update invoice object
-  function handleUpdateInvoice(updates) {
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        invoice: {
-          ...lead.invoice || {},
-          ...updates
-        }
-      });
-    }
-  }
+
 
   // ---------- Close all dropdowns if user clicks outside ----------
   useEffect(() => {
@@ -240,150 +226,70 @@ function EstimateDetails({
               {/* Quote Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Quote</span>
-                <input
-                  className={styles.pricingValue}
-                  value={quote}
-                  onChange={(e) => {
-                    setQuote(e.target.value);
-                    handleUpdateEstimate({ quote: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={styles.pricingValue}>{quote}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Fuel Surcharge Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Fuel Surcharge</span>
-                <input
-                  className={styles.pricingValue}
-                  value={fuelSurcharge}
-                  onChange={(e) => {
-                    setFuelSurcharge(e.target.value);
-                    handleUpdateEstimate({ fuelSurcharge: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={styles.pricingValue}>{fuelSurcharge}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Valuation Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Valuation</span>
-                <input
-                  className={styles.pricingValue}
-                  value={valuation}
-                  onChange={(e) => {
-                    setValuation(e.target.value);
-                    handleUpdateEstimate({ valuation: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={styles.pricingValue}>{valuation}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Packing Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Packing</span>
-                <input
-                  className={styles.pricingValue}
-                  value={packing}
-                  onChange={(e) => {
-                    setPacking(e.target.value);
-                    handleUpdateEstimate({ packing: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={styles.pricingValue}>{packing}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Additional Services Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Additional Services</span>
-                <input
-                  className={styles.pricingValue}
-                  value={additionalServices}
-                  onChange={(e) => {
-                    setAdditionalServices(e.target.value);
-                    handleUpdateEstimate({ additionalServices: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={styles.pricingValue}>{additionalServices}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Grand Total Row */}
               <div className={styles.pricingRow}>
                 <span className={`${styles.pricingLabel} ${styles.grandTotalLabel}`}>Grand Total</span>
-                <input
-                  className={styles.pricingValue}
-                  value={grandTotal}
-                  onChange={(e) => {
-                    setGrandTotal(e.target.value);
-                    handleUpdateEstimate({ grandTotal: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={`${styles.pricingLabel} ${styles.grandTotalValue}`}>{grandTotal}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Deposit Row */}
               <div className={styles.pricingRow}>
                 <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>Deposit</span>
-                <input
-                  className={styles.pricingValue}
-                  value={deposit}
-                  onChange={(e) => {
-                    setDeposit(e.target.value);
-                    handleUpdateEstimate({ deposit: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={styles.pricingValue}>{deposit}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Payment Row */}
               <div className={styles.pricingRow}>
                 <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>Payment</span>
-                <input
-                  className={styles.pricingValue}
-                  value={payment}
-                  onChange={(e) => {
-                    setPayment(e.target.value);
-                    handleUpdateEstimate({ payment: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={styles.pricingValue}>{payment}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Discount Row */}
               <div className={styles.pricingRow}>
                 <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>Discount</span>
-                <input
-                  className={styles.pricingValue}
-                  value={discount}
-                  onChange={(e) => {
-                    setDiscount(e.target.value);
-                    handleUpdateEstimate({ discount: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={styles.pricingValue}>{discount}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Balance Due Row - No divider after this one */}
               <div className={styles.pricingRow}>
                 <span className={`${styles.pricingLabel} ${styles.balanceDueLabel}`}>Balance Due</span>
-                <input
-                  className={`${styles.pricingValue} ${styles.balanceDueValue}`}
-                  value={balanceDue}
-                  onChange={(e) => {
-                    setBalanceDue(e.target.value);
-                    handleUpdateEstimate({ balanceDue: e.target.value });
-                  }}
-                  onFocus={handleFocusSelectAll}
-                />
+                <span className={`${styles.pricingValue} ${styles.balanceDueValue}`}>{balanceDue}</span>
               </div>
             </div>
 

@@ -57,6 +57,25 @@ function migrateToNestedStructure(lead) {
     };
   }
   
+  // Make sure estimate object exists
+  if (!lead.estimate) {
+    lead.estimate = {
+      rateType: 'Flat Rate',
+      deposit: '$50.00',
+      quote: '$520.00 - $585.00',
+      fuelSurcharge: '$0.00',
+      valuation: '$0.00',
+      packing: '$0.00',
+      additionalServices: '$0.00',
+      discount: '$0.00',
+      grandTotal: '$520 - $585',
+      payment: '$0.00',
+      balanceDue: '$520 - $585',
+    };
+  }
+  
+  // Invoice is not created by default, only when user clicks "Create Invoice"
+  
   return lead;
 }
 
@@ -121,6 +140,24 @@ export async function createLead(leadData) {
     packingMinHours: '1.00 h',
     packingMaxHours: '2.00 h',
   };
+  
+  // Initialize estimate data
+  const estimate = leadData.estimate || {
+    rateType: 'Flat Rate',
+    deposit: '$50.00',
+    quote: '$520.00 - $585.00',
+    fuelSurcharge: '$0.00',
+    valuation: '$0.00',
+    packing: '$0.00',
+    additionalServices: '$0.00',
+    discount: '$0.00',
+    grandTotal: '$520 - $585',
+    payment: '$0.00',
+    balanceDue: '$520 - $585',
+  };
+
+  // Invoice is not created by default - only when user clicks "Create Invoice"
+  // hasInvoice + activeOption determine which UI is shown
 
   // Prepare the new lead object
   const newLead = {
@@ -159,10 +196,15 @@ export async function createLead(leadData) {
     // ---------- Day selection fields ----------
     hasPackingDay: leadData.hasPackingDay ?? false,
     activeDay: leadData.activeDay ?? 'moving', // default to lowercase 'moving'
+    
+    // ---------- Invoice/Estimate fields ----------
+    hasInvoice: leadData.hasInvoice ?? false,
+    activeOption: leadData.activeOption ?? 'estimate', // default to lowercase 'estimate'
 
     // ---------- NESTED OBJECTS ----------
     movingDay,
     packingDay,
+    estimate,
 
     // new array for storing history
     status_history: [],
@@ -216,6 +258,12 @@ export async function updateLead(leadId, updates) {
     ? updates.hasPackingDay
     : existingLead.hasPackingDay;
   existingLead.activeDay = updates.activeDay ?? existingLead.activeDay;
+  
+  // ---------- Invoice/Estimate fields ----------
+  existingLead.hasInvoice = (typeof updates.hasInvoice !== 'undefined')
+    ? updates.hasInvoice
+    : existingLead.hasInvoice;
+  existingLead.activeOption = updates.activeOption ?? existingLead.activeOption;
 
   // ---------- NESTED OBJECTS ----------
   if (updates.movingDay) {
@@ -232,6 +280,22 @@ export async function updateLead(leadId, updates) {
     
     // Merge all fields from updates.packingDay
     Object.assign(existingLead.packingDay, updates.packingDay);
+  }
+  
+  if (updates.estimate) {
+    // Make sure estimate object exists
+    if (!existingLead.estimate) existingLead.estimate = {};
+    
+    // Merge all fields from updates.estimate
+    Object.assign(existingLead.estimate, updates.estimate);
+  }
+  
+  if (updates.invoice) {
+    // Make sure invoice object exists
+    if (!existingLead.invoice) existingLead.invoice = {};
+    
+    // Merge all fields from updates.invoice
+    Object.assign(existingLead.invoice, updates.invoice);
   }
 
   if (Array.isArray(updates.originStops)) {

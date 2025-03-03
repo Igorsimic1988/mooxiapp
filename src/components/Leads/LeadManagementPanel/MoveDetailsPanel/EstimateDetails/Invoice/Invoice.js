@@ -80,6 +80,7 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
         ...lead,
         hasInvoice: false,
         activeOption: 'estimate',
+        // We don't delete the invoice data, just hide it
       });
     }
     

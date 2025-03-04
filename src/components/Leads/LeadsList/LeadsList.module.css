@@ -1,7 +1,7 @@
 .container {
   background: #F2F5F8;
   padding: 10px 20px 20px 20px;
-  height: calc(100vh - 200px); /* Example: subtract top sections’ heights */
+  height: calc(100vh - 200px); /* Example: subtract top sections' heights */
   overflow-y: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch; /* Enables smooth scrolling on iOS */
@@ -207,12 +207,45 @@
   max-height: 20px;
 }
 
-/* existing rules above... */
-
 .completedText {
   color: #3fa9f5 !important; /* ensures we override the default #90A4B7 */
 }
 
+/* Empty state for no results */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  width: 100%;
+  text-align: center;
+  color: #8E9096;
+  padding: 20px;
+}
+
+.emptyStateText {
+  font-family: Satoshi, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+/* Style for search results */
+.searchResult {
+  position: relative;
+}
+
+.searchResult::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #3fa9f5;
+  border-radius: 0 2px 2px 0;
+}
 
 /* Media query for smaller screens */
 @media (max-width: 392px) {

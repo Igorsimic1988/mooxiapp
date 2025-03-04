@@ -3,10 +3,14 @@ import styles from './LeadsActionButtons.module.css';
 import { ReactComponent as FilterIcon } from '../../../assets/icons/filter.svg';
 import { ReactComponent as TransferIcon } from '../../../assets/icons/transfer.svg';
 
-function LeadsActionButtons() {
+function LeadsActionButtons({ onOpenFilterPopup }) {
   return (
     <div className={styles.container}>
-      <button className={styles.button} aria-label="Filter">
+      <button
+        className={styles.button}
+        aria-label="Filter"
+        onClick={onOpenFilterPopup}    // ← Add this callback
+      >
         <div className={styles.iconBackground}>
           <FilterIcon className={styles.icon} />
         </div>

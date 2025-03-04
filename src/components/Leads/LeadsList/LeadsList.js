@@ -8,6 +8,7 @@ import { ReactComponent as DeclinedIcon } from '../../../assets/icons/declined.s
 import { ReactComponent as BookedIcon } from '../../../assets/icons/booked.svg';
 import { ReactComponent as OnHoldIcon } from '../../../assets/icons/onhold.svg';
 import { ReactComponent as CanceledIcon } from '../../../assets/icons/canceled.svg';
+import { ReactComponent as SearchIcon } from '../../../assets/icons/search.svg';
 
 /**
  * Format creation_date_time => mm/dd/yyyy
@@ -62,6 +63,28 @@ const statusMapping = {
 };
 
 function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
+  const isSearchResults = activeTab === 'Search Results';
+  
+  if (leads.length === 0) {
+    return (
+      <div className={styles.listContainer} ref={leadsListRef} onScroll={onScroll}>
+        <div className={styles.emptyState}>
+          {isSearchResults ? (
+            <>
+              <SearchIcon className={styles.emptyStateIcon} />
+              <p className={styles.emptyStateText}>No results found</p>
+              <p className={styles.emptyStateSubtext}>Try different search terms</p>
+            </>
+          ) : (
+            <>
+              <p className={styles.emptyStateText}>No leads found</p>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={styles.listContainer}
@@ -102,7 +125,7 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
 
         return (
           <div
-            className={styles.card}
+            className={`${styles.card} ${isSearchResults ? styles.searchResult : ''}`}
             key={lead.job_number}
             onClick={() => onLeadClick(lead)}
           >

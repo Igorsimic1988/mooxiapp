@@ -31,7 +31,7 @@ export async function POST(req: Request) {
                 email,
                 password: hashedPassword,
                 name,
-                emailVerified: true, //proveriti
+                emailVerified: false, //proveriti
             },
         });
 

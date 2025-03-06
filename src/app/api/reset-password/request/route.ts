@@ -7,7 +7,7 @@ import { getUserByEmail } from "../../../utils/user";
 
 export async function POST(req: Request){
     try{
-        const {email} = await req.json();
+        const { email } = await req.json();
         const existingUser = await getUserByEmail(email);
         
         if (!existingUser) {

@@ -13,8 +13,8 @@ export async function POST(req: Request){
             where:{token},
         });
 
-        if (!resetToken || resetToken.identifier !== "password-reset"){
-            return NextResponse.json({error: "Invalid token"}, {status: 400});
+        if (!resetToken || resetToken.identifier !== "password-reset" || resetToken.expires < new Date()){
+            return NextResponse.json({error: "Invalid or expired token"}, {status: 400});
         }
 
         const user = await getUserByEmail(resetToken.email!);
@@ -28,6 +28,11 @@ export async function POST(req: Request){
             where: {id: user.id},
             data: {password: hashedPassword},
         });
+
+        await prisma.verificationToken.delete({
+            where: { id: resetToken.id },
+        });
+        
         return NextResponse.json({ message: "Password reset successful!" });
     }catch(error){
         console.error("Error resetting password:", error);

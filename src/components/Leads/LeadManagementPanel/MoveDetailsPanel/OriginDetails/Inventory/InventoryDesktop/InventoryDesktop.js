@@ -304,8 +304,11 @@ function InventoryDesktop({
 
   // ADDED: Wrapper function for standard items panel
   const handleRegularItemClick = (itemData, action) => {
-    // Forward to the parent's handleItemSelection
-    handleItemSelection(itemData, action);
+    // This mirrors the logic in the mobile version's handleItemSelection function
+    const doAction = action || (isDeleteActive ? 'decrease' : 'increase');
+    
+    // Forward to the parent's handleItemSelection with the correct action
+    handleItemSelection(itemData, doAction);
   };
 
   // Delete toggle

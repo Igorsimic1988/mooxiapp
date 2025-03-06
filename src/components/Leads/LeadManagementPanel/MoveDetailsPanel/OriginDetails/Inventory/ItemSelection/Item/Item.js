@@ -26,11 +26,11 @@ function Item({
   const [startY, setStartY] = useState(null);
   const moveThreshold = 10; // Adjust as needed
 
-
   const handleItemClick = (e) => {
     if (isMoved) return;
     const action = isDeleteActive ? 'decrease' : 'increase';
-    onItemClick(action, isMyItemsActive);
+    // FIXED: Only passing the action - the parent component already has the item
+    onItemClick(action);
   };
 
   // Handlers for long press with movement detection

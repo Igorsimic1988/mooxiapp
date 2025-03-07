@@ -7,6 +7,8 @@
     overflow-x: auto;
     scrollbar-width: none; /* For Firefox */
     border-bottom: 1px solid #D8DCE0;
+    touch-action: pan-x; /* Optimize for horizontal panning */
+    position: relative; /* Needed for proper event coordinate calculation */
   }
   
   .filterBarContainer::-webkit-scrollbar {

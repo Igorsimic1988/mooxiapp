@@ -142,7 +142,7 @@ const handleMouseOut = (e) => {
                 key={key}
                 item={item}
                 clickCount={count}
-                onItemClick={(action) => onItemClick(itemData, action, isMyItemsActive)}
+                onItemClick={(action) => onItemClick(itemData, action)}
                 isMyItemsActive={isMyItemsActive}
                 isDeleteActive={isDeleteActive}
                 onUpdateItem={onUpdateItem}

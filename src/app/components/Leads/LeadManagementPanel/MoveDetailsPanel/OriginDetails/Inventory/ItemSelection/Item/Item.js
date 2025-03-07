@@ -30,7 +30,7 @@ function Item({
   const handleItemClick = (e) => {
     if (isMoved) return;
     const action = isDeleteActive ? 'decrease' : 'increase';
-    onItemClick(action, isMyItemsActive);
+    onItemClick(action);
   };
 
   // Handlers for long press with movement detection

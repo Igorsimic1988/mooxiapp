@@ -141,11 +141,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   };
 
   // Refs for outside-click detection
-  const moveCalendarRef      = useRef(null);
-  const deliveryCalendarRef  = useRef(null);
-  const typeOfServiceRef     = useRef(null);
-  const etaRequestRef        = useRef(null);
-  const storageRef           = useRef(null);
+  const moveCalendarRef = useRef(null);
+  const deliveryCalendarRef = useRef(null);
+  const typeOfServiceRef = useRef(null);
+  const etaRequestRef = useRef(null);
+  const storageRef = useRef(null);
   const startTimeDropdownRef = useRef(null);
   const incrementsGridRef    = useRef(null);
 
@@ -481,10 +481,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
               return (
                 <div
                   key={svc.id}
-                  className={`
-                    ${styles.dropdownOption} 
-                    ${isSelected ? styles.selectedOption : ''}
-                  `}
+                  className={`${styles.dropdownOption} ${isSelected ? styles.selectedOption : ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSelectServiceType(svc.name);
@@ -501,10 +498,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       {/* ---------- ADD STORAGE TOGGLE ---------- */}
       <div className={styles.storageContainer}>
         <span className={styles.addStorageText}>Add storage</span>
-        <SimpleToggle
-          isToggled={isStorageToggled}
-          onToggle={handleToggleStorage}
-        />
+        <SimpleToggle isToggled={isStorageToggled} onToggle={handleToggleStorage} />
       </div>
 
       {/* If toggled => show Storage dropdown */}
@@ -533,10 +527,9 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                 return (
                   <div
                     key={option}
-                    className={`
-                      ${styles.dropdownOption}
-                      ${isSelected ? styles.selectedOption : ''}
-                    `}
+                    className={`${styles.dropdownOption} ${
+                      isSelected ? styles.selectedOption : ''
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleSelectStorage(option);
@@ -556,10 +549,9 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       {/* ---------- DELIVERY DATE ---------- */}
       {/* Disable this entire container if storage is NOT toggled */}
       <div
-        className={`
-          ${styles.inputContainer} 
-          ${!isStorageToggled ? styles.disabledContainer : ''}
-        `}
+        className={`${styles.inputContainer} ${
+          !isStorageToggled ? styles.disabledContainer : ''
+        }`}
         style={{ position: 'relative' }}
       >
         <button
@@ -595,11 +587,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             </div>
             <div className={styles.calendarGrid}>
               {daysInMonth.map((day) => {
-                const dayDate = new Date(
-                  calendarMonth.getFullYear(),
-                  calendarMonth.getMonth(),
-                  day
-                );
+                const dayDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
 
                 let earliestDelivery = new Date(today.getTime());
                 if (moveDate) {
@@ -620,10 +608,9 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                   <button
                     key={day}
                     type="button"
-                    className={`
-                      ${styles.calendarDay} 
-                      ${isSelected ? styles.selectedDay : ''}
-                    `}
+                    className={`${styles.calendarDay} ${
+                      isSelected ? styles.selectedDay : ''
+                    }`}
                     style={{
                       opacity: disabled ? 0.4 : 1,
                       cursor: disabled ? 'not-allowed' : 'pointer',

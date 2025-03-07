@@ -1,0 +1,79 @@
+/* src/components/LeadManagementPanel/MoveDetailsPanel/EstimateDetails/Invoice/Invoice.module.css */
+.invoiceRow {
+    position: relative;
+    margin-top: 10px;
+    width: 100%;
+  }
+  
+  .invoiceContainer {
+    border-radius: 12px;
+    background: #f2f5f8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 5px;
+    gap: 8px;
+    white-space: nowrap;
+    max-width: min-content;
+  }
+  
+  .createInvoiceText {
+    font-family: Satoshi, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #90a4b7;
+    padding: 0 5px 0 18px;
+  }
+  
+  .plusButton {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 10px;
+    background: #90a4b7;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-family: Satoshi, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .optionButton {
+    height: 40px;
+    padding: 0 15px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-family: Satoshi, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  
+  .buttonUnselected {
+    background-color: #90a4b7; /* grey */
+  }
+  
+  .buttonSelected {
+    background-color: #3fa9f5; /* blue */
+  }
+  
+  /* "Remove invoice" pinned at bottom-right within .invoiceRow */
+  .removeInvoiceLink {
+    position: absolute;
+    bottom: -30px;
+    right: 0;
+    background: none;
+    border: none;
+    color: #90a4b7;
+    font-family: Satoshi, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0 6px 4px 0; /* small spacing from the corner */
+  }

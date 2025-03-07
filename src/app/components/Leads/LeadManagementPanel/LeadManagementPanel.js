@@ -260,14 +260,14 @@ function LeadManagementPanel({
       return;
     }
 
-    // CHANGE #1: If nextAction === 'Survey Completed', we set it to 'Completed' (so it won't reappear)
+    // If nextAction === 'Survey Completed', we set it to 'Completed'
     if (nextAction === 'Survey Completed') {
       setHideNextActionAfterSurvey(true);
-      setNextAction('Completed'); // push 'Completed' into the lead
+      setNextAction('Completed'); 
       await doUpdateLead({
         lead_status: leadStatus,
         lead_activity: leadActivity,
-        next_action: 'Completed', // store 'Completed' in the DB
+        next_action: 'Completed', 
         estimator: selectedEstimator,
         survey_date: selectedDate,
         survey_time: selectedTime,
@@ -425,10 +425,11 @@ function LeadManagementPanel({
   const statusColor = currentStatusObj ? currentStatusObj.color : '#59B779';
   const statusIcon = currentStatusObj ? currentStatusObj.icon : null;
 
-  // CHANGE #2: We hide the Next Action if it's a hidden status or "Completed" was set
-  const hideNextAction = HIDDEN_STATUSES.includes(leadStatus)
-    || hideNextActionAfterSurvey
-    || nextAction === 'Completed'; // <--- so if nextAction was changed to 'Completed', it stays hidden
+   // We hide Next Action if it's a hidden status or "Completed" was set
+   const hideNextAction =
+   HIDDEN_STATUSES.includes(leadStatus) ||
+   hideNextActionAfterSurvey ||
+   nextAction === 'Completed';
 
   const hideActivityButton = leadStatus === 'Move on Hold';
   const activityOptions = getActivityOptions(leadStatus);
@@ -489,22 +490,23 @@ function LeadManagementPanel({
 
             {showStatusDropdown && (
               <ul className={styles.statusDropdown}>
-                {statusOptions.filter((o) => o.label !== 'New Lead').map((option) => {
-                  const isSelected = option.label === leadStatus;
-                  return (
-                    <li
-                      key={option.label}
-                      className={`
-                        ${styles.statusOption}
-                        ${isSelected ? styles.selectedOption : ''}
-                      `}
-                      style={{ color: option.color }}
-                      onClick={() => handleSelectStatus(option)}
-                    >
-                      {option.label}
-                    </li>
-                  );
-                })}
+                {statusOptions
+                  .filter((o) => o.label !== 'New Lead')
+                  .map((option) => {
+                    const isSelected = option.label === leadStatus;
+                    return (
+                      <li
+                        key={option.label}
+                        className={`${styles.statusOption} ${
+                          isSelected ? styles.selectedOption : ''
+                        }`}
+                        style={{ color: option.color }}
+                        onClick={() => handleSelectStatus(option)}
+                      >
+                        {option.label}
+                      </li>
+                    );
+                  })}
               </ul>
             )}
           </div>
@@ -527,10 +529,9 @@ function LeadManagementPanel({
                     return (
                       <li
                         key={act}
-                        className={`
-                          ${styles.activityOption}
-                          ${isSelected ? styles.selectedOption : ''}
-                        `}
+                        className={`${styles.activityOption} ${
+                          isSelected ? styles.selectedOption : ''
+                        }`}
                         onClick={() => handleSelectActivity(act)}
                       >
                         {act}
@@ -647,10 +648,9 @@ function LeadManagementPanel({
               {/* Next Action */}
               {!hideNextAction && (
                 <button
-                  className={`
-                    ${styles.nextActionButton}
-                    ${animateNextAction ? styles.animateNextAction : ''}
-                  `}
+                className={`${styles.nextActionButton} ${
+                  animateNextAction ? styles.animateNextAction : ''
+                }`}
                   onClick={handleNextActionClick}
                 >
                   <span className={styles.nextActionLabel}>Next Action:</span>
@@ -666,10 +666,9 @@ function LeadManagementPanel({
           (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate')
         ) && !hideNextAction && (
           <button
-            className={`
-              ${styles.nextActionButton}
-              ${animateNextAction ? styles.animateNextAction : ''}
-            `}
+          className={`${styles.nextActionButton} ${
+            animateNextAction ? styles.animateNextAction : ''
+          }`}
             style={{ marginTop: '10px' }}
             onClick={handleNextActionClick}
           >
@@ -723,10 +722,9 @@ function LeadManagementPanel({
                   return (
                     <li
                       key={opt.label}
-                      className={`
-                        ${styles.inventoryOption}
-                        ${isSelected ? styles.selectedOption : ''}
-                      `}
+                      className={`${styles.inventoryOption} ${
+                        isSelected ? styles.selectedOption : ''
+                      }`}
                       onClick={() => handleSelectInventoryOption(opt)}
                     >
                       {opt.label}

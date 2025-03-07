@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './InventoryDesktop.module.css';
+import { v4 as uuidv4 } from 'uuid';
 
 // Child components
 import BackButton from './BackButton/BackButton';
@@ -223,14 +224,87 @@ function InventoryDesktop({
     const arr = roomItemSelections[selectedRoom.id] || [];
     const grouped = {};
     for (const inst of arr) {
-      const gKey = inst.groupingKey;
+      const gKey = inst.groupingKey || '';
       if (!grouped[gKey]) {
-        grouped[gKey] = { ...inst, count: 1 };
+        // Create a new grouped item with all necessary properties
+        grouped[gKey] = {
+          ...inst,
+          count: 1,
+          // Ensure the item property contains all necessary data
+          item: inst.item || {},
+          // Make sure these arrays exist to avoid null reference errors
+          tags: inst.tags || [],
+          uploadedImages: inst.uploadedImages || [],
+          cameraImages: inst.cameraImages || [],
+          // Make sure this object exists
+          packingNeedsCounts: inst.packingNeedsCounts || {}
+        };
       } else {
         grouped[gKey].count += 1;
       }
     }
     return Object.values(grouped);
+  };
+
+  // ADDED: New handleItemClick function for My Items panel
+  const handleItemClick = (itemData, action) => {
+    if (!selectedRoom) return;
+    
+    console.log('handleItemClick in InventoryDesktop:', {
+      itemData, 
+      action
+    });
+    
+    if (action === 'decrease') {
+      // Remove an item with the specific groupingKey
+      if (itemData.groupingKey) {
+        const items = [...(roomItemSelections[selectedRoom.id] || [])];
+        const idx = items.findIndex(item => item.groupingKey === itemData.groupingKey);
+        
+        if (idx !== -1) {
+          items.splice(idx, 1);
+          setRoomItemSelections({
+            ...roomItemSelections,
+            [selectedRoom.id]: items
+          });
+        }
+      }
+    } else { // 'increase'
+      // Add a new instance of this item with the same properties
+      if (itemData.groupingKey) {
+        const newItemInstance = {
+          id: uuidv4(),
+          itemId: itemData.itemId,
+          item: { ...itemData.item },
+          tags: [...(itemData.tags || [])],
+          notes: itemData.notes || '',
+          cuft: itemData.cuft || '',
+          lbs: itemData.lbs || '',
+          packingNeedsCounts: { ...(itemData.packingNeedsCounts || {}) },
+          link: itemData.link || '',
+          uploadedImages: [...(itemData.uploadedImages || [])],
+          cameraImages: [...(itemData.cameraImages || [])],
+          groupingKey: itemData.groupingKey
+        };
+        
+        const items = [...(roomItemSelections[selectedRoom.id] || [])];
+        items.push(newItemInstance);
+        
+        setRoomItemSelections({
+          ...roomItemSelections,
+          [selectedRoom.id]: items
+        });
+      }
+    }
+  };
+
+  // ADDED: Wrapper function for standard items panel
+  const handleRegularItemClick = (itemData, action) => {
+    // This mirrors the logic in the mobile version's handleItemSelection function
+    const doAction = action || (isDeleteActive ? 'decrease' : 'increase');
+    
+    // Forward to the parent's handleItemSelection with the correct action
+    handleItemSelection(itemData, doAction);
   };
 
   // Delete toggle
@@ -341,7 +415,7 @@ function InventoryDesktop({
             <ItemList
               items={getFilteredItems()}
               itemClickCounts={itemCounts}
-              onItemClick={handleItemSelection}
+              onItemClick={handleRegularItemClick} // CHANGED: Use wrapper for regular items
               isMyItemsActive={false}
               isDeleteActive={isDeleteActive}
               onUpdateItem={handleUpdateItem}
@@ -366,10 +440,23 @@ function InventoryDesktop({
           <div
             className={`${styles.itemListPlaceholder} ${styles.myItemsListPlaceholder}`}
           >
+            {/* Debug check for items */}
+            {selectedRoom && (() => {
+              const myItems = getGroupedItems();
+              console.log('My Items for display:', myItems);
+              
+              // Check for any items with missing properties
+              myItems.forEach(item => {
+                if (!item.item || !item.item.src || !item.item.name) {
+                  console.error('Invalid item in My Items:', item);
+                }
+              });
+              return null;
+            })()}
             <ItemList
               items={getGroupedItems()}
               itemClickCounts={{}}
-              onItemClick={handleItemSelection}
+              onItemClick={handleItemClick} // CHANGED: Use the new function
               isMyItemsActive={true}
               isDeleteActive={isDeleteActive}
               onUpdateItem={handleUpdateItem}

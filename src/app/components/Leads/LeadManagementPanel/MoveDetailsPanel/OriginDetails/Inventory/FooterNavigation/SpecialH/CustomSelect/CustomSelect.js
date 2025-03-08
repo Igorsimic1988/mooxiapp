@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './CustomSelect.module.css';
 import DropdownIcon from '../../../../../../../../../assets/icons/unfoldmore.svg'; // Adjust the path as needed
+import Image from 'next/image';
 
 function CustomSelect({ options, selectedOption, onOptionChange, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +48,7 @@ function CustomSelect({ options, selectedOption, onOptionChange, placeholder }) 
         <span className={styles.selectedText}>
           {selectedLabel}
         </span>
-        <DropdownIcon className={`${styles.dropdownIcon} ${isOpen ? styles.rotate : ''}`} />
+        <Image src = {DropdownIcon} alt = 'dropdownIcon' className={`${styles.dropdownIcon} ${isOpen ? styles.rotate : ''}`}/>
       </button>
 
       {isOpen && (

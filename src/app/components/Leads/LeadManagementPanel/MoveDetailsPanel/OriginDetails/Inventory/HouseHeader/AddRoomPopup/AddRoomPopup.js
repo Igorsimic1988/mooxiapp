@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import styles from './AddRoomPopup.module.css';
 import CloseIcon from '../../../../../../../../assets/icons/Close.svg';
 import AddRoomIcon from '../../../../../../../../assets/icons/addroomreservation.svg';
+import Image from 'next/image';
 
 /**
  * AddRoomPopup
@@ -44,12 +45,12 @@ function AddRoomPopup({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <AddRoomIcon className={styles.icon} />
+            <Image src = {AddRoomIcon} alt = 'addRoomIcon' className={styles.icon}/>
             <p>Select Rooms to Display</p>
           </div>
           <div className={styles.closeButton}>
             <button onClick={onClose} aria-label="Close">
-              <CloseIcon className={styles.closeIcon} />
+              <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIcon}/>
             </button>
           </div>
         </div>

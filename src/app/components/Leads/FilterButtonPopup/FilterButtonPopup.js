@@ -5,7 +5,7 @@ import styles from './FilterButtonPopup.module.css';
 import  CloseIcon  from '../../../assets/icons/Close.svg';
 import  FilterIcon  from '../../../assets/icons/filter.svg';
 import  UnfoldMoreIcon  from '../../../assets/icons/unfoldmore.svg';
-import { ReactComponent as CalendarIcon } from '../../../assets/icons/calendar.svg';
+import  CalendarIcon  from '../../../assets/icons/calendar.svg';
 
 // Data
 import CompanyChoices from '../../../data/constants/CompanyChoices';
@@ -539,7 +539,7 @@ const toggleLocalStatus = (label) => {
                     </span>
                   </div>
                   <div className={styles.calendarIconWrapper}>
-                    <CalendarIcon className={styles.calIcon} />
+                    <Image src={CalendarIcon} alt='calendarIcon' className={styles.calIcon}/>
                   </div>
                 </button>
                 {showFromCalendar && (
@@ -589,7 +589,7 @@ const toggleLocalStatus = (label) => {
                     </span>
                   </div>
                   <div className={styles.calendarIconWrapper}>
-                    <CalendarIcon className={styles.calIcon} />
+                  <Image src={CalendarIcon} alt='calendarIcon' className={styles.calIcon}/>
                   </div>
                 </button>
                 {showToCalendar && (

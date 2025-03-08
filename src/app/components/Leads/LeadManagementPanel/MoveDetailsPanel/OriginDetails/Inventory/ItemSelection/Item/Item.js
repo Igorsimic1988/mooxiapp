@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import styles from './Item.module.css';
 import ThreeDots from '../../../../../../../../assets/icons/more.svg';
+import Image from 'next/image';
 
 function Item({
   item,
@@ -168,7 +169,7 @@ function Item({
         )}
         {isMyItemsActive && (
           <div className={styles.menuIcon} onClick={handleMenuIconClick}>
-            <ThreeDots />
+            <Image src = {ThreeDots} alt = 'threeDots' />
           </div>
         )}
         <div className={styles.itemImagewrapper}>

@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Leads.module.css';
-import HeaderDashboard from './HeadrerDashboard.js/HeaderDashboard';
+import HeaderDashboard from './HeaderDashboard.js/HeaderDashboard';
 import LeadsFilterBar from './LeadsFilterBar/LeadsFilterBar';
 import LeadsSearchBar from './LeadsSearchBar/LeadsSearchBar';
 import LeadsActionButtons from './LeadsActionButtons/LeadsActionButtons';

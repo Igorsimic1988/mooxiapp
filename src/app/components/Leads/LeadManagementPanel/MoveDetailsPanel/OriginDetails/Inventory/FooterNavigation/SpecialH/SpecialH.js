@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import styles from "./SpecialH.module.css";
 import ItemCard from './ItemCard/ItemCard';
+import Image from 'next/image';
 
 import SpecialHPopupIcon from "../../../../../../../../assets/icons/SpecialHPopupIcon.svg";
 import CloseIcon from "../../../../../../../../assets/icons/Close.svg";
@@ -303,12 +304,12 @@ function SpecialH({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <SpecialHPopupIcon className={styles.icon} />
+            <Image src = {SpecialHPopupIcon} alt = 'specialHPopupIcon'className={styles.icon}/>
             <p>Special Handling</p>
           </div>
           <div className={styles.closeButton}>
             <button onClick={handleClose} aria-label="Close">
-              <CloseIcon className={styles.closeIcon} />
+              <Image src = {CloseIcon} alt = 'closeIcon'className={styles.closeIcon}/>
             </button>
           </div>
         </div>

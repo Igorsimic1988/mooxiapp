@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from "./MyInventory.module.css";
 import rooms from '../../../../../../../../data/constants/AllRoomsList';
 import { optionsData } from '../../../../../../../../data/constants/optionsData';
+import Image from 'next/image';
 
 import MyInventoryPopupIcon from "../../../../../../../../assets/icons/MyInventoryPopupIcon.svg";
 import CloseIcon from "../../../../../../../../assets/icons/Close.svg";
@@ -349,12 +350,12 @@ function MyInventory({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <MyInventoryPopupIcon className={styles.icon} />
+            <Image src = {MyInventoryPopupIcon} alt = 'myInventoryPopupIcon' className={styles.icon}/>
             <p>My Inventory</p>
           </div>
           <div className={styles.closeButton}>
             <button type="button" onClick={handleClose} aria-label="Close">
-              <CloseIcon className={styles.closeIcon} />
+              <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIcon}/>
             </button>
           </div>
         </div>
@@ -442,7 +443,7 @@ function MyInventory({
                                       className={styles.tag}
                                     >
                                       {IconComp ? (
-                                        <IconComp width={24} height={24} />
+                                        <Image src = {IconComp} alt = 'iconComp' width={24} height={24}/>
                                       ) : (
                                         tg
                                       )}
@@ -498,7 +499,7 @@ function MyInventory({
                 <div key={value} className={styles.tagRow}>
                   <div className={styles.tagIcon}>
                     {IconComponent && (
-                      <IconComponent width={24} height={24} />
+                      <Image src = {IconComponent} alt = 'iconComponent' width={24} height={24}/>
                     )}
                   </div>
                   <div className={styles.tagName}>{label}</div>

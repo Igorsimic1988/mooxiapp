@@ -25,6 +25,7 @@ import ExpandIcon from '../../../../../../../assets/icons/expand.svg';
 import CollapseIcon from '../../../../../../../assets/icons/collapse.svg';
 import MyInventoryIcon from '../../../../../../../assets/icons/MyInventoryPopupIcon.svg';
 import SpecialHIcon from '../../../../../../../assets/icons/specialh.svg';
+import Image from 'next/image';
 
 // Data + Utils
 import allItems from '../../../../../../../data/constants/funitureItems';
@@ -395,7 +396,7 @@ function InventoryDesktop({
             className={styles.expandCollapseButton}
             onClick={handleExpandCollapse}
           >
-            {isExpanded ? <CollapseIcon /> : <ExpandIcon />}
+            {isExpanded ? <Image src ={CollapseIcon} alt = 'collapseIcon' /> : <Image src ={ExpandIcon} alt = 'expandIcon' />}
           </button>
         </div>
         <div className={styles.itemsSpacer}></div>
@@ -487,14 +488,14 @@ function InventoryDesktop({
             onClick={handleMyInventoryClick}
           >
             <span>My Inventory</span>
-            <MyInventoryIcon className={styles.myInventoryIcon} />
+            <Image src = {MyInventoryIcon} alt = 'myInventoryIcon' className= {styles.myInventoryIcon} />
           </button>
           <button
             className={styles.specialHButton}
             onClick={handleSpecialHClick}
           >
             <span>Special Handling</span>
-            <SpecialHIcon className={styles.specialHIcon} />
+            <Image src = {SpecialHIcon} alt = 'specialHIcon' className={styles.specialHIcon}/>
           </button>
         </div>
 

@@ -10,7 +10,6 @@ import BookedIcon from '../../../assets/icons/booked.svg';
 import OnHoldIcon from '../../../assets/icons/onhold.svg';
 import CanceledIcon from '../../../assets/icons/canceled.svg';
 import  SearchIcon  from '../../../assets/icons/search.svg';
-import { Image } from 'next/image';
 /**
  * Format creation_date_time => mm/dd/yyyy
  */

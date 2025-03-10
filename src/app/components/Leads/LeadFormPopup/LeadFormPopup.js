@@ -4,7 +4,7 @@ import Image from 'next/image';
 // Icons
 import CloseIcon from '../../../assets/icons/Close.svg';
 import CustomerUserIcon from '../../../assets/icons/customeruser.svg';
-import  UnfoldMoreIcon from '../../../assets/icons/unfoldmore.svg';
+import UnfoldMoreIcon from '../../../assets/icons/unfoldmore.svg';
 import CalendarIcon from '../../../assets/icons/calendar.svg';
 
 // Toggles
@@ -330,8 +330,8 @@ function LeadFormPopup({
                   <span className={styles.dropdownSelected}>{selectedCompany}</span>
                 )}
               </div>
-              <Image src={CustomerUserIcon} alt="Customer User" className={styles.customerUserIcon} />
-            </button>
+              <Image src={UnfoldMoreIcon} alt="More" className={styles.dropdownIcon} />
+              </button>
 
             {showCompanyDropdown && (
               <ul className={styles.optionsList} role="listbox">
@@ -406,7 +406,7 @@ function LeadFormPopup({
                     <span className={styles.dropdownSelected}>{selectedSource}</span>
                   )}
                 </div>
-                <Image src={CustomerUserIcon} alt="Customer User" className={styles.customerUserIcon} />
+                <Image src={UnfoldMoreIcon} alt="More" className={styles.dropdownIcon} />
               </button>
 
               {showSourceDropdown && (
@@ -451,7 +451,7 @@ function LeadFormPopup({
                     <span className={styles.dropdownPlaceholder}>Select</span>
                   )}
                 </div>
-                <Image src={CustomerUserIcon} alt="Customer User" className={styles.customerUserIcon} />
+                <Image src={UnfoldMoreIcon} alt="More" className={styles.dropdownIcon} />
               </button>
 
               {showTypeOfServiceDropdown && (

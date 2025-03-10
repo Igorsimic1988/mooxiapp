@@ -1,9 +1,6 @@
-
-// src/components/Leads/Leads.js
-
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Leads.module.css';
-import HeaderDashboard from './HeaderDashboard.js/HeaderDashboard';
+import HeaderDashboard from './HeadrerDashboard/HeaderDashboard';
 import LeadsFilterBar from './LeadsFilterBar/LeadsFilterBar';
 import LeadsSearchBar from './LeadsSearchBar/LeadsSearchBar';
 import LeadsActionButtons from './LeadsActionButtons/LeadsActionButtons';
@@ -13,7 +10,7 @@ import LeadManagementPanel from './LeadManagementPanel/LeadManagementPanel';
 import Inventory from './LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory';
 import actualLeads from '../../data/constants/actualLeads';
 import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
-import FilterButtonPopup from './FilterButtonPopup/FilterButtonPopup'; // ← Import the Filter popup
+import FilterButtonPopup from './FilterButtonPopup/FilterButtonPopup';
 
 /**
  * Parse lead.survey_date + survey_time => JS Date
@@ -47,8 +44,8 @@ function filterLeadsByTab(leads, activeTab) {
   switch (activeTab) {
     case 'Active Leads':
       return leads.filter((ld) => {
-        const st  = ld.lead_status;
-        const na  = ld.next_action;
+        const st = ld.lead_status;
+        const na = ld.next_action;
         const act = ld.lead_activity;
 
         // We define "isActive" as:
@@ -81,7 +78,7 @@ function filterLeadsByTab(leads, activeTab) {
       );
 
     case 'My Appointments':
-      // Includes next_action === 'Survey Completed' OR 'Completed'
+      // next_action === 'Survey Completed' OR 'Completed'
       return leads.filter(
         (ld) =>
           ld.lead_status === 'In Progress' &&
@@ -125,14 +122,36 @@ function filterLeadsBySearch(leads, searchQuery) {
   });
 }
 
+/**
+ * Filter leads by search query
+ */
+function filterLeadsBySearch(leads, searchQuery) {
+  if (!searchQuery.trim()) return leads;
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const normalizedPhoneQuery = normalizedQuery.replace(/\D/g, '');
+  const searchPhone = normalizedPhoneQuery.length >= 3;
+
+  return leads.filter(lead => {
+    if (String(lead.job_number).includes(normalizedQuery)) return true;
+    if (lead.customer_name && lead.customer_name.toLowerCase().includes(normalizedQuery)) return true;
+    if (lead.customer_email && lead.customer_email.toLowerCase().includes(normalizedQuery)) return true;
+    if (searchPhone && lead.customer_phone_number) {
+      const normalizedPhone = lead.customer_phone_number.replace(/\D/g, '');
+      if (normalizedPhone.includes(normalizedPhoneQuery)) return true;
+    }
+    return false;
+  });
+}
+
 function Leads() {
+  // All leads
   const [leads, setLeads] = useState(Array.isArray(actualLeads) ? [...actualLeads] : []);
 
   const [activeTab, setActiveTab] = useState('Active Leads');
   const [searchQuery, setSearchQuery] = useState('');
 // Lead selection
   const [selectedLead, setSelectedLead] = useState(null);
-  const [editingLead, setEditingLead]   = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 20;
@@ -140,7 +159,11 @@ function Leads() {
   const [inventoryRoom, setInventoryRoom] = useState(null);
 
 
-   // Lead Form
+  // Lead selection
+  const [editingLead, setEditingLead]   = useState(null);
+
+
+  // Lead Form
   const [showLeadForm, setShowLeadForm] = useState(false);
 
   // The scrolled position in the leads list
@@ -148,7 +171,7 @@ function Leads() {
   const [scrollPosition, setScrollPosition] = useState(0);
 
   // Controls whether the Filter popup is showing
-   const [showFilterPopup, setShowFilterPopup] = useState(false);
+  const [showFilterPopup, setShowFilterPopup] = useState(false);
 
   // ------------- FILTER STATES -------------
   const [selectedCompany, setSelectedCompany] = useState('All companies');
@@ -187,35 +210,31 @@ function Leads() {
     return () => window.removeEventListener('resize', setAppHeight);
   }, []);
 
-  // 1) Sort leads newest-first
+  // Sort newest-first
   const sortedLeads = [...leads].sort(
     (a, b) => new Date(b.creation_date_time) - new Date(a.creation_date_time)
   );
 
-  // Effect to reset page when search query changes
+  // If the search query changes => reset to page 1
   useEffect(() => {
-    setCurrentPage(1); // Reset to first page when search query changes
+    setCurrentPage(1);
   }, [searchQuery]);
 
-  // 2) Apply filters
+  // ---------- 2) APPLY FILTERS ----------
   let filteredLeads;
+
   if (searchQuery.trim()) {
-    // If search is active, search across ALL leads regardless of tab
     filteredLeads = filterLeadsBySearch(sortedLeads, searchQuery);
   } else {
-    // Otherwise use the tab filter only
     filteredLeads = filterLeadsByTab(sortedLeads, activeTab);
   }
 
-  // 2.5) If My Appointments => custom sort:
+  // Additional sorts for special tabs
   if (activeTab === 'My Appointments' && !searchQuery.trim()) {
-      filteredLeads.sort((a, b) => {
-      // 1) next_action='Completed' => rank 0 => goes on top
+    filteredLeads.sort((a, b) => {
       const rankA = a.next_action === 'Completed' ? 0 : 1;
       const rankB = b.next_action === 'Completed' ? 0 : 1;
       if (rankA !== rankB) return rankA - rankB;
-
-      // 2) among the rest => sort ascending by survey date/time
       const dateA = parseSurveyDateTime(a);
       const dateB = parseSurveyDateTime(b);
       if (!dateA && !dateB) return 0;
@@ -224,23 +243,19 @@ function Leads() {
       return dateA - dateB;
     });
   }
-  // 2.6) If Active Leads tab => prioritize "New Lead" status
   if (activeTab === 'Active Leads' && !searchQuery.trim()) {
     filteredLeads.sort((a, b) => {
-      // First priority: "New Lead" status
       if (a.lead_status === 'New Lead' && b.lead_status !== 'New Lead') return -1;
       if (a.lead_status !== 'New Lead' && b.lead_status === 'New Lead') return 1;
-
-      // Next: newest first
       return new Date(b.creation_date_time) - new Date(a.creation_date_time);
     });
   }
 
-  // 3) Pagination
+  // Pagination
   const totalLeads = filteredLeads.length;
   const totalPages = Math.ceil(totalLeads / leadsPerPage);
   const startIndex = (currentPage - 1) * leadsPerPage;
-  const endIndex = Math.min(startIndex + leadsPerPage, totalLeads);
+  const endIndex   = Math.min(startIndex + leadsPerPage, totalLeads);
   const currentLeads = filteredLeads.slice(startIndex, endIndex);
 
   const handleNextPage = () => {
@@ -250,6 +265,7 @@ function Leads() {
     if (currentPage > 1) setCurrentPage(prev => prev - 1);
   };
 
+  // Lead selection in the list
   const handleLeadClick = (lead) => {
     if (leadsListRef.current) {
       setScrollPosition(leadsListRef.current.scrollTop);
@@ -266,14 +282,12 @@ function Leads() {
     }, 0);
   };
 
-  // Create lead
+  // Creating + updating leads
   const handleLeadCreated = (newLead) => {
     setLeads(prev => [...prev, newLead]);
   };
 
-  // Update lead
   const handleLeadUpdated = (updatedLead) => {
-    console.log('Updated lead data => ', updatedLead);
     setLeads(prevLeads =>
       prevLeads.map(ld => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
     );
@@ -304,7 +318,6 @@ function Leads() {
 
   const isDesktopScreen = window.innerWidth >= 1024;
 
-  // If Inventory is open => show full-screen
   if (showInventoryFullScreen) {
     return (
       <div className={styles.container}>
@@ -328,7 +341,6 @@ function Leads() {
     );
   }
 
-  // Otherwise => normal UI
   return (
     <div className={styles.container}>
       <HeaderDashboard
@@ -359,11 +371,9 @@ function Leads() {
           />
 
           <div className={styles.actionsContainer}>
-            {/*
-              Pass a callback to open the Filter popup:
-              When onClick, sets "showFilterPopup" = true
-            */}
-            <LeadsActionButtons onOpenFilterPopup={() => setShowFilterPopup(true)} />
+            <LeadsActionButtons
+              onOpenFilterPopup={() => setShowFilterPopup(true)}
+            />
             <AddNewLeadButton
               onOpenLeadForm={() => {
                 setEditingLead(null);
@@ -412,33 +422,33 @@ function Leads() {
           onLeadUpdated={handleLeadUpdated}
         />
       )}
-      {/* Conditionally render the FilterButtonPopup */}
+
       {showFilterPopup && (
         <FilterButtonPopup
-        onClose={() => setShowFilterPopup(false)}
+          onClose={() => setShowFilterPopup(false)}
 
-        selectedCompany={selectedCompany}
-        setSelectedCompany={setSelectedCompany}
-        selectedSalesRep={selectedSalesRep}
-        setSelectedSalesRep={setSelectedSalesRep}
-        
-        selectedMode={selectedMode}
-        setSelectedMode={setSelectedMode}
-        selectedWorkflow={selectedWorkflow}
-        setSelectedWorkflow={setSelectedWorkflow}
-        
-        selectedWhere={selectedWhere}
-        setSelectedWhere={setSelectedWhere}
-        
-        fromDate={fromDate}
-        setFromDate={setFromDate}
-        toDate={toDate}
-        setToDate={setToDate}
+          selectedCompany={selectedCompany}
+          setSelectedCompany={setSelectedCompany}
+          selectedSalesRep={selectedSalesRep}
+          setSelectedSalesRep={setSelectedSalesRep}
+          
+          selectedMode={selectedMode}
+          setSelectedMode={setSelectedMode}
+          selectedWorkflow={selectedWorkflow}
+          setSelectedWorkflow={setSelectedWorkflow}
+          
+          selectedWhere={selectedWhere}
+          setSelectedWhere={setSelectedWhere}
+          
+          fromDate={fromDate}
+          setFromDate={setFromDate}
+          toDate={toDate}
+          setToDate={setToDate}
 
-        statusOptions={statusOptions}
-        checkedStatuses={checkedStatuses}
-        setCheckedStatuses={setCheckedStatuses}
-      />
+          statusOptions={statusOptions}
+          checkedStatuses={checkedStatuses}
+          setCheckedStatuses={setCheckedStatuses}
+        />
       )}
     </div>
   );

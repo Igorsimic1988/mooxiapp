@@ -26,47 +26,47 @@ function ItemList({
   const isMoved = useRef(false);
   const dragThreshold = 5; // Pixels to consider as drag
   const startY = useRef(0);
-const scrollTop = useRef(0);
+  const scrollTop = useRef(0);
 
-const handleMouseDown = (e) => {
-  if (!isDesktop) return;
-  if (e.type === 'touchstart' || e.pointerType === 'touch') return; // Ignore touch events
+  const handleMouseDown = (e) => {
+    if (!isDesktop) return;
+    if (e.type === 'touchstart' || e.pointerType === 'touch') return; // Ignore touch events
 
-  isDragging.current = true;
-  isMoved.current = false;
-  startY.current = e.pageY - scrollContainerRef.current.getBoundingClientRect().top;
-  scrollTop.current = scrollContainerRef.current.scrollTop;
-};
+    isDragging.current = true;
+    isMoved.current = false;
+    startY.current = e.pageY - scrollContainerRef.current.getBoundingClientRect().top;
+    scrollTop.current = scrollContainerRef.current.scrollTop;
+  };
 
-const handleMouseMove = (e) => {
-  if (!isDesktop || !isDragging.current) return;
-  if (e.type === 'touchmove' || e.pointerType === 'touch') return;
+  const handleMouseMove = (e) => {
+    if (!isDesktop || !isDragging.current) return;
+    if (e.type === 'touchmove' || e.pointerType === 'touch') return;
 
-  e.preventDefault(); // Be cautious with preventDefault()
-  const y = e.pageY - scrollContainerRef.current.getBoundingClientRect().top;
-  const walk = (y - startY.current) * 1;
-  scrollContainerRef.current.scrollTop = scrollTop.current - walk;
+    e.preventDefault(); // Be cautious with preventDefault()
+    const y = e.pageY - scrollContainerRef.current.getBoundingClientRect().top;
+    const walk = (y - startY.current) * 1;
+    scrollContainerRef.current.scrollTop = scrollTop.current - walk;
 
-  if (!isMoved.current && Math.abs(walk) > dragThreshold) {
-    isMoved.current = true;
-  }
-};
+    if (!isMoved.current && Math.abs(walk) > dragThreshold) {
+      isMoved.current = true;
+    }
+  };
 
-const handleMouseUp = (e) => {
-  if (!isDesktop) return;
-  if (e.type === 'touchend' || e.pointerType === 'touch') return;
+  const handleMouseUp = (e) => {
+    if (!isDesktop) return;
+    if (e.type === 'touchend' || e.pointerType === 'touch') return;
 
-  isDragging.current = false;
-  isMoved.current = false;
-};
+    isDragging.current = false;
+    isMoved.current = false;
+  };
 
-const handleMouseOut = (e) => {
-  if (!isDesktop) return;
-  if (e.type === 'touchcancel' || e.pointerType === 'touch') return;
+  const handleMouseOut = (e) => {
+    if (!isDesktop) return;
+    if (e.type === 'touchcancel' || e.pointerType === 'touch') return;
 
-  isDragging.current = false;
-  isMoved.current = false;
-};
+    isDragging.current = false;
+    isMoved.current = false;
+  };
 
   const handleTouchStart = (e) => {
     if (isDesktop) return;
@@ -109,8 +109,8 @@ const handleMouseOut = (e) => {
 
   return (
     <div
-    className={styles.itemListContainer}
-    ref={scrollContainerRef}
+      className={styles.itemListContainer}
+      ref={scrollContainerRef}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -118,8 +118,8 @@ const handleMouseOut = (e) => {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-  >
-   {Array.isArray(items) && items.length > 0 ? (
+    >
+      {Array.isArray(items) && items.length > 0 ? (
         <ul className={styles.itemList}>
           {items.map((itemData) => {
             let key, item, count, itemInstance;
@@ -142,7 +142,7 @@ const handleMouseOut = (e) => {
                 key={key}
                 item={item}
                 clickCount={count}
-                onItemClick={(action) => onItemClick(itemData, action)}
+                onItemClick={(action) => onItemClick(itemData, action)} // FIXED: Passing itemData first, then action
                 isMyItemsActive={isMyItemsActive}
                 isDeleteActive={isDeleteActive}
                 onUpdateItem={onUpdateItem}
@@ -151,7 +151,7 @@ const handleMouseOut = (e) => {
                 onStartFresh={onStartFresh}
                 isDesktop={isDesktop}
                 isMoved={isMoved.current}
-                onOpenPopup={onOpenPopup} // Passed down
+                onOpenPopup={onOpenPopup}
               />
             );
           })}

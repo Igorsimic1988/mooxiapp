@@ -1,3 +1,4 @@
+// src/services/leadService.js
 import { v4 as uuidv4 } from 'uuid';
 import leadsData from '../data/constants/actualLeads';
 
@@ -13,7 +14,7 @@ function pushStatusRecord(lead) {
     lead_status: lead.lead_status,
     lead_activity: lead.lead_activity,
     next_action: lead.next_action,
-    changed_at: new Date().toISOString(), // or whatever format you prefer
+    changed_at: new Date().toISOString(),
   });
 }
 /**
@@ -76,6 +77,67 @@ function migrateToNestedStructure(lead) {
   return lead;
 }
 /**
+ * Migrate flat fields into nested structure
+ * Used for backwards compatibility with existing leads
+ */
+function migrateToNestedStructure(lead) {
+  // Only migrate if movingDay/packingDay don't exist
+  if (!lead.movingDay) {
+    lead.movingDay = {
+      rateType: lead.rateType || 'Hourly Rate',
+      numTrucks: lead.numTrucks || '1',
+      numMovers: lead.numMovers || '2',
+      hourlyRate: lead.hourlyRate || '180',
+      volume: lead.volume || '1000',
+      weight: lead.weight || '7000',
+      pricePerCuft: lead.pricePerCuft || '4.50',
+      pricePerLbs: lead.pricePerLbs || '0.74',
+      travelTime: lead.travelTime || '1.00 h',
+      movingMin: lead.movingMin || '3h',
+      minimumCuft: lead.minimumCuft || '0.00',
+      minimumLbs: lead.minimumLbs || '0',
+      pickupWindow: lead.pickupWindow || '1 day',
+      earliestDeliveryDate: lead.earliestDeliveryDate || '',
+      deliveryWindow: lead.deliveryWindow || '7 days',
+      minHours: lead.minHours || '1.00 h',
+      maxHours: lead.maxHours || '2.00 h',
+    };
+  }
+  
+  if (!lead.packingDay) {
+    lead.packingDay = {
+      numPackers: lead.numPackers || '2',
+      packingHourlyRate: lead.packingHourlyRate || '120',
+      packingTravelTime: lead.packingTravelTime || '0.45 h',
+      packingMinimum: lead.packingMinimum || '2h',
+      packingMinHours: lead.packingMinHours || '1.00 h',
+      packingMaxHours: lead.packingMaxHours || '2.00 h',
+    };
+  }
+  
+  // Make sure estimate object exists
+  if (!lead.estimate) {
+    lead.estimate = {
+      rateType: 'Flat Rate',
+      deposit: '$50.00',
+      quote: '$520.00 - $585.00',
+      fuelSurcharge: '$0.00',
+      valuation: '$0.00',
+      packing: '$0.00',
+      additionalServices: '$0.00',
+      discount: '$0.00',
+      grandTotal: '$520 - $585',
+      payment: '$0.00',
+      balanceDue: '$520 - $585',
+    };
+  }
+  
+  // Invoice is not created by default, only when user clicks "Create Invoice"
+  
+  return lead;
+}
+
+/**
  * createLead => create a new Lead object.
  * 1) We fill out top-level lead_status / lead_activity / next_action.
  * 2) We also initialize status_history as an empty array and push an initial record.
@@ -107,7 +169,7 @@ export async function createLead(leadData) {
       ? leadData.originStops
       : defaultStops;
 
-      // Extract moving day and packing day data
+  // Extract moving day and packing day data
   const movingDay = leadData.movingDay || {
     rateType: 'Hourly Rate',
     numTrucks: '1',
@@ -136,7 +198,7 @@ export async function createLead(leadData) {
     packingMinHours: '1.00 h',
     packingMaxHours: '2.00 h',
   };
-
+  
   // Initialize estimate data
   const estimate = leadData.estimate || {
     rateType: 'Flat Rate',
@@ -154,7 +216,6 @@ export async function createLead(leadData) {
 
   // Invoice is not created by default - only when user clicks "Create Invoice"
   // hasInvoice + activeOption determine which UI is shown
-
 
   // Prepare the new lead object
   const newLead = {
@@ -178,24 +239,22 @@ export async function createLead(leadData) {
     lead_activity: leadData.lead_activity || '',
     next_action: leadData.next_action || '',
 
-    // Additional
+    // Additional standard fields
     estimator: leadData.estimator || '',
     survey_date: leadData.survey_date || '',
     survey_time: leadData.survey_time || '',
     inventory_option: leadData.inventory_option || 'Detailed Inventory Quote',
-
     add_storage: leadData.add_storage ?? false,
     storage_items: leadData.storage_items ?? '',
     time_promised: leadData.time_promised ?? false,
     arrival_time: leadData.arrival_time ?? '',
 
     originStops,
-    // destinationStops: ...
 
     // ---------- Day selection fields ----------
     hasPackingDay: leadData.hasPackingDay ?? false,
     activeDay: leadData.activeDay ?? 'moving', // default to lowercase 'moving'
-
+    
     // ---------- Invoice/Estimate fields ----------
     hasInvoice: leadData.hasInvoice ?? false,
     activeOption: leadData.activeOption ?? 'estimate', // default to lowercase 'estimate'
@@ -220,6 +279,9 @@ export async function createLead(leadData) {
 /**
  * updateLead => updates top-level fields + pushes a new record to status_history
  * if lead_status/lead_activity/next_action changed from the current lead.
+ *
+ * IMPORTANT: We migrate to the new nested structure if needed, then handle
+ * both nested and direct updates.
  */
 export async function updateLead(leadId, updates) {
   const idx = leadsData.findIndex((ld) => ld.lead_id === leadId);
@@ -228,8 +290,11 @@ export async function updateLead(leadId, updates) {
   }
 
   const existingLead = leadsData[idx];
+  
+  // First, migrate legacy flat fields to nested structure if needed
+  migrateToNestedStructure(existingLead);
 
-  // Basic merges
+  // Standard top-level fields
   existingLead.customer_name = updates.customer_name ?? existingLead.customer_name;
   existingLead.customer_phone_number = updates.customer_phone_number ?? existingLead.customer_phone_number;
   existingLead.customer_email = updates.customer_email ?? existingLead.customer_email;
@@ -251,7 +316,7 @@ export async function updateLead(leadId, updates) {
     ? updates.hasPackingDay
     : existingLead.hasPackingDay;
   existingLead.activeDay = updates.activeDay ?? existingLead.activeDay;
-
+  
   // ---------- Invoice/Estimate fields ----------
   existingLead.hasInvoice = (typeof updates.hasInvoice !== 'undefined')
     ? updates.hasInvoice
@@ -274,7 +339,7 @@ export async function updateLead(leadId, updates) {
     // Merge all fields from updates.packingDay
     Object.assign(existingLead.packingDay, updates.packingDay);
   }
-
+  
   if (updates.estimate) {
     // Make sure estimate object exists
     if (!existingLead.estimate) existingLead.estimate = {};
@@ -295,7 +360,7 @@ export async function updateLead(leadId, updates) {
     existingLead.originStops = updates.originStops;
   }
 
-  // Check if lead_status changed
+  // Now handle lead_status, lead_activity, next_action (which triggers a new history record)
   let statusChanged = false;
   let activityChanged = false;
   let nextActionChanged = false;
@@ -322,7 +387,7 @@ export async function updateLead(leadId, updates) {
     nextActionChanged = true;
   }
 
-  // If any of those changed => push a new record into status_history
+  // If any of those changed => push a new record
   if (statusChanged || activityChanged || nextActionChanged) {
     pushStatusRecord(existingLead);
   }
@@ -336,7 +401,6 @@ export async function updateLead(leadId, updates) {
   }
 
   // Save updated lead back
-
   leadsData[idx] = existingLead;
   return existingLead;
 }

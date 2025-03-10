@@ -219,13 +219,16 @@ function InventoryDesktop({
     return allItems.filter((itm) => itm.rooms.includes(Number(selectedRoom.id)));
   };
 
-  // Right panel => "My Items" => group by groupingKey
+  // FIXED: Improved getGroupedItems function to ensure all properties exist
   const getGroupedItems = () => {
     if (!selectedRoom) return [];
     const arr = roomItemSelections[selectedRoom.id] || [];
     const grouped = {};
+    
     for (const inst of arr) {
+      // Make sure groupingKey exists
       const gKey = inst.groupingKey || '';
+      
       if (!grouped[gKey]) {
         // Create a new grouped item with all necessary properties
         grouped[gKey] = {
@@ -244,6 +247,7 @@ function InventoryDesktop({
         grouped[gKey].count += 1;
       }
     }
+    
     return Object.values(grouped);
   };
 
@@ -454,6 +458,7 @@ function InventoryDesktop({
               });
               return null;
             })()}
+            
             <ItemList
               items={getGroupedItems()}
               itemClickCounts={{}}

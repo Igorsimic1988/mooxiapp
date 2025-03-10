@@ -342,8 +342,7 @@ const toggleLocalStatus = (label) => {
             <button
               type="button"
               className={styles.dropdownButton}
-              onClick={handleToggleSalesDropdown}
-            >
+              onClick={() => setShowSalesDropdown(!showSalesDropdown)}>
               <div className={styles.dropdownLabel}>
                 <span className={styles.dropdownPrefix}>By sales person:</span>
                 <span

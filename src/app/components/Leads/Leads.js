@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Leads.module.css';
-import HeaderDashboard from './HeadrerDashboard/HeaderDashboard';
+import HeaderDashboard from './HeaderDashboard.js/HeaderDashboard';
 import LeadsFilterBar from './LeadsFilterBar/LeadsFilterBar';
 import LeadsSearchBar from './LeadsSearchBar/LeadsSearchBar';
 import LeadsActionButtons from './LeadsActionButtons/LeadsActionButtons';
@@ -122,27 +122,6 @@ function filterLeadsBySearch(leads, searchQuery) {
   });
 }
 
-/**
- * Filter leads by search query
- */
-function filterLeadsBySearch(leads, searchQuery) {
-  if (!searchQuery.trim()) return leads;
-
-  const normalizedQuery = searchQuery.trim().toLowerCase();
-  const normalizedPhoneQuery = normalizedQuery.replace(/\D/g, '');
-  const searchPhone = normalizedPhoneQuery.length >= 3;
-
-  return leads.filter(lead => {
-    if (String(lead.job_number).includes(normalizedQuery)) return true;
-    if (lead.customer_name && lead.customer_name.toLowerCase().includes(normalizedQuery)) return true;
-    if (lead.customer_email && lead.customer_email.toLowerCase().includes(normalizedQuery)) return true;
-    if (searchPhone && lead.customer_phone_number) {
-      const normalizedPhone = lead.customer_phone_number.replace(/\D/g, '');
-      if (normalizedPhone.includes(normalizedPhoneQuery)) return true;
-    }
-    return false;
-  });
-}
 
 function Leads() {
   // All leads

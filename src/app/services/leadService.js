@@ -76,66 +76,7 @@ function migrateToNestedStructure(lead) {
   
   return lead;
 }
-/**
- * Migrate flat fields into nested structure
- * Used for backwards compatibility with existing leads
- */
-function migrateToNestedStructure(lead) {
-  // Only migrate if movingDay/packingDay don't exist
-  if (!lead.movingDay) {
-    lead.movingDay = {
-      rateType: lead.rateType || 'Hourly Rate',
-      numTrucks: lead.numTrucks || '1',
-      numMovers: lead.numMovers || '2',
-      hourlyRate: lead.hourlyRate || '180',
-      volume: lead.volume || '1000',
-      weight: lead.weight || '7000',
-      pricePerCuft: lead.pricePerCuft || '4.50',
-      pricePerLbs: lead.pricePerLbs || '0.74',
-      travelTime: lead.travelTime || '1.00 h',
-      movingMin: lead.movingMin || '3h',
-      minimumCuft: lead.minimumCuft || '0.00',
-      minimumLbs: lead.minimumLbs || '0',
-      pickupWindow: lead.pickupWindow || '1 day',
-      earliestDeliveryDate: lead.earliestDeliveryDate || '',
-      deliveryWindow: lead.deliveryWindow || '7 days',
-      minHours: lead.minHours || '1.00 h',
-      maxHours: lead.maxHours || '2.00 h',
-    };
-  }
-  
-  if (!lead.packingDay) {
-    lead.packingDay = {
-      numPackers: lead.numPackers || '2',
-      packingHourlyRate: lead.packingHourlyRate || '120',
-      packingTravelTime: lead.packingTravelTime || '0.45 h',
-      packingMinimum: lead.packingMinimum || '2h',
-      packingMinHours: lead.packingMinHours || '1.00 h',
-      packingMaxHours: lead.packingMaxHours || '2.00 h',
-    };
-  }
-  
-  // Make sure estimate object exists
-  if (!lead.estimate) {
-    lead.estimate = {
-      rateType: 'Flat Rate',
-      deposit: '$50.00',
-      quote: '$520.00 - $585.00',
-      fuelSurcharge: '$0.00',
-      valuation: '$0.00',
-      packing: '$0.00',
-      additionalServices: '$0.00',
-      discount: '$0.00',
-      grandTotal: '$520 - $585',
-      payment: '$0.00',
-      balanceDue: '$520 - $585',
-    };
-  }
-  
-  // Invoice is not created by default, only when user clicks "Create Invoice"
-  
-  return lead;
-}
+
 
 /**
  * createLead => create a new Lead object.

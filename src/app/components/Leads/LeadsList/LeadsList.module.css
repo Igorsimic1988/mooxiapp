@@ -1,0 +1,280 @@
+.container {
+  background: #F2F5F8;
+  padding: 10px 20px 20px 20px;
+  height: calc(100vh - 200px); /* Example: subtract top sections' heights */
+  overflow-y: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch; /* Enables smooth scrolling on iOS */
+}
+
+.container::-webkit-scrollbar {
+  display: none;
+}
+
+.listContainer {
+  background: #F2F5F8;
+  padding: 10px 20px 20px 20px;
+  flex: 1; /* Make it expand to fill remaining space */
+  overflow-y: auto; /* Scrollable area for the leads */
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.listContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  border-radius: 16px;
+  background: #FFF;
+  margin-bottom: 10px;
+  padding: 20px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 3fr 4fr 3fr; /* Always 3 columns */
+  align-items: start;
+  overflow: hidden; /* Prevent horizontal overflow */
+  min-width: 0; /* For proper shrinking of columns */
+}
+
+/* Ensure columns can shrink */
+.companyInfo,
+.customerInfo,
+.leadStatusInfo {
+  min-width: 0;
+}
+
+/* Text truncation */
+.truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* Column 1: Company Info */
+.companyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.companyName,
+.jobNumber {
+  color: #90A4B7;
+  font-family: Satoshi, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.dateContainer {
+  width: 90px;
+  max-width: 110px;
+  padding: 6px 9px;
+  display: flex;
+  justify-content: flex-start; /* Align date text to the left */
+  align-items: center;
+  border-radius: 8px;
+  background: #F6F6F6;
+  overflow: hidden; /* Ensure no overflow */
+}
+
+.dateText {
+  color: #90A4B7;
+  text-align: center; /* Left align */
+  font-family: Satoshi, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* Column 2: Customer Info */
+.customerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Each row in customer info to align items similarly */
+.customerRow {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* Dot indicators */
+.greenDot {
+  width: 8px;
+  height: 8px;
+  background: #59B779;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.greenDotPlaceholder {
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* Customer text styles */
+.customerName {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.moveType {
+  color: #90A4B7;
+  font-family: Satoshi, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.customerPhone {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* Column 3: Lead Status Info */
+.leadStatusInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* This gap controls spacing between the 3 rows */
+  align-items: flex-end; /* Right-aligned text */
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Row 1: Top line (statusRow) */
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 20px; /* Consistent row height */
+  line-height: 1.2; /* Feel free to adjust */
+}
+
+/* Row 2: Middle line (nextAction) */
+.nextAction {
+  color: #90A4B7;
+  text-align: right;
+  font-family: Satoshi, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  min-height: 20px; /* Match top line's height */
+}
+
+/* Row 3: Bottom line (salesName) */
+.salesName {
+  color: #90A4B7;
+  text-align: right;
+  font-family: Satoshi, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  min-height: 20px; /* Match above lines */
+  /* Removed margin-top to keep consistent stacking */
+}
+
+.leadStatus {
+  color: #FAA61A;
+  text-align: right;
+  font-family: Satoshi, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.statusIcon {
+  margin-left: 6px;
+  flex-shrink: 0;
+  color: #FAA61A;
+  max-width: 20px;
+  max-height: 20px;
+}
+
+.completedText {
+  color: #3fa9f5 !important; /* ensures we override the default #90A4B7 */
+}
+/* Empty state for no results */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  width: 100%;
+  text-align: center;
+  color: #8E9096;
+  padding: 20px;
+}
+
+/* Empty state for no results */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  width: 100%;
+  text-align: center;
+  color: #8E9096;
+  padding: 20px;
+}
+
+.emptyStateText {
+  font-family: Satoshi, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+/* Style for search results */
+.searchResult {
+  position: relative;
+}
+
+.searchResult::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #3fa9f5;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 392px) {
+  .dateText {
+    font-size: 10px;
+  }
+
+  .dateContainer {
+    width: 90px;
+    padding: 4px 6px;
+  }
+
+  .leadStatus {
+    font-size: 11px;
+  }
+
+  .statusIcon {
+    transform: scale(0.8);
+  }
+}

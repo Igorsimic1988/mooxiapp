@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './AccessPopup.module.css';
+import Image from 'next/image';
 
 // Icons
 import HouseIcon from '../../../../../../assets/icons/house.svg';
@@ -269,7 +270,7 @@ function AccessPopup({
           <span className={styles.dropdownPrefix}>{label}</span>
           <span className={styles.dropdownSelected}>{displayValue}</span>
         </span>
-        <UnfoldMoreIcon className={styles.rightIcon} />
+        <Image src = {UnfoldMoreIcon} alt = 'unfoldMoreIcon' className={styles.rightIcon}/>
       </button>
     );
   }
@@ -289,12 +290,12 @@ function AccessPopup({
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <HouseIcon className={styles.icon} />
+            <Image src = {HouseIcon} alt = 'houseIcon' className={styles.icon}/>
             <p>Access</p>
           </div>
           <div className={styles.closeButton}>
             <button onClick={handleClose} aria-label="Close">
-              <CloseIcon className={styles.closeIcon} />
+              <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIcon}/>
             </button>
           </div>
         </div>

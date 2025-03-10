@@ -11,6 +11,7 @@ import Select, { components as RSComponents } from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import packingOptions from '../../../../../../../../../data/constants/packingOptions';
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
+import Image from 'next/image';
 
 /** 
  * ==============================================
@@ -738,7 +739,7 @@ function ItemPopup({
           </div>
           <div className={styles.closeButton}>
             <button type="button" onClick={onClose} aria-label="Close">
-              <CloseIcon className={styles.closeIcon} />
+              <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIcon}/>
             </button>
           </div>
         </div>
@@ -839,7 +840,8 @@ function ItemPopup({
               onClick={handleCameraRollClick}
               style={{ cursor: 'pointer', position: 'relative' }}
             >
-              <CameraIcon className={styles.icon} />
+              <Image src = {CameraIcon} alt = 'cameraIcon' className={styles.icon}/>
+
               <div>
                 {cameraImages.length > 0 ? 'View Camera Roll' : 'Camera Roll'}
               </div>
@@ -861,7 +863,7 @@ function ItemPopup({
               onClick={handleUploadClick}
               style={{ cursor: 'pointer', position: 'relative' }}
             >
-              <UploadIcon className={styles.icon} />
+              <Image src = {UploadIcon} alt = 'uploadIcon' className={styles.icon}/>
               <div>
                 {uploadedImages.length > 0 ? 'View Upload' : 'Upload'}
               </div>
@@ -881,7 +883,8 @@ function ItemPopup({
               onClick={handleLinkClick}
               style={{ cursor: 'pointer', position: 'relative' }}
             >
-              <LinkIcon className={styles.icon} />
+              <Image src = {LinkIcon} alt = 'linkIcon' className={styles.icon}/>
+
               <div>{link ? 'Link Added' : 'Add Link'}</div>
 
               {/* Popup Options if link is present */}
@@ -986,7 +989,7 @@ function ItemPopup({
                   onClick={closePreview}
                   aria-label="Close Preview"
                 >
-                  <CloseIcon className={styles.closeIconPreview} />
+                  <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIconPreview}/>
                 </button>
                 <img
                   src={previewImage}

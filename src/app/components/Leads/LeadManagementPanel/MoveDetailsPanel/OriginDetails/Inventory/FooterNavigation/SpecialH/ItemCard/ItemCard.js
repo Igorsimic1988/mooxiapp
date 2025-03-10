@@ -3,6 +3,7 @@
 import React from 'react';
 import styles from './ItemCard.module.css';
 import CheckmarkIcon from '../../../../../../../../../assets/icons/checksmall.svg'; // Adjust the path as needed
+import Image from 'next/image';
 
 function ItemCard({ id, item, tags, onItemClick, isSelected }) {
   return (
@@ -21,7 +22,7 @@ function ItemCard({ id, item, tags, onItemClick, isSelected }) {
         {/* Checkmark Badge */}
         {isSelected && (
           <div className={styles.checkmarkBadge}>
-            <CheckmarkIcon />
+            <Image src = {CheckmarkIcon} alt = 'checkmarkIcon'/>
           </div>
         )}
         

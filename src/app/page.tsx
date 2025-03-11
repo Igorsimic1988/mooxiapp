@@ -1,12 +1,17 @@
 'use client';
-
+import './globals.css';
 import React from 'react';
-import Leads from './components/Leads/Leads';
+import dynamic from 'next/dynamic'
+
+const DynamicLeads = dynamic(
+  () => import('./components/Leads/Leads'),
+  { ssr: false }
+)
 
 function App() {
   return (
     <div className="App">
-       <Leads /> 
+       <DynamicLeads /> 
     </div>
   );
 }

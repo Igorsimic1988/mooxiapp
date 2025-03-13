@@ -1,12 +1,8 @@
 // src/components/Leads/HeadrerDashboard.js/HeaderDashboard.js
 
 import React from 'react';
-import AddBars from '../../../assets/icons/barsStaggered.svg';
-import NotificationBell from '../../../assets/icons/notificationBell.svg';
-import MessageIcon from '../../../assets/icons/message.svg';
-import ForwardArrow from '../../../assets/icons/arrowforward.svg';
 import styles from './HeaderDashboard.module.css';
-import Image from 'next/image';
+import Icon from "../../Icon";
 
 /**
  * HeaderDashboard
@@ -53,9 +49,9 @@ function HeaderDashboard({
     <div className={`${styles.headerContainer} ${isLeadSelected ? styles.leadSelected : ''}`}>
       <div className={styles.topBar}>
         <div className={styles.leftGroup}>
-          <Image src={AddBars} alt="logo" className={styles.addBarsIcon} />
+          <Icon name="barsStaggered" className={styles.addBarsIcon} />
           {(isInInventory || isLeadSelected) ? (
-            <Image src={ForwardArrow} alt="logo" className={styles.forwardArrowIcon} onClick={handleArrowClick} />
+            <Icon name="ArrowForward" className={styles.forwardArrowIcon} onClick={handleArrowClick} />
           ) : (
             <span className={styles.homeText}>Home</span>
           )}
@@ -71,11 +67,11 @@ function HeaderDashboard({
         <div className={styles.rightGroup}>
           <div className={styles.messageGroup}>
             <div className={styles.messageBadge}>3</div>
-            <Image src={MessageIcon} alt="logo" className={styles.messageIcon} />
+            <Icon name="Message" className={styles.messageIcon} />
           </div>
           <div className={styles.notificationGroup}>
             <div className={styles.notificationBadge} />
-            <Image src={NotificationBell} alt="logo" className={styles.notificationIcon} />
+            <Icon name="NotificationBell" className={styles.notificationIcon} />
           </div>
         </div>
       </div>

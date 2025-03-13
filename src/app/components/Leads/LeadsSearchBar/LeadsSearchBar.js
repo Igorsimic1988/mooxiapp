@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import styles from './LeadsSearchBar.module.css';
-import SearchIcon from '../../../assets/icons/search.svg';
-import Image from 'next/image';
+import Icon from 'src/app/components/Icon';
 
 function LeadsSearchBar({ searchQuery, setSearchQuery }) {
   const inputRef = useRef(null);
@@ -46,13 +45,11 @@ function LeadsSearchBar({ searchQuery, setSearchQuery }) {
           onKeyDown={handleKeyDown}
           ref={inputRef}
         />
-        <Image
-          src={SearchIcon}
-          alt="search"
+        <Icon 
+          name="Search"
           className={`${styles.searchIcon} ${isActive ? styles.activeIcon : ''}`}
-          aria-hidden="true"
           onClick={isActive ? handleClear : null} // Allow clicking the icon to clear the search 
-          />
+        />
       </div>
     </header>
   );

@@ -1,0 +1,13 @@
+<svg width="24px" height="24px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <style type="text/css">
+    .sharpcorners_een {
+      fill: #90A4B7; /* Updated Fill Color */
+      stroke: #FFFFFF; /* Added White Stroke */
+      stroke-width: 0.5; /* Adjusted Stroke Width */
+      stroke-linecap: round; /* Smooth Line Endings */
+      stroke-linejoin: round; /* Smooth Line Joins */
+    }
+  </style>
+  <path class="sharpcorners_een" d="M2,12h1v10h7l1.2-6h3.619l0.8-4H21V3H2V12z M13.581,12l-0.4,2H11.6l0.4-2H13.581z M30,7v1h-4v1
+	l-4,2V4l4,2v1H30z M2,23h12v6H2V23z"/>
+</svg>

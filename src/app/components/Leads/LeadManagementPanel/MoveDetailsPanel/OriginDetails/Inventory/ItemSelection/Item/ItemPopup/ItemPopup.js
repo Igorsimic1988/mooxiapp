@@ -2,16 +2,13 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styles from './ItemPopup.module.css';
-import CloseIcon from '../../../../../../../../../assets/icons/Close.svg';
-import CameraIcon from '../../../../../../../../../assets/icons/cameraroll.svg';
-import UploadIcon from '../../../../../../../../../assets/icons/upload.svg';
-import LinkIcon from '../../../../../../../../../assets/icons/pastelink.svg';
 import { optionsData } from '../../../../../../../../../data/constants/optionsData';
 import Select, { components as RSComponents } from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import packingOptions from '../../../../../../../../../data/constants/packingOptions';
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
-import Image from 'next/image';
+
+import Icon from 'src/app/components/Icon';
 
 /** 
  * ==============================================
@@ -739,7 +736,7 @@ function ItemPopup({
           </div>
           <div className={styles.closeButton}>
             <button type="button" onClick={onClose} aria-label="Close">
-              <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIcon}/>
+              <Icon name="Close" className={styles.closeIcon} />
             </button>
           </div>
         </div>
@@ -840,8 +837,7 @@ function ItemPopup({
               onClick={handleCameraRollClick}
               style={{ cursor: 'pointer', position: 'relative' }}
             >
-              <Image src = {CameraIcon} alt = 'cameraIcon' className={styles.icon}/>
-
+              <Icon name="CameraRoll" className={styles.icon} />
               <div>
                 {cameraImages.length > 0 ? 'View Camera Roll' : 'Camera Roll'}
               </div>
@@ -863,7 +859,7 @@ function ItemPopup({
               onClick={handleUploadClick}
               style={{ cursor: 'pointer', position: 'relative' }}
             >
-              <Image src = {UploadIcon} alt = 'uploadIcon' className={styles.icon}/>
+              <Icon name="Upload" className={styles.icon} />
               <div>
                 {uploadedImages.length > 0 ? 'View Upload' : 'Upload'}
               </div>
@@ -883,8 +879,7 @@ function ItemPopup({
               onClick={handleLinkClick}
               style={{ cursor: 'pointer', position: 'relative' }}
             >
-              <Image src = {LinkIcon} alt = 'linkIcon' className={styles.icon}/>
-
+              <Icon name="PasteLink" className={styles.icon} />
               <div>{link ? 'Link Added' : 'Add Link'}</div>
 
               {/* Popup Options if link is present */}
@@ -989,7 +984,7 @@ function ItemPopup({
                   onClick={closePreview}
                   aria-label="Close Preview"
                 >
-                  <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIconPreview}/>
+                  <Icon name="Close" className={styles.closeIconPreview} />
                 </button>
                 <img
                   src={previewImage}

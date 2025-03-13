@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import styles from './SearchHeader.module.css';
 import SearchIcon from '../../../../../../../assets/icons/search.svg';
 import Image from 'next/image';
+import Icon from 'src/app/components/Icon'; 
 
 function SearchHeader({ roomName, searchQuery, onSearch, onSearchClick, onSearchFocus }) {
   const isActive = searchQuery.trim() !== '';
@@ -41,11 +42,7 @@ function SearchHeader({ roomName, searchQuery, onSearch, onSearchClick, onSearch
           onKeyDown={handleKeyDown}
           ref={inputRef} // Attach reference to input for selecting text
         />
-        <Image 
-        src = {SearchIcon} 
-        alt = 'searchIcon' 
-        className={`${styles.searchIcon} ${isActive ? styles.activeIcon : ''}`}
-        aria-hidden = "true"/>
+        <Icon name="Search" className={`${styles.searchIcon} ${isActive ? styles.activeIcon : ''}`} />
       </div>
     </header>
   );

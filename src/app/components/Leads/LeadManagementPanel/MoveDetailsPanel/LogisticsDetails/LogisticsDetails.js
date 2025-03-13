@@ -2,10 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from './LogisticsDetails.module.css';
 
 // Icon for dropdown only
-import UnfoldMoreIcon from '../../../../../assets/icons/unfoldmore.svg';
-import CalendarIcon from '../../../../../assets/icons/calendar.svg';
+import Icon from 'src/app/components/Icon';
 import PackingDay from './PackingDay/PackingDay';
-import Image from 'next/image';
 
 /** Rate Type Options (used for the Moving day) */
 const RATE_TYPE_OPTIONS = ['Hourly Rate', 'Volume Based', 'Weight Based'];
@@ -467,8 +465,7 @@ function LogisticsDetails({
                       <span className={styles.dropdownPrefix}>Rate Type:</span>
                       <span className={styles.dropdownSelected}>{rateType}</span>
                     </div>
-                    <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
-
+                    <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                   </button>
 
                   {showRateTypeDropdown && (
@@ -613,7 +610,7 @@ function LogisticsDetails({
                       <span className={styles.dropdownPrefix}>Travel Time (h):</span>
                       <span className={styles.dropdownSelected}>{travelTime}</span>
                     </div>
-                    <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
+                    <Icon name="UnfoldMore" className={styles.dropdownIcon} />
 
                     {showTravelTimeDropdown && (
                       <ul className={styles.rateTypeDropdown}>
@@ -659,8 +656,7 @@ function LogisticsDetails({
                       <span className={styles.dropdownPrefix}>Work time minimum:</span>
                       <span className={styles.dropdownSelected}>{movingMin}</span>
                     </div>
-                    <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
-
+                    <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                     {showMovingMinDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {MOVING_MINIMUM_OPTIONS.map((opt) => {
@@ -737,7 +733,7 @@ function LogisticsDetails({
                     <span className={styles.dropdownPrefix}>Pickup window:</span>
                     <span className={styles.dropdownSelected}>{pickupWindow}</span>
                     </div>
-                    <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
+                    <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                     {showPickupWindowDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {PICKUP_WINDOW_OPTIONS.map((opt) => {
@@ -780,7 +776,7 @@ function LogisticsDetails({
                       </span>
                     </div>
                     <div className={styles.calendarRightIconWrapper}>
-                      <Image src={CalendarIcon} alt='calendarIcon'className={styles.calendarIcon}/>
+                      <Icon name="Calendar" className={styles.calendarIcon} />
                     </div>
 
                     {showEarliestDeliveryCalendar && (
@@ -855,7 +851,7 @@ function LogisticsDetails({
                     <span className={styles.dropdownPrefix}>Delivery Window:</span>
                     <span className={styles.dropdownSelected}>{deliveryWindow}</span>
                     </div>
-                    <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
+                    <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                     {showDeliveryWindowDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {DELIVERY_WINDOW_OPTIONS.map((opt) => {
@@ -902,8 +898,7 @@ function LogisticsDetails({
                         <span className={styles.dropdownPrefix}>Min. hours:</span>
                         <span className={styles.dropdownSelected}>{minHours}</span>
                       </div>
-                      <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
-
+                      <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                       {showMinHoursDropdown && (
                         <ul className={styles.rateTypeDropdown}>
                           {QUARTER_HOUR_OPTIONS.map((opt) => {
@@ -943,8 +938,7 @@ function LogisticsDetails({
                         <span className={styles.dropdownPrefix}>Max. hours:</span>
                         <span className={styles.dropdownSelected}>{maxHours}</span>
                       </div>
-                      <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
-
+                      <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                       {showMaxHoursDropdown && (
                         <ul className={styles.rateTypeDropdown}>
                           {QUARTER_HOUR_OPTIONS.map((opt) => {
@@ -1044,7 +1038,7 @@ function LogisticsDetails({
                         <span className={styles.dropdownPrefix}>Packers Travel Time (h):</span>
                           <span className={styles.dropdownSelected}>{packingTravelTime}</span>
                         </div>
-                        <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
+                        <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                         {showPackingTravelTimeDropdown && (
                           <ul className={styles.rateTypeDropdown}>
                             {QUARTER_HOUR_OPTIONS.map((opt) => {
@@ -1087,7 +1081,7 @@ function LogisticsDetails({
                           <span className={styles.dropdownPrefix}>Packing time minimum:</span>
                           <span className={styles.dropdownSelected}>{packingMinimum}</span>
                         </div>
-                        <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
+                        <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                         {showPackingMinDropdown && (
                           <ul className={styles.rateTypeDropdown}>
                             {MOVING_MINIMUM_OPTIONS.map((opt) => {
@@ -1133,7 +1127,7 @@ function LogisticsDetails({
                       <span className={styles.dropdownPrefix}>Packing Min. hours:</span>
                       <span className={styles.dropdownSelected}>{packingMinHours}</span>
                     </div>
-                    <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
+                    <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                     {showPackingMinHoursDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {QUARTER_HOUR_OPTIONS.map((opt) => {
@@ -1173,7 +1167,7 @@ function LogisticsDetails({
                       <span className={styles.dropdownPrefix}>Packing Max. hours:</span>
                       <span className={styles.dropdownSelected}>{packingMaxHours}</span>
                     </div>
-                    <Image src={UnfoldMoreIcon} alt='nfoldMoreIcon'className={styles.dropdownIcon}/>
+                    <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                     {showPackingMaxHoursDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {QUARTER_HOUR_OPTIONS.map((opt) => {

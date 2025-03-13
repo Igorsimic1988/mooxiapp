@@ -9,6 +9,8 @@ import UnfoldMoreIcon from '../../../../../../assets/icons/unfoldmore.svg';
 
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 
+import Icon from '../../../../../Icon'
+
 // Example data for drop-downs
 const whatsMovingOriginOptions = ['Mixed', 'Boxes Only', 'Furniture Only'];
 const packingOriginOptions = [
@@ -252,7 +254,7 @@ function ServicesPopup({
           <span className={styles.dropdownPrefix}>{label}</span>
           <span className={styles.dropdownSelected}>{displayValue}</span>
         </span>
-        <Image src = {UnfoldMoreIcon} alt = 'unfoldMoreIcon' className={styles.rightIcon}/>
+        <Icon name="UnfoldMore" className={styles.rightIcon} />
       </button>
     );
   }
@@ -272,12 +274,12 @@ function ServicesPopup({
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Image src = {HouseIcon} alt = 'houseIcon' className={styles.icon}/>
+            <Icon name="House" className={styles.icon} />
             <p>Services</p>
           </div>
           <div className={styles.closeButton}>
             <button onClick={handleClose} aria-label="Close">
-              <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIcon}/>
+              <Icon name="Close" className={styles.icon} />
             </button>
           </div>
         </div>

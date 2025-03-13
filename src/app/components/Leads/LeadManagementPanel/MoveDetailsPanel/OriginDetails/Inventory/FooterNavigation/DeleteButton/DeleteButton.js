@@ -2,8 +2,7 @@
 
 import React from 'react';
 import styles from './DeleteButton.module.css';
-import DeleteIcon from '../../../../../../../../assets/icons/deletemobile.svg';
-import Image from 'next/image';
+import Icon from 'src/app/components/Icon';
 
 function DeleteButton({ isActive, onClick, className = '' }) {
   return (
@@ -14,7 +13,7 @@ function DeleteButton({ isActive, onClick, className = '' }) {
       tabIndex={0}
     >
       <div className={styles.iconWrapper}>
-        <Image src = {DeleteIcon} alt= 'deleteIcon' className={`${styles.navIcon} ${isActive ? styles.redIcon : ''}`}/>
+        <Icon name="DeleteMobile" className={`${styles.navIcon} ${isActive ? styles.redIcon : ''}`} />
       </div>
       <p className={`${styles.navText} ${isActive ? styles.redText : ''}`}>Delete</p>
     </div>

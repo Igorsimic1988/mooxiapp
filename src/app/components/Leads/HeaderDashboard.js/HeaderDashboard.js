@@ -49,7 +49,7 @@ function HeaderDashboard({
     <div className={`${styles.headerContainer} ${isLeadSelected ? styles.leadSelected : ''}`}>
       <div className={styles.topBar}>
         <div className={styles.leftGroup}>
-          <Icon name="barsStaggered" className={styles.addBarsIcon} />
+          <Icon name="BarsStaggered" className={styles.addBarsIcon} />
           {(isInInventory || isLeadSelected) ? (
             <Icon name="ArrowForward" className={styles.forwardArrowIcon} onClick={handleArrowClick} />
           ) : (

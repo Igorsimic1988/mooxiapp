@@ -266,7 +266,7 @@ const toggleLocalStatus = (label) => {
         {/* ---------- HEADER ---------- */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Icon name='filter' className={styles.filterIcon} />
+            <Icon name="Filter" className={styles.filterIcon} />
             <p>Filters</p>
           </div>
           <div className={styles.closeButton}>

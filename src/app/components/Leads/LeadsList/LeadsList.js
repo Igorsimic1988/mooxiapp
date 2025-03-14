@@ -1,15 +1,8 @@
 import React from 'react';
 import styles from './LeadsList.module.css';
-import Image from 'next/image';
+import Icon from 'src/app/components/Icon';
 
-import InProgressIcon from '../../../assets/icons/inProgress.svg';
-import QuotedIcon from '../../../assets/icons/quoted.svg';
-import BadLeadIcon from '../../../assets/icons/badlead.svg';
-import DeclinedIcon from '../../../assets/icons/declined.svg';
-import BookedIcon from '../../../assets/icons/booked.svg';
-import OnHoldIcon from '../../../assets/icons/onhold.svg';
-import CanceledIcon from '../../../assets/icons/canceled.svg';
-import SearchIcon from '../../../assets/icons/search.svg';
+
 /**
  * Format creation_date_time => mm/dd/yyyy
  */
@@ -52,14 +45,14 @@ function formatMonthDay(isoString) {
  * Color/icon for each lead_status
  */
 const statusMapping = {
-  'New Lead':     { color: '#59B779', Icon: null },
-  'In Progress':  { color: '#FAA61A', Icon: InProgressIcon },
-  'Quoted':       { color: '#FFC61E', Icon: QuotedIcon },
-  'Bad Lead':     { color: '#f65676', Icon: BadLeadIcon },
-  'Declined':     { color: '#D9534F', Icon: DeclinedIcon },
-  'Booked':       { color: '#3fa9f5', Icon: BookedIcon },
-  'Move on Hold': { color: '#616161', Icon: OnHoldIcon },
-  'Cancaled':     { color: '#2f3236', Icon: CanceledIcon },
+  'New Lead':     { color: '#59B779', icon: () =>  null },
+  'In Progress':  { color: '#FAA61A', icon: () => <Icon name="InProgress" className={styles.statusIcon}/> },
+  'Quoted':       { color: '#FFC61E', icon: () => <Icon name="Quoted" className={styles.statusIcon} />},
+  'Bad Lead':     { color: '#f65676', icon: () => <Icon name="BadLead" className={styles.statusIcon}/>},
+  'Declined':     { color: '#D9534F', icon: () => <Icon name="Declined" className={styles.statusIcon}/> },
+  'Booked':       { color: '#3fa9f5', icon: () => <Icon name="Booked" className={styles.statusIcon}/>},
+  'Move on Hold': { color: '#616161', icon: () => <Icon name="OnHold" className={styles.statusIcon}/>},
+  'Cancaled':     { color: '#2f3236', icon: () => <Icon name="Canceled" className={styles.statusIcon}/> },
 };
 
 function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
@@ -71,7 +64,7 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
         <div className={styles.emptyState}>
           {isSearchResults ? (
             <>
-              <SearchIcon className={styles.emptyStateIcon} />
+              <Icon name="Search" className={styles.emptyStateIcon} />
               <p className={styles.emptyStateText}>No results found</p>
               <p className={styles.emptyStateSubtext}>Try different search terms</p>
             </>
@@ -91,10 +84,12 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
       onScroll={onScroll}
     >
       {leads.map((lead) => {
-        const { color, Icon } = statusMapping[lead.lead_status] || {
+        const { color, icon } = statusMapping[lead.lead_status] || {
           color: '#FAA61A',
-          Icon: InProgressIcon,
+          icon: () => <Icon name="InProgress" className={styles.statusIcon}/>,
         };
+
+        console.log(Icon)
 
         // Default top/middle/bottom
         let topLineText     = lead.lead_status;
@@ -179,7 +174,7 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
                   {topLineText}
                 </span>
                 {showTopLineIcon && Icon && (
-                  <Image src={Icon} alt="status" className={styles.statusIcon} />
+                  icon()
                 )}
               </div>
 

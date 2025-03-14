@@ -2,9 +2,7 @@
 
 import React, { useMemo, useEffect, useRef } from 'react';
 import styles from './HouseInfo.module.css';
-import HouseIcon from '../../../../../../../../assets/icons/house.svg';
-import MoreIcon from '../../../../../../../../assets/icons/unfoldmore.svg';
-import Image from 'next/image';
+import Icon from 'src/app/components/Icon';
 
 /**
  * HouseInfo:
@@ -42,7 +40,7 @@ function HouseInfo({ lead, stopIndex, onStopIndexChange }) {
     return (
       <div className={styles.houseInfoContainer}>
         <div className={styles.iconWrapper}>
-          <Image src = {HouseIcon} alt = 'houseIcon' className={styles.houseIcon} aria-hidden="true"/>
+          <Icon name="House" className={styles.houseIcon} />
         </div>
         <div className={styles.houseInfo}>
           <h1 className={styles.houseTitle}>No stops available</h1>
@@ -77,7 +75,7 @@ function HouseInfo({ lead, stopIndex, onStopIndexChange }) {
   return (
     <div className={styles.houseInfoContainer} ref={dropdownRef}>
       <div className={styles.iconWrapper}>
-        <Image src = {HouseIcon} alt = 'houseIcon' className={styles.houseIcon} aria-hidden="true"/>
+        <Icon name="House" className={styles.houseIcon} />
       </div>
 
       <div className={styles.houseInfo}>
@@ -87,12 +85,7 @@ function HouseInfo({ lead, stopIndex, onStopIndexChange }) {
         >
           <h1 className={styles.houseTitle}>{typeOfPlace}</h1>
           {!isSingleStop && (
-        
-            <Image 
-            src = {MoreIcon} 
-            alt = 'moreIcon' 
-            className={`${styles.moreIcon} ${isOpen ? styles.rotate : ''}`}
-            aria-hidden="true"/>
+            <Icon name="More" className={`${styles.moreIcon} ${isOpen ? styles.rotate : ''}`} />
           )}
         </div>
         <p className={styles.stopLabel}>{label}</p>

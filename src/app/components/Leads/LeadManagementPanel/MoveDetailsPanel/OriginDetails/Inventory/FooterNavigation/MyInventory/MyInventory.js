@@ -2,76 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from "./MyInventory.module.css";
 import rooms from '../../../../../../../../data/constants/AllRoomsList';
 import { optionsData } from '../../../../../../../../data/constants/optionsData';
-import Image from 'next/image';
 
-import MyInventoryPopupIcon from "../../../../../../../../assets/icons/MyInventoryPopupIcon.svg";
-import CloseIcon from "../../../../../../../../assets/icons/Close.svg";
+import Icon from 'src/app/components/Icon';
 
-/** 
- * ============== ICON IMPORTS ==============
- *  Include all tags, including your five special ones
- */
-import CpPackedByMoversIcon from "../../../../../../../../assets/icons/cp_packed_by_movers.svg";
-import PboPackedByCustomerIcon from "../../../../../../../../assets/icons/pbo_packed_by_customer.svg";
-import CratingIcon from "../../../../../../../../assets/icons/crating.svg";
-import BlanketWrappedIcon from "../../../../../../../../assets/icons/blanket_wrapped.svg";
-import PaperBlanketWrappedIcon from "../../../../../../../../assets/icons/paper_blanket_wrapped.svg";
-import PurchasedBlanketsIcon from "../../../../../../../../assets/icons/purchased_blankets.svg";
-import PackAndLeaveBehindIcon from "../../../../../../../../assets/icons/pack_and_leave_behind.svg";
-import KeepBlanketOnIcon from "../../../../../../../../assets/icons/keep_blanket_on.svg";
-import UnpackingIcon from "../../../../../../../../assets/icons/unpacking.svg";
-import InspectAndRepackIcon from "../../../../../../../../assets/icons/inspect_and_repack.svg";
-import BulkyIcon from "../../../../../../../../assets/icons/bulky.svg";
-import DisassemblyIcon from "../../../../../../../../assets/icons/disassembly.svg";
-import AssemblyIcon from "../../../../../../../../assets/icons/assembly.svg";
-import PressboardIcon from "../../../../../../../../assets/icons/pressboard.svg";
-import FragileIcon from "../../../../../../../../assets/icons/fragile.svg";
-import MayorApplianceIcon from "../../../../../../../../assets/icons/mayor_appliance.svg";
-import ExtraordinaryValueIcon from "../../../../../../../../assets/icons/extraordinary_value.svg";
-import KitFurnitureAssemblyIcon from "../../../../../../../../assets/icons/kit_furniture_assembly.svg";
-import ExcludedIcon from "../../../../../../../../assets/icons/excluded.svg";
-import MayNotShipIcon from "../../../../../../../../assets/icons/may_not_ship.svg";
-import ItemInClosetIcon from "../../../../../../../../assets/icons/item_in_closet.svg";
-import HoistingOriginIcon from "../../../../../../../../assets/icons/hoisting_origin.svg";
-import CraneOriginIcon from "../../../../../../../../assets/icons/crane_origin.svg";
-import MovingWithinPremisesIcon from "../../../../../../../../assets/icons/moving_within_premises.svg";
-import HelpWithLoadingIcon from "../../../../../../../../assets/icons/help_with_loading.svg";
-
-/** 
- * The five special tags 
- * (which are also in dropPoints, but we want them always visible).
- */
-import  DisposalIcon from "../../../../../../../../assets/icons/disposal.svg";
-import  ItemForCompanyStorageIcon from "../../../../../../../../assets/icons/item_for_company_storage.svg";
-import  HelpWithUnloadingIcon from "../../../../../../../../assets/icons/help_with_unloading.svg";
-import  HoistingDestinationIcon from "../../../../../../../../assets/icons/hoisting_destination.svg";
-import  CraneDestinationIcon from "../../../../../../../../assets/icons/crane_destination.svg";
-
-/** Numeric drop points (already have 2_drop, 3_drop, etc.) */
-import  MainDropOffIcon from "../../../../../../../../assets/icons/main_drop_off.svg";
-import  TwoDropIcon from "../../../../../../../../assets/icons/2_drop.svg";
-import  ThreeDropIcon from "../../../../../../../../assets/icons/3_drop.svg";
-import  PostStorageMainDropIcon from "../../../../../../../../assets/icons/post_storage_main_drop.svg";
-import  PostStorage2DropIcon from "../../../../../../../../assets/icons/post_storage_2_drop.svg";
-import  PostStorage3DropIcon from "../../../../../../../../assets/icons/post_storage_3_drop.svg";
-
-/** 
- * ============== ADDITIONAL DROP ICON IMPORTS ==============
- * for 4_drop through 9_drop, and post_storage_4_drop through post_storage_9_drop
- */
-import  FourDropIcon from "../../../../../../../../assets/icons/4_drop.svg";
-import  FiveDropIcon from "../../../../../../../../assets/icons/5_drop.svg";
-import  SixDropIcon from "../../../../../../../../assets/icons/6_drop.svg";
-import  SevenDropIcon from "../../../../../../../../assets/icons/7_drop.svg";
-import  EightDropIcon from "../../../../../../../../assets/icons/8_drop.svg";
-import  NineDropIcon from "../../../../../../../../assets/icons/9_drop.svg";
-
-import  PostStorage4DropIcon from "../../../../../../../../assets/icons/post_storage_4_drop.svg";
-import  PostStorage5DropIcon from "../../../../../../../../assets/icons/post_storage_5_drop.svg";
-import  PostStorage6DropIcon from "../../../../../../../../assets/icons/post_storage_6_drop.svg";
-import  PostStorage7DropIcon from "../../../../../../../../assets/icons/post_storage_7_drop.svg";
-import  PostStorage8DropIcon from "../../../../../../../../assets/icons/post_storage_8_drop.svg";
-import  PostStorage9DropIcon from "../../../../../../../../assets/icons/post_storage_9_drop.svg";
 
 /**
  * Convert "Drop off 2" => "2_drop", "Post Storage Drop off 3" => "post_storage_3_drop"
@@ -100,65 +33,65 @@ function labelToDropTag(labelString) {
  */
 const tagIcons = {
   // Packing & item tags
-  cp_packed_by_movers: CpPackedByMoversIcon,
-  pbo_packed_by_customer: PboPackedByCustomerIcon,
-  crating: CratingIcon,
-  blanket_wrapped: BlanketWrappedIcon,
-  paper_blanket_wrapped: PaperBlanketWrappedIcon,
-  purchased_blankets: PurchasedBlanketsIcon,
-  pack_and_leave_behind: PackAndLeaveBehindIcon,
-  keep_blanket_on: KeepBlanketOnIcon,
-  unpacking: UnpackingIcon,
-  inspect_and_repack: InspectAndRepackIcon,
-  bulky: BulkyIcon,
-  disassembly: DisassemblyIcon,
-  assembly: AssemblyIcon,
-  pressboard: PressboardIcon,
-  fragile: FragileIcon,
-  mayor_appliance: MayorApplianceIcon,
-  extraordinary_value: ExtraordinaryValueIcon,
-  kit_furniture_assembly: KitFurnitureAssemblyIcon,
+  cp_packed_by_movers: 'CpPackedByMovers',
+  pbo_packed_by_customer: 'PboPackedByCustomer',
+  crating: 'Crating',
+  blanket_wrapped: 'BlanketWrapped',
+  paper_blanket_wrapped: 'PaperBlanketWrapped',
+  purchased_blankets: 'PurchasedBlankets',
+  pack_and_leave_behind: 'PackAndLeaveBehind',
+  keep_blanket_on: 'KeepBlanketOn',
+  unpacking: 'Unpacking',
+  inspect_and_repack: 'InspectAndRepack',
+  bulky: 'Bulky',
+  disassembly: 'Disassembly',
+  assembly: 'Assembly',
+  pressboard: 'PressBoard',
+  fragile: 'Fragile',
+  mayor_appliance: 'MayorAppliance',
+  extraordinary_value: 'ExtraordinaryValue',
+  kit_furniture_assembly: 'KitFurnitureAssembly',
 
   // Possibly hidden in UI logic, but we still have icons:
-  excluded: ExcludedIcon,
-  may_not_ship: MayNotShipIcon,
+  excluded: 'Excluded',
+  may_not_ship: 'MayNotShip',
 
   // Load points
-  item_in_closet: ItemInClosetIcon,
-  hoisting_origin: HoistingOriginIcon,
-  crane_origin: CraneOriginIcon,
-  moving_within_premises: MovingWithinPremisesIcon,
-  help_with_loading: HelpWithLoadingIcon,
+  item_in_closet: 'ItemInCloset',
+  hoisting_origin: 'HoistingOrigin',
+  crane_origin: 'CraneOrigin',
+  moving_within_premises: 'MovingWithinPremises',
+  help_with_loading: 'HelpWithLoading',
 
   // Five special location tags
-  disposal: DisposalIcon,
-  item_for_company_storage: ItemForCompanyStorageIcon,
-  help_with_unloading: HelpWithUnloadingIcon,
-  hoisting_destination: HoistingDestinationIcon,
-  crane_destination: CraneDestinationIcon,
+  disposal: 'Disposal',
+  item_for_company_storage: 'ItemForCompanyStorage',
+  help_with_unloading: 'HelpWithLoading',
+  hoisting_destination: 'HoistingDestination',
+  crane_destination: 'CraneDestination',
 
   // Numeric stops already present:
-  main_drop_off: MainDropOffIcon,
-  '2_drop': TwoDropIcon,
-  '3_drop': ThreeDropIcon,
-  post_storage_main_drop: PostStorageMainDropIcon,
-  'post_storage_2_drop': PostStorage2DropIcon,
-  'post_storage_3_drop': PostStorage3DropIcon,
+  main_drop_off: 'MainDropOff',
+  '2_drop': 'Drop2',
+  '3_drop': 'Drop3',
+  post_storage_main_drop: 'PostStorageMainDrop',
+  'post_storage_2_drop': 'PostStorage2Drop',
+  'post_storage_3_drop': 'PostStorage3Drop',
 
   // Additional numeric stops up to 9:
-  '4_drop': FourDropIcon,
-  '5_drop': FiveDropIcon,
-  '6_drop': SixDropIcon,
-  '7_drop': SevenDropIcon,
-  '8_drop': EightDropIcon,
-  '9_drop': NineDropIcon,
+  '4_drop': 'Drop4',
+  '5_drop': 'Drop5',
+  '6_drop': 'Drop6',
+  '7_drop': 'Drop7',
+  '8_drop': 'Drop8',
+  '9_drop': 'Drop9',
 
-  post_storage_4_drop: PostStorage4DropIcon,
-  post_storage_5_drop: PostStorage5DropIcon,
-  post_storage_6_drop: PostStorage6DropIcon,
-  post_storage_7_drop: PostStorage7DropIcon,
-  post_storage_8_drop: PostStorage8DropIcon,
-  post_storage_9_drop: PostStorage9DropIcon,
+  post_storage_4_drop: 'PostStorage4Drop',
+  post_storage_5_drop: 'PostStorage5Drop',
+  post_storage_6_drop: 'PostStorage6Drop',
+  post_storage_7_drop: 'PostStorage7Drop',
+  post_storage_8_drop: 'PostStorage8Drop',
+  post_storage_9_drop: 'PostStorage9Drop',
 };
 
 /** 
@@ -350,12 +283,12 @@ function MyInventory({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Image src = {MyInventoryPopupIcon} alt = 'myInventoryPopupIcon' className={styles.icon}/>
+            <Icon name="MyInventoryPopupIcon" className={styles.icon}/>
             <p>My Inventory</p>
           </div>
           <div className={styles.closeButton}>
             <button type="button" onClick={handleClose} aria-label="Close">
-              <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIcon}/>
+              <Icon name="CloseIcon" className={styles.closeIcon}/>
             </button>
           </div>
         </div>
@@ -443,7 +376,7 @@ function MyInventory({
                                       className={styles.tag}
                                     >
                                       {IconComp ? (
-                                        <Image src = {IconComp} alt = 'iconComp' width={24} height={24}/>
+                                        <Icon name={IconComp} width={24} height={24}/>
                                       ) : (
                                         tg
                                       )}
@@ -499,7 +432,7 @@ function MyInventory({
                 <div key={value} className={styles.tagRow}>
                   <div className={styles.tagIcon}>
                     {IconComponent && (
-                      <Image src = {IconComponent} alt = 'iconComponent' width={24} height={24}/>
+                      <Icon name={IconComponent} width={24} height={24}/>
                     )}
                   </div>
                   <div className={styles.tagName}>{label}</div>

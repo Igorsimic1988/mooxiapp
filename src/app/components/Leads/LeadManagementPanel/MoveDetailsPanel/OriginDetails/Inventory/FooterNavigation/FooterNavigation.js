@@ -4,13 +4,8 @@ import React, { useState } from 'react';
 import styles from './FooterNavigation.module.css';
 import SpecialH from './SpecialH/SpecialH';
 import MyInventory from './MyInventory/MyInventory';
-import Image from 'next/image';
 
-import CreateQuote from '../../../../../../../assets/icons/createquoteicon.svg';
-import MyInventoryIcon from '../../../../../../../assets/icons/myinventory.svg';
-import SpecialHIcon from '../../../../../../../assets/icons/specialh.svg';
-import BackArrow from '../../../../../../../assets/icons/arrowforward.svg';
-
+import Icon from '../../../../../../Icon'
 import DeleteButton from './DeleteButton/DeleteButton'; // Import the new component
 
 function FooterNavigation({
@@ -49,9 +44,9 @@ function FooterNavigation({
       >
         <div className={styles.iconWrapper}>
           {inRoom ? (
-            <Image src = {CreateQuote} alt = 'createQuote' className={styles.navIcon}/>
+            <Icon name="CreateQuoteIcon" className={styles.navIcon} />
           ) : (
-            <Image src = {BackArrow} alt = 'backArrow' className={styles.navIcon}/>
+            <Icon name="ArrowBack" className={styles.navIcon} />
           )}
         </div>
         <p className={styles.navText}>{inRoom ? 'Rooms' : 'Create Quote'}</p>
@@ -65,7 +60,7 @@ function FooterNavigation({
         tabIndex={0}
       >
         <div className={styles.iconWrapper}>
-          <Image src = {MyInventoryIcon} alt = 'myInventoryIcon' className={styles.navIcon}/>
+          <Icon name="MyInventory" className={styles.navIcon} />
         </div>
         <p className={styles.navText}>My Inventory</p>
       </div>
@@ -78,7 +73,7 @@ function FooterNavigation({
         tabIndex={0}
       >
         <div className={styles.iconWrapper}>
-          <Image src = {SpecialHIcon} alt = 'specialHIcon' className={styles.navIcon}/>
+          <Icon name="SpecialH" className={styles.navIcon} />
         </div>
         <p className={styles.navText}>Special Handling</p>
       </div>

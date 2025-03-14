@@ -1,11 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Image from 'next/image';
-import TruckCouchIcon from '../../../../assets/icons/truckcouch.svg';
-import NotebookIcon from '../../../../assets/icons/notebook.svg';
-import EmailWithDotIcon from '../../../../assets/icons/emailwithdot.svg';
-import CalendarIcon from '../../../../assets/icons/calendar.svg';
-import MoreIcon from '../../../../assets/icons/unfoldmore.svg';
-import ClockIcon from '../../../../assets/icons/clock.svg';
 
 import SimpleToggle from '../../SimpleToggle/SimpleToggle';
 import OriginDetails from './OriginDetails/OriginDetails';
@@ -13,6 +6,7 @@ import DestinationDetails from './DestinationDetails/DestinationDetails';
 import LogisticsDetails from './LogisticsDetails/LogisticsDetails';
 import EstimateDetails from './EstimateDetails/EstimateDetails';
 import styles from './MoveDetailsPanel.module.css';
+import Icon from '../../../Icon';
 
 // Import your typeOfServiceChoices from the constants file
 import typeOfServiceChoices from '../../../../data/constants/typeOfServiceChoices';
@@ -343,7 +337,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           className={`${styles.sectionItem} ${isSelectedTab(0) ? styles.selected : ''}`}
           onClick={() => setSelectedIndex(0)}
         >
-          <Image src={TruckCouchIcon} alt="Truck and Couch" className={`${styles.sectionIcon} ${isSelectedTab(0) ? styles.iconActive : ''}`}/>
+          <Icon name="TruckCouch" className={`${styles.sectionIcon} ${isSelectedTab(0) ? styles.iconActive : ''}`} />
           <span className={`${styles.sectionText} ${isSelectedTab(0) ? styles.textActive : ''}`}>
             Move
           </span>
@@ -353,7 +347,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           className={`${styles.sectionItem} ${isSelectedTab(1) ? styles.selected : ''}`}
           onClick={() => setSelectedIndex(1)}
         >
-          <Image src={NotebookIcon} alt="Notebook" className={`${styles.sectionIcon} ${isSelectedTab(1) ? styles.iconActive : ''}`}/>
+          <Icon name="Notebook" className={`${styles.sectionIcon} ${isSelectedTab(1) ? styles.iconActive : ''}`} />
           <span className={`${styles.sectionText} ${isSelectedTab(1) ? styles.textActive : ''}`}>
             Notes
           </span>
@@ -363,7 +357,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           className={`${styles.sectionItem} ${isSelectedTab(2) ? styles.selected : ''}`}
           onClick={() => setSelectedIndex(2)}
         >
-          <Image src={EmailWithDotIcon} alt="Email" className={`${styles.sectionIcon} ${isSelectedTab(2) ? styles.iconActive : ''}`}/>
+          <Icon name="EmailWithDot" className={`${styles.sectionIcon} ${isSelectedTab(2) ? styles.iconActive : ''}`} />
           <span className={`${styles.sectionText} ${isSelectedTab(2) ? styles.textActive : ''}`}>
             Email
           </span>
@@ -397,7 +391,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             </span>
           </span>
           <div className={styles.calendarRightIconWrapper}>
-            <Image src={CalendarIcon} alt="Calendar" />
+            <Icon name="Calendar" />
           </div>
         </button>
 
@@ -465,7 +459,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           <span className={styles.inputLabel}>Type of Service:</span>
           <span className={styles.inputValue}> {typeOfService}</span>
         </span>
-        <Image src={MoreIcon} alt="More" className={styles.moreIcon} />
+        <Icon name="More" className={styles.moreIcon}/>
 
         {showTypeOfServiceDropdown && (
           <div className={styles.dropdownMenu}>
@@ -511,8 +505,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             <span className={styles.inputLabel}>Items in storage:</span>
             <span className={styles.inputValue}> {selectedStorage}</span>
           </span>
-          <Image src={MoreIcon} alt="More" className={styles.moreIcon} />
-
+          <Icon name="More" className={styles.moreIcon}/>
           {storageDropdownOpen && (
             <div className={styles.dropdownMenu}>
               {storageOptions.map((option) => {
@@ -564,7 +557,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             </span>
           </span>
           <div className={styles.calendarRightIconWrapper}>
-            <Image src={CalendarIcon} alt="Calendar" className={styles.calendarIcon}/>
+            <Icon name="Calendar" className={styles.calendarIcon} />
           </div>
         </button>
 
@@ -641,7 +634,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           <span className={styles.inputLabel}>ETA Request:</span>
           <span className={styles.inputValue}> {etaRequest}</span>
         </span>
-        <Image src={MoreIcon} alt="More" className={styles.moreIcon} />
+        <Icon name="More" className={styles.moreIcon} />
 
         {showETARequestDropdown && (
           <div className={styles.dropdownMenu}>
@@ -689,7 +682,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             <span className={styles.inputValue}> {arrivalTime || 'Select'}</span>
           </span>
           <div className={styles.inputIconContainer}>
-            <Image src={ClockIcon} alt="Clock" className={styles.inputIcon} />
+            <Icon name="Clock" className={styles.inputIcon} />
           </div>
 
           {showStartTimeDropdown && (

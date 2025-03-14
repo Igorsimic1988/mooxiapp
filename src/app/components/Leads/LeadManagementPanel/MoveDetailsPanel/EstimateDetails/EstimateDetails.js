@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './EstimateDetails.module.css';
-import  SpecialhIcon  from '../../../../../assets/icons/specialh.svg';
 
-import  UnfoldMoreIcon from '../../../../../assets/icons/unfoldmore.svg';
 import Invoice from './Invoice/Invoice';
-import Image from 'next/image';
+
+import Icon from '../../../../Icon';
 
 /** Rate Type Options for the Estimate */
 const RATE_TYPE_OPTIONS = ['Flat Rate', 'Price Range', 'Single Estimate', 'Minimum Estimate'];
@@ -389,7 +388,7 @@ function EstimateDetails({
                     <span className={styles.dropdownPrefix}>Rate Type:</span>
                     <span className={styles.dropdownSelected}>{rateType}</span>
                   </div>
-                  <Image src ={UnfoldMoreIcon} alt='logo' className={styles.dropdownIcon} />
+                  <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                 </button>
 
                 {showRateTypeDropdown && (
@@ -515,7 +514,7 @@ function EstimateDetails({
                 >
                   <span className={styles.viewEstimateText}>View Estimate</span>
                   <div className={styles.viewEstimateIconWrapper}>
-                    <Image src = {SpecialhIcon} alt = 'specialhIcon'className={styles.viewEstimateIcon} />
+                    <Icon name="Specialh" className={styles.viewEstimateIcon} />
                   </div>
                 </button>
             </div>
@@ -707,7 +706,7 @@ function EstimateDetails({
                   >
                     <span className={styles.viewEstimateText}>View Invoice</span>
                     <div className={styles.viewEstimateIconWrapper}>
-                    <Image src = {SpecialhIcon} alt = 'specialhIcon'className={styles.viewEstimateIcon} />
+                    <Icon name="Specialh" className={styles.viewEstimateIcon} />
                     </div>
                   </button>
               </div>

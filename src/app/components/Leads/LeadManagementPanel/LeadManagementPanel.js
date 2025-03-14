@@ -17,7 +17,7 @@ const statusOptions = [
   { label: 'Declined', color: '#D9534F', icon: "Declined", isDisabled: false },
   { label: 'Booked', color: '#3fa9f5', icon: "Booked", isDisabled: false },
   { label: 'Move on Hold', color: '#616161', icon: "OnHold", isDisabled: false },
-  { label: 'Cancaled', color: '#2f3236', icon: "Canceled", isDisabled: false },
+  { label: 'Canceled', color: '#2f3236', icon: "Canceled", isDisabled: false },
 ];
 
 // Which activities belong to which status
@@ -29,14 +29,14 @@ function getActivityOptions(status) {
     case 'Bad Lead':     return ['Invalid Contact', 'Duplicate Lead', 'Not Qulified', 'Spam'];
     case 'Declined':     return ['Not Reachable', 'Pricing Issue', 'Chose Competitor', 'Timing Conflict', 'Service Not Needed'];
     case 'Booked':       return ['Regular Booked', 'Booked on 1st Call', 'Booked Online'];
-    case 'Cancaled':     return ['Customer Canceled', 'Company Canceled'];
+    case 'Canceled':     return ['Customer Canceled', 'Company Canceled'];
     case 'Move on Hold': return [];
     default:             return [];
   }
 }
 
 // We also hide NextAction if lead is in these statuses
-const HIDDEN_STATUSES = ['Bad Lead', 'Declined', 'Booked', 'Move on Hold', 'Cancaled'];
+const HIDDEN_STATUSES = ['Bad Lead', 'Declined', 'Booked', 'Move on Hold', 'Canceled'];
 
 function generateTimeSlots() {
   const slots = [];
@@ -82,7 +82,6 @@ function formatPhoneNumber(digits) {
 
 function LeadManagementPanel({
   lead,
-  onClose,
   onEditLead,
   onLeadUpdated,
   onInventoryFullScreen,

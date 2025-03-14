@@ -1,19 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
-import styles from './Leads.module.css';
-import HeaderDashboard from './HeaderDashboard.js/HeaderDashboard';
-import LeadsFilterBar from './LeadsFilterBar/LeadsFilterBar';
-import LeadsSearchBar from './LeadsSearchBar/LeadsSearchBar';
-import LeadsActionButtons from './LeadsActionButtons/LeadsActionButtons';
-import AddNewLeadButton from './AddNewLeadButton/AddNewLeadButton';
-import LeadsList from './LeadsList/LeadsList';
-import LeadManagementPanel from './LeadManagementPanel/LeadManagementPanel';
-import Inventory from './LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory';
-import actualLeads from '../../data/constants/actualLeads';
-import LeadFormPopup from './LeadFormPopup/LeadFormPopup';
-import FilterButtonPopup from './FilterButtonPopup/FilterButtonPopup';
+"use client"; 
+// If you're using Next.js 13 app router, you often need "use client" at the top 
+// if this component uses hooks like useState, useEffect, etc.
+
+import React, { useState, useEffect, useRef } from "react";
+import styles from "./Leads.module.css";
+
+import HeaderDashboard from "./HeaderDashboard/HeaderDashboard";
+import LeadsFilterBar from "./LeadsFilterBar/LeadsFilterBar";
+import LeadsSearchBar from "./LeadsSearchBar/LeadsSearchBar";
+import LeadsActionButtons from "./LeadsActionButtons/LeadsActionButtons";
+import AddNewLeadButton from "./AddNewLeadButton/AddNewLeadButton";
+import LeadsList from "./LeadsList/LeadsList";
+import LeadManagementPanel from "./LeadManagementPanel/LeadManagementPanel";
+import Inventory from "./LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory";
+
+import actualLeads from "../../data/constants/actualLeads";
+import LeadFormPopup from "./LeadFormPopup/LeadFormPopup";
+import FilterButtonPopup from "./FilterButtonPopup/FilterButtonPopup";
 
 /**
- * Parse lead.survey_date + survey_time => JS Date
+ * Utility to parse lead.survey_date + lead.survey_time => JS Date object
  */
 function parseSurveyDateTime(lead) {
   if (!lead || !lead.survey_date) return null;
@@ -27,8 +33,8 @@ function parseSurveyDateTime(lead) {
       let hour = parseInt(match[1], 10);
       const minute = parseInt(match[2], 10);
       const ampm = match[3].toUpperCase();
-      if (ampm === 'PM' && hour < 12) hour += 12;
-      if (ampm === 'AM' && hour === 12) hour = 0;
+      if (ampm === "PM" && hour < 12) hour += 12;
+      if (ampm === "AM" && hour === 12) hour = 0;
       d.setHours(hour, minute, 0, 0);
     }
   }
@@ -42,62 +48,69 @@ function filterLeadsByTab(leads, activeTab) {
   if (!Array.isArray(leads)) return [];
 
   switch (activeTab) {
-    case 'Active Leads':
+    case "Active Leads":
       return leads.filter((ld) => {
         const st = ld.lead_status;
         const na = ld.next_action;
         const act = ld.lead_activity;
 
-        // We define "isActive" as:
+        // "isActive" is one of these statuses:
         const isActive =
-          st === 'New Lead' ||
-          st === 'In Progress' ||
-          st === 'Quoted' ||
-          st === 'Move on Hold';
+          st === "New Lead" ||
+          st === "In Progress" ||
+          st === "Quoted" ||
+          st === "Move on Hold";
 
-        if (!isActive) {
-          return false;
-        }
+        if (!isActive) return false;
 
-        // If In Progress => exclude if next_action is "Survey Completed" or "Completed"
-        if (st === 'In Progress') {
-          if (na === 'Survey Completed' || na === 'Completed') {
+        // Additional exclusions for "In Progress"
+        if (st === "In Progress") {
+          if (na === "Survey Completed" || na === "Completed") {
             return false;
           }
-          // Also exclude if lead_activity is In Home Estimate / Virtual Estimate
-          if (act === 'In Home Estimate' || act === 'Virtual Estimate') {
+          // Also exclude if lead_activity is "In Home Estimate" or "Virtual Estimate"
+          if (act === "In Home Estimate" || act === "Virtual Estimate") {
             return false;
           }
         }
         return true;
       });
 
-    case 'Closed Leads':
+    case "Closed Leads":
       return leads.filter(
-        (ld) => ld.lead_status === 'Bad Lead' || ld.lead_status === 'Declined'
+        (ld) => ld.lead_status === "Bad Lead" || ld.lead_status === "Declined"
       );
 
-    case 'My Appointments':
-      // next_action === 'Survey Completed' OR 'Completed'
+    case "My Appointments":
+      // Show leads that:
+      // 1) lead_status is "In Progress"
+      // 2) lead_activity is "In Home Estimate" or "Virtual Estimate"
+      // 3) next_action is "Survey Completed" or "Completed"
       return leads.filter(
         (ld) =>
-          ld.lead_status === 'In Progress' &&
-          (ld.lead_activity === 'In Home Estimate' || ld.lead_activity === 'Virtual Estimate') &&
-          (ld.next_action === 'Survey Completed' || ld.next_action === 'Completed')
+          ld.lead_status === "In Progress" &&
+          (ld.lead_activity === "In Home Estimate" ||
+            ld.lead_activity === "Virtual Estimate") &&
+          (ld.next_action === "Survey Completed" ||
+            ld.next_action === "Completed")
       );
 
-    case 'Pending':
-      return leads.filter((ld) => ld.lead_status === '');
+    case "Pending":
+      return leads.filter((ld) => ld.lead_status === "");
 
-    case 'Booked':
+    case "Booked":
+      // If you want "Canceled" also in Booked:
+      //   (ld.lead_status === "Booked" || ld.lead_status === "Canceled")
+      // Double-check your spelled "Canceled" not "Cancaled"
       return leads.filter(
-        (ld) => ld.lead_status === 'Booked' || ld.lead_status === 'Cancaled'
+        (ld) => ld.lead_status === "Booked" || ld.lead_status === "Canceled"
       );
 
     default:
       return leads;
   }
 }
+
 /**
  * Filter leads by search query
  */
@@ -105,16 +118,27 @@ function filterLeadsBySearch(leads, searchQuery) {
   if (!searchQuery.trim()) return leads;
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
-  const normalizedPhoneQuery = normalizedQuery.replace(/\D/g, '');
+  const normalizedPhoneQuery = normalizedQuery.replace(/\D/g, "");
   const searchPhone = normalizedPhoneQuery.length >= 3;
 
-  return leads.filter(lead => {
+  return leads.filter((lead) => {
+    // 1) job_number
     if (String(lead.job_number).includes(normalizedQuery)) return true;
-    if (lead.customer_name && lead.customer_name.toLowerCase().includes(normalizedQuery)) return true;
-    if (lead.customer_email && lead.customer_email.toLowerCase().includes(normalizedQuery)) return true;
+    // 2) customer_name
+    if (
+      lead.customer_name &&
+      lead.customer_name.toLowerCase().includes(normalizedQuery)
+    )
+      return true;
+    // 3) customer_email
+    if (
+      lead.customer_email &&
+      lead.customer_email.toLowerCase().includes(normalizedQuery)
+    )
+      return true;
+    // 4) phone partial match
     if (searchPhone && lead.customer_phone_number) {
-      // Remove all non-digit characters for comparison
-      const normalizedPhone = lead.customer_phone_number.replace(/\D/g, '');
+      const normalizedPhone = lead.customer_phone_number.replace(/\D/g, "");
       if (normalizedPhone.includes(normalizedPhoneQuery)) return true;
     }
 
@@ -122,98 +146,106 @@ function filterLeadsBySearch(leads, searchQuery) {
   });
 }
 
-
-function Leads() {
+export default function Leads() {
   // All leads
-  const [leads, setLeads] = useState(Array.isArray(actualLeads) ? [...actualLeads] : []);
+  const [leads, setLeads] = useState(
+    Array.isArray(actualLeads) ? [...actualLeads] : []
+  );
 
-  const [activeTab, setActiveTab] = useState('Active Leads');
-  const [searchQuery, setSearchQuery] = useState('');
-// Lead selection
+  // Tabs
+  const [activeTab, setActiveTab] = useState("Active Leads");
+
+  // Search
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Lead selection
   const [selectedLead, setSelectedLead] = useState(null);
+  const [editingLead, setEditingLead] = useState(null);
 
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 20;
+
+  // Inventory full-screen
   const [showInventoryFullScreen, setShowInventoryFullScreen] = useState(false);
   const [inventoryRoom, setInventoryRoom] = useState(null);
 
-
-  // Lead selection
-  const [editingLead, setEditingLead]   = useState(null);
-
-
-  // Lead Form
+  // Lead Form (New or Edit)
   const [showLeadForm, setShowLeadForm] = useState(false);
 
-  // The scrolled position in the leads list
+  // Keep track of scroll position in leads list
   const leadsListRef = useRef(null);
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Controls whether the Filter popup is showing
+  // Filter popup
   const [showFilterPopup, setShowFilterPopup] = useState(false);
 
-  // ------------- FILTER STATES -------------
-  const [selectedCompany, setSelectedCompany] = useState('All companies');
-  const [selectedSalesRep, setSelectedSalesRep] = useState('All sales');
-  const [selectedMode, setSelectedMode]       = useState('workflow'); // or 'date'
-  const [selectedWorkflow, setSelectedWorkflow] = useState('Show All');
+  // Filter states
+  const [selectedCompany, setSelectedCompany] = useState("All companies");
+  const [selectedSalesRep, setSelectedSalesRep] = useState("All sales");
+  const [selectedMode, setSelectedMode] = useState("workflow"); // or 'date'
+  const [selectedWorkflow, setSelectedWorkflow] = useState("Show All");
 
-  // NOTE: changed default to "Select" instead of "Creation Date"
-  const [selectedWhere, setSelectedWhere] = useState('Select');
-  
-  const [fromDate, setFromDate] = useState('');
-  const [toDate,   setToDate]   = useState('');
+  const [selectedWhere, setSelectedWhere] = useState("Select");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
-  // For statuses
   const statusOptions = [
-    { label: 'New Lead',     color: '#59B779' },
-    { label: 'Move on Hold', color: '#616161' },
-    { label: 'In Progress',  color: '#FAA61A' },
-    { label: 'Quoted',       color: '#FFC61E' },
-    { label: 'Bad Lead',     color: '#f65676' },
-    { label: 'Declined',     color: '#D9534F' },
-    { label: 'Booked',       color: '#3fa9f5' },
-    { label: 'Canceled',     color: '#2f3236' },
+    { label: "New Lead", color: "#59B779" },
+    { label: "Move on Hold", color: "#616161" },
+    { label: "In Progress", color: "#FAA61A" },
+    { label: "Quoted", color: "#FFC61E" },
+    { label: "Bad Lead", color: "#f65676" },
+    { label: "Declined", color: "#D9534F" },
+    { label: "Booked", color: "#3fa9f5" },
+    { label: "Canceled", color: "#2f3236" },
   ];
   const [checkedStatuses, setCheckedStatuses] = useState(
-    statusOptions.map((s) => s.label) // all checked initially
+    statusOptions.map((s) => s.label)
   );
 
-  // On mount => set app height
+  // On mount -> set the app height
   useEffect(() => {
     function setAppHeight() {
-      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+      document.documentElement.style.setProperty(
+        "--app-height",
+        `${window.innerHeight}px`
+      );
     }
-    window.addEventListener('resize', setAppHeight);
+    window.addEventListener("resize", setAppHeight);
     setAppHeight();
-    return () => window.removeEventListener('resize', setAppHeight);
+    return () => window.removeEventListener("resize", setAppHeight);
   }, []);
 
-  // Sort newest-first
+  // Sort leads newest-first
   const sortedLeads = [...leads].sort(
     (a, b) => new Date(b.creation_date_time) - new Date(a.creation_date_time)
   );
 
-  // If the search query changes => reset to page 1
+  // If search changes => reset to page 1
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  // ---------- 2) APPLY FILTERS ----------
+  // Apply filters
   let filteredLeads;
-
   if (searchQuery.trim()) {
+    // If there is a search, just do the text/phone filter
     filteredLeads = filterLeadsBySearch(sortedLeads, searchQuery);
   } else {
+    // Otherwise, filter by tab
     filteredLeads = filterLeadsByTab(sortedLeads, activeTab);
   }
 
-  // Additional sorts for special tabs
-  if (activeTab === 'My Appointments' && !searchQuery.trim()) {
+  // Additional sorts for "My Appointments" or "Active Leads"
+  if (activeTab === "My Appointments" && !searchQuery.trim()) {
     filteredLeads.sort((a, b) => {
-      const rankA = a.next_action === 'Completed' ? 0 : 1;
-      const rankB = b.next_action === 'Completed' ? 0 : 1;
+      // "Completed" leads first
+      const rankA = a.next_action === "Completed" ? 0 : 1;
+      const rankB = b.next_action === "Completed" ? 0 : 1;
       if (rankA !== rankB) return rankA - rankB;
+
+      // Then sort by earliest date
       const dateA = parseSurveyDateTime(a);
       const dateB = parseSurveyDateTime(b);
       if (!dateA && !dateB) return 0;
@@ -222,11 +254,17 @@ function Leads() {
       return dateA - dateB;
     });
   }
-  if (activeTab === 'Active Leads' && !searchQuery.trim()) {
+
+  if (activeTab === "Active Leads" && !searchQuery.trim()) {
     filteredLeads.sort((a, b) => {
-      if (a.lead_status === 'New Lead' && b.lead_status !== 'New Lead') return -1;
-      if (a.lead_status !== 'New Lead' && b.lead_status === 'New Lead') return 1;
-      return new Date(b.creation_date_time) - new Date(a.creation_date_time);
+      // "New Lead" first
+      if (a.lead_status === "New Lead" && b.lead_status !== "New Lead") return -1;
+      if (a.lead_status !== "New Lead" && b.lead_status === "New Lead") return 1;
+
+      // Then by newest creation
+      return (
+        new Date(b.creation_date_time) - new Date(a.creation_date_time)
+      );
     });
   }
 
@@ -234,17 +272,17 @@ function Leads() {
   const totalLeads = filteredLeads.length;
   const totalPages = Math.ceil(totalLeads / leadsPerPage);
   const startIndex = (currentPage - 1) * leadsPerPage;
-  const endIndex   = Math.min(startIndex + leadsPerPage, totalLeads);
+  const endIndex = Math.min(startIndex + leadsPerPage, totalLeads);
   const currentLeads = filteredLeads.slice(startIndex, endIndex);
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
   const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(prev => prev - 1);
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  // Lead selection in the list
+  // Click a lead in the list
   const handleLeadClick = (lead) => {
     if (leadsListRef.current) {
       setScrollPosition(leadsListRef.current.scrollTop);
@@ -254,6 +292,7 @@ function Leads() {
 
   const handleBack = () => {
     setSelectedLead(null);
+    // restore scroll after short delay
     setTimeout(() => {
       if (leadsListRef.current) {
         leadsListRef.current.scrollTop = scrollPosition;
@@ -261,14 +300,17 @@ function Leads() {
     }, 0);
   };
 
-  // Creating + updating leads
+  // CRUD: Create new lead
   const handleLeadCreated = (newLead) => {
-    setLeads(prev => [...prev, newLead]);
+    setLeads((prev) => [...prev, newLead]);
   };
 
+  // CRUD: Update existing lead
   const handleLeadUpdated = (updatedLead) => {
-    setLeads(prevLeads =>
-      prevLeads.map(ld => (ld.lead_id === updatedLead.lead_id ? updatedLead : ld))
+    setLeads((prevLeads) =>
+      prevLeads.map((ld) =>
+        ld.lead_id === updatedLead.lead_id ? updatedLead : ld
+      )
     );
     if (selectedLead && selectedLead.lead_id === updatedLead.lead_id) {
       setSelectedLead(updatedLead);
@@ -281,13 +323,13 @@ function Leads() {
     setShowLeadForm(true);
   };
 
-  // Change tab => reset page and clear search
+  // Switch tabs => reset page
   const handleChangeTab = (newTab) => {
     setActiveTab(newTab);
     setCurrentPage(1);
   };
 
-  // Inventory => open/close
+  // Inventory
   const openInventoryFullScreen = () => {
     setShowInventoryFullScreen(true);
   };
@@ -295,8 +337,28 @@ function Leads() {
     setShowInventoryFullScreen(false);
   };
 
-  const isDesktopScreen = window.innerWidth >= 1024;
+  // Count how many filters are active
+  function getActiveFilterCount() {
+    let count = 0;
+    // 1) Company
+    if (selectedCompany !== "All companies") count++;
+    // 2) Sales Rep
+    if (selectedSalesRep !== "All sales") count++;
+    // 3) Workflow
+    if (selectedWorkflow !== "Show All") count++;
+    // 4) Date filter
+    const hasFullDateFilter =
+      selectedWhere !== "Select" && fromDate && toDate;
+    if (hasFullDateFilter) count++;
+    // 5) Status => if not all are checked => it’s a filter
+    if (checkedStatuses.length < statusOptions.length) count++;
+    return count;
+  }
 
+  const filterCount = getActiveFilterCount();
+  const isDesktopScreen = typeof window !== "undefined" && window.innerWidth >= 1024;
+
+  // If showing the Inventory
   if (showInventoryFullScreen) {
     return (
       <div className={styles.container}>
@@ -305,7 +367,7 @@ function Leads() {
           onBack={handleBack}
           isInInventory
           inRoom={!!inventoryRoom}
-          roomName={inventoryRoom?.name || ''}
+          roomName={inventoryRoom?.name || ""}
           onRoomBack={() => setInventoryRoom(null)}
           onCloseInventory={closeInventoryFullScreen}
           isDesktopInventory={isDesktopScreen}
@@ -320,6 +382,7 @@ function Leads() {
     );
   }
 
+  // Normal leads screen
   return (
     <div className={styles.container}>
       <HeaderDashboard
@@ -343,7 +406,10 @@ function Leads() {
         />
       ) : (
         <>
-          <LeadsFilterBar activeTab={activeTab} onTabChange={handleChangeTab} />
+          <LeadsFilterBar
+            activeTab={activeTab}
+            onTabChange={handleChangeTab}
+          />
           <LeadsSearchBar
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -352,6 +418,7 @@ function Leads() {
           <div className={styles.actionsContainer}>
             <LeadsActionButtons
               onOpenFilterPopup={() => setShowFilterPopup(true)}
+              filterCount={filterCount} 
             />
             <AddNewLeadButton
               onOpenLeadForm={() => {
@@ -364,7 +431,7 @@ function Leads() {
           <LeadsList
             leads={currentLeads}
             onLeadClick={handleLeadClick}
-            activeTab={searchQuery.trim() ? 'Search Results' : activeTab}
+            activeTab={searchQuery.trim() ? "Search Results" : activeTab}
             leadsListRef={leadsListRef}
             onScroll={(e) => setScrollPosition(e.target.scrollTop)}
           />
@@ -405,32 +472,28 @@ function Leads() {
       {showFilterPopup && (
         <FilterButtonPopup
           onClose={() => setShowFilterPopup(false)}
-
           selectedCompany={selectedCompany}
           setSelectedCompany={setSelectedCompany}
           selectedSalesRep={selectedSalesRep}
           setSelectedSalesRep={setSelectedSalesRep}
-          
           selectedMode={selectedMode}
           setSelectedMode={setSelectedMode}
           selectedWorkflow={selectedWorkflow}
           setSelectedWorkflow={setSelectedWorkflow}
-          
           selectedWhere={selectedWhere}
           setSelectedWhere={setSelectedWhere}
-          
           fromDate={fromDate}
           setFromDate={setFromDate}
           toDate={toDate}
           setToDate={setToDate}
-
           statusOptions={statusOptions}
           checkedStatuses={checkedStatuses}
           setCheckedStatuses={setCheckedStatuses}
+          filterCount={filterCount}
         />
       )}
     </div>
   );
 }
 
-export default Leads;
+

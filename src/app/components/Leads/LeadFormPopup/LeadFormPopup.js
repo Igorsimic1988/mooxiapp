@@ -296,12 +296,12 @@ function LeadFormPopup({
         {/* ---------- HEADER ---------- */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Icon name="CustomerUser" className={styles.customerUserIcon} />
+            <Icon name="CustomerUser" className={styles.customerUserIcon} width={24} height={24} />
             {editingLead ? <p>Edit Lead</p> : <p>New Lead</p>}
           </div>
           <div className={styles.closeButton}>
             <button type="button" onClick={onClose} aria-label="Close">
-              <Icon name="Close" className={styles.closeIcon} />
+              <Icon name="Close" className={styles.closeIcon} width={20} height={20} />
             </button>
           </div>
         </div>

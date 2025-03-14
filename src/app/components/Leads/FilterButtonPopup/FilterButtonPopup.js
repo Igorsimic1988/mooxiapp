@@ -1,16 +1,11 @@
 import React, { useState, useEffect, useRef  } from 'react';
 import styles from './FilterButtonPopup.module.css';
 
-// Icons
-import  CloseIcon  from '../../../assets/icons/Close.svg';
-import  FilterIcon  from '../../../assets/icons/filter.svg';
-import  UnfoldMoreIcon  from '../../../assets/icons/unfoldmore.svg';
-import  CalendarIcon  from '../../../assets/icons/calendar.svg';
 
 // Data
 import CompanyChoices from '../../../data/constants/CompanyChoices';
 import PossibleSalesReps from '../../../data/constants/PossibleSalesReps';
-import Image from 'next/image';
+import Icon from '../../Icon';
 
 function FilterButtonPopup({
     onClose,
@@ -271,12 +266,12 @@ const toggleLocalStatus = (label) => {
         {/* ---------- HEADER ---------- */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Image src={FilterIcon} alt='logo' className={styles.filterIcon} width={24} height={24}/>
+            <Icon name="Filter" className={styles.filterIcon} />
             <p>Filters</p>
           </div>
           <div className={styles.closeButton}>
             <button type="button" onClick={onClose} aria-label="Close">
-              <Image src={CloseIcon} alt='logo' className={styles.closeIcon}/>
+              <Icon name="Close" className={styles.closeIcon} />
             </button>
           </div>
         </div>
@@ -303,7 +298,7 @@ const toggleLocalStatus = (label) => {
                   {tempCompany}
                 </span>
               </div>
-              <Image src={UnfoldMoreIcon} alt='logo' className={styles.dropdownIcon} />
+              <Icon name="UnfoldMore" className={styles.dropdownIcon} />
             </button>
 
             {showCompanyDropdown && (
@@ -355,7 +350,7 @@ const toggleLocalStatus = (label) => {
                   {tempSalesRep}
                 </span>
               </div>
-              <Image src={UnfoldMoreIcon} alt='logo' className={styles.dropdownIcon} />
+              <Icon name="UnfoldMore" className={styles.dropdownIcon} />
             </button>
 
             {showSalesDropdown && (
@@ -437,7 +432,7 @@ const toggleLocalStatus = (label) => {
                     {tempWorkflow}
                   </span>
                 </div>
-                <Image src={UnfoldMoreIcon} alt='logo' className={styles.dropdownIcon} />
+                <Icon name="UnfoldMore" className={styles.dropdownIcon} />
               </button>
 
               {showWorkflowDropdown && (
@@ -489,7 +484,7 @@ const toggleLocalStatus = (label) => {
                       {tempWhere}
                     </span>
                   </div>
-                  <Image src={UnfoldMoreIcon} alt='logo' className={styles.dropdownIcon} />
+                  <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                 </button>
 
                 {showWhereDropdown && (
@@ -538,7 +533,7 @@ const toggleLocalStatus = (label) => {
                     </span>
                   </div>
                   <div className={styles.calendarIconWrapper}>
-                    <Image src={CalendarIcon} alt='calendarIcon' className={styles.calIcon}/>
+                    <Icon name="Calendar" className={styles.calendarIcon} />
                   </div>
                 </button>
                 {showFromCalendar && (
@@ -588,7 +583,7 @@ const toggleLocalStatus = (label) => {
                     </span>
                   </div>
                   <div className={styles.calendarIconWrapper}>
-                  <Image src={CalendarIcon} alt='calendarIcon' className={styles.calIcon}/>
+                  <Icon name="Calendar" className={styles.calendarIcon} />
                   </div>
                 </button>
                 {showToCalendar && (

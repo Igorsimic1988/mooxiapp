@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import styles from './AddRoomButton.module.css';
-import AddRoomIcon from '../../../../../../../../assets/icons/addroom.svg';
 import AddRoomPopup from '../AddRoomPopup/AddRoomPopup';
-import Image from 'next/image';
+import Icon from 'src/app/components/Icon';
 
 function AddRoomButton({ rooms, displayedRooms, onToggleRoom }) {
   const [isAddRoomPopupVisible, setIsAddRoomPopupVisible] = useState(false);
@@ -25,7 +24,7 @@ function AddRoomButton({ rooms, displayedRooms, onToggleRoom }) {
         aria-label="Add Room"
       >
         <span className={styles.addRoomText}>Add Room</span>
-        <Image src = {AddRoomIcon} alt = 'addRoomIcon' className={styles.addRoomIcon} aria-hidden="true"/>
+        <Icon name="AddRoom" className={styles.addRoomIcon} />
       </button>
 
       {/* Render the AddRoomPopup when visible */}

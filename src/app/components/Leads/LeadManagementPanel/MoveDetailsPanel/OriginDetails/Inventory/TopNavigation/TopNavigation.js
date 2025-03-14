@@ -1,8 +1,6 @@
 import React from 'react';
 import styles from './TopNavigation.module.css';
-import AddBars from '../../../../../../../assets/icons/barsStaggered.svg';
-import ForwardArrow from '../../../../../../../assets/icons/arrowforward.svg';
-import Image from 'next/image';
+import Icon from '../../../../../../Icon';
 
 function TopNavigation({ inRoom, roomName, onBack, onCloseInventory }) {
   // Handlers for the menu icon (AddBars)
@@ -41,7 +39,7 @@ function TopNavigation({ inRoom, roomName, onBack, onCloseInventory }) {
         onKeyDown={handleMenuKeyDown}
         aria-label="Open Menu"
       >
-        <Image src = {AddBars} alt = 'addBars' className={styles.barsMobileVersion} aria-hidden="true" />
+        <Icon name="AddBars" className={styles.bars} />
       </div>
 
       <div className={styles.verticalLineMobile} aria-hidden="true"></div>
@@ -56,7 +54,7 @@ function TopNavigation({ inRoom, roomName, onBack, onCloseInventory }) {
           aria-label="Go Back to Rooms"
         >
           <div className={styles.backButton}>
-            <Image src = {ForwardArrow} alt = 'forwardArrow' className={styles.backArrow} aria-hidden="true" />
+            <Icon name="ArrowForward" className={styles.backArrow} />
           </div>
           <span className={styles.navigationText}>{roomName}</span>
         </div>
@@ -70,7 +68,7 @@ function TopNavigation({ inRoom, roomName, onBack, onCloseInventory }) {
           aria-label="Go to Quote"
         >
           <div className={styles.forwardArrow}>
-            <Image src = {ForwardArrow} alt = 'forwardArrow' className={styles.forwardArrowIcon} aria-hidden="true" />
+            <Icon name="ArrowForward" className={styles.forwardArrowIcon} />
           </div>
           <span className={styles.navigationText}>Go to Quote</span>
         </div>

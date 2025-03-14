@@ -1,10 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import Image from 'next/image';
-import LocationIcon from '../../../../../assets/icons/location.svg';
-import PlaceIcon from '../../../../../assets/icons/place1.svg';
-import AccessIcon from '../../../../../assets/icons/access1.svg';
-import ServicesIcon from '../../../../../assets/icons/services1.svg';
-import UnfoldMoreIcon from '../../../../../assets/icons/unfoldmore.svg';
+
+import Icon from '../../../../Icon'
 
 import SimpleToggle from '../../../SimpleToggle/SimpleToggle';
 import MainAndStopOffs from '../OriginDetails/MainAndStopOffs/MainAndStopOffs';
@@ -429,7 +425,7 @@ function DestinationDetails({
                 }
               />
               <div className={styles.inputIconContainer}>
-                <Image src = {LocationIcon} alt = 'locationIcon' className={styles.inputIcon}/>
+                <Icon name="Location" className={styles.inputIcon} />
               </div>
             </div>
 
@@ -494,7 +490,7 @@ function DestinationDetails({
               onClick={() => setIsPlacePopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
-                <Image src = {PlaceIcon} alt = 'placeIcon' className={styles.propertyItemIcon}/>
+                <Icon name="Place1" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>PLACE</span>
               </div>
               <button
@@ -540,7 +536,7 @@ function DestinationDetails({
               onClick={() => setIsAccessPopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
-                <Image src = {AccessIcon} alt = 'accessIcon' className={styles.propertyItemIcon}/>
+                <Icon name="Access1" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>ACCESS</span>
               </div>
               <button
@@ -606,7 +602,7 @@ function DestinationDetails({
               onClick={() => setIsServicesPopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
-                <Image src = {ServicesIcon} alt = 'servicesIcon' className={styles.propertyItemIcon}/>
+                <Icon name="Services1" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>SERVICES</span>
               </div>
               <button
@@ -697,7 +693,7 @@ function DestinationDetails({
                           {currentTR.option}
                         </span>
                       </span>
-                      <Image src = {UnfoldMoreIcon} alt = 'unfoldMoreIcon' className={styles.moreIcon}/>
+                      <Icon name="UnfoldMore" className={styles.moreIcon} />
                     </div>
                     {optionDropdownOpen && (
                       <div className={styles.dropdownMenu}>
@@ -737,7 +733,7 @@ function DestinationDetails({
                           {currentTR.restrictionType}
                         </span>
                       </span>
-                      <Image src = {UnfoldMoreIcon} alt = 'unfoldMoreIcon' className={styles.moreIcon}/>
+                      <Icon name='UnfoldMore' className={styles.moreIcon}/>
                     </div>
                     {typeDropdownOpen && (
                       <div className={styles.dropdownMenu}>
@@ -787,7 +783,7 @@ function DestinationDetails({
                           {currentTR.startTime || 'Select'}
                         </span>
                       </span>
-                      <Image src = {UnfoldMoreIcon} alt = 'unfoldMoreIcon' className={styles.moreIcon}/>
+                      <Icon name="UnfoldMore" className={styles.moreIcon} />
                     </div>
                     {startDropdownOpen && (
                       <div className={styles.dropdownMenu}>
@@ -827,7 +823,7 @@ function DestinationDetails({
                           {currentTR.endTime || 'Select'}
                         </span>
                       </span>
-                      <Image src = {UnfoldMoreIcon} alt = 'unfoldMoreIcon' className={styles.moreIcon}/>
+                      <Icon name="UnfoldMore" className={styles.moreIcon} />
                     </div>
                     {endDropdownOpen && (
                       <div className={styles.dropdownMenu}>

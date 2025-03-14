@@ -6,6 +6,7 @@ import Image from 'next/image';
 import HouseIcon from '../../../../../../assets/icons/house.svg';
 import CloseIcon from '../../../../../../assets/icons/Close.svg';
 import UnfoldMoreIcon from '../../../../../../assets/icons/unfoldmore.svg';
+import Icon from '../../../../../Icon';
 
 // Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
@@ -470,7 +471,7 @@ function PlacePopup({
           <span className={styles.inputLabel}>{label}</span>
           <span className={styles.inputValue}>{displayValue}</span>
         </span>
-        <Image src = {UnfoldMoreIcon} alt = 'unfoldMoreIcon' className={styles.rightIcon}/>
+        <Icon name="UnfoldMore" className={styles.rightIcon} />
       </button>
     );
   }
@@ -488,12 +489,12 @@ function PlacePopup({
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Image src = {HouseIcon} alt = 'houseIcon' className={styles.icon}/>
+            <Icon name="House" className={styles.icon} />
             <p>Place</p>
           </div>
           <div className={styles.closeButton}>
             <button onClick={handleClose} aria-label="Close">
-              <Image src = {CloseIcon} alt = 'closeIcon' className={styles.closeIcon}/>
+              <Icon name="Close" className={styles.closeIcon} />
             </button>
           </div>
         </div>

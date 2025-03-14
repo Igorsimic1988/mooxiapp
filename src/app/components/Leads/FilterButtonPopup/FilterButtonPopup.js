@@ -1,47 +1,55 @@
-import React, { useState, useEffect, useRef  } from 'react';
+"use client"; 
+// Only needed if you're on Next.js 13+ with the app router
+// and want this to be a client component.
+
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './FilterButtonPopup.module.css';
-
-
-// Data
 import CompanyChoices from '../../../data/constants/CompanyChoices';
 import PossibleSalesReps from '../../../data/constants/PossibleSalesReps';
 import Icon from '../../Icon';
 
 function FilterButtonPopup({
-    onClose,
+  onClose,
 
-   // Parent states + setters
-   selectedCompany,   setSelectedCompany,
-   selectedSalesRep,  setSelectedSalesRep,
-   selectedMode,      setSelectedMode,
-   selectedWorkflow,  setSelectedWorkflow,
-   selectedWhere,     setSelectedWhere,
-   fromDate,          setFromDate,
-   toDate,            setToDate,
+  // Parent states + setters
+  selectedCompany,
+  setSelectedCompany,
+  selectedSalesRep,
+  setSelectedSalesRep,
+  selectedMode,
+  setSelectedMode,
+  selectedWorkflow,
+  setSelectedWorkflow,
+  selectedWhere,
+  setSelectedWhere,
+  fromDate,
+  setFromDate,
+  toDate,
+  setToDate,
 
- // Status
- statusOptions,
- checkedStatuses,
- setCheckedStatuses,
+  // Status
+  statusOptions,
+  checkedStatuses,
+  setCheckedStatuses,
 }) {
- // ---------------- LOCAL STATES ----------------
- const [tempCompany, setTempCompany]     = useState(selectedCompany);
- const [tempSalesRep, setTempSalesRep]   = useState(selectedSalesRep);
- const [tempMode, setTempMode]           = useState(selectedMode);
- const [tempWorkflow, setTempWorkflow]   = useState(selectedWorkflow);
- const [tempWhere, setTempWhere]         = useState(selectedWhere);
- const [tempFromDate, setTempFromDate]   = useState(fromDate);
- const [tempToDate,   setTempToDate]     = useState(toDate);
+  // ---------------- LOCAL STATES ----------------
+  const [tempCompany, setTempCompany] = useState(selectedCompany);
+  const [tempSalesRep, setTempSalesRep] = useState(selectedSalesRep);
+  const [tempMode, setTempMode] = useState(selectedMode);
+  const [tempWorkflow, setTempWorkflow] = useState(selectedWorkflow);
+  const [tempWhere, setTempWhere] = useState(selectedWhere);
+  const [tempFromDate, setTempFromDate] = useState(fromDate);
+  const [tempToDate, setTempToDate] = useState(toDate);
   // Copy the parent's checked statuses into local state
   const [tempCheckedStatuses, setTempCheckedStatuses] = useState([...checkedStatuses]);
 
-  // Dropdown controls
+  // Dropdown toggles
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
-  const [showSalesDropdown,   setShowSalesDropdown]   = useState(false);
-  const [showWorkflowDropdown,setShowWorkflowDropdown]= useState(false);
-  const [showWhereDropdown,   setShowWhereDropdown]   = useState(false);
-  const [showFromCalendar,    setShowFromCalendar]    = useState(false);
-  const [showToCalendar,      setShowToCalendar]      = useState(false);
+  const [showSalesDropdown, setShowSalesDropdown] = useState(false);
+  const [showWorkflowDropdown, setShowWorkflowDropdown] = useState(false);
+  const [showWhereDropdown, setShowWhereDropdown] = useState(false);
+  const [showFromCalendar, setShowFromCalendar] = useState(false);
+  const [showToCalendar, setShowToCalendar] = useState(false);
 
   // "Workflow" & "Where" options
   const workflowOptions = [
@@ -62,118 +70,111 @@ function FilterButtonPopup({
 
   // For calendars
   const [fromCalendarMonth, setFromCalendarMonth] = useState(new Date());
-  const [toCalendarMonth,   setToCalendarMonth]   = useState(new Date());
-  const [fromDaysInMonth,   setFromDaysInMonth]   = useState([]);
-  const [toDaysInMonth,     setToDaysInMonth]     = useState([]);
+  const [toCalendarMonth, setToCalendarMonth] = useState(new Date());
+  const [fromDaysInMonth, setFromDaysInMonth] = useState([]);
+  const [toDaysInMonth, setToDaysInMonth] = useState([]);
 
   // Generate calendar days each time the month changes
   useEffect(() => {
-    const makeDaysArray = (year, month) => {
+    function makeDaysArray(year, month) {
       const numDays = new Date(year, month + 1, 0).getDate();
       return Array.from({ length: numDays }, (_, i) => i + 1);
+    }
+
+    // fromCalendar
+    const fYear = fromCalendarMonth.getFullYear();
+    const fMonth = fromCalendarMonth.getMonth();
+    setFromDaysInMonth(makeDaysArray(fYear, fMonth));
+
+    // toCalendar
+    const tYear = toCalendarMonth.getFullYear();
+    const tMonth = toCalendarMonth.getMonth();
+    setToDaysInMonth(makeDaysArray(tYear, tMonth));
+  }, [fromCalendarMonth, toCalendarMonth]);
+
+  // Refs for outside-click detection
+  const companyRef = useRef(null);
+  const salesRef = useRef(null);
+  const workflowRef = useRef(null);
+  const whereRef = useRef(null);
+  const fromCalRef = useRef(null);
+  const toCalRef = useRef(null);
+
+  // Close dropdowns if user clicks outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (companyRef.current && !companyRef.current.contains(e.target)) {
+        setShowCompanyDropdown(false);
+      }
+      if (salesRef.current && !salesRef.current.contains(e.target)) {
+        setShowSalesDropdown(false);
+      }
+      if (workflowRef.current && !workflowRef.current.contains(e.target)) {
+        setShowWorkflowDropdown(false);
+      }
+      if (whereRef.current && !whereRef.current.contains(e.target)) {
+        setShowWhereDropdown(false);
+      }
+      if (fromCalRef.current && !fromCalRef.current.contains(e.target)) {
+        setShowFromCalendar(false);
+      }
+      if (toCalRef.current && !toCalRef.current.contains(e.target)) {
+        setShowToCalendar(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, []);
 
-  // fromCalendar
-  const fYear = fromCalendarMonth.getFullYear();
-  const fMonth = fromCalendarMonth.getMonth();
-  setFromDaysInMonth(makeDaysArray(fYear, fMonth));
-
-  // toCalendar
-  const tYear = toCalendarMonth.getFullYear();
-  const tMonth = toCalendarMonth.getMonth();
-  setToDaysInMonth(makeDaysArray(tYear, tMonth));
-}, [fromCalendarMonth, toCalendarMonth]);
-
-// Refs for outside-click detection
-const companyRef  = useRef(null);
-const salesRef    = useRef(null);
-const workflowRef = useRef(null);
-const whereRef    = useRef(null);
-const fromCalRef  = useRef(null);
-const toCalRef    = useRef(null);
-
-// Close dropdowns if user clicks outside
-useEffect(() => {
-  function handleClickOutside(e) {
-    if (companyRef.current && !companyRef.current.contains(e.target)) {
-      setShowCompanyDropdown(false);
-    }
-    if (salesRef.current && !salesRef.current.contains(e.target)) {
-      setShowSalesDropdown(false);
-    }
-    if (workflowRef.current && !workflowRef.current.contains(e.target)) {
-      setShowWorkflowDropdown(false);
-    }
-    if (whereRef.current && !whereRef.current.contains(e.target)) {
-      setShowWhereDropdown(false);
-    }
-    if (fromCalRef.current && !fromCalRef.current.contains(e.target)) {
-      setShowFromCalendar(false);
-    }
-    if (toCalRef.current && !toCalRef.current.contains(e.target)) {
-      setShowToCalendar(false);
-    }
+  // Toggle a status in/out of local array
+  function toggleLocalStatus(label) {
+    setTempCheckedStatuses((prev) => {
+      if (prev.includes(label)) {
+        return prev.filter((l) => l !== label);
+      }
+      return [...prev, label];
+    });
   }
-  document.addEventListener('mousedown', handleClickOutside);
-  return () => {
-    document.removeEventListener('mousedown', handleClickOutside);
-  };
-}, []);
 
-// Toggle a status in/out of the local array
-const toggleLocalStatus = (label) => {
-  setTempCheckedStatuses((prev) => {
-    if (prev.includes(label)) {
-      return prev.filter((l) => l !== label);
-    }
-    return [...prev, label];
-  });
-  };
-  const resetLocalWorkflowIfNeeded = () => {
+  // If user picks a date => reset local workflow if needed
+  function resetLocalWorkflowIfNeeded() {
     if (tempWorkflow !== 'Show All') {
       setTempWorkflow('Show All');
     }
-  };
+  }
 
-  /// Calendar: from
-  const goPrevMonthFrom = () => {
-    setFromCalendarMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
-  };
-  const goNextMonthFrom = () => {
-    setFromCalendarMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-  };
-
-  const handleSelectFromDate = (day) => {
-    const d = new Date(
-      fromCalendarMonth.getFullYear(),
-      fromCalendarMonth.getMonth(),
-      day
-    );
+  // local next/prev for "From" calendar
+  function goPrevMonthFrom() {
+    setFromCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }
+  function goNextMonthFrom() {
+    setFromCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }
+  function handleSelectFromDate(day) {
+    const d = new Date(fromCalendarMonth.getFullYear(), fromCalendarMonth.getMonth(), day);
     setTempFromDate(d.toDateString());
     setShowFromCalendar(false);
-    resetLocalWorkflowIfNeeded();;
-  };
+    resetLocalWorkflowIfNeeded();
+  }
 
-  // Calendar: to
-  const goPrevMonthTo = () => {
-    setToCalendarMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
-  };
-  const goNextMonthTo = () => {
-    setToCalendarMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-  };
-  const handleSelectToDate = (day) => {
-    const d = new Date(
-      toCalendarMonth.getFullYear(),
-      toCalendarMonth.getMonth(),
-      day
-    );
+  // local next/prev for "To" calendar
+  function goPrevMonthTo() {
+    setToCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }
+  function goNextMonthTo() {
+    setToCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }
+  function handleSelectToDate(day) {
+    const d = new Date(toCalendarMonth.getFullYear(), toCalendarMonth.getMonth(), day);
     setTempToDate(d.toDateString());
     setShowToCalendar(false);
     resetLocalWorkflowIfNeeded();
-  };
+  }
 
   // Calculate how many active filters are in use
-  const getActiveFilterCount = () => {
+  function getActiveFilterCount() {
     let count = 0;
 
     // 1) By Company
@@ -182,55 +183,59 @@ const toggleLocalStatus = (label) => {
     }
     // 2) By Sales Person
     if (tempSalesRep !== 'All sales') {
-        count++;
-      }
-  
-      // 3) By Workflow
-      if (tempWorkflow !== 'Show All') {
-        count++;
-      }
-  
-      // 4) By Date => must have where != 'Select' + from + to
-      const hasFullDateFilter =
-        tempWhere !== 'Select' &&
-        tempFromDate !== '' &&
-        tempToDate !== '';
-      if (hasFullDateFilter) {
-        count++;
-      }
-  
-      // 5) By Status => if not all are checked => 1 filter
-      if (tempCheckedStatuses.length < statusOptions.length) {
-        count++;
-      }
-  
-      return count;
-    };
-  
-    // "Apply" => copy local => parent, then close
-    const handleApplyFilters = () => {
-      setSelectedCompany(tempCompany);
-      setSelectedSalesRep(tempSalesRep);
-      setSelectedMode(tempMode);
-      setSelectedWorkflow(tempWorkflow);
-      setSelectedWhere(tempWhere);
-      setFromDate(tempFromDate);
-      setToDate(tempToDate);
-      setCheckedStatuses([...tempCheckedStatuses]);
+      count++;
+    }
+    // 3) By Workflow
+    if (tempWorkflow !== 'Show All') {
+      count++;
+    }
+    // 4) By Date => must have where != 'Select' + from + to
+    const hasFullDateFilter =
+      tempWhere !== 'Select' &&
+      tempFromDate !== '' &&
+      tempToDate !== '';
+    if (hasFullDateFilter) {
+      count++;
+    }
+    // 5) By Status => if not all are checked => 1 filter
+    if (tempCheckedStatuses.length < statusOptions.length) {
+      count++;
+    }
+    return count;
+  }
+
+  const activeFilterCount = getActiveFilterCount();
+  // Build the label
+  const applyLabel =
+    activeFilterCount > 0
+      ? `Apply Filters (${activeFilterCount})`
+      : 'Apply Filters';
+
+  // "Apply" => copy local => parent, then close
+  function handleApplyFilters() {
+    setSelectedCompany(tempCompany);
+    setSelectedSalesRep(tempSalesRep);
+    setSelectedMode(tempMode);
+    setSelectedWorkflow(tempWorkflow);
+    setSelectedWhere(tempWhere);
+    setFromDate(tempFromDate);
+    setToDate(tempToDate);
+    setCheckedStatuses([...tempCheckedStatuses]);
     onClose();
-  };
+  }
 
-  const handleResetAll = () => {
-    const defaultCompany   = 'All companies';
-    const defaultSalesRep  = 'All sales';
-    const defaultMode      = 'workflow';
-    const defaultWorkflow  = 'Show All';
-    const defaultWhere     = 'Select';
-    const defaultFromDate  = '';
-    const defaultToDate    = '';
-    const defaultStatuses  = statusOptions.map(s => s.label);
+  // "Reset All" => local => defaults => parent
+  function handleResetAll() {
+    const defaultCompany = 'All companies';
+    const defaultSalesRep = 'All sales';
+    const defaultMode = 'workflow';
+    const defaultWorkflow = 'Show All';
+    const defaultWhere = 'Select';
+    const defaultFromDate = '';
+    const defaultToDate = '';
+    const defaultStatuses = statusOptions.map((s) => s.label);
 
-    // Update local
+    // local
     setTempCompany(defaultCompany);
     setTempSalesRep(defaultSalesRep);
     setTempMode(defaultMode);
@@ -240,7 +245,7 @@ const toggleLocalStatus = (label) => {
     setTempToDate(defaultToDate);
     setTempCheckedStatuses(defaultStatuses);
 
-    // Update parent
+    // parent
     setSelectedCompany(defaultCompany);
     setSelectedSalesRep(defaultSalesRep);
     setSelectedMode(defaultMode);
@@ -249,20 +254,11 @@ const toggleLocalStatus = (label) => {
     setFromDate(defaultFromDate);
     setToDate(defaultToDate);
     setCheckedStatuses(defaultStatuses);
-  };
-
-   // Figure out how many filters are active
-   const activeFilterCount = getActiveFilterCount();
-   // Build the label
-   const applyLabel =
-     activeFilterCount > 0
-       ? `Apply Filters (${activeFilterCount})`
-       : 'Apply Filters';
+  }
 
   return (
     <div className={styles.popup} onClick={onClose}>
       <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
-        
         {/* ---------- HEADER ---------- */}
         <div className={styles.header}>
           <div className={styles.title}>
@@ -278,8 +274,7 @@ const toggleLocalStatus = (label) => {
 
         {/* ---------- BODY ---------- */}
         <div className={styles.content}>
-
-          {/* === By company (temp) === */}
+          {/* By Company */}
           <div className={styles.dropdownContainer} ref={companyRef}>
             <button
               type="button"
@@ -304,7 +299,9 @@ const toggleLocalStatus = (label) => {
             {showCompanyDropdown && (
               <ul className={styles.optionsList} role="listbox">
                 <li
-                  className={tempCompany === 'All companies' ? styles.selected : ''}
+                  className={
+                    tempCompany === 'All companies' ? styles.selected : ''
+                  }
                   onClick={() => {
                     setTempCompany('All companies');
                     setShowCompanyDropdown(false);
@@ -312,9 +309,8 @@ const toggleLocalStatus = (label) => {
                 >
                   All companies
                 </li>
-                {/* Then load from CompanyChoices */}
                 {CompanyChoices.map((c) => {
-                  const isSelected = (c.name === tempCompany);
+                  const isSelected = c.name === tempCompany;
                   return (
                     <li
                       key={c.id}
@@ -332,12 +328,13 @@ const toggleLocalStatus = (label) => {
             )}
           </div>
 
-          {/* === By sales person (temp) === */}
+          {/* By Sales Person */}
           <div className={styles.dropdownContainer} ref={salesRef}>
             <button
               type="button"
               className={styles.dropdownButton}
-              onClick={() => setShowSalesDropdown(!showSalesDropdown)}>
+              onClick={() => setShowSalesDropdown(!showSalesDropdown)}
+            >
               <div className={styles.dropdownLabel}>
                 <span className={styles.dropdownPrefix}>By sales person:</span>
                 <span
@@ -356,7 +353,9 @@ const toggleLocalStatus = (label) => {
             {showSalesDropdown && (
               <ul className={styles.optionsList} role="listbox">
                 <li
-                  className={tempSalesRep === 'All sales' ? styles.selected : ''}
+                  className={
+                    tempSalesRep === 'All sales' ? styles.selected : ''
+                  }
                   onClick={() => {
                     setTempSalesRep('All sales');
                     setShowSalesDropdown(false);
@@ -365,7 +364,7 @@ const toggleLocalStatus = (label) => {
                   All sales
                 </li>
                 {PossibleSalesReps.map((rep) => {
-                  const isSelected = (rep.name === tempSalesRep);
+                  const isSelected = rep.name === tempSalesRep;
                   return (
                     <li
                       key={rep.id}
@@ -383,10 +382,10 @@ const toggleLocalStatus = (label) => {
             )}
           </div>
 
-          {/* Some spacing */}
+          {/* Spacing */}
           <div style={{ height: 10 }} />
 
-          {/* === Workflow / Date toggle (temp) === */}
+          {/* Workflow / Date toggle */}
           <div className={styles.modeToggleContainer}>
             <button
               type="button"
@@ -438,21 +437,21 @@ const toggleLocalStatus = (label) => {
               {showWorkflowDropdown && (
                 <ul className={styles.optionsList} role="listbox">
                   {workflowOptions.map((wf) => {
-                    const isSelected = (wf === tempWorkflow);
+                    const isSelected = wf === tempWorkflow;
                     return (
                       <li
                         key={wf}
                         className={isSelected ? styles.selected : ''}
                         onClick={() => {
-                            // If user picks a workflow != 'Show All', reset By Date
-                            if (wf !== 'Show All') {
-                              setTempWhere('Select');
-                              setTempFromDate('');
-                              setTempToDate('');
-                            }
-                            setTempWorkflow(wf);
-                            setShowWorkflowDropdown(false);
-                          }}
+                          // If user picks a workflow != 'Show All', reset By Date
+                          if (wf !== 'Show All') {
+                            setTempWhere('Select');
+                            setTempFromDate('');
+                            setTempToDate('');
+                          }
+                          setTempWorkflow(wf);
+                          setShowWorkflowDropdown(false);
+                        }}
                       >
                         {wf}
                       </li>
@@ -490,7 +489,7 @@ const toggleLocalStatus = (label) => {
                 {showWhereDropdown && (
                   <ul className={styles.optionsList} role="listbox">
                     {whereOptions.map((option) => {
-                      const isSelected = (option === tempWhere);
+                      const isSelected = option === tempWhere;
                       return (
                         <li
                           key={option}
@@ -526,7 +525,9 @@ const toggleLocalStatus = (label) => {
                     <span className={styles.dropdownPrefix}>From:</span>
                     <span
                       className={
-                        tempFromDate ? styles.dropdownSelected : styles.dropdownPlaceholder
+                        tempFromDate
+                          ? styles.dropdownSelected
+                          : styles.dropdownPlaceholder
                       }
                     >
                       {tempFromDate || 'Select'}
@@ -541,13 +542,15 @@ const toggleLocalStatus = (label) => {
                     <div className={styles.calendarHeader}>
                       <button onClick={goPrevMonthFrom}>Prev</button>
                       <span>
-                        {fromCalendarMonth.toLocaleString('default',{month:'long'})}{' '}
+                        {fromCalendarMonth.toLocaleString('default', {
+                          month: 'long',
+                        })}{' '}
                         {fromCalendarMonth.getFullYear()}
                       </span>
                       <button onClick={goNextMonthFrom}>Next</button>
                     </div>
                     <div className={styles.calendarGrid}>
-                      {fromDaysInMonth.map(day => (
+                      {fromDaysInMonth.map((day) => (
                         <button
                           key={day}
                           type="button"
@@ -576,14 +579,16 @@ const toggleLocalStatus = (label) => {
                     <span className={styles.dropdownPrefix}>To:</span>
                     <span
                       className={
-                        tempToDate ? styles.dropdownSelected : styles.dropdownPlaceholder
+                        tempToDate
+                          ? styles.dropdownSelected
+                          : styles.dropdownPlaceholder
                       }
                     >
                       {tempToDate || 'Select'}
                     </span>
                   </div>
                   <div className={styles.calendarIconWrapper}>
-                  <Icon name="Calendar" className={styles.calendarIcon} />
+                    <Icon name="Calendar" className={styles.calendarIcon} />
                   </div>
                 </button>
                 {showToCalendar && (
@@ -591,13 +596,15 @@ const toggleLocalStatus = (label) => {
                     <div className={styles.calendarHeader}>
                       <button onClick={goPrevMonthTo}>Prev</button>
                       <span>
-                        {toCalendarMonth.toLocaleString('default',{month:'long'})}{' '}
+                        {toCalendarMonth.toLocaleString('default', {
+                          month: 'long',
+                        })}{' '}
                         {toCalendarMonth.getFullYear()}
                       </span>
                       <button onClick={goNextMonthTo}>Next</button>
                     </div>
                     <div className={styles.calendarGrid}>
-                      {toDaysInMonth.map(day => (
+                      {toDaysInMonth.map((day) => (
                         <button
                           key={day}
                           type="button"
@@ -613,7 +620,8 @@ const toggleLocalStatus = (label) => {
               </div>
             </>
           )}
-          {/* By Status (always) */}
+
+          {/* By Status */}
           <div className={styles.byStatusHeader}>By Status</div>
           <div className={styles.statusCheckboxes}>
             {statusOptions.map((item) => {
@@ -645,7 +653,7 @@ const toggleLocalStatus = (label) => {
             className={styles.applyButton}
             onClick={handleApplyFilters}
           >
-                        {applyLabel}
+            {applyLabel}
           </button>
           <button
             type="button"

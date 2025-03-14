@@ -2,7 +2,6 @@ import React from 'react';
 import styles from './LeadsList.module.css';
 import Icon from 'src/app/components/Icon';
 
-
 /**
  * Format creation_date_time => mm/dd/yyyy
  */
@@ -45,26 +44,99 @@ function formatMonthDay(isoString) {
  * Color/icon for each lead_status
  */
 const statusMapping = {
-  'New Lead':     { color: '#59B779', icon: () =>  null },
-  'In Progress':  { color: '#FAA61A', icon: () => <Icon name="InProgress" className={styles.statusIcon}/> },
-  'Quoted':       { color: '#FFC61E', icon: () => <Icon name="Quoted" className={styles.statusIcon} />},
-  'Bad Lead':     { color: '#f65676', icon: () => <Icon name="BadLead" className={styles.statusIcon}/>},
-  'Declined':     { color: '#D9534F', icon: () => <Icon name="Declined" className={styles.statusIcon}/> },
-  'Booked':       { color: '#3fa9f5', icon: () => <Icon name="Booked" className={styles.statusIcon}/>},
-  'Move on Hold': { color: '#616161', icon: () => <Icon name="OnHold" className={styles.statusIcon}/>},
-  'Cancaled':     { color: '#2f3236', icon: () => <Icon name="Canceled" className={styles.statusIcon}/> },
+  'New Lead': {
+    color: '#59B779',
+    icon: () => null // no icon for new leads
+  },
+  'In Progress': {
+    color: '#FAA61A',
+    icon: () => (
+      <Icon
+        name="InProgress"
+        className={styles.statusIcon}
+        // We pass the color below so the SVG picks it up
+        color="#FAA61A"
+        width={18}
+        height={18}
+      />
+    ),
+  },
+  'Quoted': {
+    color: '#FFC61E',
+    icon: () => (
+      <Icon
+        name="Quoted"
+        className={styles.statusIcon}
+        color="#FFC61E"
+      />
+    ),
+  },
+  'Bad Lead': {
+    color: '#f65676',
+    icon: () => (
+      <Icon
+        name="BadLead"
+        className={styles.statusIcon}
+        color="#f65676"
+        width={14}
+        height={14}
+      />
+    ),
+  },
+  'Declined': {
+    color: '#D9534F',
+    icon: () => (
+      <Icon
+        name="Declined"
+        className={styles.statusIcon}
+        color="#D9534F"
+      />
+    ),
+  },
+  'Booked': {
+    color: '#3fa9f5',
+    icon: () => (
+      <Icon
+        name="Booked"
+        className={styles.statusIcon}
+        color="#3fa9f5"
+      />
+    ),
+  },
+  'Move on Hold': {
+    color: '#616161',
+    icon: () => (
+      <Icon
+        name="OnHold"
+        className={styles.statusIcon}
+        color="#616161"
+      />
+    ),
+  },
+  'Canceled': {
+    color: '#2f3236',
+    icon: () => (
+      <Icon
+        name="Canceled"
+        className={styles.statusIcon}
+        color="#2f3236"
+        width={12}
+        height={12}
+      />
+    ),
+  },
 };
 
 function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
   const isSearchResults = activeTab === 'Search Results';
-  
+
   if (leads.length === 0) {
     return (
       <div className={styles.listContainer} ref={leadsListRef} onScroll={onScroll}>
         <div className={styles.emptyState}>
           {isSearchResults ? (
             <>
-              <Icon name="Search" className={styles.emptyStateIcon} />
+              
               <p className={styles.emptyStateText}>No results found</p>
               <p className={styles.emptyStateSubtext}>Try different search terms</p>
             </>
@@ -77,6 +149,7 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
       </div>
     );
   }
+
   return (
     <div
       className={styles.listContainer}
@@ -84,12 +157,17 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
       onScroll={onScroll}
     >
       {leads.map((lead) => {
+        // fallback to InProgress style if status is unknown
         const { color, icon } = statusMapping[lead.lead_status] || {
           color: '#FAA61A',
-          icon: () => <Icon name="InProgress" className={styles.statusIcon}/>,
+          icon: () => (
+            <Icon
+              name="InProgress"
+              className={styles.statusIcon}
+              color="#FAA61A"
+            />
+          ),
         };
-
-        console.log(Icon)
 
         // Default top/middle/bottom
         let topLineText     = lead.lead_status;
@@ -168,14 +246,14 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
             <div className={styles.leadStatusInfo}>
               <div className={styles.statusRow}>
                 <span
-                  className={`${styles.truncate} ${styles.leadStatus}`}
+                 className={styles.leadStatus}
+                  // Apply the text color for the status
                   style={{ color }}
                 >
                   {topLineText}
                 </span>
-                {showTopLineIcon && Icon && (
-                  icon()
-                )}
+                {/* Show icon if needed */}
+                {showTopLineIcon && icon()}
               </div>
 
               <div className={`${styles.truncate} ${styles.nextAction}`}>

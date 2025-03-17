@@ -1,67 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import styles from './PackingDay.module.css';
 
 /**
- * This component shows either:
- * - "Add Packing Day" if lead.hasPackingDay=false
- * - Otherwise, two buttons: "Packing Day" / "Moving Day"
- * We also show a "Remove packing day" if selectedDay==='packing'.
+ * - If lead.hasPackingDay === false, show "Add Packing Day".
+ * - If true, show two buttons: "Packing Day" / "Moving Day",
+ *   plus "Remove packing day" if user wants to remove it entirely.
  */
 function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
-  // We read the initial "hasPackingDay" from lead
-  const [hasPackingDay, setHasPackingDay] = useState(Boolean(lead?.hasPackingDay));
+  console.log("PackingDay render:", { 
+    hasPackingDay: lead?.hasPackingDay, 
+    activeDay: lead?.activeDay,
+    leadId: lead?.lead_id
+  });
 
-  // If hasPackingDay=true => which button is highlighted? default 'packing'
-  // but if lead.activeDay==='moving', we highlight that
-  const [selectedDay, setSelectedDay] = useState(
-    lead?.activeDay === 'packing' ? 'packing' : 'moving'
-  );
+  // Pull from the lead directly (no local state):
+  const hasPackingDay = Boolean(lead?.hasPackingDay);
+  const selectedDay = lead?.activeDay === 'packing' ? 'packing' : 'moving';
 
-    // Update local state when lead prop changes
-  useEffect(() => {
-    setHasPackingDay(Boolean(lead?.hasPackingDay));
-    if (lead?.activeDay === 'packing') {
-      setSelectedDay('packing');
-    } else {
-      setSelectedDay('moving');
-    }
-  }, [lead?.hasPackingDay, lead?.activeDay]);
-
-  // Show the two buttons with Packing Day selected by default
+  // Add packing day => hasPackingDay = true, activeDay = 'packing'
   const handleAddPackingDay = () => {
-    setHasPackingDay(true);
-    setSelectedDay('packing');
+    console.log("Add packing day clicked");
+    
+    // First update the lead through onLeadUpdated
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
         hasPackingDay: true,
-        activeDay: 'packing',  // store as lowercase
+        activeDay: 'packing',
       });
     }
+    
+    // Then notify parent (if needed)
     if (onDaySelected) {
       onDaySelected('packing');
     }
   };
 
+  // Switch day => does NOT remove hasPackingDay
   const handleSelectDay = (day) => {
-    setSelectedDay(day);
-      // Update parent component
-      if (onLeadUpdated) {
-        onLeadUpdated({
-          ...lead,
-          activeDay: day, // store exactly 'packing' or 'moving'
-        });
-      }
-      
-      // Notify parent about selected day
+    console.log("Select day clicked:", day);
+    if (selectedDay === day) return;
+
+    // First update the lead
+    if (onLeadUpdated) {
+      onLeadUpdated({
+        ...lead,
+        hasPackingDay: true, // explicitly keep true
+        activeDay: day,
+      });
+    }
+    
+    // Then notify parent
     if (onDaySelected) {
       onDaySelected(day);
     }
   };
 
+  // Remove packing day => hasPackingDay=false, activeDay='moving'
   const handleRemovePackingDay = () => {
-    setHasPackingDay(false);
-    setSelectedDay('moving');
+    console.log("Remove packing day clicked");
+    
+    // Update the lead
     if (onLeadUpdated) {
       onLeadUpdated({
         ...lead,
@@ -69,6 +68,8 @@ function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
         activeDay: 'moving',
       });
     }
+    
+    // Notify parent
     if (onDaySelected) {
       onDaySelected('moving');
     }
@@ -80,13 +81,18 @@ function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
         {!hasPackingDay ? (
           <>
             <span className={styles.addPackingDayText}>Add Packing Day</span>
-            <button className={styles.plusButton} onClick={handleAddPackingDay}>
+            <button
+              type="button"
+              className={styles.plusButton}
+              onClick={handleAddPackingDay}
+            >
               +
             </button>
           </>
         ) : (
           <>
             <button
+              type="button"
               className={`
                 ${styles.dayButton}
                 ${selectedDay === 'packing' ? styles.buttonSelected : styles.buttonUnselected}
@@ -96,6 +102,7 @@ function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
               Packing Day
             </button>
             <button
+              type="button"
               className={`
                 ${styles.dayButton}
                 ${selectedDay === 'moving' ? styles.buttonSelected : styles.buttonUnselected}
@@ -108,6 +115,7 @@ function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
         )}
       </div>
 
+      {/* Only show "Remove packing day" link if hasPackingDay===true AND we are on "packing" */}
       {hasPackingDay && selectedDay === 'packing' && (
         <button
           type="button"

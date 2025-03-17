@@ -1,15 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './LogisticsDetails.module.css';
+import Icon from 'src/app/components/Icon';  // or adjust import path if needed
 
-// Icon for dropdown only
-import Icon from 'src/app/components/Icon';
+// The "Add Packing Day" or "Moving/Packing" day selector
 import PackingDay from './PackingDay/PackingDay';
 
-/** Rate Type Options (used for the Moving day) */
+// Rate Type Options (used for the "Moving" section)
 const RATE_TYPE_OPTIONS = ['Hourly Rate', 'Volume Based', 'Weight Based'];
 
-
-/** Generate 15-min increments ("1.00 h", "1.15 h", etc.) up to 24:00 h */
+// Generate quarter-hour increments ("1.00 h", "1.15 h", ..., up to 24h)
 function generateQuarterHourOptions() {
   const result = [];
   for (let hour = 0; hour <= 24; hour++) {
@@ -31,7 +30,7 @@ function generateQuarterHourOptions() {
 }
 const QUARTER_HOUR_OPTIONS = generateQuarterHourOptions();
 
-/** "Moving minimum" => integer hours: 1h, 2h, ... 24h */
+// "Moving minimum" => integer hours: 1h, 2h, ..., 24h
 function generateWholeHours(from, to) {
   const arr = [];
   for (let i = from; i <= to; i++) {
@@ -41,10 +40,8 @@ function generateWholeHours(from, to) {
 }
 const MOVING_MINIMUM_OPTIONS = generateWholeHours(1, 24);
 
-/** Some additional constants for pickup/delivery windows */
+// For pickup/delivery windows
 const PICKUP_WINDOW_OPTIONS = ['1 day', '2 days', '3 days'];
-
-
 function generateDeliveryWindowOptions() {
   const arr = [];
   for (let i = 1; i <= 30; i++) {
@@ -54,48 +51,54 @@ function generateDeliveryWindowOptions() {
 }
 const DELIVERY_WINDOW_OPTIONS = generateDeliveryWindowOptions();
 
-/** Parse a string like "2.45 h" => numeric hours (2.75) */
+/**
+ * Parse a string like "2.45 h" into numeric hours (e.g. "2.45 h" => 2.75).
+ */
 function parseQuarterHours(str) {
-  const core = str.replace(' h', '');  
+  if (!str) return 0;
+  const core = str.replace(' h', '');
   const [h, m] = core.split('.');
   const hour = Number(h) || 0;
   const decimalPart = m ? Number(m) : 0;
   return hour + decimalPart / 60;
 }
-/** Format date as "Mmm dd yyyy" */
+
+/**
+ * Format a date string into "Mmm dd yyyy" (e.g. "Apr 04 2025").
+ */
 function formatDate(date) {
   if (!date) return '';
   const dateObj = new Date(date);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  if (isNaN(dateObj)) return '';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun',
+                  'Jul','Aug','Sep','Oct','Nov','Dec'];
   const month = months[dateObj.getMonth()];
   const day = String(dateObj.getDate()).padStart(2, '0');
   const year = dateObj.getFullYear();
   return `${month} ${day} ${year}`;
 }
 
-/** On-focus => select all text in the input */
+// On focus => select all text in the input
 function handleFocusSelectAll(e) {
   e.target.select();
 }
 
 function LogisticsDetails({
-  lead,            // The entire lead object
-  onLeadUpdated,   // Callback to update the lead in the parent
+  lead,
+  onLeadUpdated,
   isCollapsed,
   setIsCollapsed,
 }) {
+  // Toggle the entire panel open/closed
   const toggleCollapse = () => setIsCollapsed((prev) => !prev);
-// If the lead has a packing day stored, we want to show that initially
-  // We also check if the user had "Moving" or "Packing" as last day, or default to "Moving"
-  const [activeDay, setActiveDay] = useState(
-    lead?.activeDay === 'Packing' ? 'Packing' : 'Moving'
-  );
 
-  // If lead.hasPackingDay is true, we let the user see "Packing" day, otherwise they only see "Moving"
-  // We'll pass "hasPackingDay" to <PackingDay>, which can change it by calling onLeadUpdated
+  // Check if lead hasPackingDay, then see if lead.activeDay is "packing" or "moving"
+  const [activeDay, setActiveDay] = useState(
+    lead?.activeDay === 'packing' ? 'packing' : 'moving'
+  );
   const hasPackingDay = Boolean(lead?.hasPackingDay);
 
-  // ---------- MOVING SECTION measurements (so the container doesn't shrink) ----------
+  // We measure the height of the MOVING section so it doesn't "jump" when toggling.
   const movingSectionRef = useRef(null);
   const [movingHeight, setMovingHeight] = useState(0);
 
@@ -105,103 +108,78 @@ function LogisticsDetails({
     }
   }, []);
 
-
-  // =========== MOVING: Rate Type ===========
+  // -------------------- MOVING fields --------------------
   const [rateType, setRateType] = useState(lead?.rateType ?? 'Hourly Rate');
   const [showRateTypeDropdown, setShowRateTypeDropdown] = useState(false);
   const rateTypeDropdownRef = useRef(null);
 
-  // =========== MOVING day fields ===========
+  // Basic numeric fields
   const [numTrucks, setNumTrucks] = useState(lead?.numTrucks ?? '1');
   const [numMovers, setNumMovers] = useState(lead?.numMovers ?? '2');
   const [hourlyRate, setHourlyRate] = useState(lead?.hourlyRate ?? '180');
+
+  // Volume/Weight fields
   const [volume, setVolume] = useState(lead?.volume ?? '1000');
   const [weight, setWeight] = useState(lead?.weight ?? '7000');
   const [pricePerCuft, setPricePerCuft] = useState(lead?.pricePerCuft ?? '4.50');
   const [pricePerLbs, setPricePerLbs] = useState(lead?.pricePerLbs ?? '0.74');
 
+  // Travel time
   const [travelTime, setTravelTime] = useState(lead?.travelTime ?? '1.00 h');
   const [showTravelTimeDropdown, setShowTravelTimeDropdown] = useState(false);
 
-  // For "Hourly Rate" => a 'Work time minimum' dropdown,
-  // For "Volume Based" => "Minimum Cuft" input,
-  // For "Weight Based" => "Minimum Lbs" input
+  // Work time minimum (for Hourly)
   const [movingMin, setMovingMin] = useState(lead?.movingMin ?? '3h');
   const [showMovingMinDropdown, setShowMovingMinDropdown] = useState(false);
 
-  // For "Minimum Cuft"
+  // Minimum cuft/lbs if Volume/Weight
   const [minimumCuft, setMinimumCuft] = useState(lead?.minimumCuft ?? '0.00');
-  function handleMinimumCuftChange(e) {
-    let val = e.target.value;
-    val = val.replace(/[^0-9.]/g, '');
-    const parts = val.split('.');
-    if (parts.length > 2) {
-      val = parts[0] + '.' + parts[1];
-    }
-    const [intPart, fracPart] = val.split('.');
-    if (fracPart?.length > 2) {
-      val = intPart + '.' + fracPart.slice(0, 2);
-    }
-    if (!val) val = '0.00';
-    setMinimumCuft(val);
-    // Also update the lead
-    if (onLeadUpdated) {
-      onLeadUpdated({ ...lead, minimumCuft: val });
-    }
-  }
-
-  // For "Minimum Lbs"
   const [minimumLbs, setMinimumLbs] = useState(lead?.minimumLbs ?? '0');
-  function handleMinimumLbsChange(e) {
-    let val = e.target.value.replace(/\D+/g, '');
-    if (!val) val = '0';
-    setMinimumLbs(val);
-    if (onLeadUpdated) {
-      onLeadUpdated({ ...lead, minimumLbs: val });
-    }
-  }
 
-  // For volume/weight => pickupWindow, earliestDeliveryDate, deliveryWindow
+  // pickup/delivery fields
   const [pickupWindow, setPickupWindow] = useState(lead?.pickupWindow ?? '1 day');
   const [showPickupWindowDropdown, setShowPickupWindowDropdown] = useState(false);
 
   const [earliestDeliveryDate, setEarliestDeliveryDate] = useState(lead?.earliestDeliveryDate ?? '');
-    const [showEarliestDeliveryCalendar, setShowEarliestDeliveryCalendar] = useState(false);
+  const [showEarliestDeliveryCalendar, setShowEarliestDeliveryCalendar] = useState(false);
   const earliestCalRef = useRef(null);
 
   const [deliveryWindow, setDeliveryWindow] = useState(lead?.deliveryWindow ?? '7 days');
   const [showDeliveryWindowDropdown, setShowDeliveryWindowDropdown] = useState(false);
 
-  // "Work time" => minHours, maxHours (only for Hourly)
+  // Additional min/max hours for the "Work time" if Hourly
   const [minHours, setMinHours] = useState(lead?.minHours ?? '1.00 h');
   const [maxHours, setMaxHours] = useState(lead?.maxHours ?? '2.00 h');
   const [showMinHoursDropdown, setShowMinHoursDropdown] = useState(false);
   const [showMaxHoursDropdown, setShowMaxHoursDropdown] = useState(false);
   const [showWorkTimeDetails, setShowWorkTimeDetails] = useState(false);
 
-  // =========== PACKING day fields ===========
-  // Only relevant if lead.hasPackingDay === true
+  // -------------------- PACKING fields --------------------
   const [numPackers, setNumPackers] = useState(lead?.numPackers ?? '2');
-  const [packingHourlyRate, setPackingHourlyRate] = useState(lead?.packingHourlyRate ?? '120');
-  const [packingTravelTime, setPackingTravelTime] = useState(lead?.packingTravelTime ?? '0.45 h');
+  const [packingHourlyRate, setPackingHourlyRate] =
+    useState(lead?.packingHourlyRate ?? '120');
+  const [packingTravelTime, setPackingTravelTime] =
+    useState(lead?.packingTravelTime ?? '0.45 h');
   const [showPackingTravelTimeDropdown, setShowPackingTravelTimeDropdown] = useState(false);
 
-  const [packingMinimum, setPackingMinimum] = useState(lead?.packingMinimum ?? '2h');
+  const [packingMinimum, setPackingMinimum] =
+    useState(lead?.packingMinimum ?? '2h');
   const [showPackingMinDropdown, setShowPackingMinDropdown] = useState(false);
 
-  // "Packers Work time"
-  const [packingMinHours, setPackingMinHours] = useState(lead?.packingMinHours ??'1.00 h');
-  const [packingMaxHours, setPackingMaxHours] = useState(lead?.packingMaxHours ??'2.00 h');
+  const [packingMinHours, setPackingMinHours] =
+    useState(lead?.packingMinHours ?? '1.00 h');
+  const [packingMaxHours, setPackingMaxHours] =
+    useState(lead?.packingMaxHours ?? '2.00 h');
   const [showPackingMinHoursDropdown, setShowPackingMinHoursDropdown] = useState(false);
   const [showPackingMaxHoursDropdown, setShowPackingMaxHoursDropdown] = useState(false);
   const [showPackingDetails, setShowPackingDetails] = useState(false);
 
-  // Determine if "Hourly", "Volume", or "Weight"
+  // Are we "Hourly", "Volume", or "Weight"?
   const isHourly = rateType === 'Hourly Rate';
   const isVolume = rateType === 'Volume Based';
   const isWeight = rateType === 'Weight Based';
-  // ---------- Handlers for onChange => update lead in parent ----------
 
+  // Helper to tell the parent that a field changed
   function handleUpdateLeadField(fieldName, value) {
     if (onLeadUpdated) {
       onLeadUpdated({
@@ -211,8 +189,7 @@ function LogisticsDetails({
     }
   }
 
-  // MOVING numeric handlers
-
+  // -------------- MOVING handlers --------------
   function handleNumTrucksChange(e) {
     const val = e.target.value.replace(/\D+/g, '');
     setNumTrucks(val || '0');
@@ -228,6 +205,8 @@ function LogisticsDetails({
     setHourlyRate(val || '0');
     handleUpdateLeadField('hourlyRate', val || '0');
   }
+
+  // volume/weight changes
   function handleVolumeChange(e) {
     const val = e.target.value.replace(/\D+/g, '');
     setVolume(val || '0');
@@ -241,21 +220,22 @@ function LogisticsDetails({
   function handlePricePerCuftChange(e) {
     const val = e.target.value.replace(/[^0-9.]/g, '');
     setPricePerCuft(val || '0');
-    handleUpdateLeadField('pricePerLbs', val || '0');
+    handleUpdateLeadField('pricePerCuft', val || '0');
   }
   function handlePricePerLbsChange(e) {
-    let val = e.target.value.replace(/[^0-9.]/g, '');
+    const val = e.target.value.replace(/[^0-9.]/g, '');
     setPricePerLbs(val || '0');
+    handleUpdateLeadField('pricePerLbs', val || '0');
   }
 
-  // For the old clamp min/max hours => MOVING (Hourly)
-    function handleSelectMinHours(label) {
+  // min/max hours for "Work time"
+  function handleSelectMinHours(label) {
     setMinHours(label);
     handleUpdateLeadField('minHours', label);
-
-    const minValue = parseQuarterHours(label);
-    const maxValue = parseQuarterHours(maxHours);
-    if (maxValue < minValue) {
+    // clamp
+    const minVal = parseQuarterHours(label);
+    const maxVal = parseQuarterHours(maxHours);
+    if (maxVal < minVal) {
       setMaxHours(label);
       handleUpdateLeadField('maxHours', label);
     }
@@ -263,16 +243,38 @@ function LogisticsDetails({
   function handleSelectMaxHours(label) {
     setMaxHours(label);
     handleUpdateLeadField('maxHours', label);
-
-    const newMaxValue = parseQuarterHours(label);
-    const minValue = parseQuarterHours(minHours);
-    if (newMaxValue < minValue) {
+    // clamp
+    const newMax = parseQuarterHours(label);
+    const oldMin = parseQuarterHours(minHours);
+    if (newMax < oldMin) {
       setMinHours(label);
       handleUpdateLeadField('minHours', label);
     }
   }
 
-  // PACKING numeric handlers
+  // Volume => min cuft
+  function handleMinimumCuftChange(e) {
+    let val = e.target.value.replace(/[^0-9.]/g, '');
+    const parts = val.split('.');
+    if (parts.length > 2) val = parts[0] + '.' + parts[1];
+    const [intPart, fracPart] = val.split('.');
+    if (fracPart && fracPart.length > 2) {
+      val = intPart + '.' + fracPart.slice(0, 2);
+    }
+    if (!val) val = '0.00';
+    setMinimumCuft(val);
+    handleUpdateLeadField('minimumCuft', val);
+  }
+
+  // Weight => min lbs
+  function handleMinimumLbsChange(e) {
+    let val = e.target.value.replace(/\D+/g, '');
+    if (!val) val = '0';
+    setMinimumLbs(val);
+    handleUpdateLeadField('minimumLbs', val);
+  }
+
+  // -------------- PACKING handlers --------------
   function handleNumPackersChange(e) {
     const val = e.target.value.replace(/\D+/g, '');
     setNumPackers(val || '0');
@@ -284,14 +286,12 @@ function LogisticsDetails({
     handleUpdateLeadField('packingHourlyRate', val || '0');
   }
 
-  // clamp min/max for packing
   function handleSelectPackingMinHours(label) {
     setPackingMinHours(label);
     handleUpdateLeadField('packingMinHours', label);
-
-    const minValue = parseQuarterHours(label);
-    const maxValue = parseQuarterHours(packingMaxHours);
-    if (maxValue < minValue) {
+    const minVal = parseQuarterHours(label);
+    const maxVal = parseQuarterHours(packingMaxHours);
+    if (maxVal < minVal) {
       setPackingMaxHours(label);
       handleUpdateLeadField('packingMaxHours', label);
     }
@@ -299,16 +299,15 @@ function LogisticsDetails({
   function handleSelectPackingMaxHours(label) {
     setPackingMaxHours(label);
     handleUpdateLeadField('packingMaxHours', label);
-
-    const newMaxValue = parseQuarterHours(label);
-    const minValue = parseQuarterHours(packingMinHours);
-    if (newMaxValue < minValue) {
+    const newMax = parseQuarterHours(label);
+    const oldMin = parseQuarterHours(packingMinHours);
+    if (newMax < oldMin) {
       setPackingMinHours(label);
       handleUpdateLeadField('packingMinHours', label);
     }
   }
 
-  // ---------- Calendar for earliestDeliveryDate ----------
+  // -------------- pickup/delivery => earliestDelivery calendar --------------
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [daysInMonth, setDaysInMonth] = useState([]);
   useEffect(() => {
@@ -316,9 +315,7 @@ function LogisticsDetails({
     const m = calendarMonth.getMonth();
     const totalDays = new Date(y, m + 1, 0).getDate();
     const arr = [];
-    for (let i = 1; i <= totalDays; i++) {
-      arr.push(i);
-    }
+    for (let i = 1; i <= totalDays; i++) arr.push(i);
     setDaysInMonth(arr);
   }, [calendarMonth]);
 
@@ -332,16 +329,13 @@ function LogisticsDetails({
     const dateStr = dateObj.toDateString();
     setEarliestDeliveryDate(dateStr);
     setShowEarliestDeliveryCalendar(false);
-    handleUpdateMovingDay({ earliestDeliveryDate: dateStr });
-    }
+    handleUpdateLeadField('earliestDeliveryDate', dateStr);
+  }
 
-    const formattedEarliestDeliveryDate = earliestDeliveryDate ? formatDate(earliestDeliveryDate) : 'Select';
-
-  // ---------- Close all dropdowns if user clicks outside ----------
-
+  // -------------- close any open dropdowns if user clicks outside --------------
   useEffect(() => {
     function handleClickOutside(e) {
-            // Rate Type
+      // Rate type dropdown
       if (
         showRateTypeDropdown &&
         rateTypeDropdownRef.current &&
@@ -349,7 +343,7 @@ function LogisticsDetails({
       ) {
         setShowRateTypeDropdown(false);
       }
-            
+      // Travel Time => MOVING
       if (showTravelTimeDropdown && !e.target.closest('#travelTimeDropdown')) {
         setShowTravelTimeDropdown(false);
       }
@@ -361,7 +355,7 @@ function LogisticsDetails({
       if (showPickupWindowDropdown && !e.target.closest('#pickupWindowDropdown')) {
         setShowPickupWindowDropdown(false);
       }
-      // earliestDeliveryDate
+      // earliestDeliveryDate calendar
       if (
         showEarliestDeliveryCalendar &&
         earliestCalRef.current &&
@@ -373,7 +367,7 @@ function LogisticsDetails({
       if (showDeliveryWindowDropdown && !e.target.closest('#deliveryWindowDropdown')) {
         setShowDeliveryWindowDropdown(false);
       }
-      // minHours & maxHours => moving
+      // minHours & maxHours => MOVING
       if (showMinHoursDropdown && !e.target.closest('#minHoursDropdown')) {
         setShowMinHoursDropdown(false);
       }
@@ -385,11 +379,11 @@ function LogisticsDetails({
       if (showPackingTravelTimeDropdown && !e.target.closest('#packingTravelTimeDropdown')) {
         setShowPackingTravelTimeDropdown(false);
       }
-      // packing => minimum
+      // packing => min
       if (showPackingMinDropdown && !e.target.closest('#packingMinDropdown')) {
         setShowPackingMinDropdown(false);
       }
-      // packing => min/max hours
+      // packing => minHours & maxHours
       if (showPackingMinHoursDropdown && !e.target.closest('#packingMinHoursDropdown')) {
         setShowPackingMinHoursDropdown(false);
       }
@@ -414,9 +408,10 @@ function LogisticsDetails({
     showPackingMaxHoursDropdown
   ]);
 
-  // Determine if we are showing "Moving" or "Packing" (only if hasPackingDay)
-  const showMovingSection = !hasPackingDay || activeDay === 'Moving';
-  const showPackingSection = hasPackingDay && activeDay === 'Packing';
+  // We show the "Moving" section if hasPackingDay===false OR if activeDay==="moving".
+  const showMovingSection = !hasPackingDay || activeDay === 'moving';
+  // We show the "Packing" section if hasPackingDay===true AND activeDay==="packing".
+  const showPackingSection = hasPackingDay && activeDay === 'packing';
 
   return (
     <div className={styles.logisticsContainer}>
@@ -429,26 +424,30 @@ function LogisticsDetails({
 
       {!isCollapsed && (
         <div
-        className={styles.innerContent}
-        style={{ minHeight: movingHeight ? `${movingHeight}px` : 'auto' }}
-      >
-        {/* "Add Packing Day" or highlight "Moving"/"Packing" */}
+          className={styles.innerContent}
+          // If we know the moving section height, keep minHeight so it doesn't jump
+          style={{ minHeight: movingHeight ? `${movingHeight}px` : 'auto' }}
+        >
+          {/* "Add Packing Day" or "Packing/Moving Day" toggle */}
           <div className={styles.packingDayWrapper}>
-          <PackingDay
+            <PackingDay
               lead={lead}
               onDaySelected={(day) => {
+                // Just update local state
                 setActiveDay(day);
-                // Optionally store the activeDay in the lead
+              }}
+              onLeadUpdated={(updatedLead) => {
+                // Pass the full updated lead to parent
                 if (onLeadUpdated) {
-                  onLeadUpdated({ ...lead, activeDay: day });
+                  console.log("Updating lead from PackingDay:", updatedLead);
+                  onLeadUpdated(updatedLead);
                 }
               }}
-              onLeadUpdated={onLeadUpdated} // so that "hasPackingDay" can be toggled
             />
           </div>
 
           <div className={styles.extraInputsContainer}>
-            {/* ================= MOVING SECTION ================= */}
+            {/* ============ MOVING SECTION ============ */}
             <div
               ref={movingSectionRef}
               style={{ display: showMovingSection ? 'block' : 'none' }}
@@ -492,13 +491,14 @@ function LogisticsDetails({
                       })}
                     </ul>
                   )}
-            </div>
-            </div>
+                </div>
+              </div>
 
+              {/* Number of Trucks / Movers / Hourly Rate */}
               <div className={styles.row}>
                 <div className={styles.logisticsInputContainer}>
-                <label className={styles.inputLabel}>
-                Number of Trucks:
+                  <label className={styles.inputLabel}>
+                    Number of Trucks:
                     <input
                       className={styles.logisticsInput}
                       value={numTrucks}
@@ -507,12 +507,10 @@ function LogisticsDetails({
                     />
                   </label>
                 </div>
-              
 
-              
                 <div className={styles.logisticsInputContainer}>
-                <label className={styles.inputLabel}>
-                Number of Movers:
+                  <label className={styles.inputLabel}>
+                    Number of Movers:
                     <input
                       className={styles.logisticsInput}
                       value={numMovers}
@@ -521,12 +519,11 @@ function LogisticsDetails({
                     />
                   </label>
                 </div>
-        
 
                 {isHourly && (
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
-                    Hourly Rate ($):
+                      Hourly Rate ($):
                       <input
                         className={styles.logisticsInput}
                         value={hourlyRate}
@@ -536,13 +533,14 @@ function LogisticsDetails({
                     </label>
                   </div>
                 )}
-                </div>
+              </div>
 
-                {(isHourly || isVolume || isWeight) && (
+              {/* volume/weight row */}
+              {(isHourly || isVolume || isWeight) && (
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
-                    Volume (cu ft):
+                      Volume (cu ft):
                       <input
                         className={styles.logisticsInput}
                         value={volume}
@@ -551,7 +549,6 @@ function LogisticsDetails({
                       />
                     </label>
                   </div>
-                
 
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
@@ -593,16 +590,17 @@ function LogisticsDetails({
                     </div>
                   )}
                 </div>
-                )}
+              )}
 
-            {isHourly && (
+              {/* Travel Time (Hourly) */}
+              {isHourly && (
                 <div className={styles.row}>
                   <div
                     className={styles.logisticsButton}
                     style={{ position: 'relative' }}
                     id="travelTimeDropdown"
-                    onClick={(evt) => {
-                      evt.stopPropagation();
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowTravelTimeDropdown((p) => !p);
                     }}
                   >
@@ -624,8 +622,8 @@ function LogisticsDetails({
                                   ? `${styles.rateTypeOption} ${styles.selectedOption}`
                                   : styles.rateTypeOption
                               }
-                              onClick={(e) => {
-                                e.stopPropagation();
+                              onClick={(evt) => {
+                                evt.stopPropagation();
                                 setTravelTime(opt);
                                 setShowTravelTimeDropdown(false);
                                 handleUpdateLeadField('travelTime', opt);
@@ -637,10 +635,11 @@ function LogisticsDetails({
                         })}
                       </ul>
                     )}
+                  </div>
                 </div>
-                </div>
-            )}
+              )}
 
+              {/* Work time minimum (Hourly) */}
               {isHourly && (
                 <div className={styles.row}>
                   <div
@@ -657,35 +656,37 @@ function LogisticsDetails({
                       <span className={styles.dropdownSelected}>{movingMin}</span>
                     </div>
                     <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
                     {showMovingMinDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {MOVING_MINIMUM_OPTIONS.map((opt) => {
                           const isSelected = opt === movingMin;
                           return (
                             <li
-                            key={opt}
-                            className={
-                              isSelected
-                                ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                : styles.rateTypeOption
-                            }
-                            onClick={(evt) => {
-                              evt.stopPropagation();
-                              setMovingMin(opt);
-                              setShowMovingMinDropdown(false);
-                              handleUpdateLeadField('movingMin', opt);
-                            }}
+                              key={opt}
+                              className={
+                                isSelected
+                                  ? `${styles.rateTypeOption} ${styles.selectedOption}`
+                                  : styles.rateTypeOption
+                              }
+                              onClick={(evt) => {
+                                evt.stopPropagation();
+                                setMovingMin(opt);
+                                setShowMovingMinDropdown(false);
+                                handleUpdateLeadField('movingMin', opt);
+                              }}
                             >
                               {opt}
-                              </li>
+                            </li>
                           );
                         })}
-                        </ul>
+                      </ul>
                     )}
                   </div>
                 </div>
               )}
 
+              {/* Minimum cuft / lbs if Volume or Weight */}
               {isVolume && (
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
@@ -699,10 +700,8 @@ function LogisticsDetails({
                       />
                     </label>
                   </div>
-                
                 </div>
-            )}
-
+              )}
               {isWeight && (
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
@@ -718,6 +717,8 @@ function LogisticsDetails({
                   </div>
                 </div>
               )}
+
+              {/* Pickup window / Earliest Delivery / Delivery Window (for Volume/Weight) */}
               {(isVolume || isWeight) && (
                 <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
                   <div
@@ -730,10 +731,11 @@ function LogisticsDetails({
                     }}
                   >
                     <div className={styles.dropdownLabel}>
-                    <span className={styles.dropdownPrefix}>Pickup window:</span>
-                    <span className={styles.dropdownSelected}>{pickupWindow}</span>
+                      <span className={styles.dropdownPrefix}>Pickup window:</span>
+                      <span className={styles.dropdownSelected}>{pickupWindow}</span>
                     </div>
                     <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
                     {showPickupWindowDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {PICKUP_WINDOW_OPTIONS.map((opt) => {
@@ -761,6 +763,7 @@ function LogisticsDetails({
                     )}
                   </div>
 
+                  {/* Earliest Delivery Calendar */}
                   <div
                     className={styles.logisticsButton}
                     style={{ position: 'relative' }}
@@ -772,7 +775,7 @@ function LogisticsDetails({
                     <div className={styles.dropdownLabel}>
                       <span className={styles.dropdownPrefix}>Earliest Del.:</span>
                       <span className={styles.dropdownSelected}>
-                      {formattedEarliestDeliveryDate}
+                        {earliestDeliveryDate ? formatDate(earliestDeliveryDate) : 'Select'}
                       </span>
                     </div>
                     <div className={styles.calendarRightIconWrapper}>
@@ -848,10 +851,11 @@ function LogisticsDetails({
                     }}
                   >
                     <div className={styles.dropdownLabel}>
-                    <span className={styles.dropdownPrefix}>Delivery Window:</span>
-                    <span className={styles.dropdownSelected}>{deliveryWindow}</span>
+                      <span className={styles.dropdownPrefix}>Delivery Window:</span>
+                      <span className={styles.dropdownSelected}>{deliveryWindow}</span>
                     </div>
                     <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
                     {showDeliveryWindowDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {DELIVERY_WINDOW_OPTIONS.map((opt) => {
@@ -879,10 +883,12 @@ function LogisticsDetails({
                     )}
                   </div>
                 </div>
-            )}
-            {isHourly && (
+              )}
+
+              {/* Hourly => extra "Work time" min/max hours */}
+              {isHourly && (
                 <>
-                <div className={styles.divider}></div>
+                  <div className={styles.divider}></div>
                   <div className={styles.workTimeHeadline}>Work time</div>
                   <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
                     <div
@@ -899,6 +905,7 @@ function LogisticsDetails({
                         <span className={styles.dropdownSelected}>{minHours}</span>
                       </div>
                       <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
                       {showMinHoursDropdown && (
                         <ul className={styles.rateTypeDropdown}>
                           {QUARTER_HOUR_OPTIONS.map((opt) => {
@@ -939,6 +946,7 @@ function LogisticsDetails({
                         <span className={styles.dropdownSelected}>{maxHours}</span>
                       </div>
                       <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
                       {showMaxHoursDropdown && (
                         <ul className={styles.rateTypeDropdown}>
                           {QUARTER_HOUR_OPTIONS.map((opt) => {
@@ -989,11 +997,10 @@ function LogisticsDetails({
                 </div>
               )}
             </div>
-            {/* ================= PACKING SECTION ================= */}
+
+            {/* ============ PACKING SECTION ============ */}
             {showPackingSection && (
               <div style={{ marginTop: '20px' }}>
-                {/* (We removed the old divider) */}
-
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
@@ -1035,10 +1042,11 @@ function LogisticsDetails({
                         }}
                       >
                         <div className={styles.dropdownLabel}>
-                        <span className={styles.dropdownPrefix}>Packers Travel Time (h):</span>
+                          <span className={styles.dropdownPrefix}>Packers Travel Time (h):</span>
                           <span className={styles.dropdownSelected}>{packingTravelTime}</span>
                         </div>
                         <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
                         {showPackingTravelTimeDropdown && (
                           <ul className={styles.rateTypeDropdown}>
                             {QUARTER_HOUR_OPTIONS.map((opt) => {
@@ -1082,6 +1090,7 @@ function LogisticsDetails({
                           <span className={styles.dropdownSelected}>{packingMinimum}</span>
                         </div>
                         <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
                         {showPackingMinDropdown && (
                           <ul className={styles.rateTypeDropdown}>
                             {MOVING_MINIMUM_OPTIONS.map((opt) => {
@@ -1111,6 +1120,7 @@ function LogisticsDetails({
                     </div>
                   </>
                 )}
+
                 <div className={styles.divider}></div>
                 <div className={styles.workTimeHeadline}>Packers Work time</div>
                 <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
@@ -1128,6 +1138,7 @@ function LogisticsDetails({
                       <span className={styles.dropdownSelected}>{packingMinHours}</span>
                     </div>
                     <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
                     {showPackingMinHoursDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {QUARTER_HOUR_OPTIONS.map((opt) => {
@@ -1168,6 +1179,7 @@ function LogisticsDetails({
                       <span className={styles.dropdownSelected}>{packingMaxHours}</span>
                     </div>
                     <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
                     {showPackingMaxHoursDropdown && (
                       <ul className={styles.rateTypeDropdown}>
                         {QUARTER_HOUR_OPTIONS.map((opt) => {
@@ -1217,7 +1229,6 @@ function LogisticsDetails({
                 )}
               </div>
             )}
-
           </div>
         </div>
       )}

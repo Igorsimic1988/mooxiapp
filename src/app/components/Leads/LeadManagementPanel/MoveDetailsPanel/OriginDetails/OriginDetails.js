@@ -532,7 +532,7 @@ function OriginDetails({
               }}
             >
               <div className={styles.propertyItemLeft}>
-                <Icon name="Place" className={styles.propertyItemIcon} />
+                <Icon name="Place1" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>PLACE</span>
               </div>
               <button
@@ -553,7 +553,7 @@ function OriginDetails({
               }}
             >
               <div className={styles.propertyItemLeft}>
-                <Icon name="Access" className={styles.propertyItemIcon} />
+                <Icon name="Access1" color="#FAA61A" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>ACCESS</span>
               </div>
               <button
@@ -574,7 +574,7 @@ function OriginDetails({
               }}
             >
               <div className={styles.propertyItemLeft}>
-                <Icon name="Services1" className={styles.propertyItemIcon} />
+                <Icon name="Services1" color="#F65676" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>SERVICES</span>
               </div>
               <button

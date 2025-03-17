@@ -1,6 +1,5 @@
 "use client"; 
-// If you're using Next.js 13 app router, you often need "use client" at the top 
-// if this component uses hooks like useState, useEffect, etc.
+// If you're using Next.js 13 app router, you often need "use client" at the top
 
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./Leads.module.css";
@@ -99,9 +98,7 @@ function filterLeadsByTab(leads, activeTab) {
       return leads.filter((ld) => ld.lead_status === "");
 
     case "Booked":
-      // If you want "Canceled" also in Booked:
-      //   (ld.lead_status === "Booked" || ld.lead_status === "Canceled")
-      // Double-check your spelled "Canceled" not "Cancaled"
+      // Double-check spelling for "Canceled"
       return leads.filter(
         (ld) => ld.lead_status === "Booked" || ld.lead_status === "Canceled"
       );
@@ -307,6 +304,9 @@ export default function Leads() {
 
   // CRUD: Update existing lead
   const handleLeadUpdated = (updatedLead) => {
+    // Console log so you can follow all changes
+    console.log("Lead updated =>", updatedLead);
+
     setLeads((prevLeads) =>
       prevLeads.map((ld) =>
         ld.lead_id === updatedLead.lead_id ? updatedLead : ld
@@ -356,7 +356,8 @@ export default function Leads() {
   }
 
   const filterCount = getActiveFilterCount();
-  const isDesktopScreen = typeof window !== "undefined" && window.innerWidth >= 1024;
+  const isDesktopScreen =
+    typeof window !== "undefined" && window.innerWidth >= 1024;
 
   // If showing the Inventory
   if (showInventoryFullScreen) {
@@ -495,5 +496,3 @@ export default function Leads() {
     </div>
   );
 }
-
-

@@ -312,7 +312,7 @@ function EstimateDetails({
     }
   }, [ showEstimateSection, hasInvoice ]);
   // Handle input changes with proper currency formatting
-  const handleInputChange = (value, setter, field) => {
+  const handleInputChange = (value, setter) => {
     // Only allow digits, decimal points and $ sign during typing
     const cleanValue = value.replace(/[^\d$.]/g, '');
     setter(cleanValue);

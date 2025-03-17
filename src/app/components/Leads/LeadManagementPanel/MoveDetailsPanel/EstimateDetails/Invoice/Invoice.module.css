@@ -1,10 +1,12 @@
-.packingDayRow {
+/* Example: invoiceRow matches packingDayRow */
+.invoiceRow {
   position: relative;
   margin-top: 10px;
   width: 100%;
 }
 
-.packingDayContainer {
+/* invoiceContainer matches packingDayContainer */
+.invoiceContainer {
   border-radius: 12px;
   background: #f2f5f8;
   display: inline-flex;
@@ -16,7 +18,7 @@
   max-width: min-content;
 }
 
-.addPackingDayText {
+.createInvoiceText {
   font-family: Satoshi, sans-serif;
   font-size: 15px;
   font-weight: 700;
@@ -41,7 +43,7 @@
   justify-content: center;
 }
 
-.dayButton {
+.optionButton {
   height: 40px;
   padding: 0 15px;
   border-radius: 10px;
@@ -61,8 +63,8 @@
   background-color: #3fa9f5; /* blue */
 }
 
-/* "Remove packing day" pinned at bottom-right within .packingDayRow */
-.removePackingDayLink {
+/* If you want "Remove invoice" pinned similarly at bottom-right: */
+.removeInvoiceLink {
   position: absolute;
   bottom: -30px;
   right: 0;
@@ -74,5 +76,5 @@
   font-weight: 500;
   text-decoration: underline;
   cursor: pointer;
-  padding: 0 6px 4px 0; /* small spacing from the corner */
+  padding: 0 6px 4px 0;
 }

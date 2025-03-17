@@ -52,7 +52,7 @@
 .extraInputsContainer {
   display: flex;
   flex-direction: column;
-  margin-top: 20px;
+  margin-top: 35px;
 }
 
 /* each row has a 10px gap, next row => 20px margin-top */

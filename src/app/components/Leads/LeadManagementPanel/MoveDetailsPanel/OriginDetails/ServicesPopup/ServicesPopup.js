@@ -1,15 +1,11 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './ServicesPopup.module.css';
-import Image from 'next/image';
 
 // Icons
-import HouseIcon from '../../../../../../assets/icons/house.svg';
-import CloseIcon from '../../../../../../assets/icons/Close.svg';
-import UnfoldMoreIcon from '../../../../../../assets/icons/unfoldmore.svg';
 
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 
-import Icon from '../../../../../Icon'
+import Icon from '../../../../../Icon';
 
 // Example data for drop-downs
 const whatsMovingOriginOptions = ['Mixed', 'Boxes Only', 'Furniture Only'];
@@ -274,12 +270,12 @@ function ServicesPopup({
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Icon name="House" className={styles.icon} />
+            <Icon name="Services1" color="white" className={styles.icon} />
             <p>Services</p>
           </div>
           <div className={styles.closeButton}>
             <button onClick={handleClose} aria-label="Close">
-              <Icon name="Close" className={styles.icon} />
+              <Icon name="Close" className={styles.closeIcon} />
             </button>
           </div>
         </div>

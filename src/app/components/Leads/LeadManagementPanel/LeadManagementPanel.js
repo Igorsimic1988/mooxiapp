@@ -10,14 +10,82 @@ import { updateLead } from '../../../services/leadService';
 import Icon from '../../Icon';
 
 const statusOptions = [
-  { label: 'New Lead', color: '#59B779', icon: null, isDisabled: true },
-  { label: 'In Progress', color: '#FAA61A', icon: "InProgress", isDisabled: false },
-  { label: 'Quoted', color: '#FFC61E', icon: "Quoted", isDisabled: false },
-  { label: 'Bad Lead', color: '#f65676', icon: "BadLead", isDisabled: false },
-  { label: 'Declined', color: '#D9534F', icon: "Declined", isDisabled: false },
-  { label: 'Booked', color: '#3fa9f5', icon: "Booked", isDisabled: false },
-  { label: 'Move on Hold', color: '#616161', icon: "OnHold", isDisabled: false },
-  { label: 'Canceled', color: '#2f3236', icon: "Canceled", isDisabled: false },
+  {
+    label: 'New Lead',
+    color: '#59B779',
+    icon: null,         // or no icon
+    isDisabled: true,
+  },
+  {
+    label: 'In Progress',
+    color: '#FAA61A',
+    icon: {
+      name: 'InProgress', // the icon name you pass to <Icon name="InProgress" />
+      width: 20,
+      height: 20,
+    },
+    isDisabled: false,
+  },
+  {
+    label: 'Quoted',
+    color: '#FFC61E',
+    icon: {
+      name: 'Quoted',
+      width: 24,
+      height: 24,
+    },
+    isDisabled: false,
+  },
+  {
+    label: 'Bad Lead',
+    color: '#f65676',
+    icon: {
+      name: 'BadLead',
+      width: 16,
+      height: 16,
+    },
+    isDisabled: false,
+  },
+  {
+    label: 'Declined',
+    color: '#D9534F',
+    icon: {
+      name: 'Declined',
+      width: 24,
+      height: 24,
+    },
+    isDisabled: false,
+  },
+  {
+    label: 'Booked',
+    color: '#3fa9f5',
+    icon: {
+      name: 'Booked',
+      width: 20,
+      height: 20,
+    },
+    isDisabled: false,
+  },
+  {
+    label: 'Move on Hold',
+    color: '#616161',
+    icon: {
+      name: 'OnHold',
+      width: 20,
+      height: 20,
+    },
+    isDisabled: false,
+  },
+  {
+    label: 'Canceled',
+    color: '#2f3236',
+    icon: {
+      name: 'Canceled',
+      width: 14,
+      height: 14,
+    },
+    isDisabled: false,
+  },
 ];
 
 // Which activities belong to which status
@@ -409,7 +477,6 @@ function LeadManagementPanel({
 
   const currentStatusObj = statusOptions.find((opt) => opt.label === leadStatus);
   const statusColor = currentStatusObj ? currentStatusObj.color : '#59B779';
-  const statusIcon = currentStatusObj ? currentStatusObj.icon : null;
 
   // We hide Next Action if it's a hidden status or "Completed" was set
   const hideNextAction =
@@ -438,7 +505,13 @@ function LeadManagementPanel({
               <span className={styles.scoreValue}>40</span>
             </div>
             <button className={styles.moreButton}>
-              <Icon name="More" className={styles.moreIcon} />
+            <Icon
+    name="More"
+    className={styles.moreIcon}
+    width={14}
+    height={24}
+    color="#90A4B7"
+  />
             </button>
           </div>
         </div>
@@ -471,11 +544,16 @@ function LeadManagementPanel({
                   {leadStatus}
                 </span>
               </div>
-              {leadStatus !== 'New Lead' && (
-                <div className={styles.statusIconContainer}>
-                  <Icon name={statusIcon} />
-                </div>
-              )}
+              {leadStatus !== 'New Lead' && currentStatusObj?.icon && (
+  <div className={styles.statusIconContainer}>
+    <Icon
+      name={currentStatusObj.icon.name}
+      width={currentStatusObj.icon.width}
+      height={currentStatusObj.icon.height}
+      color="#FFF"
+    />
+  </div>
+)}
             </button>
 
             {showStatusDropdown && (
@@ -513,7 +591,7 @@ function LeadManagementPanel({
                   <span className={styles.activityLabel}>Activity:</span>
                   <span className={styles.activityValue}>{leadActivity}</span>
                 </div>
-                <Icon name='More' className={styles.moreIcon} />
+                <Icon name='UnfoldMore' className={styles.moreIcon} />
               </button>
 
               {showActivityDropdown && (
@@ -714,7 +792,13 @@ function LeadManagementPanel({
                   '#3FA9F5',
               }}
             >
-              <Icon name="SpecialH" className={styles.specialIcon} />
+              <Icon
+  name="SpecialH"
+  className={styles.specialIcon}
+  width={18}
+  height={18}
+  color="#FFF"
+/>
             </div>
 
             {showInventoryDropdown && (

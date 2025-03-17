@@ -1,11 +1,7 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './PlacePopup.module.css';
-import Image from 'next/image';
 
 // Icons
-import HouseIcon from '../../../../../../assets/icons/house.svg';
-import CloseIcon from '../../../../../../assets/icons/Close.svg';
-import UnfoldMoreIcon from '../../../../../../assets/icons/unfoldmore.svg';
 import Icon from '../../../../../Icon';
 
 // Reuse the MainAndStopOffs component

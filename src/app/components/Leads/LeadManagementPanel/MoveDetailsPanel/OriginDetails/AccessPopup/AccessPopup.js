@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './AccessPopup.module.css';
 
-import Icon from '../../../../../Icon';
+import Icon from '../../.././../../Icon';
 
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 import SimpleToggle from '../../../../SimpleToggle/SimpleToggle';
@@ -286,7 +286,7 @@ function AccessPopup({
         {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Icon name="House" className={styles.icon} />
+            <Icon name="Access1" color="white" className={styles.icon} />
             <p>Access</p>
           </div>
           <div className={styles.closeButton}>

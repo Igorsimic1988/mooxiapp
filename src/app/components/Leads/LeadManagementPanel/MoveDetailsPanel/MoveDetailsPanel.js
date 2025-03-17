@@ -391,7 +391,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             </span>
           </span>
           <div className={styles.calendarRightIconWrapper}>
-            <Icon name="Calendar" />
+            <Icon name="Calendar" className={styles.calendarIcon} />
           </div>
         </button>
 
@@ -459,7 +459,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           <span className={styles.inputLabel}>Type of Service:</span>
           <span className={styles.inputValue}> {typeOfService}</span>
         </span>
-        <Icon name="More" className={styles.moreIcon}/>
+        <Icon name="UnfoldMore" className={styles.moreIcon}/>
 
         {showTypeOfServiceDropdown && (
           <div className={styles.dropdownMenu}>
@@ -505,7 +505,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             <span className={styles.inputLabel}>Items in storage:</span>
             <span className={styles.inputValue}> {selectedStorage}</span>
           </span>
-          <Icon name="More" className={styles.moreIcon}/>
+          <Icon name="UnfoldMore" className={styles.moreIcon}/>
           {storageDropdownOpen && (
             <div className={styles.dropdownMenu}>
               {storageOptions.map((option) => {
@@ -634,7 +634,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           <span className={styles.inputLabel}>ETA Request:</span>
           <span className={styles.inputValue}> {etaRequest}</span>
         </span>
-        <Icon name="More" className={styles.moreIcon} />
+        <Icon name="UnfoldMore" className={styles.moreIcon} />
 
         {showETARequestDropdown && (
           <div className={styles.dropdownMenu}>

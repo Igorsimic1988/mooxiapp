@@ -536,7 +536,7 @@ function DestinationDetails({
               onClick={() => setIsAccessPopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
-                <Icon name="Access1" className={styles.propertyItemIcon} />
+                <Icon name="Access1" color="#FAA61A" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>ACCESS</span>
               </div>
               <button
@@ -602,7 +602,7 @@ function DestinationDetails({
               onClick={() => setIsServicesPopupOpen(true)}
             >
               <div className={styles.propertyItemLeft}>
-                <Icon name="Services1" className={styles.propertyItemIcon} />
+                <Icon name="Services1" color="#F65676" className={styles.propertyItemIcon} />
                 <span className={styles.propertyItemText}>SERVICES</span>
               </div>
               <button

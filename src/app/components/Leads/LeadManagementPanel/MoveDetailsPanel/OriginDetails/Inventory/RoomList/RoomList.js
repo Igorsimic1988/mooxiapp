@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import styles from './RoomList.module.css';
 import More from '../../../../../../../assets/icons/more.svg';
 import Image from 'next/image';
-
+import Icon from 'src/app/components/Icon';
 /**
  * RoomList
  *
@@ -112,7 +112,7 @@ function RoomList({
                 </div>
               )}
               <div className={styles.moreIcon}>
-                <Image src = {More} alt = 'more' />
+                <Icon name="More" />
               </div>
             </div>
           </button>
@@ -151,7 +151,7 @@ function RoomList({
               </div>
             )}
             <div className={styles.moreIcon}>
-            <Image src = {More} alt = 'more' />
+            <Icon name="More" />
             </div>
           </div>
         </button>

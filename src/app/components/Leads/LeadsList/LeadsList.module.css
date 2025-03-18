@@ -42,6 +42,7 @@
 .customerInfo,
 .leadStatusInfo {
   min-width: 0;
+
 }
 
 /* Text truncation */
@@ -191,18 +192,17 @@
 }
 
 .leadStatus {
-  color: #FAA61A;
   text-align: right;
   font-family: Satoshi, sans-serif;
   font-size: 13px;
   font-weight: 700;
   line-height: normal;
+  white-space: nowrap; 
 }
 
 .statusIcon {
   margin-left: 6px;
   flex-shrink: 0;
-  color: #FAA61A;
   max-width: 20px;
   max-height: 20px;
 }
@@ -243,6 +243,7 @@
   margin-bottom: 8px;
 }
 
+
 /* Style for search results */
 .searchResult {
   position: relative;
@@ -258,6 +259,8 @@
   background-color: #3fa9f5;
   border-radius: 0 2px 2px 0;
 }
+
+
 
 /* Media query for smaller screens */
 @media (max-width: 392px) {
@@ -277,4 +280,4 @@
   .statusIcon {
     transform: scale(0.8);
   }
-}
+} 

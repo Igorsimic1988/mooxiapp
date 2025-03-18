@@ -195,7 +195,7 @@ const actualLeads = [
     service_type: "Moving",
     source: "Instagram",
 
-    lead_status: "Cancaled",
+    lead_status: "Canceled",
     lead_activity: "Company Canceled",
     next_action: "",
 
@@ -525,7 +525,7 @@ const actualLeads = [
     service_type: "Moving",
     source: "Google",
 
-    lead_status: "Cancaled",
+    lead_status: "Canceled",
     lead_activity: "Customer Canceled",
     next_action: "",
 
@@ -735,7 +735,7 @@ const actualLeads = [
     service_type: "Moving",
     source: "Instagram",
 
-    lead_status: "Cancaled",
+    lead_status: "Canceled",
     lead_activity: "Customer Canceled",
     next_action: "",
 
@@ -1065,7 +1065,7 @@ const actualLeads = [
     service_type: "Moving",
     source: "Yelp",
 
-    lead_status: "Cancaled",
+    lead_status: "Canceled",
     lead_activity: "Company Canceled",
     next_action: "",
 

@@ -1,21 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import CustomerUserIcon from '../../../assets/icons/customeruser.svg';
-import MoreIcon from '../../../assets/icons/more.svg';
-import EditIcon from '../../../assets/icons/edit.svg';
-import Image from 'next/image';
-// Status icons
-import InProgressIcon from '../../../assets/icons/inProgress.svg';
-import QuotedIcon from '../../../assets/icons/quoted.svg';
-import BadLeadIcon from '../../../assets/icons/badlead.svg';
-import DeclinedIcon from '../../../assets/icons/declined.svg';
-import OnHoldIcon from '../../../assets/icons/onhold.svg';
-import CanceledIcon from '../../../assets/icons/canceled.svg';
-import BookedIcon from '../../../assets/icons/booked.svg';
-
-import UnfoldMoreIcon from '../../../assets/icons/unfoldmore.svg';
-import UserIcon from '../../../assets/icons/user.svg';
-import SpecialHIcon from '../../../assets/icons/specialh.svg';
-import CalendarIcon from '../../../assets/icons/calendar.svg';
 
 import MoveDetailsPanel from './MoveDetailsPanel/MoveDetailsPanel';
 import styles from './LeadManagementPanel.module.css';
@@ -24,16 +7,17 @@ import PossibleSalesReps from '../../../data/constants/PossibleSalesReps';
 
 // 1) IMPORT THE updateLead SERVICE
 import { updateLead } from '../../../services/leadService';
+import Icon from '../../Icon';
 
 const statusOptions = [
   { label: 'New Lead', color: '#59B779', icon: null, isDisabled: true },
-  { label: 'In Progress', color: '#FAA61A', icon: InProgressIcon, isDisabled: false },
-  { label: 'Quoted', color: '#FFC61E', icon: QuotedIcon, isDisabled: false },
-  { label: 'Bad Lead', color: '#f65676', icon: BadLeadIcon, isDisabled: false },
-  { label: 'Declined', color: '#D9534F', icon: DeclinedIcon, isDisabled: false },
-  { label: 'Booked', color: '#3fa9f5', icon: BookedIcon, isDisabled: false },
-  { label: 'Move on Hold', color: '#616161', icon: OnHoldIcon, isDisabled: false },
-  { label: 'Cancaled', color: '#2f3236', icon: CanceledIcon, isDisabled: false },
+  { label: 'In Progress', color: '#FAA61A', icon: "InProgress", isDisabled: false },
+  { label: 'Quoted', color: '#FFC61E', icon: "Quoted", isDisabled: false },
+  { label: 'Bad Lead', color: '#f65676', icon: "BadLead", isDisabled: false },
+  { label: 'Declined', color: '#D9534F', icon: "Declined", isDisabled: false },
+  { label: 'Booked', color: '#3fa9f5', icon: "Booked", isDisabled: false },
+  { label: 'Move on Hold', color: '#616161', icon: "OnHold", isDisabled: false },
+  { label: 'Canceled', color: '#2f3236', icon: "Canceled", isDisabled: false },
 ];
 
 // Which activities belong to which status
@@ -45,14 +29,14 @@ function getActivityOptions(status) {
     case 'Bad Lead':     return ['Invalid Contact', 'Duplicate Lead', 'Not Qulified', 'Spam'];
     case 'Declined':     return ['Not Reachable', 'Pricing Issue', 'Chose Competitor', 'Timing Conflict', 'Service Not Needed'];
     case 'Booked':       return ['Regular Booked', 'Booked on 1st Call', 'Booked Online'];
-    case 'Cancaled':     return ['Customer Canceled', 'Company Canceled'];
+    case 'Canceled':     return ['Customer Canceled', 'Company Canceled'];
     case 'Move on Hold': return [];
     default:             return [];
   }
 }
 
 // We also hide NextAction if lead is in these statuses
-const HIDDEN_STATUSES = ['Bad Lead', 'Declined', 'Booked', 'Move on Hold', 'Cancaled'];
+const HIDDEN_STATUSES = ['Bad Lead', 'Declined', 'Booked', 'Move on Hold', 'Canceled'];
 
 function generateTimeSlots() {
   const slots = [];
@@ -98,7 +82,6 @@ function formatPhoneNumber(digits) {
 
 function LeadManagementPanel({
   lead,
-  onClose,
   onEditLead,
   onLeadUpdated,
   onInventoryFullScreen,
@@ -446,7 +429,7 @@ function LeadManagementPanel({
         {/* ~ Top Row ~ */}
         <div className={styles.topRow}>
           <div className={styles.leftSection}>
-            <Image src={CustomerUserIcon} alt="customer" className={styles.customerIcon} />
+            <Icon name="CustomerUser" className={styles.customerIcon} />
             <span className={styles.customerName}>{lead.customer_name}</span>
           </div>
           <div className={styles.rightSection}>
@@ -455,7 +438,7 @@ function LeadManagementPanel({
               <span className={styles.scoreValue}>40</span>
             </div>
             <button className={styles.moreButton}>
-              <Image src={MoreIcon} alt="more" className={styles.moreIcon} />
+              <Icon name="More" className={styles.moreIcon} />
             </button>
           </div>
         </div>
@@ -468,7 +451,7 @@ function LeadManagementPanel({
               {lead.customer_email || 'No Email'}
             </div>
             <button className={styles.editButton} onClick={handleEditClick}>
-              <Image src={EditIcon} alt="edit" className={styles.editIcon} />
+              <Icon name="Edit" className={styles.editIcon} />
             </button>
           </div>
         </div>
@@ -490,8 +473,8 @@ function LeadManagementPanel({
               </div>
               {leadStatus !== 'New Lead' && (
                 <div className={styles.statusIconContainer}>
-                  <Image src={statusIcon} alt="" />
-                  </div>
+                  <Icon name={statusIcon} />
+                </div>
               )}
             </button>
 
@@ -530,7 +513,7 @@ function LeadManagementPanel({
                   <span className={styles.activityLabel}>Activity:</span>
                   <span className={styles.activityValue}>{leadActivity}</span>
                 </div>
-                <Image src={MoreIcon} alt="more" className={styles.moreIcon} />
+                <Icon name='More' className={styles.moreIcon} />
               </button>
 
               {showActivityDropdown && (
@@ -572,7 +555,7 @@ function LeadManagementPanel({
                       {selectedEstimator || 'Select'}
                     </span>
                   </div>
-                  <Image src={UserIcon} alt="user" className={styles.userIcon} />
+                  <Icon name="User" className={styles.userIcon} />
                 </button>
                 {showEstimatorDropdown && (
                   <ul className={styles.estimatorDropdown}>
@@ -600,7 +583,7 @@ function LeadManagementPanel({
                     {selectedDate || 'Date'}
                   </span>
                   <div className={styles.calendarRightIconWrapper}>
-                    <Image src={CalendarIcon} alt="calendar" className={styles.calendarIcon} />
+                    <Icon name="Calendar" className={styles.calendarIcon} />
                   </div>
                 </button>
                 {showCalendar && (
@@ -639,7 +622,7 @@ function LeadManagementPanel({
                   <span className={selectedTime ? styles.timeSelected : styles.timePlaceholder}>
                     {selectedTime || 'Time'}
                   </span>
-                  <Image src={UnfoldMoreIcon} alt="unfold" className={styles.unfoldIcon} />
+                  <Icon name="UnfoldMore" className={styles.unfoldIcon} />
                 </button>
                 {showTimeDropdown && (
                   <ul className={styles.timeDropdown}>
@@ -699,7 +682,7 @@ function LeadManagementPanel({
           <button className={`${styles.inviteButton} ${styles.hiddenButton}`}>
             <span className={styles.inviteText}>Invite Customer</span>
             <div className={styles.inviteIconContainer}>
-              <Image src={UserIcon} alt="user" className={styles.userIcon} />
+              <Icon name="User" className={styles.userIcon} />
             </div>
           </button>
 
@@ -731,7 +714,7 @@ function LeadManagementPanel({
                   '#3FA9F5',
               }}
             >
-              <Image src={SpecialHIcon} alt="special" className={styles.specialIcon} />
+              <Icon name="SpecialH" className={styles.specialIcon} />
             </div>
 
             {showInventoryDropdown && (

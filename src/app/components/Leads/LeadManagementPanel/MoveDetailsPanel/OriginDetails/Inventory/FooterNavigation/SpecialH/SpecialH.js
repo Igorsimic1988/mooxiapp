@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import styles from "./SpecialH.module.css";
 import ItemCard from './ItemCard/ItemCard';
-import Image from 'next/image';
 
-import SpecialHPopupIcon from "../../../../../../../../assets/icons/SpecialHPopupIcon.svg";
-import CloseIcon from "../../../../../../../../assets/icons/Close.svg";
+import Icon from 'src/app/components/Icon'
+
 
 import { generateGroupingKey } from '../../utils/generateGroupingKey';
 import CustomSelect from './CustomSelect/CustomSelect';
@@ -304,12 +303,12 @@ function SpecialH({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Image src = {SpecialHPopupIcon} alt = 'specialHPopupIcon'className={styles.icon}/>
+            <Icon name="SpecialHPopupIcon" className={styles.icon}/>
             <p>Special Handling</p>
           </div>
           <div className={styles.closeButton}>
             <button onClick={handleClose} aria-label="Close">
-              <Image src = {CloseIcon} alt = 'closeIcon'className={styles.closeIcon}/>
+              <Icon name="Close" className={styles.closeIcon}/>
             </button>
           </div>
         </div>

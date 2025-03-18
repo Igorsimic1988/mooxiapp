@@ -1,7 +1,12 @@
 'use client';
-
+import './globals.css';
 import React from 'react';
-import Leads from './components/Leads/Leads';
+import dynamic from 'next/dynamic'
+
+const DynamicLeads = dynamic(
+  () => import('./components/Leads/Leads'),
+  { ssr: false }
+)
 
 function App() {
 
@@ -17,7 +22,7 @@ function App() {
       {accessToken ? (
         <>
         <button onClick={handleSignOut}>Sign Out</button>
-        <Leads />
+        <DynamicLeads /> 
         </>
       ) : (
         <>

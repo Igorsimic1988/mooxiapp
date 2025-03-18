@@ -1,9 +1,40 @@
+/* Main wrapper for house header with curved bar */
+.houseHeaderWrapper {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+}
+
+/* Top bar with inward curve */
+.topBarContainer {
+  position: fixed;
+  top: 60px; /* Height of the HeaderDashboard component */
+  left: 0;
+  right: 0;
+  height: 20px;
+  z-index: 1000;
+}
+
+.topBarBack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 100%;
+  background-color: #3FA9F5;
+  /* Use a radial-gradient mask to create a proper inward curve */
+  -webkit-mask-image: radial-gradient(20px at calc(100% - 0px) 100%, transparent 0, transparent 20px, #000 20px);
+  mask-image: radial-gradient(20px at calc(100% - 0px) 100%, transparent 0, transparent 20px, #000 20px);
+}
+
+/* Original house header styles */
 .houseHeader {
   border-radius: 20px 0px 0px 0px;
   border-bottom: 1px solid #D8DCE0;
   background: #FFF;
   height: 70px;
-  margin-top: -10px;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -11,19 +42,16 @@
   padding-left: 20px;
   padding-right: 20px;
   gap: 10px;
-  /* flex: 0 0 auto;  <-- remove if you have it. The container should be free to grow */
+  width: 100%;
 }
 
-/* Make the FIRST child (.HouseInfo) flexible. 
-   This is a neat trick if you can't directly add a wrapper:
-*/
+/* Make the FIRST child (.HouseInfo) flexible */
 .houseHeader > :first-child {
   flex: 1 1 0;
   min-width: 0; /* critical for text ellipsis in flex children */
 }
 
-/* Make sure the AddRoomButton doesn't shrink. 
-   If your AddRoomButton is a direct child, you can do: */
+/* Make sure the AddRoomButton doesn't shrink */
 .houseHeader > :last-child {
-  flex-shrink: 0; /* or flex: 0 0 auto; ensures the button won't shrink */
+  flex-shrink: 0; /* ensures the button won't shrink */
 }

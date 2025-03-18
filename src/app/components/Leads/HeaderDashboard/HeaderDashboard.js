@@ -76,9 +76,7 @@ function HeaderDashboard({
         </div>
       </div>
 
-      <div className={styles.bottomBarBack}>
-        <div className={styles.bottomBar} />
-      </div>
+  
     </div>
   );
 }

@@ -103,21 +103,29 @@ function LeadsFilterBar({ activeTab, onTabChange }) {
 
 
   return (
-    <div className={styles.filterBarContainer} ref={containerRef}>
+    <div className={styles.filterBarWrapper}>
+      {/* Top curved bar component */}
+      <div className={styles.topBarBack}>
+        <div className={styles.topBar} />
+      </div>
+      
+      {/* Original filter bar content */}
+      <div className={styles.filterBarContainer} ref={containerRef}>
         <div className={styles.tabsContainer}>
-        {tabs.map((tab) => {
-          const isActive = (tab === activeTab);
-          return (
-            <button
-              key={tab}
-              className={`${styles.tabItem} ${isActive ? styles.active : ''}`}
-              onClick={() => onTabChange(tab)}
-            >
-              {tab}
-              {isActive && <div className={styles.activeIndicator}></div>}
-            </button>
-          );
-        })}
+          {tabs.map((tab) => {
+            const isActive = (tab === activeTab);
+            return (
+              <button
+                key={tab}
+                className={`${styles.tabItem} ${isActive ? styles.active : ''}`}
+                onClick={() => onTabChange(tab)}
+              >
+                {tab}
+                {isActive && <div className={styles.activeIndicator}></div>}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

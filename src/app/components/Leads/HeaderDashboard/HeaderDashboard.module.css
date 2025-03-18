@@ -14,16 +14,6 @@
   padding: 0 20px;
 }
 
-.bottomBarBack {
-  height: 20px;
-  background-color: #3FA9F5;
-}
-
-.bottomBar {
-  height: 20px;
-  background: #F2F5F8;
-  border-radius: 20px 0px 0px 0px;
-}
 
 .leftGroup {
   display: flex;

@@ -1,63 +1,82 @@
-.filterBarContainer {
-    height: 40px;
-    background: #F2F5F8;
-    padding: 0 25px;
-    display: flex;
-    align-items: flex-start; /* To position text at the top of the container */
-    overflow-x: auto;
-    scrollbar-width: none; /* For Firefox */
-    border-bottom: 1px solid #D8DCE0;
+/* LeadsFilterBar.module.css */
 
-    touch-action: pan-x; /* Optimize for horizontal panning */
+/* New wrapper to contain both the bar and the filter */
+.filterBarWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Styles for the top curved bar, taken from HeaderDashboard */
+.topBarBack {
+  height: 20px;
+  background-color: #3FA9F5;
+}
+
+.topBar {
+  height: 20px;
+  background: #F2F5F8;
+  border-radius: 20px 0px 0px 0px;
+}
+
+/* Original filter bar styles */
+.filterBarContainer {
+  height: 40px;
+  background: #F2F5F8;
+  padding: 0 25px;
+  display: flex;
+  align-items: flex-start; /* To position text at the top of the container */
+  overflow-x: auto;
+  scrollbar-width: none; /* For Firefox */
+  border-bottom: 1px solid #D8DCE0;
+  touch-action: pan-x; /* Optimize for horizontal panning */
   position: relative; /* Needed for proper event coordinate calculation */
-  }
-  
-  .filterBarContainer::-webkit-scrollbar {
-    display: none; /* For Chrome, Safari, and Opera */
-  }
-  
-  .tabsContainer {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 20px; /* Space between tabs */
-    white-space: nowrap; /* Prevent line breaks, enabling horizontal scroll */
-  }
-  
-  .tabItem {
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    cursor: pointer;
-    color: #6E7882; /* Default text color */
-    font-family: Satoshi, sans-serif;
-    font-size: 1rem;
-    font-weight: 500;
-    line-height: normal;
-    position: relative; /* To position the indicator circle absolutely within the tab */
-    display: inline-flex;
-    align-items: flex-start; /* Text aligned at top */
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  .tabItem:focus {
-    outline: none; /* Remove default focus outline, consider a custom one for accessibility */
-  }
-  
-  .active {
-    color: #2F3236;
-    font-weight: 700;
-  }
-  
-  .activeIndicator {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: -10px; /* 5px underneath the text */
-    width: 8px;
-    height: 8px;
-    background: #3FA9F5;
-    border-radius: 50%;
-  }
-  
+}
+
+.filterBarContainer::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.tabsContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 20px; /* Space between tabs */
+  white-space: nowrap; /* Prevent line breaks, enabling horizontal scroll */
+}
+
+.tabItem {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #6E7882; /* Default text color */
+  font-family: Satoshi, sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: normal;
+  position: relative; /* To position the indicator circle absolutely within the tab */
+  display: inline-flex;
+  align-items: flex-start; /* Text aligned at top */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabItem:focus {
+  outline: none; /* Remove default focus outline, consider a custom one for accessibility */
+}
+
+.active {
+  color: #2F3236;
+  font-weight: 700;
+}
+
+.activeIndicator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -10px; /* 5px underneath the text */
+  width: 8px;
+  height: 8px;
+  background: #3FA9F5;
+  border-radius: 50%;
+}

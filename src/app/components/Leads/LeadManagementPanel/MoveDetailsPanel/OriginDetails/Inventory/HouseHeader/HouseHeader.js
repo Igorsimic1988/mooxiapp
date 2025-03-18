@@ -23,19 +23,27 @@ function HouseHeader({
   onStopIndexChange,
 }) {
   return (
-    <header className={styles.houseHeader}>
-      {/* Pass stopIndex / onStopIndexChange to HouseInfo */}
-      <HouseInfo
-        lead={lead}
-        stopIndex={stopIndex}
-        onStopIndexChange={onStopIndexChange}
-      />
-      <AddRoomButton
-        rooms={rooms}
-        displayedRooms={displayedRooms}
-        onToggleRoom={onToggleRoom}
-      />
-    </header>
+    <div className={styles.houseHeaderWrapper}>
+      {/* Blue curved bar at the top */}
+      <div className={styles.topBarContainer}>
+        <div className={styles.topBarBack}></div>
+      </div>
+      
+      {/* Original house header content */}
+      <header className={styles.houseHeader}>
+        {/* Pass stopIndex / onStopIndexChange to HouseInfo */}
+        <HouseInfo
+          lead={lead}
+          stopIndex={stopIndex}
+          onStopIndexChange={onStopIndexChange}
+        />
+        <AddRoomButton
+          rooms={rooms}
+          displayedRooms={displayedRooms}
+          onToggleRoom={onToggleRoom}
+        />
+      </header>
+    </div>
   );
 }
 

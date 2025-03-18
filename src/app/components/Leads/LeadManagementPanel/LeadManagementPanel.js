@@ -13,14 +13,14 @@ const statusOptions = [
   {
     label: 'New Lead',
     color: '#59B779',
-    icon: null,         // or no icon
+    icon: null,
     isDisabled: true,
   },
   {
     label: 'In Progress',
     color: '#FAA61A',
     icon: {
-      name: 'InProgress', // the icon name you pass to <Icon name="InProgress" />
+      name: 'InProgress',
       width: 20,
       height: 20,
     },
@@ -491,7 +491,12 @@ function LeadManagementPanel({
   const displayPhone = formatPhoneNumber(rawPhone);
 
   return (
-    <div className={styles.wrapper}>
+<div className={styles.wrapper}>
+      {/* Simplified blue bar with curved corner */}
+      <div className={styles.topBarContainer}>
+        <div className={styles.topBarBack}></div>
+      </div>
+      
       <div className={styles.panelContainer}>
         {/* ~ Top Row ~ */}
         <div className={styles.topRow}>
@@ -505,13 +510,13 @@ function LeadManagementPanel({
               <span className={styles.scoreValue}>40</span>
             </div>
             <button className={styles.moreButton}>
-            <Icon
-    name="More"
-    className={styles.moreIcon}
-    width={14}
-    height={24}
-    color="#90A4B7"
-  />
+              <Icon
+                name="More"
+                className={styles.moreIcon}
+                width={14}
+                height={24}
+                color="#90A4B7"
+              />
             </button>
           </div>
         </div>
@@ -545,15 +550,15 @@ function LeadManagementPanel({
                 </span>
               </div>
               {leadStatus !== 'New Lead' && currentStatusObj?.icon && (
-  <div className={styles.statusIconContainer}>
-    <Icon
-      name={currentStatusObj.icon.name}
-      width={currentStatusObj.icon.width}
-      height={currentStatusObj.icon.height}
-      color="#FFF"
-    />
-  </div>
-)}
+                <div className={styles.statusIconContainer}>
+                  <Icon
+                    name={currentStatusObj.icon.name}
+                    width={currentStatusObj.icon.width}
+                    height={currentStatusObj.icon.height}
+                    color="#FFF"
+                  />
+                </div>
+              )}
             </button>
 
             {showStatusDropdown && (
@@ -793,12 +798,12 @@ function LeadManagementPanel({
               }}
             >
               <Icon
-  name="SpecialH"
-  className={styles.specialIcon}
-  width={18}
-  height={18}
-  color="#FFF"
-/>
+                name="SpecialH"
+                className={styles.specialIcon}
+                width={18}
+                height={18}
+                color="#FFF"
+              />
             </div>
 
             {showInventoryDropdown && (

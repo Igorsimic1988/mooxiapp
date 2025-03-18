@@ -1,9 +1,37 @@
 /* ===== Wrapper + Panel Container ===== */
+.topBarContainer {
+  position: fixed;
+  top: 60px; /* Height of the HeaderDashboard component */
+  left: 0;
+  right: 0;
+  height: 20px;
+  z-index: 1000;
+}
+
+.topBarBack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 100%;
+  background-color: #3FA9F5;
+  /* Use a radial-gradient mask to create a proper inward curve */
+  -webkit-mask-image: radial-gradient(20px at calc(100% - 0px) 100%, transparent 0, transparent 20px, #000 20px);
+  mask-image: radial-gradient(20px at calc(100% - 0px) 100%, transparent 0, transparent 20px, #000 20px);
+}
+
+/* Remove pseudo-element completely */
+
+/* Keep the wrapper and panel container styles the same */
 .wrapper {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-top: 20px; /* Space for the blue bar */
 }
 
 .panelContainer {
@@ -11,7 +39,9 @@
   display: flex;
   flex-direction: column;
   background: #FFFFFF;
-  scrollbar-width: none; /* Hide scrollbar in Firefox */
+  scrollbar-width: none;
+  position: relative;
+  z-index: 10;
 }
 .panelContainer::-webkit-scrollbar {
   display: none; /* Hide scrollbar in Chrome, Safari, Opera */

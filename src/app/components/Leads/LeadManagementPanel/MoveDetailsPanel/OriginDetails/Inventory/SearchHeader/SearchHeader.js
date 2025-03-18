@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import styles from './SearchHeader.module.css';
 import Icon from 'src/app/components/Icon'; 
 
-function SearchHeader({ searchQuery, onSearch, onSearchFocus }) {
+function SearchHeader({ searchQuery, onSearch, onSearchFocus, roomName, isDesktop }) {
   const isActive = searchQuery.trim() !== '';
   const inputRef = useRef(null);
 
@@ -27,22 +27,31 @@ function SearchHeader({ searchQuery, onSearch, onSearchFocus }) {
   };
 
   return (
-    <header className={styles.searchHeader}>
-      <div className={styles.searchContainer}>
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder="Search"
-          aria-label="Search"
-          value={searchQuery}
-          onChange={handleSearch}
-          onFocus={handleFocus} // Handle focus to deactivate "My Items" and select all text
-          onKeyDown={handleKeyDown}
-          ref={inputRef} // Attach reference to input for selecting text
-        />
-        <Icon name="Search" className={`${styles.searchIcon} ${isActive ? styles.activeIcon : ''}`} />
-      </div>
-    </header>
+    <div className={styles.searchHeaderWrapper}>
+      {/* Only show the topBarContainer if not in desktop mode */}
+      {!isDesktop && (
+        <div className={styles.topBarContainer}>
+          <div className={styles.topBarBack}></div>
+        </div>
+      )}
+      
+      <header className={styles.searchHeader}>
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder={roomName ? `Search in ${roomName}` : "Search"}
+            aria-label="Search"
+            value={searchQuery}
+            onChange={handleSearch}
+            onFocus={handleFocus}
+            onKeyDown={handleKeyDown}
+            ref={inputRef}
+          />
+          <Icon name="Search" className={`${styles.searchIcon} ${isActive ? styles.activeIcon : ''}`} />
+        </div>
+      </header>
+    </div>
   );
 }
 

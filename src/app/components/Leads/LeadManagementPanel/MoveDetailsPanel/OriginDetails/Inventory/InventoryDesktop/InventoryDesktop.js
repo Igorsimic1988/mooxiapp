@@ -79,7 +79,6 @@ function InventoryDesktop({
   setSelectedLetter,
   selectedSubButton,
   setSelectedSubButton,
-  isMyItemsActive,
   setIsMyItemsActive,
   setSearchQuery,
 
@@ -360,6 +359,7 @@ function InventoryDesktop({
           onSearch={handleSearch}
           onSearchClick={handleSearchClick}
           onSearchFocus={handleSearchFocus}
+          isDesktop={true}
         />
       </div>
 

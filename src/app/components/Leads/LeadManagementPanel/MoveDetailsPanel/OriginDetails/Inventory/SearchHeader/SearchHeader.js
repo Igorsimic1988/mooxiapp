@@ -1,10 +1,8 @@
 import React, { useRef } from 'react';
 import styles from './SearchHeader.module.css';
-import SearchIcon from '../../../../../../../assets/icons/search.svg';
-import Image from 'next/image';
 import Icon from 'src/app/components/Icon'; 
 
-function SearchHeader({ roomName, searchQuery, onSearch, onSearchClick, onSearchFocus }) {
+function SearchHeader({ searchQuery, onSearch, onSearchFocus }) {
   const isActive = searchQuery.trim() !== '';
   const inputRef = useRef(null);
 

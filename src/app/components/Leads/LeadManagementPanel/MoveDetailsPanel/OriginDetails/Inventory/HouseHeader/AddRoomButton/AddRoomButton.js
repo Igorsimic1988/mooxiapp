@@ -24,7 +24,7 @@ function AddRoomButton({ rooms, displayedRooms, onToggleRoom }) {
         aria-label="Add Room"
       >
         <span className={styles.addRoomText}>Add Room</span>
-        <Icon name="AddRoom" className={styles.addRoomIcon} />
+        <Icon name="AddRoom" width={24} height={24} color={'#90A4B7'} className={styles.addRoomIcon} />
       </button>
 
       {/* Render the AddRoomPopup when visible */}

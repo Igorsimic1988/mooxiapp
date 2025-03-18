@@ -1,5 +1,6 @@
 // src/components/Inventory/ItemSelection/Item/Item.js
 
+import Image from 'next/image';
 import React, { useState, useRef } from 'react';
 import styles from './Item.module.css';
 import Icon from 'src/app/components/Icon';
@@ -10,11 +11,8 @@ function Item({
   onItemClick,
   isMyItemsActive,
   isDeleteActive,
-  onUpdateItem,
-  onAddItem,
   itemInstance,
-  onStartFresh,
-  isDesktop = false,
+
   isMoved = false,
   onOpenPopup, // Added prop
 }) {
@@ -26,7 +24,7 @@ function Item({
   const [startY, setStartY] = useState(null);
   const moveThreshold = 10; // Adjust as needed
 
-  const handleItemClick = (e) => {
+  const handleItemClick = () => {
     if (isMoved) return;
     const action = isDeleteActive ? 'decrease' : 'increase';
     // FIXED: Only passing the action - the parent component already has the item
@@ -172,7 +170,13 @@ function Item({
           </div>
         )}
         <div className={styles.itemImagewrapper}>
-          <img src={item.src} alt={item.name} className={styles.itemImage} />
+        <Image 
+  src={item.src} 
+  alt={item.name} 
+  className={styles.itemImage}
+  width={72}  // Adjust based on your design requirements
+  height={72} // Adjust based on your design requirements
+/>
         </div>
         <div className={styles.itemName}>{item.name}</div>
       </button>

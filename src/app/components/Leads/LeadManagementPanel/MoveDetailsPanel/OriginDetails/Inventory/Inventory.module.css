@@ -1,44 +1,35 @@
-
-
 .inventoryContainer {
+  /* Same approach as Leads.js: fill the screen using var(--app-height) */
   display: flex;
   flex-direction: column;
   width: 100%;
-  /* Remove the full-screen constraints */
-  /* remove: height: calc(var(--vh, 1vh) * 100);
-     remove: overflow: hidden; */
+  height: var(--app-height);
+  overflow: hidden; /* We let mainContent scroll instead */
   background-color: #f2f5f8; /* optional */
 }
 
-/* Fixed Header */
 .header {
+  flex-shrink: 0; /* stays at top */
   width: 100%;
   background: #fff;
-  /* remove position: fixed, top, left, z-index if you don't want it pinned */
-  display: flex;
-  flex-direction: column;
+  /* no position: fixed */
 }
 
-
-/* Main Content */
 .mainContent {
-   /* Height of FooterNavigation */
-  overflow: hidden; /* Disable scrolling here */
-  height: calc(var(--vh, 1vh) * 100 - 105px);
-  padding: 14px 10px 86px 16px; /* Optional padding */
-  background-color: #F2F5F8; /* Optional background color */
-  display: flex;
-  flex-direction: column;
+  /* This expands to fill vertical space between header & footer */
+  flex: 1;
+  overflow-y: auto; /* scroll main content */
+  background-color: #F2F5F8; /* optional */
+  padding: 14px 10px 86px 16px;
 }
 
-/* Fixed Footer */
 .footerNavigation {
-  position: fixed;
-  bottom: 0;
-  left: 0;
+  /* Keep the footer locked to bottom in the flex layout */
+  flex-shrink: 0;
   width: 100%;
-  height: 60px; /* Adjust as necessary */
-  background-color: #fff; /* Optional background color */
-  border-top: 1px solid #ccc; /* Optional border */
-  z-index: 1000; /* Ensures it stays above other elements */
+  height: 60px; /* or whatever the design needs */
+  background-color: #fff; 
+  border-top: 1px solid #ccc;
+  /* No position: fixed necessary; the flex container does it. */
+  /* z-index is optional if you want it above other elements: z-index: 1000; */
 }

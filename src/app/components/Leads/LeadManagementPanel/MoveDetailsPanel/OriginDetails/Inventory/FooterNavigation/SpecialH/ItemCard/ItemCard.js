@@ -1,10 +1,11 @@
 // src/components/SpecialH/ItemCard/ItemCard.js
 
 import React from 'react';
+import Image from 'next/image';
 import styles from './ItemCard.module.css';
-import Icon from 'src/app/components/Icon';
+import Icon from '../../../../../../../../Icon';
 
-function ItemCard({ id, item, tags, onItemClick, isSelected }) {
+function ItemCard({ item, onItemClick, isSelected }) {
   return (
     <li className={styles.item}>
       <button
@@ -21,13 +22,24 @@ function ItemCard({ id, item, tags, onItemClick, isSelected }) {
         {/* Checkmark Badge */}
         {isSelected && (
           <div className={styles.checkmarkBadge}>
-            <Icon name="CheckSmall" />
+            <Icon 
+      name="CheckSmallAlt" 
+      width={24}
+      height={24}
+      color="#fff"
+    />
           </div>
         )}
         
         {/* Item Image */}
         <div className={styles.imageWrapper}>
-          <img src={item.src} alt={item.name} className={styles.itemImage} />
+        <Image 
+  src={item.src} 
+  alt={item.name} 
+  className={styles.itemImage}
+  width={100}  // Adjust based on your design requirements
+  height={100} // Adjust based on your design requirements
+/>
         </div>
         
         {/* Item Name */}

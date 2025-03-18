@@ -46,7 +46,7 @@ function FooterNavigation({
           {inRoom ? (
             <Icon name="CreateQuoteIcon" className={styles.navIcon} />
           ) : (
-            <Icon name="ArrowBack" className={styles.navIcon} />
+            <Icon name="ArrowForward" className={styles.navIcon} />
           )}
         </div>
         <p className={styles.navText}>{inRoom ? 'Rooms' : 'Create Quote'}</p>

@@ -2,8 +2,6 @@
 
 import React, { useRef, useEffect, useCallback } from 'react';
 import styles from './RoomList.module.css';
-import More from '../../../../../../../assets/icons/more.svg';
-import Image from 'next/image';
 import Icon from 'src/app/components/Icon';
 /**
  * RoomList

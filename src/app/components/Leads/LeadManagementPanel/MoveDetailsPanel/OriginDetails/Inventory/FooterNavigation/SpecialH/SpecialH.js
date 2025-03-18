@@ -97,7 +97,6 @@ function SpecialH({
   setIsSpecialHVisible,
   roomItemSelections = {},
   setRoomItemSelections,
-  selectedRoom,
   displayedRooms = [],
 }) {
   const handleClose = useCallback(() => {
@@ -308,7 +307,7 @@ function SpecialH({
           </div>
           <div className={styles.closeButton}>
             <button onClick={handleClose} aria-label="Close">
-              <Icon name="Close" className={styles.closeIcon}/>
+              <Icon name="Close" width={20} height={20} className={styles.closeIcon}/>
             </button>
           </div>
         </div>

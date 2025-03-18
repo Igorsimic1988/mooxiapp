@@ -277,8 +277,7 @@ function EstimateDetails({
   }
 
   // ---------- Close dropdowns if user clicks outside ----------
-  
-   useEffect(() => {
+  useEffect(() => {
     function handleClickOutside(e) {
       if (
         showRateTypeDropdown &&
@@ -287,7 +286,6 @@ function EstimateDetails({
       ) {
         setShowRateTypeDropdown(false);
       }
-
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -311,6 +309,7 @@ function EstimateDetails({
       return () => clearTimeout(timer);
     }
   }, [ showEstimateSection, hasInvoice ]);
+
   // Handle input changes with proper currency formatting
   const handleInputChange = (value, setter) => {
     // Only allow digits, decimal points and $ sign during typing
@@ -338,8 +337,6 @@ function EstimateDetails({
     }
   };
 
-
-
   return (
     <div className={styles.estimateContainer}>
       <div className={styles.estimateHeader}>
@@ -351,151 +348,151 @@ function EstimateDetails({
 
       {!isCollapsed && (
         <div
-        className={styles.innerContent}
-        style={{ 
-          minHeight: estimateHeight ? `${estimateHeight}px` : 'auto',
-          transition: 'min-height 0.2s ease-in-out' 
-        }}
-      >
-        {isInvoiceVisible && (
-          <div className={styles.invoiceWrapper}>
-            <Invoice
-              lead={lead}
-              onOptionSelected={(option) => {
-                setActiveOption(option.toLowerCase());
-              }}
-              onLeadUpdated={onLeadUpdated}
-            />
-          </div>
-        )}
+          className={styles.innerContent}
+          style={{ 
+            minHeight: estimateHeight ? `${estimateHeight}px` : 'auto',
+            transition: 'min-height 0.2s ease-in-out' 
+          }}
+        >
+          {isInvoiceVisible && (
+            <div className={styles.invoiceWrapper}>
+              <Invoice
+                lead={lead}
+                onOptionSelected={(option) => {
+                  setActiveOption(option.toLowerCase());
+                }}
+                onLeadUpdated={onLeadUpdated}
+              />
+            </div>
+          )}
 
-        <div className={styles.extraInputsContainer}>
+          <div className={styles.extraInputsContainer}>
 
-          {/* ====== ESTIMATE SECTION ====== */}
-          <div
-            ref={estimateSectionRef}
-            style={{ display: showEstimateSection ? 'block' : 'none' }}
-          >
-            {/* Rate Type (Dropdown, read/write in Estimate) */}
-            <div className={styles.row}>
-              <div className={styles.rateTypeWrapper} ref={rateTypeDropdownRef}>
-                <button
-                  type="button"
-                  className={styles.estimateButton}
-                  onClick={() => setShowRateTypeDropdown((p) => !p)}
-                >
-                  <div className={styles.dropdownLabel}>
-                    <span className={styles.dropdownPrefix}>Rate Type:</span>
-                    <span className={styles.dropdownSelected}>{rateType}</span>
-                  </div>
-                  <Icon name="UnfoldMore" className={styles.dropdownIcon} />
-                </button>
+            {/* ====== ESTIMATE SECTION ====== */}
+            <div
+              ref={estimateSectionRef}
+              style={{ display: showEstimateSection ? 'block' : 'none' }}
+            >
+              {/* Rate Type (Dropdown, read/write in Estimate) */}
+              <div className={styles.row}>
+                <div className={styles.rateTypeWrapper} ref={rateTypeDropdownRef}>
+                  <button
+                    type="button"
+                    className={styles.estimateButton}
+                    onClick={() => setShowRateTypeDropdown((p) => !p)}
+                  >
+                    <div className={styles.dropdownLabel}>
+                      <span className={styles.dropdownPrefix}>Rate Type:</span>
+                      <span className={styles.dropdownSelected}>{rateType}</span>
+                    </div>
+                    <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+                  </button>
 
-                {showRateTypeDropdown && (
-                  <ul className={styles.rateTypeDropdown}>
-                    {RATE_TYPE_OPTIONS.map((opt) => {
-                      const isSelected = opt === rateType;
-                      return (
-                        <li
-                          key={opt}
-                          className={
-                            isSelected
-                              ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                              : styles.rateTypeOption
-                          }
-                          onClick={() => {
-                            setRateType(opt);
-                            setShowRateTypeDropdown(false);
-                            handleUpdateEstimate({ rateType: opt });
-                          }}
-                        >
-                          {opt}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                  {showRateTypeDropdown && (
+                    <ul className={styles.rateTypeDropdown}>
+                      {RATE_TYPE_OPTIONS.map((opt) => {
+                        const isSelected = opt === rateType;
+                        return (
+                          <li
+                            key={opt}
+                            className={
+                              isSelected
+                                ? `${styles.rateTypeOption} ${styles.selectedOption}`
+                                : styles.rateTypeOption
+                            }
+                            onClick={() => {
+                              setRateType(opt);
+                              setShowRateTypeDropdown(false);
+                              handleUpdateEstimate({ rateType: opt });
+                            }}
+                          >
+                            {opt}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className={styles.divider}></div>
+              <div className={styles.divider}></div>
 
-            {/* Quote Row */}
-            <div className={styles.pricingRow}>
-              <span className={styles.pricingLabel}>Quote</span>
-              <span className={styles.pricingValue}>{quote}</span>
-            </div>
-            <div className={styles.divider}></div>
+              {/* Quote Row */}
+              <div className={styles.pricingRow}>
+                <span className={styles.pricingLabel}>Quote</span>
+                <span className={styles.pricingValue}>{quote}</span>
+              </div>
+              <div className={styles.divider}></div>
 
-            {/* Fuel Surcharge Row */}
-            <div className={styles.pricingRow}>
-              <span className={styles.pricingLabel}>Fuel Surcharge</span>
-              <span className={styles.pricingValue}>{fuelSurcharge}</span>
-            </div>
-            <div className={styles.divider}></div>
+              {/* Fuel Surcharge Row */}
+              <div className={styles.pricingRow}>
+                <span className={styles.pricingLabel}>Fuel Surcharge</span>
+                <span className={styles.pricingValue}>{fuelSurcharge}</span>
+              </div>
+              <div className={styles.divider}></div>
 
-            {/* Valuation Row */}
-            <div className={styles.pricingRow}>
-              <span className={styles.pricingLabel}>Valuation</span>
-              <span className={styles.pricingValue}>{valuation}</span>
-            </div>
-            <div className={styles.divider}></div>
+              {/* Valuation Row */}
+              <div className={styles.pricingRow}>
+                <span className={styles.pricingLabel}>Valuation</span>
+                <span className={styles.pricingValue}>{valuation}</span>
+              </div>
+              <div className={styles.divider}></div>
 
-            {/* Packing Row */}
-            <div className={styles.pricingRow}>
-              <span className={styles.pricingLabel}>Packing</span>
-              <span className={styles.pricingValue}>{packing}</span>
-            </div>
-            <div className={styles.divider}></div>
+              {/* Packing Row */}
+              <div className={styles.pricingRow}>
+                <span className={styles.pricingLabel}>Packing</span>
+                <span className={styles.pricingValue}>{packing}</span>
+              </div>
+              <div className={styles.divider}></div>
 
-            {/* Additional Services Row */}
-            <div className={styles.pricingRow}>
-              <span className={styles.pricingLabel}>Additional Services</span>
-              <span className={styles.pricingValue}>{additionalServices}</span>
-            </div>
-            <div className={styles.divider}></div>
+              {/* Additional Services Row */}
+              <div className={styles.pricingRow}>
+                <span className={styles.pricingLabel}>Additional Services</span>
+                <span className={styles.pricingValue}>{additionalServices}</span>
+              </div>
+              <div className={styles.divider}></div>
 
-            {/* Grand Total Row */}
-            <div className={styles.pricingRow}>
-            <span className={`${styles.pricingLabel} ${styles.grandTotalLabel}`}>
+              {/* Grand Total Row */}
+              <div className={styles.pricingRow}>
+                <span className={`${styles.pricingLabel} ${styles.grandTotalLabel}`}>
                   Grand Total
                 </span>
                 <span className={`${styles.pricingLabel} ${styles.grandTotalValue}`}>
                   {grandTotal}
                 </span>
-            </div>
-            <div className={styles.divider}></div>
+              </div>
+              <div className={styles.divider}></div>
 
-            {/* Deposit Row */}
-            <div className={styles.pricingRow}>
-            <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>
+              {/* Deposit Row */}
+              <div className={styles.pricingRow}>
+                <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>
                   Deposit
                 </span>
-              <span className={styles.pricingValue}>{deposit}</span>
-            </div>
-            <div className={styles.divider}></div>
+                <span className={styles.pricingValue}>{deposit}</span>
+              </div>
+              <div className={styles.divider}></div>
 
-            {/* Payment Row */}
-            <div className={styles.pricingRow}>
-            <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>
+              {/* Payment Row */}
+              <div className={styles.pricingRow}>
+                <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>
                   Payment
                 </span>
-              <span className={styles.pricingValue}>{payment}</span>
-            </div>
-            <div className={styles.divider}></div>
+                <span className={styles.pricingValue}>{payment}</span>
+              </div>
+              <div className={styles.divider}></div>
 
-            {/* Discount Row */}
-            <div className={styles.pricingRow}>
-            <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>
+              {/* Discount Row */}
+              <div className={styles.pricingRow}>
+                <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>
                   Discount
                 </span>
-              <span className={styles.pricingValue}>{discount}</span>
-            </div>
-            <div className={styles.divider}></div>
+                <span className={styles.pricingValue}>{discount}</span>
+              </div>
+              <div className={styles.divider}></div>
 
-            {/* Balance Due Row  */}
-            <div className={styles.pricingRow}>
-            <span className={`${styles.pricingLabel} ${styles.balanceDueLabel}`}>
+              {/* Balance Due Row  */}
+              <div className={styles.pricingRow}>
+                <span className={`${styles.pricingLabel} ${styles.balanceDueLabel}`}>
                   Balance Due
                 </span>
                 <span className={`${styles.pricingValue} ${styles.balanceDueValue}`}>
@@ -514,17 +511,23 @@ function EstimateDetails({
                 >
                   <span className={styles.viewEstimateText}>View Estimate</span>
                   <div className={styles.viewEstimateIconWrapper}>
-                    <Icon name="Specialh" className={styles.viewEstimateIcon} />
+                    <Icon 
+                      name="SpecialH"
+                      className={styles.viewEstimateIcon} 
+                      width={18}
+                      height={18}
+                      color="#59B779" 
+                    />
                   </div>
                 </button>
+              </div>
             </div>
-          </div>
 
-          {/* ====== INVOICE SECTION ====== */}
-          {showInvoiceSection && (
-            <div>
-              {/* Rate Type row (LOCKED, same style as Estimate row) */}
-              <div className={styles.pricingRow}>
+            {/* ====== INVOICE SECTION ====== */}
+            {showInvoiceSection && (
+              <div>
+                {/* Rate Type row (LOCKED, same style as Estimate row) */}
+                <div className={styles.pricingRow}>
                   <span className={styles.pricingLabel}>Rate Type</span>
                   {/* locked input - no border, same style as .pricingValue */}
                   <input
@@ -699,20 +702,26 @@ function EstimateDetails({
                 <div className={styles.buttonContainer}>
                   <button
                     type="button"
-                    className={styles.viewEstimateButton}
+                    className={styles.viewInvoiceButton}
                     onClick={() => {
                       console.log('View Invoice clicked');
                     }}
                   >
-                    <span className={styles.viewEstimateText}>View Invoice</span>
-                    <div className={styles.viewEstimateIconWrapper}>
-                    <Icon name="Specialh" className={styles.viewEstimateIcon} />
+                    <span className={styles.viewInvoiceText}>View Invoice</span>
+                    <div className={styles.viewInvoiceIconWrapper}>
+                      <Icon 
+                        name="SpecialH"
+                        className={styles.viewInvoiceIcon} 
+                        width={18}
+                        height={18}
+                        color="#faa81a"
+                      />
                     </div>
                   </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         </div>
       )}
     </div>

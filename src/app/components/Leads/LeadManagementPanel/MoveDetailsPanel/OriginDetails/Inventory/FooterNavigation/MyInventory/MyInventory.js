@@ -288,7 +288,7 @@ function MyInventory({
           </div>
           <div className={styles.closeButton}>
             <button type="button" onClick={handleClose} aria-label="Close">
-              <Icon name="CloseIcon" className={styles.closeIcon}/>
+              <Icon name="Close" width={20} height={20} className={styles.closeIcon}/>
             </button>
           </div>
         </div>

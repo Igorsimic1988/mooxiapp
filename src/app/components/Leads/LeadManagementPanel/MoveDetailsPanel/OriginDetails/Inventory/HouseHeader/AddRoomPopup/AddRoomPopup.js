@@ -43,12 +43,12 @@ function AddRoomPopup({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Icon name="AddRoom" className={styles.icon} />
+            
             <p>Select Rooms to Display</p>
           </div>
           <div className={styles.closeButton}>
             <button onClick={onClose} aria-label="Close">
-              <Icon name="Close" className={styles.closeIcon} />
+              <Icon name="Close" width={20} height={20} className={styles.closeIcon} />
             </button>
           </div>
         </div>

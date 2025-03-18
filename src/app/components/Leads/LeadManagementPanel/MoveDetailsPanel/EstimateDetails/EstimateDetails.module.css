@@ -1,5 +1,3 @@
-/* src/components/Leads/LeadManagementPanel/MoveDetailsPanel/EstimateDetails/EstimateDetails.module.css */
-
 .estimateContainer {
   padding: 16px 20px 21px 20px;
   border-radius: 16px;
@@ -271,9 +269,10 @@
 .buttonContainer {
   margin-top: 9px;
   display: flex;
-  justify-content: flex-start; /* or flex-end if you want it on the right */
+  justify-content: flex-start; /* keep it on the left */
 }
 
+/* === "View Estimate" button (unchanged) === */
 .viewEstimateButton {
   width: fit-content;
   height: 50px;
@@ -320,9 +319,55 @@
   color: #59B779;
 }
 
+/* === NEW: "View Invoice" button with #faa81a === */
+.viewInvoiceButton {
+  width: 177px;
+  height: 50px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: #faa81a;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+
+  border: none;
+  cursor: pointer;
+}
+
+.viewInvoiceText {
+  color: #FFF;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  margin-right: 18px;
+}
+
+.viewInvoiceIconWrapper {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #FFF;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewInvoiceIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #faa81a;
+}
+
 /* -------------------------------------------- */
-/* New class for Invoice fields (no visible border) */
-/* We reuse .pricingValue but turn it into an input. */
+/* New class for Invoice fields (no visible border).
+   We reuse .pricingValue but turn it into an input. */
 .invoiceValueInput {
   /* remove default border, background, etc. */
   border: none;
@@ -334,8 +379,7 @@
   /* preserve the same font, color, alignment, etc.
      as the .pricingValue class. It's already combined
      with .pricingValue, so it's consistent. */
-  
-  /* Make inputs 1/4 less wide */
+
   width: 60%;
   max-width: 60%;
   cursor: text;

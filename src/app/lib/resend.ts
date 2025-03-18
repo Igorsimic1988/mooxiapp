@@ -2,6 +2,8 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+//sve linkove treba promeniti kad frontend napravi stranice
+
 export const sendVerificationEmail = async (email: string, token: string) => {
    const confirmLink = `http://localhost:3000/auth/new-verification?token=${token}`;
 
@@ -23,3 +25,19 @@ export const sendResetEmail = async (email: string, token: string) => {
     html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`
    });
 };
+
+export const sendInvitationLink = async (email: string, inviteToken: string, tenantName: string) => {
+   const inviteLink = `http://localhost:3000/auth/invite?token=${inviteToken}`;
+ 
+   await resend.emails.send({
+     from: "hello@mooxy.com",
+     to: email,
+     subject: `You've been invited to join ${tenantName}`,
+     html: `
+       <p>Hello,</p>
+       <p>You have been invited to join <strong>${tenantName}</strong>.</p>
+       <p>Click <a href="${inviteLink}">here</a> to accept the invitation.</p>
+       <p>If you did not expect this invitation, you can ignore this email.</p>
+     `
+   });
+ };

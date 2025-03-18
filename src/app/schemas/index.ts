@@ -18,5 +18,23 @@ export const RegisterSchema = z.object({
     }),
     name: z.string().min(1, {
       message: 'Name is required'
-    })
+    }),
     });
+
+const allowedTags = ["bulky", "blanket_wrapped", "cp_packed_by_movers", "disassembly", "assembly"];
+
+// Schema validacije
+export const FurnitureSchema = z.object({
+  name: z.string().min(3),
+  imageName: z.string(),
+  rooms: z.array(z.number()), 
+  letters: z.array(z.string()), 
+  cuft: z.number().positive(),
+  lbs: z.number().positive(),
+  search: z.enum(["Y", "N"]),
+  tags: z.array(z.string()).refine((tags) => tags.every(tag => allowedTags.includes(tag)), {
+    message: "Invalid tag detected",
+  }),
+  packingType: z.string(),
+  packingQuantity: z.number(),
+});

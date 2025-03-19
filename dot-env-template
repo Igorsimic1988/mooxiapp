@@ -4,8 +4,33 @@ EMAIL_SERVER_HOST="smtp.resend.com"
 EMAIL_SERVER_PORT=465
 EMAIL_FROM="hello@mooxy.com"
 RESEND_API_KEY="re_LWmB7o3z_DGtZpU4m5tfHagJ2Q4J2vdew"
-DATABASE_URL="file:./dev.db"
 PAYLOAD_SECRET="7a3e4295e9d7e2e3c6cea0d1800f4d35b95e8b778390e69f13272ef6f30b45f5"
 ACCESS_TOKEN_SECRET="Zmh1aFnQGXhYhl6CX4dlNOEd3XeADQRnfVBd7eqqySg="
 REFRESH_TOKEN_SECRET="0sIRWa4//hHMjj6oQ6ig0lyOM6JgsyFepISKPanIXlk="
 NEXTAUTH_SECRET="Ga/cXyxlbWdJ2nJAUqlT1Xp6vaMWzDWC0Nzq/N27grg="
+
+
+
+
+# Recommended for most uses
+DATABASE_URL=postgres://neondb_owner:npg_Vn3evAbK0mhy@ep-frosty-paper-a488rqr3-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+
+# For uses requiring a connection without pgbouncer
+DATABASE_URL_UNPOOLED=postgresql://neondb_owner:npg_Vn3evAbK0mhy@ep-frosty-paper-a488rqr3.us-east-1.aws.neon.tech/neondb?sslmode=require
+
+# Parameters for constructing your own connection string
+PGHOST=ep-frosty-paper-a488rqr3-pooler.us-east-1.aws.neon.tech
+PGHOST_UNPOOLED=ep-frosty-paper-a488rqr3.us-east-1.aws.neon.tech
+PGUSER=neondb_owner
+PGDATABASE=neondb
+PGPASSWORD=npg_Vn3evAbK0mhy
+
+# Parameters for Vercel Postgres Templates
+POSTGRES_URL=postgres://neondb_owner:npg_Vn3evAbK0mhy@ep-frosty-paper-a488rqr3-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+POSTGRES_URL_NON_POOLING=postgres://neondb_owner:npg_Vn3evAbK0mhy@ep-frosty-paper-a488rqr3.us-east-1.aws.neon.tech/neondb?sslmode=require
+POSTGRES_USER=neondb_owner
+POSTGRES_HOST=ep-frosty-paper-a488rqr3-pooler.us-east-1.aws.neon.tech
+POSTGRES_PASSWORD=npg_Vn3evAbK0mhy
+POSTGRES_DATABASE=neondb
+POSTGRES_URL_NO_SSL=postgres://neondb_owner:npg_Vn3evAbK0mhy@ep-frosty-paper-a488rqr3-pooler.us-east-1.aws.neon.tech/neondb
+POSTGRES_PRISMA_URL=postgres://neondb_owner:npg_Vn3evAbK0mhy@ep-frosty-paper-a488rqr3-pooler.us-east-1.aws.neon.tech/neondb?connect_timeout=15&sslmode=require

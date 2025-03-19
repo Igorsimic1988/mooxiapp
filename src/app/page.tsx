@@ -9,11 +9,29 @@ const DynamicLeads = dynamic(
 )
 
 function App() {
+
+  const accessToken = localStorage.getItem("access-token");
+  const handleSignOut = () => {
+    localStorage.removeItem("access-token"); 
+    window.location.reload(); 
+  };
+
+
   return (
     <div className="App">
-       <DynamicLeads /> 
+      {accessToken ? (
+        <>
+        <button onClick={handleSignOut}>Sign Out</button>
+        <DynamicLeads /> 
+        </>
+      ) : (
+        <>
+          <a href="/register">Register</a> | <a href="/login">Login</a>
+        </>
+      )}
     </div>
   );
 }
 
 export default App;
+

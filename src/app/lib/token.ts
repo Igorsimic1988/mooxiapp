@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Role } from '@prisma/client'
 import { getVerificationTokenByEmail } from "../utils/verification-token";
 
 
@@ -56,4 +56,34 @@ export const generateVerificationToken = async (email: string) => {
   
     return verificationToken;
 
+  }
+
+  export const generateInvitationToken = async (email: string, tenantId: string, role: Role) => {
+    const token = uuidv4();
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);//24h
+
+    const existingInvitation = await prisma.invitation.findUnique({
+      where: { 
+        email
+      },
+    });
+
+    if (existingInvitation){
+      await prisma.invitation.delete({
+        where: {
+          email,
+        },
+      });
+    }
+
+    const invitation = await prisma.invitation.create({
+      data: {
+        email,
+        tenantId,
+        role,
+        token,
+        expiresAt: expires,
+      }
+    });
+    return invitation;
   }

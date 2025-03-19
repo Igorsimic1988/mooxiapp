@@ -26,15 +26,37 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "User already exists" }, { status: 400 });
         }
 
-        await prisma.user.create({
+        const invitation = await prisma.invitation.findUnique({
+            where: { email },
+          });
+      
+          if (!invitation) {
+            return NextResponse.json({ error: "Invalid invite" }, { status: 403 });
+          }
+        const currentTime = new Date();
+        if (invitation.expiresAt && currentTime > invitation.expiresAt) {
+            return NextResponse.json({ error: "Invitation expired" }, { status: 403 });
+        }
+
+        const newUser = await prisma.user.create({
             data:{
                 email,
                 password: hashedPassword,
                 name,
-                emailVerified: false, //proveriti
             },
         });
-
+        await prisma.tenantAccount.create({
+            data: {
+              role: invitation.role,
+              tenantId: invitation.tenantId,
+              userId: newUser.id,
+            },
+          });
+      
+          await prisma.invitation.delete({
+            where: { email },
+          });
+          //dodati default tenantsettings
         const verificationToken = await generateVerificationToken(email);
         await sendVerificationEmail(email, verificationToken.token);
 

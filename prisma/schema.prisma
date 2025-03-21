@@ -58,7 +58,6 @@ enum Role {
   ADMIN
   OWNER
   SALESMAN
-  SALESMANAGER
 }//samo svoje lidove + ako je estemetar-salesman
 //osoba koja posetikucu, vezuje se za lead
 //admin visaak isto kao salesmenager, brisemomenager

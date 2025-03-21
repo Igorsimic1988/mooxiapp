@@ -22,5 +22,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  //matcher: "/((?!login|register|api/auth|public).*)", 
+  matcher: "/((?!login|register|api/auth|public).*)", 
 };

@@ -1,6 +1,6 @@
 'use client';
 import './globals.css';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic'
 
 const DynamicLeads = dynamic(
@@ -10,7 +10,13 @@ const DynamicLeads = dynamic(
 
 function App() {
 
-  const accessToken = localStorage.getItem("access-token");
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access-token");
+    setAccessToken(token);
+  }, []);
+
   const handleSignOut = () => {
     localStorage.removeItem("access-token"); 
     window.location.reload(); 

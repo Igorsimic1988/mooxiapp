@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import styles from './LeadsList.module.css';
 import Icon from 'src/app/components/Icon';

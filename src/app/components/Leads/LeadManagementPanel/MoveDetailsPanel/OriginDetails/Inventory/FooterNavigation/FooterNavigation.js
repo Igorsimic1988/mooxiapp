@@ -1,4 +1,4 @@
-// src/components/Inventory/FooterNavigation/FooterNavigation.js
+"use client";
 
 import React, { useState } from 'react';
 import styles from './FooterNavigation.module.css';

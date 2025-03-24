@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from "./MyInventory.module.css";
 import rooms from '../../../../../../../../data/constants/AllRoomsList';

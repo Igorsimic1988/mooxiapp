@@ -143,7 +143,7 @@ function filterLeadsBySearch(leads, searchQuery) {
   });
 }
 
-export default function Leads() {
+function Leads() {
   // All leads
   const [leads, setLeads] = useState(
     Array.isArray(actualLeads) ? [...actualLeads] : []
@@ -496,3 +496,5 @@ export default function Leads() {
     </div>
   );
 }
+
+export default Leads;

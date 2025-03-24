@@ -1,4 +1,4 @@
-// src/components/Leads/HeadrerDashboard.js/HeaderDashboard.js
+"use client";
 
 import React from 'react';
 import styles from './HeaderDashboard.module.css';

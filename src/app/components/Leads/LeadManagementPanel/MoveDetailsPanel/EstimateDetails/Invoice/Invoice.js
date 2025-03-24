@@ -1,4 +1,5 @@
-// src/components/LeadManagementPanel/MoveDetailsPanel/EstimateDetails/Invoice/Invoice.js
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import styles from './Invoice.module.css';
 

@@ -1,4 +1,4 @@
-// src/components/Inventory/ItemSelection/AlphabetButtons/AlphabetButtons.js
+"use client";
 
 import React, { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
@@ -32,15 +32,22 @@ function AlphabetButtons({
 
   const dragThreshold = 5; // Number of pixels to consider as drag
 
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  // Initialize isDesktop safely for Next.js
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 1024);
-    };
+    // Only run on client
+    if (typeof window !== 'undefined') {
+      const handleResize = () => {
+        setIsDesktop(window.innerWidth >= 1024);
+      };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+      // Set initial value on mount
+      handleResize();
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
   }, []);
 
   // Letter selection logic

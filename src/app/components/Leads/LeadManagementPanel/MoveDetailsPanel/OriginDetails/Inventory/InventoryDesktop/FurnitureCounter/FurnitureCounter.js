@@ -1,4 +1,4 @@
-// src/components/Inventory/FurnitureCounter/FurnitureCounter.js
+"use client";
 
 import React, { useMemo } from 'react';
 import styles from './FurnitureCounter.module.css';

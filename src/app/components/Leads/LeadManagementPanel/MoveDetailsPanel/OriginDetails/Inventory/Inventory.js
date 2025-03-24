@@ -620,7 +620,7 @@ function Inventory({
             onRoomSelect={handleRoomSelect}
             roomItemSelections={stopData.itemsByRoom}
             displayedRooms={displayedRoomObjects}
-            selectedRoom={selectedRoom}
+           
           />
         )}
       </main>

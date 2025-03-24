@@ -1,4 +1,4 @@
-// src/components/Inventory/ItemSelection/Item/Item.js
+"use client";
 
 import Image from 'next/image';
 import React, { useState, useRef } from 'react';

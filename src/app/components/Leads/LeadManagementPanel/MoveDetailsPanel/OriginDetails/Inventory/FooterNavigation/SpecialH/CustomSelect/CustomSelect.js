@@ -1,4 +1,4 @@
-// src/components/SpecialH/CustomSelect/CustomSelect.js
+"use client";
 
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './CustomSelect.module.css';

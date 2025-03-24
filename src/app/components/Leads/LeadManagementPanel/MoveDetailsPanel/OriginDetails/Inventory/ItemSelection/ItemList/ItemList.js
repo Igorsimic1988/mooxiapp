@@ -1,4 +1,4 @@
-// src/components/Inventory/ItemSelection/ItemList/ItemList.js
+"use client";
 
 import React, { useRef } from 'react';
 import styles from './ItemList.module.css';

@@ -1,4 +1,4 @@
-// src/components/Leads/LeadsFilterBar/LeadsFilterBar.js
+"use client";
 
 import React, { useRef, useEffect } from 'react';
 import styles from './LeadsFilterBar.module.css';

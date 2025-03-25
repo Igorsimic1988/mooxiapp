@@ -10,18 +10,18 @@ export async function POST(req: Request) {
   try {
     const user = await validateToken(req);
     const { nameOfBrand } = await req.json();
-    const ownerAccount = await prisma.tenantAccount.findFirst({
+    const account = await prisma.tenantAccount.findFirst({
       where: {
         userId: user.id,
-        role: "OWNER",
+        role: { in: ["OWNER", "ADMIN"] },
       },
     });
 
-    if (!ownerAccount){
-      return NextResponse.json({ error: "Only OWNERS can create brand" }, { status: 404 });
+    if (!account){
+      return NextResponse.json({ error: "Only OWNERS and ADMINS can create brand" }, { status: 404 });
     }
 
-    const tenantId = ownerAccount.tenantId;
+    const tenantId = account.tenantId;
 
 
     const existingBrand = await prisma.brand.findFirst({ 

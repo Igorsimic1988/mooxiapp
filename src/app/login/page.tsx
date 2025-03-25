@@ -16,7 +16,7 @@ export default function LoginPage() {
             if (emailRef.current) emailRef.current.value = "";
             if (passwordRef.current) passwordRef.current.value = "";
     
-            router.push("/");
+            router.push("/leads");
         },
         onError: (error: Error) => {
             console.log(error)

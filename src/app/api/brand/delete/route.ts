@@ -8,15 +8,15 @@ export async function DELETE(req: Request) {
   try {
     const { id } = await req.json();
     const user = await validateToken(req);
-    const ownerAccount = await prisma.tenantAccount.findFirst({
+    const account = await prisma.tenantAccount.findFirst({
       where: {
         userId: user.id,
-        role: "OWNER",
+        role: { in: ["OWNER", "ADMIN"] },
       },
     });
     
-    if (!ownerAccount){
-      return NextResponse.json({ error: "Only OWNERS can delete brand" }, { status: 404 });
+    if (!account){
+      return NextResponse.json({ error: "Only OWNERS and ADMINS can delete brand" }, { status: 404 });
     }
 
     await prisma.brand.delete({

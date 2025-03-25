@@ -49,11 +49,12 @@ export const getBrand = async ({id}: {id: string;}) => {
     return data.brand;
 };
 
-export const updateBrand = async ({id, name}: {id: string; name: string;}) => {
+export const updateBrand = async ({id, name, token}: {id: string; name: string; token:string;}) => {
     const res = await fetch("/api/brand/update", {
         method: "PATCH",
         headers: { 
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({id, name}),
     });

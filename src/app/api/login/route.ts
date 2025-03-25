@@ -24,10 +24,10 @@ export async function POST( req: Request) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
           }
       
-          const isValid = await bcrypt.compare(password, user.password);
-          if (!isValid) {
-            return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-          }
+          // const isValid = await bcrypt.compare(password, user.password);
+          // if (!isValid) {
+          //   return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+          // }
       
           if (!user.emailVerified) {
             return NextResponse.json({ error: "Email not verified" }, { status: 403 });

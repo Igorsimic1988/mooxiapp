@@ -1,4 +1,4 @@
-// src/components/Inventory/InventoryDesktop/CreateQuoteButton/CreateQuoteButton.js
+"use client";
 
 import React from 'react';
 import styles from './CreateQuoteButton.module.css';

@@ -1,4 +1,4 @@
-// src/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/RoomList/RoomList.js
+"use client";
 
 import React, { useRef, useEffect, useCallback } from 'react';
 import styles from './RoomList.module.css';

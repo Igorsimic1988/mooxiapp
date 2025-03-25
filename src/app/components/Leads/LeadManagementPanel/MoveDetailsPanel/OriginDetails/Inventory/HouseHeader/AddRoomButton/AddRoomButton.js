@@ -1,4 +1,4 @@
-// src/components/Inventory/HouseHeader/AddRoomButton/AddRoomButton.js
+"use client";
 
 import React, { useState } from 'react';
 import styles from './AddRoomButton.module.css';

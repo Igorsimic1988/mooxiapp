@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './LogisticsDetails.module.css';
 import Icon from 'src/app/components/Icon';  // or adjust import path if needed

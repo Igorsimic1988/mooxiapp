@@ -1,4 +1,4 @@
-// src/components/Inventory/HouseHeader/HouseInfo/HouseInfo.js
+"use client";
 
 import React, { useMemo, useEffect, useRef } from 'react';
 import styles from './HouseInfo.module.css';

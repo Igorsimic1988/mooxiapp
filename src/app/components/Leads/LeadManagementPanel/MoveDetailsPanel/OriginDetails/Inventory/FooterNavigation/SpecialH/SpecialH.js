@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import styles from "./SpecialH.module.css";
 import ItemCard from './ItemCard/ItemCard';

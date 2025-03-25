@@ -1,4 +1,4 @@
-// src/components/Inventory/InventoryDesktop/BackButton/BackButton.js
+"use client";
 
 import React from 'react';
 import styles from './BackButton.module.css';

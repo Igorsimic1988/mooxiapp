@@ -1,4 +1,4 @@
-// src/components/Inventory/HouseHeader/HouseHeader.js
+"use client";
 
 import React from 'react';
 import styles from './HouseHeader.module.css';

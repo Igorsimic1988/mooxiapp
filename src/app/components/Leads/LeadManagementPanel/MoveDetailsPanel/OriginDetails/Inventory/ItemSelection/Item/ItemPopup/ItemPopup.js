@@ -1,6 +1,7 @@
-// src/components/Inventory/ItemSelection/Item/ItemPopup.js
+"use client";
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import Image from "next/image";
 import styles from './ItemPopup.module.css';
 import { optionsData } from '../../../../../../../../../data/constants/optionsData';
 import Select, { components as RSComponents } from 'react-select';
@@ -747,7 +748,13 @@ function ItemPopup({
           <div className={styles.itemGroup}>
             <div className={styles.furnitureOutline}>
               <div className={styles.furnitureWrapper}>
-                <img src={item.src} alt={item.name} className={styles.itemImage} />
+              <Image
+                  src={item.src}
+                  alt={item.name}
+                  width={72}
+                  height={72}
+                  className={styles.itemImage}
+                />
               </div>
             </div>
             <div className={styles.furnitureTextGroup}>
@@ -986,9 +993,11 @@ function ItemPopup({
                 >
                   <Icon name="Close" className={styles.closeIconPreview} />
                 </button>
-                <img
+                <Image
                   src={previewImage}
                   alt="Preview"
+                  width={300}
+                  height={300}
                   className={styles.previewImage}
                 />
                 <button
@@ -1084,7 +1093,7 @@ function ItemPopup({
           {/* Informational Message */}
           {!isCpPackedByMoversSelected && (
             <div className={styles.infoMessage}>
-              <p>Select 'CP Packed by Movers' to specify packing materials.</p>
+              <p>Select &apos;CP Packed by Movers&apos; to specify packing materials.</p>
             </div>
           )}
 

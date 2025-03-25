@@ -54,23 +54,4 @@
   border-radius: 12px;
 }
 
-@media (min-width: 1024px) {
-  
-  .searchContainer {
-    border-radius: 0px;
-    border-bottom: 0px solid #D8DCE0;
-    margin-top: 0px;
-    padding-left: 0px;
-    padding-right: 0px;
-    width: 100%;
-  }
-  
-  .searchHeader {
-    width: 100%;
-  }
-  
-  .searchInput {
-    box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
-  }
-}
   

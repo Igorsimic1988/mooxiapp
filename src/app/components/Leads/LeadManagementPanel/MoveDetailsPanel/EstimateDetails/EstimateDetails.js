@@ -380,7 +380,7 @@ function EstimateDetails({
                 <div className={styles.rateTypeWrapper} ref={rateTypeDropdownRef}>
                   <button
                     type="button"
-                    className={styles.estimateButton}
+                    className={`${styles.estimateButton} ${showRateTypeDropdown ? styles.activeInput : ''}`}
                     onClick={() => setShowRateTypeDropdown((p) => !p)}
                   >
                     <div className={styles.dropdownLabel}>

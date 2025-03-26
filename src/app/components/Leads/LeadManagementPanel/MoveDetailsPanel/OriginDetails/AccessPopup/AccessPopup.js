@@ -260,10 +260,14 @@ function AccessPopup({
   const [showElevatorFloorsDropdown, setShowElevatorFloorsDropdown] = useState(false);
   const [showElevatorSizeDropdown, setShowElevatorSizeDropdown] = useState(false);
 
-  function DropdownButton({ label, value, onClick }) {
+  function DropdownButton({ label, value, onClick, isActive }) {
     const displayValue = value ? value : 'Select';
     return (
-      <button type="button" className={styles.dropdownButton} onClick={onClick}>
+      <button 
+        type="button" 
+        className={`${styles.dropdownButton} ${isActive ? styles.activeInput : ''}`} 
+        onClick={onClick}
+      >
         <span className={styles.oneLineEllipsis}>
           <span className={styles.dropdownPrefix}>{label}</span>
           <span className={styles.dropdownSelected}>{displayValue}</span>
@@ -350,6 +354,7 @@ function AccessPopup({
               <DropdownButton
                 label="Biggest Truck:"
                 value={stop.biggestTruckAccess}
+                isActive={showTruckAccessDropdown}
                 onClick={() => {
                   setShowTruckAccessDropdown(!showTruckAccessDropdown);
                   setShowParkingDropdown(false);
@@ -400,6 +405,7 @@ function AccessPopup({
               <DropdownButton
                 label="Parking:"
                 value={stop.parkingAccess}
+                isActive={showParkingDropdown}
                 onClick={() => {
                   setShowParkingDropdown(!showParkingDropdown);
                   setShowTruckAccessDropdown(false);
@@ -436,6 +442,7 @@ function AccessPopup({
               <DropdownButton
                 label="Door to truck:"
                 value={stop.distanceDoorTruck}
+                isActive={showDistanceDropdown}
                 onClick={() => {
                   setShowDistanceDropdown(!showDistanceDropdown);
                   setShowTruckAccessDropdown(false);
@@ -472,6 +479,7 @@ function AccessPopup({
               <DropdownButton
                 label="How Many Steps:"
                 value={stop.howManySteps}
+                isActive={showStepsDropdown}
                 onClick={() => {
                   setShowStepsDropdown(!showStepsDropdown);
                   setShowTruckAccessDropdown(false);
@@ -508,6 +516,7 @@ function AccessPopup({
               <DropdownButton
                 label="Door to truck Terrain:"
                 value={stop.terrainDoorTruck}
+                isActive={showTerrainDropdown}
                 onClick={() => {
                   setShowTerrainDropdown(!showTerrainDropdown);
                   setShowTruckAccessDropdown(false);
@@ -574,6 +583,7 @@ function AccessPopup({
                   <DropdownButton
                     label="Elevator floors:"
                     value={stop.elevatorFloors}
+                    isActive={showElevatorFloorsDropdown}
                     onClick={() => {
                       setShowElevatorFloorsDropdown(!showElevatorFloorsDropdown);
                       setShowElevatorSizeDropdown(false);
@@ -605,6 +615,7 @@ function AccessPopup({
                   <DropdownButton
                     label="Elevator Size:"
                     value={stop.elevatorSize}
+                    isActive={showElevatorSizeDropdown}
                     onClick={() => {
                       setShowElevatorSizeDropdown(!showElevatorSizeDropdown);
                       setShowElevatorFloorsDropdown(false);

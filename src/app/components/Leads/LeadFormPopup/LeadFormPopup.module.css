@@ -105,6 +105,11 @@
   cursor: text;
 }
 
+/* Add focus style for input containers */
+.inputContainer:focus-within {
+  border: 1px solid var(--Blue, #3FA9F5);
+}
+
 .activityInput {
   border: none;
   background: transparent;
@@ -165,6 +170,12 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Add focus style for dropdown buttons */
+.dropdownButton:focus {
+  border: 1px solid var(--Blue, #3FA9F5);
+  outline: none;
+}
+
 /* 2) The label container (holding prefix + selected text) 
       expands to fill leftover space, and can truncate if needed */
 .dropdownLabel {
@@ -210,7 +221,7 @@
   margin-left: 8px; /* optional small space before icon */
 }
 
-/* The dropdown list (for all dropdowns) */
+/* The dropdown list (for all dropdowns) - STANDARDIZED */
 .optionsList {
   position: absolute;
   top: 100%;
@@ -219,37 +230,45 @@
   max-height: 500px;
   overflow-y: auto;
   background: #fff;
-  border: 1px solid #ccc;
+  border: none;
   border-radius: 12px;
   margin-top: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
   z-index: 2000; /* Ensure it appears above other content */
   list-style: none;
   margin: 0;
   padding-left: 0;
   padding-bottom: 25px;
+  padding-top: 15px;
 }
 
+/* Standardized option styling */
 .option {
   padding: 10px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  font-family: 'Satoshi', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  color: #000;
+  margin: 0 10px;
 }
 
 .option:hover,
 .option:focus {
-  background-color: rgba(63, 169, 245, 0.1);
+  border-radius: 8px;
+  background: #F2F5F8;
 }
 
-/* Highlight for a selected option in the list */
+/* Highlight for a selected option in the list - STANDARDIZED */
 .selected {
-  background-color: #59B779;
-  color: #fff;
+  border-radius: 8px;
+  background: #F2F5F8;
+  padding: 10px;
+  color: #000;
 }
 
 /* ===== SERVICE SET (Type of Service / Zips / Move Date) ===== */
@@ -305,6 +324,12 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Add focus style for move date button */
+.moveDateButton:focus {
+  border: 1px solid var(--Blue, #3FA9F5);
+  outline: none;
+}
+
 /* If no date => weight 500, color #6E7882; 
    if chosen => weight 700, color #2F3236 */
 .moveDatePlaceholderText {
@@ -344,9 +369,9 @@
   left: 0;
   width: 100%;
   background-color: #fff;
-  border: 1px solid #D8DCE0;
+  border: none;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
   padding: 10px;
   z-index: 2100;
 }
@@ -387,7 +412,7 @@
 }
 
 .calendarDay:hover {
-  background: #f2f5f8;
+  background: #F2F5F8;
 }
 
 /* Past days are disabled */
@@ -400,9 +425,9 @@
 
 /* Highlight for the currently selected date */
 .daySelected {
-  background-color: #59B779;
-  color: #fff;
-  border: 1px solid #59B779;
+  background-color: #F2F5F8;
+  color: #000;
+  border: 1px solid #D8DCE0;
 }
 
 /* ===== Assign Sales Rep Toggle Container ===== */

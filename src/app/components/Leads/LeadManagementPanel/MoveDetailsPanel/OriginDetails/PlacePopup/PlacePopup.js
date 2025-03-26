@@ -551,6 +551,7 @@ function PlacePopup({
                   value={currentStop.typeOfPlace}
                   onClick={handleToggleTypeOfPlaceDropdown}
                   disabled={false}
+                  className={showTypeOfPlaceDropdown ? styles.activeInput : ''}
                 />
                 {showTypeOfPlaceDropdown && (
                   <ul className={styles.optionsList}>
@@ -576,6 +577,7 @@ function PlacePopup({
                   value={currentStop.moveSize}
                   onClick={handleToggleMoveSizeDropdown}
                   disabled={!currentStop.typeOfPlace}
+                  className={showMoveSizeDropdown ? styles.activeInput : ''}
                 />
                 {showMoveSizeDropdown && currentStop.typeOfPlace && (
                   <ul className={styles.optionsList}>
@@ -601,6 +603,7 @@ function PlacePopup({
                   value={currentStop.howManyStories}
                   onClick={handleToggleStoriesDropdown}
                   disabled={!storiesApplicable}
+                  className={showStoriesDropdown ? styles.activeInput : ''}
                 />
                 {showStoriesDropdown && storiesApplicable && (
                   <ul className={styles.optionsList}>
@@ -644,6 +647,7 @@ function PlacePopup({
                   value={currentStop.furnishingStyle}
                   onClick={handleToggleFurnishingDropdown}
                   disabled={furnishingDisabled}
+                  className={showFurnishingDropdown ? styles.activeInput : ''}
                 />
                 {showFurnishingDropdown && !furnishingDisabled && (
                   <ul className={styles.optionsList}>
@@ -685,12 +689,17 @@ function PlacePopup({
           {selectedPlace === 'destination' && (
             <div className={styles.formFieldsWrapper}>
               <div className={styles.typeOfPlaceSelectWrapper}>
-                <DropdownButton
-                  label="Type of place:"
-                  value={currentStop.typeOfPlace}
+                <button
+                  type="button"
+                  className={`${styles.dropdownButton} ${showTypeOfPlaceDropdown ? styles.activeInput : ''}`}
                   onClick={handleToggleTypeOfPlaceDropdown}
-                  disabled={false}
-                />
+                >
+                  <span className={styles.oneLineEllipsis}>
+                    <span className={styles.inputLabel}>Type of place:</span>
+                    <span className={styles.inputValue}>{currentStop.typeOfPlace || 'Select'}</span>
+                  </span>
+                  <Icon name="UnfoldMore" className={styles.rightIcon} />
+                </button>
                 {showTypeOfPlaceDropdown && (
                   <ul className={styles.optionsList}>
                     {typeOfPlaceOptions.map((option) => {
@@ -710,12 +719,18 @@ function PlacePopup({
               </div>
 
               <div className={styles.storiesSelectWrapper}>
-                <DropdownButton
-                  label="How many stories:"
-                  value={currentStop.howManyStories}
+                <button
+                  type="button"
+                  className={`${styles.dropdownButton} ${!storiesApplicable ? styles.disabledDropdown : ''} ${showStoriesDropdown ? styles.activeInput : ''}`}
                   onClick={handleToggleStoriesDropdown}
                   disabled={!storiesApplicable}
-                />
+                >
+                  <span className={styles.oneLineEllipsis}>
+                    <span className={styles.inputLabel}>How many stories:</span>
+                    <span className={styles.inputValue}>{currentStop.howManyStories || 'Select'}</span>
+                  </span>
+                  <Icon name="UnfoldMore" className={styles.rightIcon} />
+                </button>
                 {showStoriesDropdown && storiesApplicable && (
                   <ul className={styles.optionsList}>
                     {howManyStoriesOptions.map((option) => {

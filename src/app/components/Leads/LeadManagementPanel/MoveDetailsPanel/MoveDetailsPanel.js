@@ -377,7 +377,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       </div>
 
       {/* ---------- MOVE DATE ---------- */}
-      <div className={styles.inputContainer} style={{ position: 'relative' }}>
+      <div className={`${styles.inputContainer} ${showMoveCalendar ? styles.activeInput : ''}`} style={{ position: 'relative' }}>
         <button
           type="button"
           className={styles.dateButton}
@@ -446,7 +446,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
       {/* ---------- TYPE OF SERVICE (DROPDOWN) ---------- */}
       <div
-        className={styles.storageDropdown}
+        className={`${styles.storageDropdown} ${showTypeOfServiceDropdown ? styles.activeInput : ''}`}
         style={{ marginTop: '10px' }}
         onClick={() => {
           setShowTypeOfServiceDropdown((prev) => !prev);
@@ -493,7 +493,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       {/* If toggled => show Storage dropdown */}
       {isStorageToggled && (
         <div
-          className={styles.storageDropdown}
+          className={`${styles.storageDropdown} ${storageDropdownOpen ? styles.activeInput : ''}`}
           onClick={() => {
             setStorageDropdownOpen((prev) => !prev);
             setShowTypeOfServiceDropdown(false);
@@ -537,7 +537,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       {/* ---------- DELIVERY DATE ---------- */}
       {/* Disable this entire container if storage is NOT toggled */}
       <div
-        className={`${styles.inputContainer} ${
+        className={`${styles.inputContainer} ${showDeliveryCalendar ? styles.activeInput : ''} ${
           !isStorageToggled ? styles.disabledContainer : ''
         }`}
         style={{ position: 'relative' }}
@@ -621,7 +621,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
       {/* ---------- ETA REQUEST (DROPDOWN) ---------- */}
       <div
-        className={styles.storageDropdown}
+        className={`${styles.storageDropdown} ${showETARequestDropdown ? styles.activeInput : ''}`}
         style={{ marginTop: '10px' }}
         onClick={() => {
           setShowETARequestDropdown((prev) => !prev);
@@ -669,7 +669,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
       {isTimePromisedToggled && (
         <div
-          className={styles.arrivalTimeInput}
+          className={`${styles.arrivalTimeInput} ${showStartTimeDropdown || showIncrementsGrid ? styles.activeInput : ''}`}
           onClick={() => {
             const newVal = !showStartTimeDropdown;
             if (!newVal && arrivalStart && !arrivalTime && showIncrementsGrid) {

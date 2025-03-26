@@ -459,7 +459,7 @@ function LogisticsDetails({
                 <div className={styles.rateTypeWrapper} ref={rateTypeDropdownRef}>
                   <button
                     type="button"
-                    className={styles.logisticsButton}
+                    className={`${styles.logisticsButton} ${showRateTypeDropdown ? styles.activeInput : ''}`}
                     onClick={() => setShowRateTypeDropdown((p) => !p)}
                   >
                     <div className={styles.dropdownLabel}>
@@ -476,11 +476,7 @@ function LogisticsDetails({
                         return (
                           <li
                             key={opt}
-                            className={
-                              isSelected
-                                ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                : styles.rateTypeOption
-                            }
+                            className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                             onClick={() => {
                               setRateType(opt);
                               setShowRateTypeDropdown(false);
@@ -598,7 +594,7 @@ function LogisticsDetails({
               {isHourly && (
                 <div className={styles.row}>
                   <div
-                    className={styles.logisticsButton}
+                    className={`${styles.logisticsButton} ${showTravelTimeDropdown ? styles.activeInput : ''}`}
                     style={{ position: 'relative' }}
                     id="travelTimeDropdown"
                     onClick={(e) => {
@@ -619,11 +615,7 @@ function LogisticsDetails({
                           return (
                             <li
                               key={opt}
-                              className={
-                                isSelected
-                                  ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                  : styles.rateTypeOption
-                              }
+                              className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(evt) => {
                                 evt.stopPropagation();
                                 setTravelTime(opt);
@@ -645,7 +637,7 @@ function LogisticsDetails({
               {isHourly && (
                 <div className={styles.row}>
                   <div
-                    className={styles.logisticsButton}
+                    className={`${styles.logisticsButton} ${showMovingMinDropdown ? styles.activeInput : ''}`}
                     style={{ position: 'relative' }}
                     id="movingMinDropdown"
                     onClick={(e) => {
@@ -666,11 +658,7 @@ function LogisticsDetails({
                           return (
                             <li
                               key={opt}
-                              className={
-                                isSelected
-                                  ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                  : styles.rateTypeOption
-                              }
+                              className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(evt) => {
                                 evt.stopPropagation();
                                 setMovingMin(opt);
@@ -724,7 +712,7 @@ function LogisticsDetails({
               {(isVolume || isWeight) && (
                 <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
                   <div
-                    className={styles.logisticsButton}
+                    className={`${styles.logisticsButton} ${showPickupWindowDropdown ? styles.activeInput : ''}`}
                     style={{ position: 'relative' }}
                     id="pickupWindowDropdown"
                     onClick={(evt) => {
@@ -745,11 +733,7 @@ function LogisticsDetails({
                           return (
                             <li
                               key={opt}
-                              className={
-                                isSelected
-                                  ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                  : styles.rateTypeOption
-                              }
+                              className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setPickupWindow(opt);
@@ -767,7 +751,7 @@ function LogisticsDetails({
 
                   {/* Earliest Delivery Calendar */}
                   <div
-                    className={styles.logisticsButton}
+                    className={`${styles.logisticsButton} ${showEarliestDeliveryCalendar ? styles.activeInput : ''}`}
                     style={{ position: 'relative' }}
                     onClick={(evt) => {
                       evt.stopPropagation();
@@ -827,11 +811,7 @@ function LogisticsDetails({
                               <button
                                 key={day}
                                 type="button"
-                                className={
-                                  isSelected
-                                    ? `${styles.calendarDay} ${styles.selectedDay}`
-                                    : styles.calendarDay
-                                }
+                                className={`${styles.calendarDay} ${isSelected ? styles.selectedDay : ''}`}
                                 onClick={() => handleSelectEarliestDate(dateObj)}
                               >
                                 {day}
@@ -844,7 +824,7 @@ function LogisticsDetails({
                   </div>
 
                   <div
-                    className={styles.logisticsButton}
+                    className={`${styles.logisticsButton} ${showDeliveryWindowDropdown ? styles.activeInput : ''}`}
                     style={{ position: 'relative' }}
                     id="deliveryWindowDropdown"
                     onClick={(evt) => {
@@ -865,11 +845,7 @@ function LogisticsDetails({
                           return (
                             <li
                               key={opt}
-                              className={
-                                isSelected
-                                  ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                  : styles.rateTypeOption
-                              }
+                              className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setDeliveryWindow(opt);
@@ -894,7 +870,7 @@ function LogisticsDetails({
                   <div className={styles.workTimeHeadline}>Work time</div>
                   <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
                     <div
-                      className={styles.logisticsButton}
+                      className={`${styles.logisticsButton} ${showMinHoursDropdown ? styles.activeInput : ''}`}
                       style={{ position: 'relative' }}
                       id="minHoursDropdown"
                       onClick={(evt) => {
@@ -915,11 +891,7 @@ function LogisticsDetails({
                             return (
                               <li
                                 key={opt}
-                                className={
-                                  isSelected
-                                    ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                    : styles.rateTypeOption
-                                }
+                                className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleSelectMinHours(opt);
@@ -935,7 +907,7 @@ function LogisticsDetails({
                     </div>
 
                     <div
-                      className={styles.logisticsButton}
+                      className={`${styles.logisticsButton} ${showMaxHoursDropdown ? styles.activeInput : ''}`}
                       style={{ position: 'relative' }}
                       id="maxHoursDropdown"
                       onClick={(evt) => {
@@ -956,11 +928,7 @@ function LogisticsDetails({
                             return (
                               <li
                                 key={opt}
-                                className={
-                                  isSelected
-                                    ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                    : styles.rateTypeOption
-                                }
+                                className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleSelectMaxHours(opt);
@@ -1035,7 +1003,7 @@ function LogisticsDetails({
                   <>
                     <div className={styles.row}>
                       <div
-                        className={styles.logisticsButton}
+                        className={`${styles.logisticsButton} ${showPackingTravelTimeDropdown ? styles.activeInput : ''}`}
                         style={{ position: 'relative' }}
                         id="packingTravelTimeDropdown"
                         onClick={(evt) => {
@@ -1056,11 +1024,7 @@ function LogisticsDetails({
                               return (
                                 <li
                                   key={opt}
-                                  className={
-                                    isSelected
-                                      ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                      : styles.rateTypeOption
-                                  }
+                                  className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setPackingTravelTime(opt);
@@ -1079,7 +1043,7 @@ function LogisticsDetails({
 
                     <div className={styles.row}>
                       <div
-                        className={styles.logisticsButton}
+                        className={`${styles.logisticsButton} ${showPackingMinDropdown ? styles.activeInput : ''}`}
                         style={{ position: 'relative' }}
                         id="packingMinDropdown"
                         onClick={(evt) => {
@@ -1100,11 +1064,7 @@ function LogisticsDetails({
                               return (
                                 <li
                                   key={opt}
-                                  className={
-                                    isSelected
-                                      ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                      : styles.rateTypeOption
-                                  }
+                                  className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setPackingMinimum(opt);
@@ -1127,7 +1087,7 @@ function LogisticsDetails({
                 <div className={styles.workTimeHeadline}>Packers Work time</div>
                 <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
                   <div
-                    className={styles.logisticsButton}
+                    className={`${styles.logisticsButton} ${showPackingMinHoursDropdown ? styles.activeInput : ''}`}
                     style={{ position: 'relative' }}
                     id="packingMinHoursDropdown"
                     onClick={(evt) => {
@@ -1148,11 +1108,7 @@ function LogisticsDetails({
                           return (
                             <li
                               key={opt}
-                              className={
-                                isSelected
-                                  ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                  : styles.rateTypeOption
-                              }
+                              className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleSelectPackingMinHours(opt);
@@ -1168,7 +1124,7 @@ function LogisticsDetails({
                   </div>
 
                   <div
-                    className={styles.logisticsButton}
+                    className={`${styles.logisticsButton} ${showPackingMaxHoursDropdown ? styles.activeInput : ''}`}
                     style={{ position: 'relative' }}
                     id="packingMaxHoursDropdown"
                     onClick={(evt) => {
@@ -1189,11 +1145,7 @@ function LogisticsDetails({
                           return (
                             <li
                               key={opt}
-                              className={
-                                isSelected
-                                  ? `${styles.rateTypeOption} ${styles.selectedOption}`
-                                  : styles.rateTypeOption
-                              }
+                              className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleSelectPackingMaxHours(opt);

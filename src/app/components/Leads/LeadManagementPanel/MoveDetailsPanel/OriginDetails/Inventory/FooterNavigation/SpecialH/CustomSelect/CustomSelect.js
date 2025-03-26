@@ -39,7 +39,7 @@ function CustomSelect({ options, selectedOption, onOptionChange, placeholder }) 
     <div className={styles.customSelect} ref={selectRef}>
       <button
         type="button"
-        className={styles.selectButton}
+        className={`${styles.selectButton} ${isOpen ? styles.activeInput : ''}`}
         onClick={toggleDropdown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -47,7 +47,7 @@ function CustomSelect({ options, selectedOption, onOptionChange, placeholder }) 
         <span className={styles.selectedText}>
           {selectedLabel}
         </span>
-        <Icon name="UnfoldMore" className={`${styles.dropdownIcon} ${isOpen ? styles.rotate : ''}`} />
+        <Icon name="UnfoldMore" className={styles.dropdownIcon} />
       </button>
 
       {isOpen && (
@@ -56,7 +56,7 @@ function CustomSelect({ options, selectedOption, onOptionChange, placeholder }) 
             <li
               key={option.value}
               className={`${styles.option} ${
-                selectedOption === option.value ? styles.selected : ''
+                selectedOption === option.value ? styles.selectedOption : ''
               }`}
               role="option"
               aria-selected={selectedOption === option.value}

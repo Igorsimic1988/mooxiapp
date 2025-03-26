@@ -244,10 +244,14 @@ function ServicesPopup({
   const [showUnpackingDropdown, setShowUnpackingDropdown] = useState(false);
   const [showBlanketsDropdown, setShowBlanketsDropdown] = useState(false);
 
-  function DropdownButton({ label, value, onClick }) {
+  function DropdownButton({ label, value, onClick, isActive }) {
     const displayValue = value || 'Select';
     return (
-      <button type="button" className={styles.dropdownButton} onClick={onClick}>
+      <button 
+        type="button" 
+        className={`${styles.dropdownButton} ${isActive ? styles.activeInput : ''}`} 
+        onClick={onClick}
+      >
         <span className={styles.oneLineEllipsis}>
           <span className={styles.dropdownPrefix}>{label}</span>
           <span className={styles.dropdownSelected}>{displayValue}</span>
@@ -335,6 +339,7 @@ function ServicesPopup({
                   <DropdownButton
                     label="What's Moving:"
                     value={stop.whatsMoving}
+                    isActive={showWhatsMovingDropdown}
                     onClick={() => {
                       setShowWhatsMovingDropdown(!showWhatsMovingDropdown);
                       setShowPackingDropdown(false);
@@ -368,6 +373,7 @@ function ServicesPopup({
                   <DropdownButton
                     label="Packing Option:"
                     value={stop.packingOption}
+                    isActive={showPackingDropdown}
                     onClick={() => {
                       setShowPackingDropdown(!showPackingDropdown);
                       setShowWhatsMovingDropdown(false);
@@ -406,6 +412,7 @@ function ServicesPopup({
                   <DropdownButton
                     label="Unpacking:"
                     value={stop.unpackingOption}
+                    isActive={showUnpackingDropdown}
                     onClick={() => {
                       setShowUnpackingDropdown(!showUnpackingDropdown);
                       setShowBlanketsDropdown(false);
@@ -498,6 +505,7 @@ function ServicesPopup({
               <DropdownButton
                 label="Blankets:"
                 value={stop.blanketsOption}
+                isActive={showBlanketsDropdown}
                 onClick={() => {
                   setShowBlanketsDropdown(!showBlanketsDropdown);
                   setShowWhatsMovingDropdown(false);

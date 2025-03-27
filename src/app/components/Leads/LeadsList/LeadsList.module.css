@@ -35,6 +35,7 @@
   align-items: start;
   overflow: hidden; /* Prevent horizontal overflow */
   min-width: 0; /* For proper shrinking of columns */
+  position: relative; /* For the colored left border */
 }
 
 /* Ensure columns can shrink */
@@ -42,7 +43,6 @@
 .customerInfo,
 .leadStatusInfo {
   min-width: 0;
-
 }
 
 /* Text truncation */
@@ -210,18 +210,6 @@
 .completedText {
   color: #3fa9f5 !important; /* ensures we override the default #90A4B7 */
 }
-/* Empty state for no results */
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  width: 100%;
-  text-align: center;
-  color: #8E9096;
-  padding: 20px;
-}
 
 /* Empty state for no results */
 .emptyState {
@@ -243,8 +231,7 @@
   margin-bottom: 8px;
 }
 
-
-/* Style for search results */
+/* Style for search results - blue left border */
 .searchResult {
   position: relative;
 }
@@ -260,7 +247,22 @@
   border-radius: 0 2px 2px 0;
 }
 
+/* Style for transfer mode - green left border */
+.transferCard {
+  position: relative;
+}
 
+.transferCard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #F65676; /* Green color for transfer mode */
+  border-radius: 0 2px 2px 0;
+  z-index: 1; /* Ensure the green border appears on top if both active */
+}
 
 /* Media query for smaller screens */
 @media (max-width: 392px) {
@@ -280,4 +282,4 @@
   .statusIcon {
     transform: scale(0.8);
   }
-} 
+}

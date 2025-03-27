@@ -129,7 +129,7 @@ const statusMapping = {
   },
 };
 
-function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
+function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, transferModeActive }) {
   const isSearchResults = activeTab === 'Search Results';
 
   if (leads.length === 0) {
@@ -197,9 +197,17 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll }) {
           }
         }
 
+        // Determine card class based on mode
+        let cardClass = styles.card;
+        if (transferModeActive) {
+          cardClass = `${styles.card} ${styles.transferCard}`;
+        } else if (isSearchResults) {
+          cardClass = `${styles.card} ${styles.searchResult}`;
+        }
+
         return (
           <div
-            className={`${styles.card} ${isSearchResults ? styles.searchResult : ''}`}
+            className={cardClass}
             key={lead.job_number}
             onClick={() => onLeadClick(lead)}
           >

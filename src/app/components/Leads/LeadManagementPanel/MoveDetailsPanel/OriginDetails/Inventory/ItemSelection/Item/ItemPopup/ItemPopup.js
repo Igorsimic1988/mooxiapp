@@ -135,9 +135,10 @@ function labelToDropTag(labelString) {
  * we don’t rely on .mySelect__ classes in CSS.
  */
 const customSelectStyles = {
-  control: (provided) => ({
+  control: (provided, state) => ({
     ...provided,
-    border: 'none',
+    border: state.isFocused ? '1px solid #3FA9F5' : 'none',
+    borderRadius: '12px',
     boxShadow: 'none',
     backgroundColor: 'transparent',
     minHeight: '50px',
@@ -147,6 +148,14 @@ const customSelectStyles = {
     borderRadius: '12px',
     overflow: 'hidden',
     zIndex: 1001,
+    border: 'none',
+    boxShadow: '0px 1px 16px 0px rgba(0, 0, 0, 0.08)',
+    padding: '7px 0 10px',
+  }),
+  menuList: (provided) => ({
+    ...provided,
+    padding: '7px 0 0 0',
+    overflowX: 'hidden', // Prevent horizontal scrollbar
   }),
   multiValue: (provided) => ({
     ...provided,
@@ -177,14 +186,21 @@ const customSelectStyles = {
   }),
   option: (provided, state) => ({
     ...provided,
-    fontWeight: 700,
+    fontFamily: 'Satoshi, sans-serif',
+    fontSize: '15px',
+    fontStyle: 'normal',
+    fontWeight: 400,
+    lineHeight: 'normal',
     backgroundColor: state.isSelected
-      ? '#3FA9F5'
+      ? '#F2F5F8'
       : state.isFocused
-      ? '#E7F2FA'
+      ? '#F2F5F8'
       : '#fff',
-    color: state.isSelected ? '#fff' : '#000',
+    color: '#000',
     cursor: 'pointer',
+    borderRadius: state.isSelected ? '8px' : state.isFocused ? '8px' : '0',
+    margin: '0 10px',
+    padding: '7px 10px',
   }),
 };
 

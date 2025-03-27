@@ -210,6 +210,11 @@
   margin-top: 20px;
 }
 
+/* Class applied when active / showing dropdown - STANDARDIZED */
+.activeInput {
+  border: 1px solid #3FA9F5 !important;
+}
+
 .inputGroup {
   border-radius: 12px;
   border: 1px solid #D8DCE0;
@@ -251,7 +256,8 @@
 
 .inputField:focus {
   outline: none; 
-  box-shadow: 0 0 0 2px #3FA9F5; 
+  border: 1px solid #3FA9F5 !important;
+  box-shadow: none;
   border-radius: 12px;
 }
 
@@ -461,11 +467,27 @@
   min-height: 50px;
   border: 1px solid #D8DCE0;
 }
+
 .selectInput {
   width: 100%;
 }
 
-/* (Removed old .mySelect__ classes) */
+.selectInput > div > div[class*="-menu"] {
+  overflow-x: hidden !important;
+  border-radius: 12px !important;
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Ensure the react-select control gets proper focus styling */
+.selectInput > div[class*="-control"][class*="-isFocused"] {
+  border: 1px solid #3FA9F5 !important;
+  box-shadow: none;
+  border-radius: 12px !important;
+}
+
+.selectInput > div[class*="-control"] {
+  border-radius: 12px;
+}
 
 /* Image Preview Overlay */
 .imagePreviewOverlay {
@@ -605,11 +627,11 @@
   left: 10%;
   transform: translateX(-50%);
   background-color: #ffffff;
-  border: 1px solid #ccc;
+  border: none;
   border-radius: 12px;
   padding: 10px;
   z-index: 1001;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
   width: 200px;
 }
 .linkOptionButton {
@@ -641,9 +663,9 @@
   z-index: 1000;
   background-color: #fff;
   padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
 }
 .linkInputField {
   width: 100%;

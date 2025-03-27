@@ -4,6 +4,7 @@
   display: flex;
   align-items: flex-start;
   height: 60px; /* adjust if needed */
+  position: relative; /* Added for absolute positioning in responsive view */
 }
 
 /* Spacing between buttons */
@@ -45,6 +46,11 @@
   background: rgba(63, 169, 245, 0.2);
 }
 
+/* If transfer is active => a light blue background */
+.transferBackgroundActive {
+  background: rgba(63, 169, 245, 0.2);
+}
+
 /* Default icon color */
 .icon {
   width: 30px;
@@ -54,6 +60,11 @@
 
 /* If filters are active => bright blue icon */
 .iconActive {
+  color: #3FA9F5;
+}
+
+/* If transfer is active => bright blue icon */
+.transferIconActive {
   color: #3FA9F5;
 }
 
@@ -74,4 +85,159 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* The red badge showing the exclamation mark for transfer mode */
+.transferBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  transform: translate(50%, -50%);
+  background-color: #F65676;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-family: Satoshi, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* NEW STYLES FOR SALES REP DROPDOWN */
+
+/* Sales Rep Dropdown */
+.salesRepSelectWrapper {
+  position: absolute; /* Take it out of document flow */
+  left: 142px; /* Position it right of the transfer button (60px for filter + 10px margin + 50px for transfer + 12px margin) */
+  top: 0px; /* Align it vertically (5px from top) */
+  z-index: 1000; /* Make sure it appears above other content */
+}
+
+/* When screen is small, place dropdown below the Transfer button */
+
+/* Dropdown button styling */
+.dropdownButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 207px; /* Fixed width for consistent appearance */
+  height: 50px;
+  padding: 0 15px;
+  background-color: #FFF;
+  color: #2F3236;
+  font-family: 'Satoshi', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid #D8DCE0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Add focus style for dropdown buttons */
+.dropdownButton:focus {
+  border: 1px solid #3FA9F5;
+  outline: none;
+}
+
+/* Label container (holding prefix + selected text) */
+.dropdownLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Prefix: "Sales Rep:" */
+.dropdownPrefix {
+  font-weight: 500;
+  color: #6E7882;
+  font-size: 16px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Selected text styling */
+.dropdownSelected {
+  font-weight: 700;
+  color: #2F3236;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Placeholder text styling */
+.dropdownPlaceholder {
+  font-weight: 500;
+  color: #6E7882;
+  font-size: 16px;
+}
+
+/* Icon on the far right */
+.dropdownIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #2F3236;
+  transition: transform 0.3s ease;
+  margin-left: 8px;
+}
+
+/* The dropdown list */
+.optionsList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 207px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: #fff;
+  border: none;
+  border-radius: 12px;
+  margin-top: 8px;
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+  z-index: 2000;
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+  padding-bottom: 25px;
+  padding-top: 15px;
+}
+
+/* Option styling */
+.option {
+  padding: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  color: #000;
+  margin: 0 10px;
+}
+
+.option:hover,
+.option:focus {
+  border-radius: 8px;
+  background: #F2F5F8;
+}
+
+/* Selected option highlight */
+.selected {
+  border-radius: 8px;
+  background: #F2F5F8;
+  padding: 10px;
+  color: #000;
 }

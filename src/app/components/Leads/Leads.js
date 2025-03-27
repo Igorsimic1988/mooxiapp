@@ -159,6 +159,10 @@ function Leads() {
   const [selectedLead, setSelectedLead] = useState(null);
   const [editingLead, setEditingLead] = useState(null);
 
+  // Transfer mode
+  const [transferModeActive, setTransferModeActive] = useState(false);
+  const [selectedSalesRepForTransfer, setSelectedSalesRepForTransfer] = useState("");
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 20;
@@ -279,12 +283,28 @@ function Leads() {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  // Click a lead in the list
+  // Click a lead in the list - modified to handle transfer mode
   const handleLeadClick = (lead) => {
-    if (leadsListRef.current) {
-      setScrollPosition(leadsListRef.current.scrollTop);
+    // If transfer mode is active, update the lead's sales_name
+    if (transferModeActive && selectedSalesRepForTransfer) {
+      const updatedLead = {
+        ...lead,
+        sales_name: selectedSalesRepForTransfer,
+        last_updated: new Date().toISOString()
+      };
+      
+      // Update the lead
+      handleLeadUpdated(updatedLead);
+      
+      // Log the transfer action
+      console.log(`Transferred lead ${lead.job_number} to ${selectedSalesRepForTransfer}`);
+    } else {
+      // Normal mode - open the lead details panel
+      if (leadsListRef.current) {
+        setScrollPosition(leadsListRef.current.scrollTop);
+      }
+      setSelectedLead(lead);
     }
-    setSelectedLead(lead);
   };
 
   const handleBack = () => {
@@ -329,6 +349,37 @@ function Leads() {
     setCurrentPage(1);
   };
 
+  // Handle transfer mode change
+  const handleTransferModeChange = (isActive) => {
+    setTransferModeActive(isActive);
+    
+    // Reset selected sales rep if transfer mode is disabled
+    if (!isActive) {
+      setSelectedSalesRepForTransfer("");
+    }
+  };
+
+  // Handle transfer lead - now sets the selected sales rep for transfer
+  const handleTransferLead = (salesRepName) => {
+    // Store the selected sales rep for transfer
+    setSelectedSalesRepForTransfer(salesRepName);
+    
+    // If a lead is already selected, update it
+    if (selectedLead) {
+      const updatedLead = {
+        ...selectedLead,
+        sales_name: salesRepName,
+        last_updated: new Date().toISOString()
+      };
+      
+      // Use the existing handleLeadUpdated function to update the lead
+      handleLeadUpdated(updatedLead);
+      
+      // Optional: Show a success notification
+      console.log(`Lead ${selectedLead.lead_id} transferred to ${salesRepName}`);
+    }
+  };
+
   // Inventory
   const openInventoryFullScreen = () => {
     setShowInventoryFullScreen(true);
@@ -350,7 +401,7 @@ function Leads() {
     const hasFullDateFilter =
       selectedWhere !== "Select" && fromDate && toDate;
     if (hasFullDateFilter) count++;
-    // 5) Status => if not all are checked => it’s a filter
+    // 5) Status => if not all are checked => it's a filter
     if (checkedStatuses.length < statusOptions.length) count++;
     return count;
   }
@@ -419,7 +470,9 @@ function Leads() {
           <div className={styles.actionsContainer}>
             <LeadsActionButtons
               onOpenFilterPopup={() => setShowFilterPopup(true)}
-              filterCount={filterCount} 
+              filterCount={filterCount}
+              onTransferLead={handleTransferLead}
+              onTransferModeChange={handleTransferModeChange}
             />
             <AddNewLeadButton
               onOpenLeadForm={() => {
@@ -435,6 +488,7 @@ function Leads() {
             activeTab={searchQuery.trim() ? "Search Results" : activeTab}
             leadsListRef={leadsListRef}
             onScroll={(e) => setScrollPosition(e.target.scrollTop)}
+            transferModeActive={transferModeActive}
           />
 
           <div className={styles.paginationContainer}>

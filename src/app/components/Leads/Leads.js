@@ -1,7 +1,7 @@
 "use client"; 
 // If you're using Next.js 13 app router, you often need "use client" at the top
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import styles from "./Leads.module.css";
 
 import HeaderDashboard from "./HeaderDashboard/HeaderDashboard";
@@ -143,6 +143,149 @@ function filterLeadsBySearch(leads, searchQuery) {
   });
 }
 
+/**
+ * Apply secondary filters from FilterButtonPopup
+ */
+function applySecondaryFilters(leads, filterParams) {
+  if (!Array.isArray(leads)) return [];
+  
+  const {
+    selectedCompany,
+    selectedSalesRep,
+    selectedMode,
+    selectedWorkflow,
+    selectedWhere,
+    fromDate,
+    toDate,
+    checkedStatuses,
+  } = filterParams;
+  
+  // Filter by company
+  let result = leads;
+  if (selectedCompany !== "All companies") {
+    result = result.filter(lead => lead.company_name === selectedCompany);
+  }
+  
+  // Filter by sales rep
+  if (selectedSalesRep !== "All sales") {
+    result = result.filter(lead => lead.sales_name === selectedSalesRep);
+  }
+  
+  // Filter by status
+  if (checkedStatuses && checkedStatuses.length > 0) {
+    result = result.filter(lead => checkedStatuses.includes(lead.lead_status));
+  }
+  
+  // Apply date filters or workflow filters
+  if (selectedMode === "date" && selectedWhere !== "Select" && fromDate && toDate) {
+    const fromDateObj = new Date(fromDate);
+    const toDateObj = new Date(toDate);
+    toDateObj.setHours(23, 59, 59, 999); // Set to end of day
+    
+    result = result.filter(lead => {
+      let dateToCompare;
+      
+      switch (selectedWhere) {
+        case "Creation Date":
+          dateToCompare = new Date(lead.creation_date_time);
+          break;
+        case "Move Date":
+          // Assuming move_date field exists
+          dateToCompare = lead.move_date ? new Date(lead.move_date) : null;
+          break;
+        case "Appointment Date":
+          dateToCompare = lead.survey_date ? new Date(lead.survey_date) : null;
+          break;
+        case "Sales Activity":
+          // Look for the most recent status history item
+          if (Array.isArray(lead.status_history) && lead.status_history.length > 0) {
+            // Sort by changed_at in descending order
+            const sortedHistory = [...lead.status_history].sort(
+              (a, b) => new Date(b.changed_at) - new Date(a.changed_at)
+            );
+            dateToCompare = new Date(sortedHistory[0].changed_at);
+          } else {
+            dateToCompare = null;
+          }
+          break;
+        default:
+          dateToCompare = null;
+      }
+      
+      if (!dateToCompare) return false;
+      
+      return dateToCompare >= fromDateObj && dateToCompare <= toDateObj;
+    });
+  } else if (selectedMode === "workflow" && selectedWorkflow !== "Show All") {
+    // Workflow filtering implementation
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+    const nextMonthYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+    
+    switch (selectedWorkflow) {
+      case "Today workflow":
+        // Filter leads with survey_date today
+        result = result.filter(lead => {
+          if (!lead.survey_date) return false;
+          const surveyDate = new Date(lead.survey_date);
+          surveyDate.setHours(0, 0, 0, 0);
+          return surveyDate.getTime() === today.getTime();
+        });
+        break;
+      case "Tomorrow workflow":
+        // Filter leads with survey_date tomorrow
+        result = result.filter(lead => {
+          if (!lead.survey_date) return false;
+          const surveyDate = new Date(lead.survey_date);
+          surveyDate.setHours(0, 0, 0, 0);
+          return surveyDate.getTime() === tomorrow.getTime();
+        });
+        break;
+      case "Next 7 days":
+        // Filter leads with survey_date in the next 7 days
+        result = result.filter(lead => {
+          if (!lead.survey_date) return false;
+          const surveyDate = new Date(lead.survey_date);
+          return surveyDate >= today && surveyDate <= nextWeek;
+        });
+        break;
+      case "Current Month":
+        // Filter leads with survey_date in the current month
+        result = result.filter(lead => {
+          if (!lead.survey_date) return false;
+          const surveyDate = new Date(lead.survey_date);
+          return surveyDate.getMonth() === currentMonth && 
+                 surveyDate.getFullYear() === currentYear;
+        });
+        break;
+      case "Next Month":
+        // Filter leads with survey_date in the next month
+        result = result.filter(lead => {
+          if (!lead.survey_date) return false;
+          const surveyDate = new Date(lead.survey_date);
+          return surveyDate.getMonth() === nextMonth && 
+                 surveyDate.getFullYear() === nextMonthYear;
+        });
+        break;
+      default:
+        // No additional filtering needed
+        break;
+    }
+  }
+  
+  return result;
+}
+
 function Leads() {
   // All leads
   const [leads, setLeads] = useState(
@@ -205,6 +348,29 @@ function Leads() {
     statusOptions.map((s) => s.label)
   );
 
+  // Create a memoized filter state string
+  const filterStateString = useMemo(() => {
+    return JSON.stringify({
+      company: selectedCompany,
+      salesRep: selectedSalesRep,
+      mode: selectedMode,
+      workflow: selectedWorkflow,
+      where: selectedWhere,
+      from: fromDate,
+      to: toDate,
+      statuses: [...checkedStatuses].sort().join(',')
+    });
+  }, [
+    selectedCompany,
+    selectedSalesRep,
+    selectedMode,
+    selectedWorkflow,
+    selectedWhere,
+    fromDate,
+    toDate,
+    checkedStatuses
+  ]);
+
   // On mount -> set the app height
   useEffect(() => {
     function setAppHeight() {
@@ -218,24 +384,45 @@ function Leads() {
     return () => window.removeEventListener("resize", setAppHeight);
   }, []);
 
+  // Reset pagination when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Reset pagination when filters change, using a stable dependency array
+  useEffect(() => {
+    // Only reset page if we're not on the first page already
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [filterStateString, currentPage]);
+
   // Sort leads newest-first
   const sortedLeads = [...leads].sort(
     (a, b) => new Date(b.creation_date_time) - new Date(a.creation_date_time)
   );
 
-  // If search changes => reset to page 1
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
-
   // Apply filters
   let filteredLeads;
   if (searchQuery.trim()) {
     // If there is a search, just do the text/phone filter
+    // Search takes precedence over all other filters
     filteredLeads = filterLeadsBySearch(sortedLeads, searchQuery);
   } else {
-    // Otherwise, filter by tab
+    // First filter by tab
     filteredLeads = filterLeadsByTab(sortedLeads, activeTab);
+    
+    // Then apply secondary filters from the FilterButtonPopup
+    filteredLeads = applySecondaryFilters(filteredLeads, {
+      selectedCompany,
+      selectedSalesRep,
+      selectedMode,
+      selectedWorkflow,
+      selectedWhere,
+      fromDate,
+      toDate,
+      checkedStatuses,
+    });
   }
 
   // Additional sorts for "My Appointments" or "Active Leads"

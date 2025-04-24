@@ -6,6 +6,7 @@ import Icon from '../../../../../Icon';
 
 // Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
+import { useUiState } from '../../UiStateContext';
 
 /**
  * A map from "typeOfPlace" => possible "moveSize" arrays.
@@ -208,77 +209,23 @@ const furnishingEligibleTypes = new Set([
 
 function PlacePopup({
   lead,
-  onLeadUpdated,
+  onDestinationUpdated,
+  onOriginUpdated,
   setIsPlacePopupVisible,
   defaultTab = 'origin',
-  defaultStopIndex = 0,
+  destinationStops,
+  originStops,
 }) {
   const popupContentRef = useRef(null);
 
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
-
-  const [localOriginStops, setLocalOriginStops] = useState([]);
-  const [localDestinationStops, setLocalDestinationStops] = useState([]);
-
-  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
-    defaultTab === 'origin' ? defaultStopIndex : 0
-  );
-  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(
-    defaultTab === 'destination' ? defaultStopIndex : 0
-  );
-
-  // On mount => copy from lead
-  useEffect(() => {
-    const origin = Array.isArray(lead.originStops) && lead.originStops.length > 0
-      ? lead.originStops
-      : [
-          {
-            label: 'Main Address',
-            address: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-          },
-        ];
-
-    const dest = Array.isArray(lead.destinationStops) &&
-      lead.destinationStops.length > 0
-      ? lead.destinationStops
-      : [
-          {
-            label: 'Main Drop off',
-            address: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-          },
-        ];
-
-    const originMapped = origin.map((stop) => ({
-      ...stop,
-      typeOfPlace: stop.typeOfPlace || '',
-      moveSize: stop.moveSize || '',
-      howManyStories: stop.howManyStories || '',
-      features: Array.isArray(stop.features) ? stop.features : [],
-      furnishingStyle: stop.furnishingStyle || '',
-      needsCOI: !!stop.needsCOI,
-    }));
-
-    const destMapped = dest.map((stop) => ({
-      ...stop,
-      typeOfPlace: stop.typeOfPlace || '',
-      moveSize: stop.moveSize || '',
-      howManyStories: stop.howManyStories || '',
-      features: Array.isArray(stop.features) ? stop.features : [],
-      furnishingStyle: stop.furnishingStyle || '',
-      needsCOI: !!stop.needsCOI,
-    }));
-
-    setLocalOriginStops(originMapped);
-    setLocalDestinationStops(destMapped);
-  }, [lead]);
+  const [localStop, setLocalStop] = useState({});
+  const {
+      selectedOriginStopId,
+      setSelectedOriginStopId,
+      selectedDestinationStopId,
+      setSelectedDestinationStopId,
+  } = useUiState();
 
   const handleClose = useCallback(() => {
     setIsPlacePopupVisible(false);
@@ -296,74 +243,65 @@ function PlacePopup({
 
   // If "destination" & "All items" => normal stops hidden => auto‐select first post
   useEffect(() => {
-    if (selectedPlace === 'destination') {
-      const hideNormalStops = !!lead.add_storage && lead.storage_items === 'All items';
-
-      if (hideNormalStops) {
-        const stopsArr = localDestinationStops;
-        const curStop = stopsArr[selectedStopIndexDest];
-        if (curStop && !curStop.postStorage) {
-          const newIndex = stopsArr.findIndex((s) => s.postStorage);
-          if (newIndex !== -1 && newIndex !== selectedStopIndexDest) {
-            setSelectedStopIndexDest(newIndex);
-          }
-        }
-      }
+    if (selectedPlace === 'origin' && originStops.length > 0) {
+      setSelectedOriginStopId((prev) => {
+        const exists = originStops.find(s => s.id === prev);
+        return exists ? prev : originStops[0].id;
+      });
     }
-  }, [
-    selectedPlace,
-    lead.add_storage,
-    lead.storage_items,
-    localDestinationStops,
-    selectedStopIndexDest,
-  ]);
+  
+    if (selectedPlace === 'destination' && destinationStops.length > 0) {
+      const hideNormal = lead.addStorage && lead.storageItems === 'All items';
+      const stopsToUse = hideNormal
+        ? destinationStops.filter(s => s.postStorage)
+        : destinationStops;
+  
+        setSelectedDestinationStopId((prev) => {
+        const exists = stopsToUse.find(s => s.id === prev);
+        return exists ? prev : stopsToUse[0]?.id || null;
+      });
+    }
+  }, [selectedPlace, originStops, destinationStops, lead.addStorage, lead.storageItems]);
 
   const currentStops =
-    selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
-  const stopIndex =
-    selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
+    selectedPlace === 'origin' ? originStops : destinationStops;
+  const selectedStopId =
+    selectedPlace === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
 
-  function handleSetStopIndex(idx) {
+  function handleSetStopId(id) {
     if (selectedPlace === 'origin') {
-      setSelectedStopIndexOrigin(idx);
+      setSelectedOriginStopId(id);
     } else {
-      setSelectedStopIndexDest(idx);
+      setSelectedDestinationStopId(id);
     }
   }
-
-  function handleStopsLocalUpdated(newStops) {
-    if (selectedPlace === 'origin') {
-      setLocalOriginStops(newStops);
-    } else {
-      setLocalDestinationStops(newStops);
-    }
-  }
-
-  const currentStop = currentStops[stopIndex] || {};
+      useEffect(() => {
+        if (!selectedStopId) return;
+      
+        const found = currentStops.find((s) => s.id === selectedStopId);
+        if (found) {
+          setLocalStop(found);
+        }
+      }, [selectedStopId, currentStops, selectedPlace]);
 
   function setStopField(fieldName, newValue) {
-    const updated = [...currentStops];
-    const cloned = { ...updated[stopIndex] };
-    cloned[fieldName] = newValue;
-    updated[stopIndex] = cloned;
-
-    if (selectedPlace === 'origin') {
-      setLocalOriginStops(updated);
-    } else {
-      setLocalDestinationStops(updated);
-    }
+    if (!selectedStopId) return;
+      setLocalStop((prev) => ({
+      ...prev,
+      [fieldName]: newValue,
+  }));
   }
 
-  const moveSizeOptions = moveSizeOptionsMap[currentStop.typeOfPlace] || [];
-  const storiesApplicable = storiesEligibleTypes.has(currentStop.typeOfPlace);
+  const moveSizeOptions = moveSizeOptionsMap[localStop.typeOfPlace] || [];
+  const storiesApplicable = storiesEligibleTypes.has(localStop.typeOfPlace);
 
   const isMoveSizeBasic =
-    currentStop.moveSize === 'One Item' || currentStop.moveSize === 'Just a Few Items';
-  const furnishingDisabled = !currentStop.moveSize || isMoveSizeBasic;
+  localStop.moveSize === 'One Item' || localStop.moveSize === 'Just a Few Items';
+  const furnishingDisabled = !localStop.moveSize || isMoveSizeBasic;
 
   function toggleFeature(feature) {
-    const clonedFeatures = Array.isArray(currentStop.features)
-      ? [...currentStop.features]
+    const clonedFeatures = Array.isArray(localStop.features)
+      ? [...localStop.features]
       : [];
     const idx = clonedFeatures.indexOf(feature);
     if (idx === -1) clonedFeatures.push(feature);
@@ -372,7 +310,7 @@ function PlacePopup({
   }
 
   function isFeatureChecked(feature) {
-    return Array.isArray(currentStop.features) && currentStop.features.includes(feature);
+    return Array.isArray(localStop.features) && localStop.features.includes(feature);
   }
 
   const [showTypeOfPlaceDropdown, setShowTypeOfPlaceDropdown] = useState(false);
@@ -388,7 +326,7 @@ function PlacePopup({
     setShowFurnishingDropdown(false);
   }
   function handleSelectTypeOfPlace(option) {
-    if (option !== currentStop.typeOfPlace) {
+    if (option !== localStop.typeOfPlace) {
       setStopField('moveSize', '');
       setStopField('howManyStories', '');
       setStopField('furnishingStyle', '');
@@ -399,14 +337,14 @@ function PlacePopup({
 
   // ---------- "Move Size" ----------
   function handleToggleMoveSizeDropdown() {
-    if (!currentStop.typeOfPlace) return;
+    if (!localStop.typeOfPlace) return;
     setShowMoveSizeDropdown((prev) => !prev);
     setShowTypeOfPlaceDropdown(false);
     setShowStoriesDropdown(false);
     setShowFurnishingDropdown(false);
   }
   function handleSelectMoveSize(option) {
-    if (option !== currentStop.moveSize) {
+    if (option !== localStop.moveSize) {
       setStopField('furnishingStyle', '');
     }
     setStopField('moveSize', option);
@@ -441,16 +379,17 @@ function PlacePopup({
 
   // ---------- COI ----------
   function toggleCOI() {
-    setStopField('needsCOI', !currentStop.needsCOI);
+    setStopField('needsCOI', !localStop.needsCOI);
   }
-
-  // ---------- Save ----------
   function handleSave() {
-    onLeadUpdated({
-      ...lead,
-      originStops: localOriginStops,
-      destinationStops: localDestinationStops,
-    });
+    if (!localStop?.id) return;
+
+  if (selectedPlace === 'origin') {
+    onOriginUpdated(localStop.id, localStop);
+  } else {
+    onDestinationUpdated(localStop.id, localStop);
+  }
+  
     setIsPlacePopupVisible(false);
   }
 
@@ -474,7 +413,7 @@ function PlacePopup({
 
   // Should we hide normal stops (destination + all items)?
   const hideNormalStops =
-    selectedPlace === 'destination' && !!lead.add_storage && lead.storage_items === 'All items';
+    selectedPlace === 'destination' && !!lead.addStorage && lead.storageItems === 'All items';
 
   // Filter out "inactive" stops if you only want to consider active ones
   const activeStops = currentStops.filter((s) => s.isActive !== false);
@@ -527,11 +466,10 @@ function PlacePopup({
             <div className={styles.stopOffsPaddingWrapper}>
               <MainAndStopOffs
                 stops={currentStops}
-                onStopsUpdated={handleStopsLocalUpdated}
-                selectedStopIndex={stopIndex}
-                setSelectedStopIndex={handleSetStopIndex}
+                selectedStopId={selectedStopId}
+                setSelectedStopId={handleSetStopId}
                 placeType={selectedPlace}
-                isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
+                isStorageToggled={selectedPlace === 'destination' && !!lead.addStorage}
                 hideNormalStops={hideNormalStops}
                 hidePlusButtons
               />
@@ -546,14 +484,14 @@ function PlacePopup({
               <div className={styles.typeOfPlaceSelectWrapper}>
                 <DropdownButton
                   label="Type of place:"
-                  value={currentStop.typeOfPlace}
+                  value={localStop.typeOfPlace}
                   onClick={handleToggleTypeOfPlaceDropdown}
                   disabled={false}
                 />
                 {showTypeOfPlaceDropdown && (
                   <ul className={styles.optionsList}>
                     {typeOfPlaceOptions.map((option) => {
-                      const isSelected = currentStop.typeOfPlace === option;
+                      const isSelected = localStop.typeOfPlace === option;
                       return (
                         <li
                           key={option}
@@ -571,14 +509,14 @@ function PlacePopup({
               <div className={styles.moveSizeSelectWrapper}>
                 <DropdownButton
                   label="Move size:"
-                  value={currentStop.moveSize}
+                  value={localStop.moveSize}
                   onClick={handleToggleMoveSizeDropdown}
-                  disabled={!currentStop.typeOfPlace}
+                  disabled={!localStop.typeOfPlace}
                 />
-                {showMoveSizeDropdown && currentStop.typeOfPlace && (
+                {showMoveSizeDropdown && localStop.typeOfPlace && (
                   <ul className={styles.optionsList}>
                     {moveSizeOptions.map((option) => {
-                      const isSelected = currentStop.moveSize === option;
+                      const isSelected = localStop.moveSize === option;
                       return (
                         <li
                           key={option}
@@ -596,14 +534,14 @@ function PlacePopup({
               <div className={styles.storiesSelectWrapper}>
                 <DropdownButton
                   label="How many stories:"
-                  value={currentStop.howManyStories}
+                  value={localStop.howManyStories}
                   onClick={handleToggleStoriesDropdown}
                   disabled={!storiesApplicable}
                 />
                 {showStoriesDropdown && storiesApplicable && (
                   <ul className={styles.optionsList}>
                     {howManyStoriesOptions.map((option) => {
-                      const isSelected = currentStop.howManyStories === option;
+                      const isSelected = localStop.howManyStories === option;
                       return (
                         <li
                           key={option}
@@ -639,17 +577,17 @@ function PlacePopup({
               <div className={styles.furnishingSelectWrapper} style={{ marginTop: '21px' }}>
                 <DropdownButton
                   label="Furnishing style:"
-                  value={currentStop.furnishingStyle}
+                  value={localStop.furnishingStyle}
                   onClick={handleToggleFurnishingDropdown}
                   disabled={furnishingDisabled}
                 />
                 {showFurnishingDropdown && !furnishingDisabled && (
                   <ul className={styles.optionsList}>
-                    {(furnishingEligibleTypes.has(currentStop.typeOfPlace)
+                    {(furnishingEligibleTypes.has(localStop.typeOfPlace)
                       ? ['Minimalist', 'Moderate', 'Dense']
                       : ['Sparse', 'Moderate', 'Full']
                     ).map((option) => {
-                      const isSelected = currentStop.furnishingStyle === option;
+                      const isSelected = localStop.furnishingStyle === option;
                       return (
                         <li
                           key={option}
@@ -669,7 +607,7 @@ function PlacePopup({
                   <input
                     type="checkbox"
                     className={styles.hiddenCheckbox}
-                    checked={!!currentStop.needsCOI}
+                    checked={!!localStop.needsCOI}
                     onChange={toggleCOI}
                   />
                   <span className={styles.customBox} />
@@ -685,14 +623,14 @@ function PlacePopup({
               <div className={styles.typeOfPlaceSelectWrapper}>
                 <DropdownButton
                   label="Type of place:"
-                  value={currentStop.typeOfPlace}
+                  value={localStop.typeOfPlace}
                   onClick={handleToggleTypeOfPlaceDropdown}
                   disabled={false}
                 />
                 {showTypeOfPlaceDropdown && (
                   <ul className={styles.optionsList}>
                     {typeOfPlaceOptions.map((option) => {
-                      const isSelected = currentStop.typeOfPlace === option;
+                      const isSelected = localStop.typeOfPlace === option;
                       return (
                         <li
                           key={option}
@@ -710,14 +648,14 @@ function PlacePopup({
               <div className={styles.storiesSelectWrapper}>
                 <DropdownButton
                   label="How many stories:"
-                  value={currentStop.howManyStories}
+                  value={localStop.howManyStories}
                   onClick={handleToggleStoriesDropdown}
                   disabled={!storiesApplicable}
                 />
                 {showStoriesDropdown && storiesApplicable && (
                   <ul className={styles.optionsList}>
                     {howManyStoriesOptions.map((option) => {
-                      const isSelected = currentStop.howManyStories === option;
+                      const isSelected = localStop.howManyStories === option;
                       return (
                         <li
                           key={option}
@@ -755,7 +693,7 @@ function PlacePopup({
                   <input
                     type="checkbox"
                     className={styles.hiddenCheckbox}
-                    checked={!!currentStop.needsCOI}
+                    checked={!!localStop.needsCOI}
                     onChange={toggleCOI}
                   />
                   <span className={styles.customBox} />

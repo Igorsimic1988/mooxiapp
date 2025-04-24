@@ -10,12 +10,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_POSTGRES_PRISMA_URL")
+  url      = env("POSTGRES_URL")
 }
 
 //role: admin, owner-oboje settings, salesman-svoji lidovi,salesmenager-svima
 //teer4321
 //tenant->tenantsettings, role itd
+//react-hook form
 
 model Invitation {
   id        String   @id @default(uuid()) 
@@ -76,6 +77,7 @@ model Brand{
   tenant        Tenant @relation(fields: [tenantId], references: [id])
   settings      BrandSettings[]
   furnitureItems FurnitureItem[]
+  leads         Lead[] 
 
 }
 
@@ -95,6 +97,14 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model InventoryItem {
+  id              String        @id @default(uuid())
+  leadId          String
+  lead            Lead          @relation(fields: [leadId], references: [id])
+  furnitureItemId Int            @unique
+  furnitureItem   FurnitureItem @relation(name: "FurnitureToInventory", fields: [furnitureItemId], references: [id])
+}
+
 model FurnitureItem {
   id       Int      @id @default(autoincrement()) 
   name     String  
@@ -109,4 +119,178 @@ model FurnitureItem {
   packingQuantity Int? 
   brandId String  
   brand   Brand  @relation(fields: [brandId], references: [id])
+  inventoryItem   InventoryItem?   @relation(name: "FurnitureToInventory")
 }
+
+
+      
+  
+
+model Lead {
+  id                    String   @id @default(uuid())
+  brandId              String
+  brand                Brand   @relation(fields: [brandId], references: [id])
+  companyName           String
+  jobNumber             Int? @unique
+  customerName          String
+  customerPhoneNumber   String
+  customerEmail         String
+  source                String?
+  serviceType           String?
+  fromZip               String?
+  toZip                 String?
+  moveDate              String?
+  assignSalesRep        Boolean? @default(false)
+  salesName             String?
+  creationDateTime      DateTime @default(now())
+  estimator             String?
+  surveyDate            String?
+  surveyTime            String?
+  leadStatus            String?
+  leadActivity          String?
+  nextAction            String?
+  isNew                 Boolean? @default(true)
+  inventoryOption       String?
+  addStorage            Boolean? @default(false)
+  storageItems          String?
+  deliveryDate          String?
+  etaRequest            String?
+  timePromised          Boolean?
+  arrivalTime           String?
+  activeDay             String? @default("moving")
+  hasPackingDay         Boolean? @default(false)
+  rateType              String?
+  numTrucks             Int?
+  numMovers             Int?
+  hourlyRate            Int?
+  volume                Int?
+  weight                Int?
+  pricePerCuft          Float?
+  pricePerLbs           Float?
+  travelTime            String?
+  movingMin             String?
+  minimumCuft           Float?
+  minimumLbs            Int?
+  pickupWindow          String?
+  earliestDeliveryDate  String?
+  deliveryWindow        String?
+  minHours              String?
+  maxHours              String?
+  numPackers            Int?
+  packingHourlyRate     Int?
+  packingTravelTime     String?
+  packingMinimum        String?
+  packingMinHours       String?
+  packingMaxHours       String?
+  hasInvoice            Boolean? @default(false)
+  typeOfQuote           String?
+  estimateQuote            Float?
+  estimateFuelSurcharge       Float?
+  estimateValuation           Float?
+  estimatePacking             Float?
+  estimateAdditionalServices  Float?
+  estimateDiscount            Float?
+  estimateGrandTotal       Float?
+  estimatePayment             Float?
+  estimateDeposit             Float?
+  estimateBalanceDue       Float?
+  invoiceQuote            Float?
+  invoiceFuelSurcharge       Float?
+  invoiceValuation           Float?
+  invoicePacking             Float?
+  invoiceAdditionalServices  Float?
+  invoiceDiscount            Float?
+  invoiceGrandTotal       Float?
+  invoicePayment             Float?
+  invoiceDeposit             Float?
+  invoiceBalanceDue       Float?
+  inventoryItems        InventoryItem[]
+  origins       Origins[]
+  destinations  Destinations[]
+}
+
+model Origins {
+  id                      String   @id @default(uuid())
+  leadId                  String
+  lead                   Lead     @relation(fields: [leadId], references: [id])
+  address                String?
+  apt                    String?
+  city                   String?
+  state                  String?
+  zipCode                String?
+  typeOfPlace            String?
+  moveSize               String?
+  howManyStories         String?
+  features               String[]
+  furnishingStyle        String?
+  needsCOI               Boolean?
+  biggestTruckAccess     String?
+  shuttleTruckRequired   Boolean?
+  parkingAccess          String?
+  distanceDoorTruck      String?
+  howManySteps           String?
+  terrainDoorTruck       String?
+  elevatorAtStop         Boolean?
+  elevatorExclusive      Boolean?
+  elevatorFloors         String?
+  elevatorSize           String?
+  whatsMoving            String?
+  packingOption          String?
+  itemsToBeTakenApart    Boolean?
+  hoistItems             Boolean?
+  craneNeeded            Boolean?
+  blanketsOption         String?
+  additionalServices     String[]
+  timeRestriction        Boolean?
+  timeRestrictionOption  String?
+  timeRestrictionType    String?
+  timeRestrictionStartTime String?
+  timeRestrictionEndTime String?
+  isActive               Boolean?
+}
+
+model Destinations {
+  id                      String   @id @default(uuid())
+  leadId                  String
+  lead                   Lead     @relation(fields: [leadId], references: [id])
+  address                String?
+  apt                    String?
+  city                   String?
+  state                  String?
+  zipCode                String?
+  typeOfPlace            String?
+  moveSize               String?
+  howManyStories         String?
+  features               String[]
+  furnishingStyle        String?
+  needsCOI               Boolean?
+  biggestTruckAccess     String?
+  shuttleTruckRequired   Boolean?
+  parkingAccess          String?
+  distanceDoorTruck      String?
+  howManySteps           String?
+  terrainDoorTruck       String?
+  elevatorAtStop         Boolean?
+  elevatorExclusive      Boolean?
+  elevatorFloors         String?
+  elevatorSize           String?
+  whatsMoving            String?
+  unpackingOption          String?
+  itemsToBeAssembled    Boolean?
+  hoistItems             Boolean?
+  craneNeeded            Boolean?
+  blanketsOption         String?
+  additionalServices     String[]
+  postStorage            Boolean?
+  timeRestriction        Boolean?
+  timeRestrictionOption  String?
+  timeRestrictionType    String?
+  timeRestrictionStartTime String?
+  timeRestrictionEndTime String?
+  isActive               Boolean?
+}
+
+
+
+
+

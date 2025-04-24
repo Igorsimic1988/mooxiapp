@@ -6,6 +6,7 @@ import styles from './ServicesPopup.module.css';
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 
 import Icon from '../../../../../Icon';
+import { useUiState } from '../../UiStateContext';
 
 // Example data for drop-downs
 const whatsMovingOriginOptions = ['Mixed', 'Boxes Only', 'Furniture Only'];
@@ -46,84 +47,23 @@ const typeOfServiceChoices = [
 
 function ServicesPopup({
   lead,
-  onLeadUpdated,
+  onDestinationUpdated ,
+  onOriginUpdated ,
   setIsServicesPopupVisible,
   defaultTab = 'origin',
-  defaultStopIndex = 0,
+  destinationStops = [],
+  originStops = [],
 }) {
   const popupContentRef = useRef(null);
 
-  const [localOriginStops, setLocalOriginStops] = useState([]);
-  const [localDestinationStops, setLocalDestinationStops] = useState([]);
-
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
-
-  // separate indexes for origin/dest
-  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
-    defaultTab === 'origin' ? defaultStopIndex : 0
-  );
-  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(
-    defaultTab === 'destination' ? defaultStopIndex : 0
-  );
-
-  // Copy from lead
-  useEffect(() => {
-    const originStops =
-      Array.isArray(lead.originStops) && lead.originStops.length > 0
-        ? lead.originStops
-        : [
-            {
-              label: 'Main Address',
-              address: '',
-              apt: '',
-              city: '',
-              state: '',
-              zip: '',
-            },
-          ];
-
-    const destStops =
-      Array.isArray(lead.destinationStops) && lead.destinationStops.length > 0
-        ? lead.destinationStops
-        : [
-            {
-              label: 'Main Address',
-              address: '',
-              apt: '',
-              city: '',
-              state: '',
-              zip: '',
-            },
-          ];
-
-    const mappedOrigin = originStops.map((stop) => ({
-      ...stop,
-      whatsMoving: stop.whatsMoving || '',
-      packingOption: stop.packingOption || '',
-      itemsToBeTakenApart: !!stop.itemsToBeTakenApart,
-      hoistItems: !!stop.hoistItems,
-      craneNeeded: !!stop.craneNeeded,
-      blanketsOption: stop.blanketsOption || '',
-      additionalServices: Array.isArray(stop.additionalServices)
-        ? [...stop.additionalServices]
-        : [],
-    }));
-
-    const mappedDest = destStops.map((stop) => ({
-      ...stop,
-      unpackingOption: stop.unpackingOption || '',
-      itemsToBeAssembled: !!stop.itemsToBeAssembled,
-      hoistItems: !!stop.hoistItems,
-      craneNeeded: !!stop.craneNeeded,
-      blanketsOption: stop.blanketsOption || '',
-      additionalServices: Array.isArray(stop.additionalServices)
-        ? [...stop.additionalServices]
-        : [],
-    }));
-
-    setLocalOriginStops(mappedOrigin);
-    setLocalDestinationStops(mappedDest);
-  }, [lead]);
+    const [localStop, setLocalStop] = useState({});
+    const {
+        selectedOriginStopId,
+        setSelectedOriginStopId,
+        selectedDestinationStopId,
+        setSelectedDestinationStopId,
+    } = useUiState();
 
   // close if clicked outside
   const handleClose = useCallback(() => {
@@ -142,84 +82,77 @@ function ServicesPopup({
     };
   }, [handleClose]);
 
-  // *** Auto-select first post if "destination" + "All items" hides normal stops ***
-  useEffect(() => {
-    if (selectedPlace === 'destination') {
-      const hideNormal = lead.add_storage && lead.storage_items === 'All items';
-      if (hideNormal) {
-        const stopsArr = localDestinationStops;
-        const current = stopsArr[selectedStopIndexDest];
-        if (current && !current.postStorage) {
-          // find first post-storage
-          const idx = stopsArr.findIndex((s) => s.postStorage);
-          if (idx !== -1 && idx !== selectedStopIndexDest) {
-            setSelectedStopIndexDest(idx);
-          }
-        }
-      }
-    }
-  }, [
-    selectedPlace,
-    lead.add_storage,
-    lead.storage_items,
-    localDestinationStops,
-    selectedStopIndexDest,
-  ]);
+  const currentStops =
+  selectedPlace === 'origin' ? originStops : destinationStops;
+
+const selectedStopId =
+  selectedPlace === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
+
 
   // Decide which array
-  const currentStops =
-    selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
 
-  const selectedStopIndex =
-    selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
-
-  function setSelectedStopIndexGlobal(idx) {
+  function setSelectedStopIdGlobal(id) {
     if (selectedPlace === 'origin') {
-      setSelectedStopIndexOrigin(idx);
+      setSelectedOriginStopId(id);
     } else {
-      setSelectedStopIndexDest(idx);
+      setSelectedDestinationStopId(id);
     }
   }
-
-  function handleStopsLocalUpdated(newStops) {
-    if (selectedPlace === 'origin') {
-      setLocalOriginStops(newStops);
-    } else {
-      setLocalDestinationStops(newStops);
+  useEffect(() => {
+    if (!selectedStopId) return;
+        
+    const found = currentStops.find((s) => s.id === selectedStopId);
+    if (found) {
+      setLocalStop(found);
     }
-  }
+  }, [selectedStopId, currentStops, selectedPlace]);
 
-  const stop = currentStops[selectedStopIndex] || {};
+    useEffect(() => {
+      if (selectedPlace === 'origin' && originStops.length > 0) {
+        setSelectedOriginStopId((prev) => {
+          const exists = originStops.find(s => s.id === prev);
+          return exists ? prev : originStops[0].id;
+        });
+      }
+    
+      if (selectedPlace === 'destination' && destinationStops.length > 0) {
+        const hideNormal = lead.addStorage && lead.storageItems === 'All items';
+        const stopsToUse = hideNormal
+          ? destinationStops.filter(s => s.postStorage)
+          : destinationStops;
+    
+          setSelectedDestinationStopId((prev) => {
+          const exists = stopsToUse.find(s => s.id === prev);
+          return exists ? prev : stopsToUse[0]?.id;
+        });
+      }
+    }, [selectedPlace, originStops, destinationStops, lead.addStorage, lead.storageItems]);
 
-  function setStopField(fieldName, value) {
-    const updated = [...currentStops];
-    const cloned = { ...updated[selectedStopIndex] };
-    cloned[fieldName] = value;
-    updated[selectedStopIndex] = cloned;
-
-    if (selectedPlace === 'origin') {
-      setLocalOriginStops(updated);
-    } else {
-      setLocalDestinationStops(updated);
-    }
+    function setStopField(fieldName, newValue) {
+      if (!selectedStopId) return;
+        setLocalStop((prev) => ({
+        ...prev,
+        [fieldName]: newValue,
+    }));
   }
 
   function handleSave() {
-    onLeadUpdated({
-      ...lead,
-      originStops: localOriginStops,
-      destinationStops: localDestinationStops,
-    });
-    setIsServicesPopupVisible(false);
-  }
+    if (!localStop?.id) return;
+    if (selectedPlace === 'origin') {
+      onOriginUpdated(localStop.id, localStop);
+    } else {
+      onDestinationUpdated(localStop.id, localStop);
+    }   
+      setIsServicesPopupVisible(false);
+    }
 
   function toggleField(fieldName) {
-    setStopField(fieldName, !stop[fieldName]);
+    setStopField(fieldName, !localStop[fieldName]);
   }
 
   function toggleAdditionalService(serviceName) {
-    const currentServices = Array.isArray(stop.additionalServices)
-      ? [...stop.additionalServices]
+    const currentServices = Array.isArray(localStop.additionalServices)
+      ? [...localStop.additionalServices]
       : [];
     const idx = currentServices.indexOf(serviceName);
     if (idx === -1) {
@@ -231,8 +164,8 @@ function ServicesPopup({
   }
   function isServiceChecked(serviceName) {
     return (
-      Array.isArray(stop.additionalServices) &&
-      stop.additionalServices.includes(serviceName)
+      Array.isArray(localStop.additionalServices) &&
+      localStop.additionalServices.includes(serviceName)
     );
   }
 
@@ -258,11 +191,12 @@ function ServicesPopup({
   // If it's "destination" + lead.add_storage + 'All items' => hide normal stops
   const hideNormalStops =
     selectedPlace === 'destination' &&
-    !!lead.add_storage &&
-    lead.storage_items === 'All items';
+    !!lead.addStorage &&
+    lead.storageItems === 'All items';
 
   // Filter out inactive stops
   const activeStops = currentStops.filter((s) => s.isActive !== false);
+
 
   return (
     <div className={styles.popup}>
@@ -308,11 +242,10 @@ function ServicesPopup({
             <div className={styles.stopOffsPaddingWrapper}>
               <MainAndStopOffs
                 stops={currentStops}
-                onStopsUpdated={handleStopsLocalUpdated}
-                selectedStopIndex={selectedStopIndex}
-                setSelectedStopIndex={setSelectedStopIndexGlobal}
+                selectedStopId={selectedStopId}
+                setSelectedStopId={setSelectedStopIdGlobal}
                 placeType={selectedPlace}
-                isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
+                isStorageToggled={selectedPlace === 'destination' && !!lead.addStorage}
                 hideNormalStops={hideNormalStops}
 
                 /* Hide the plus buttons: */
@@ -332,7 +265,7 @@ function ServicesPopup({
                 <div className={styles.dropdownWrapper}>
                   <DropdownButton
                     label="What's Moving:"
-                    value={stop.whatsMoving}
+                    value={localStop.whatsMoving}
                     onClick={() => {
                       setShowWhatsMovingDropdown(!showWhatsMovingDropdown);
                       setShowPackingDropdown(false);
@@ -343,7 +276,7 @@ function ServicesPopup({
                   {showWhatsMovingDropdown && (
                     <ul className={styles.optionsList}>
                       {whatsMovingOriginOptions.map((option) => {
-                        const isSelected = stop.whatsMoving === option;
+                        const isSelected = localStop.whatsMoving === option;
                         return (
                           <li
                             key={option}
@@ -365,7 +298,7 @@ function ServicesPopup({
                 <div className={`${styles.dropdownWrapper} ${styles.packingOptionMargin}`}>
                   <DropdownButton
                     label="Packing Option:"
-                    value={stop.packingOption}
+                    value={localStop.packingOption}
                     onClick={() => {
                       setShowPackingDropdown(!showPackingDropdown);
                       setShowWhatsMovingDropdown(false);
@@ -376,7 +309,7 @@ function ServicesPopup({
                   {showPackingDropdown && (
                     <ul className={styles.optionsList}>
                       {packingOriginOptions.map((option) => {
-                        const isSelected = stop.packingOption === option;
+                        const isSelected = localStop.packingOption === option;
                         return (
                           <li
                             key={option}
@@ -403,7 +336,7 @@ function ServicesPopup({
                 <div className={`${styles.dropdownWrapper} ${styles.unpackingOptionMargin}`}>
                   <DropdownButton
                     label="Unpacking:"
-                    value={stop.unpackingOption}
+                    value={localStop.unpackingOption}
                     onClick={() => {
                       setShowUnpackingDropdown(!showUnpackingDropdown);
                       setShowBlanketsDropdown(false);
@@ -414,7 +347,7 @@ function ServicesPopup({
                   {showUnpackingDropdown && (
                     <ul className={styles.optionsList}>
                       {unpackingDestinationOptions.map((option) => {
-                        const isSelected = stop.unpackingOption === option;
+                        const isSelected = localStop.unpackingOption === option;
                         return (
                           <li
                             key={option}
@@ -441,7 +374,7 @@ function ServicesPopup({
                   <input
                     type="checkbox"
                     className={styles.hiddenCheckbox}
-                    checked={!!stop.itemsToBeTakenApart}
+                    checked={!!localStop.itemsToBeTakenApart}
                     onChange={() => toggleField('itemsToBeTakenApart')}
                   />
                   <span className={styles.customBox} />
@@ -456,7 +389,7 @@ function ServicesPopup({
                   <input
                     type="checkbox"
                     className={styles.hiddenCheckbox}
-                    checked={!!stop.itemsToBeAssembled}
+                    checked={!!localStop.itemsToBeAssembled}
                     onChange={() => toggleField('itemsToBeAssembled')}
                   />
                   <span className={styles.customBox} />
@@ -471,7 +404,7 @@ function ServicesPopup({
                 <input
                   type="checkbox"
                   className={styles.hiddenCheckbox}
-                  checked={!!stop.hoistItems}
+                  checked={!!localStop.hoistItems}
                   onChange={() => toggleField('hoistItems')}
                 />
                 <span className={styles.customBox} />
@@ -483,7 +416,7 @@ function ServicesPopup({
                 <input
                   type="checkbox"
                   className={styles.hiddenCheckbox}
-                  checked={!!stop.craneNeeded}
+                  checked={!!localStop.craneNeeded}
                   onChange={() => toggleField('craneNeeded')}
                 />
                 <span className={styles.customBox} />
@@ -495,7 +428,7 @@ function ServicesPopup({
             <div className={`${styles.blanketsDropdownWrapper} ${styles.blanketsMargin}`}>
               <DropdownButton
                 label="Blankets:"
-                value={stop.blanketsOption}
+                value={localStop.blanketsOption}
                 onClick={() => {
                   setShowBlanketsDropdown(!showBlanketsDropdown);
                   setShowWhatsMovingDropdown(false);
@@ -509,7 +442,7 @@ function ServicesPopup({
                     ? blanketsOriginOptions
                     : blanketsDestinationOptions
                   ).map((option) => {
-                    const isSelected = stop.blanketsOption === option;
+                    const isSelected = localStop.blanketsOption === option;
                     return (
                       <li
                         key={option}

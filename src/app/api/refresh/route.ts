@@ -14,7 +14,7 @@ export async function GET(){
         const newAccessToken = jwt.sign(
             { sub: decoded.sub, email: decoded.email },
             process.env.ACCESS_TOKEN_SECRET!,
-            {expiresIn: "1h"}
+            {expiresIn: "30d"}
         );
 
         return NextResponse.json({ accessToken: newAccessToken });

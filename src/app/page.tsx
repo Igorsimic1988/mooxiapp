@@ -1,8 +1,9 @@
 'use client';
 import './globals.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation';
+import { useAccessToken } from './lib/useAccessToken';
 
 
 
@@ -13,17 +14,12 @@ const DynamicLeads = dynamic(
 
 function App() {
   const router = useRouter();
-
-
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-
+  const token = useAccessToken();
   useEffect(() => {
-    const token = localStorage.getItem("access-token");
-    setAccessToken(token);
     if (token) {
       router.push('/leads');
     }
-  }, []);
+  }, [token, router]);
 
   const handleSignOut = () => {
     localStorage.removeItem("access-token"); 
@@ -33,7 +29,7 @@ function App() {
 
   return (
     <div className="App">
-      {accessToken ? (
+      {token ? (
         <>
         <button onClick={handleSignOut}>Sign Out</button>
         <DynamicLeads /> 

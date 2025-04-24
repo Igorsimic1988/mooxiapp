@@ -12,6 +12,11 @@ import ServicesPopup from './ServicesPopup/ServicesPopup';
 
 // Reusable row of stops
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
+import { useUiState } from '../UiStateContext';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createOrigin, deleteOrigin } from 'src/app/services/originsService';
+import { useAccessToken } from "src/app/lib/useAccessToken";
+
 
 /** Generate 15-min increments from 7:00 AM to midnight, excluding midnight duplication */
 function generateTimeOptions() {
@@ -34,16 +39,68 @@ function generateTimeOptions() {
 
 function OriginDetails({
   lead,
-  onLeadUpdated,
-  onShowInventory,
-  isCollapsed,       // <--- lifted from parent
-  setIsCollapsed,    // <--- lifted from parent
+  onShowInventory, 
+  onDestinationUpdated,
+  onOriginUpdated,
+  destinationStops,
+  setOriginStops,
+  originStops,
 }) {
+    const token = useAccessToken();
+    const queryClient = useQueryClient();
+  const createOriginMutation = useMutation({
+    mutationFn: (newOriginData) =>createOrigin({originsData: newOriginData, leadId:lead.id,  token: token}),
+    onSuccess:(createdOrigin) => {
+      console.log("New origin created:", createdOrigin);
+      queryClient.invalidateQueries(['origins']);
+      setOriginStops((prev) => [...prev, createdOrigin]);
+    },
+    onError: (err) => {
+      console.log(err)
+    }
+  });
+
+  const deleteOriginMutation = useMutation({
+    mutationFn: deleteOrigin,
+    onSuccess: () => {
+      console.log('Origin deleted!');
+      queryClient.invalidateQueries(['origins']);
+    },
+    onError: (err) => {
+      console.error('Failed to delete origin', err);
+    }
+  });
+
+  const handleAddNormalStop = () => {
+    const newStop = {
+      address: '',
+      apt: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      isActive: true,
+    };
+    createOriginMutation.mutate(newStop, {
+      onSuccess: (createdOrigin) => {
+        console.log("New origin created:", createdOrigin);
+        queryClient.invalidateQueries(['origins']);
+        setSelectedOriginStopId(createdOrigin.id);
+      },
+      onError: (err) => {
+        console.error('Failed to create origin stop', err);
+      }
+    });
+  }
   // ---------- ORIGIN STOPS ----------
-  const [selectedStopIndex, setSelectedStopIndex] = useState(0);
 
   // Instead of local useState, we read isCollapsed from props:
-  const toggleCollapse = () => setIsCollapsed((prev) => !prev);
+  const {selectedOriginStopId, setSelectedOriginStopId, isOriginCollapsed, setIsOriginCollapsed} = useUiState();
+  const toggleCollapse = () => setIsOriginCollapsed((prev) => !prev);
+  useEffect(() => {
+    if (originStops.length > 0 && !selectedOriginStopId) {
+      setSelectedOriginStopId(lead.origins[0].id)
+    }
+  }, [originStops, selectedOriginStopId]);
 
   // ---------- TIME RESTRICTIONS UI ----------
   const timeRestrictionOptions = ['Not allowed', 'Allowed'];
@@ -65,76 +122,43 @@ function OriginDetails({
   const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
   const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false);
 
-  // ---------- ENSURE ORIGIN/DEST STOPS EXIST ----------
-  useEffect(() => {
-    if (!Array.isArray(lead.originStops) || lead.originStops.length === 0) {
-      const defaultStops = [
-        {
-          label: 'Main Address',
-          address: '',
-          apt: '',
-          city: '',
-          state: '',
-          zip: '',
-          timeRestrictions: {
-            isEnabled: false,
-            option: 'Select',
-            restrictionType: 'Select',
-            startTime: '',
-            endTime: '',
-          },
-        },
-      ];
-      onLeadUpdated({ ...lead, originStops: defaultStops });
-    }
-
-    if (!Array.isArray(lead.destinationStops)) {
-      onLeadUpdated({
-        ...lead,
-        destinationStops: [
-          {
-            label: 'Main Address',
-            address: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-          },
-        ],
-      });
-    }
-  }, [lead, onLeadUpdated]);
-
   // ---------- Current Stop ----------
-  const originStops = lead.originStops || [];
-  const currentStop = originStops[selectedStopIndex] || {};
+  const currentStop = originStops.find((s) => s.id === selectedOriginStopId) || {};
+
 
   /**
    * Deactivate => remove this stop, unless it's "Main Address"
    */
+  const [fallbackOriginStopId, setFallbackOriginStopId] = useState(null);
+
   function handleDeactivateThisStop() {
-    if (!currentStop) return;
-
-    if (currentStop.label === 'Main Address') {
-      return;
+    if (!currentStop?.id) return;
+    
+    const originIndex = originStops.findIndex(s => s.id === currentStop.id);
+    if (originIndex === 0) return;
+    deleteOriginMutation.mutate(
+      { id: currentStop.id },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries(['origins']);
+          setOriginStops((prev) => {
+            const updated = prev.filter((s) => s.id !== currentStop.id);
+            const nextStop = prev[originIndex - 1];
+            if (nextStop?.id) {
+              setSelectedOriginStopId(nextStop.id);
+            }
+            return updated;
+          });
+      }
+    });
+   }
+   useEffect(() => {
+    if (fallbackOriginStopId) {
+      setSelectedOriginStopId(fallbackOriginStopId);
+      setFallbackOriginStopId(null); 
     }
-
-    const updated = [...originStops];
-    updated.splice(selectedStopIndex, 1);
-
-    let newIndex = selectedStopIndex;
-    if (newIndex >= updated.length) {
-      newIndex = updated.length - 1;
-    }
-    if (newIndex < 0) newIndex = 0;
-
-    onLeadUpdated({ ...lead, originStops: updated });
-    if (updated.length > 0) {
-      setSelectedStopIndex(newIndex);
-    } else {
-      setSelectedStopIndex(0);
-    }
-  }
+  }, [fallbackOriginStopId]);
+  
 
   /**
    * PLACE => remove dotted if typeOfPlace, moveSize, howManyStories all set
@@ -167,26 +191,35 @@ function OriginDetails({
 
   // If user changes an address field => update that stop
   const handleStopFieldChange = (fieldName, newValue) => {
-    const updatedStops = [...originStops];
-    const stopCopy = { ...updatedStops[selectedStopIndex] };
-    stopCopy[fieldName] = newValue;
-    updatedStops[selectedStopIndex] = stopCopy;
-    onLeadUpdated({ ...lead, originStops: updatedStops });
+    const stop = originStops.find((s) => s.id === selectedOriginStopId);
+    if (!stop?.id) return;
+  const updatedStop = { ...stop, [fieldName]: newValue };
+  setOriginStops((prev) =>
+    prev.map((s) => (s.id === selectedOriginStopId ? updatedStop : s))
+  );
+  onOriginUpdated(stop.id, { [fieldName]: newValue });
   };
+  // const handleOriginUpdated = (id, updates) => {
+  //   setOriginStops((prevStops) =>
+  //     prevStops.map((stop) =>
+  //       stop.id === id ? { ...stop, ...updates } : stop
+  //     )
+  //   );
+  //   onOriginUpdated(id, updates); // ovo šalje i ka gore
+  // };
 
   // ---------- Time restrictions ----------
+
   function getCurrentStopRestrictions() {
-    if (!currentStop.timeRestrictions) {
-      return {
-        isEnabled: false,
-        option: 'Select',
-        restrictionType: 'Select',
-        startTime: '',
-        endTime: '',
-      };
-    }
-    return currentStop.timeRestrictions;
+    return {
+      isEnabled: currentStop.timeRestriction ?? false,
+      option: currentStop.timeRestrictionOption || 'Select',
+      restrictionType: currentStop.timeRestrictionType || 'Select',
+      startTime: currentStop.timeRestrictionStartTime || '',
+      endTime: currentStop.timeRestrictionEndTime || '',
+    };
   }
+  
   const currentTR = getCurrentStopRestrictions();
 
   const optionDropdownRef = useRef(null);
@@ -226,21 +259,24 @@ function OriginDetails({
   ]);
 
   const updateCurrentStopRestrictions = (partialObj) => {
-    const updatedStops = [...originStops];
-    const stopCopy = { ...updatedStops[selectedStopIndex] };
-
-    let tr = stopCopy.timeRestrictions || {
-      isEnabled: false,
-      option: 'Select',
-      restrictionType: 'Select',
-      startTime: '',
-      endTime: '',
-    };
-    tr = { ...tr, ...partialObj };
-    stopCopy.timeRestrictions = tr;
-
-    updatedStops[selectedStopIndex] = stopCopy;
-    onLeadUpdated({ ...lead, originStops: updatedStops });
+    if (!currentStop?.id) return;
+    const updates = {};
+    if ('isEnabled' in partialObj)
+      updates.timeRestriction = partialObj.isEnabled;
+    if ('option' in partialObj)
+      updates.timeRestrictionOption = partialObj.option;
+    if ('restrictionType' in partialObj)
+      updates.timeRestrictionType = partialObj.restrictionType;
+    if ('startTime' in partialObj)
+      updates.timeRestrictionStartTime = partialObj.startTime;
+    if ('endTime' in partialObj)
+      updates.timeRestrictionEndTime = partialObj.endTime;
+    setOriginStops((prev) =>
+      prev.map((stop) =>
+        stop.id === selectedOriginStopId ? { ...stop, ...updates } : stop
+      )
+    );
+    onOriginUpdated(currentStop.id, updates);
   };
 
   const handleToggleTimeRestrictions = (value) => {
@@ -423,27 +459,24 @@ function OriginDetails({
   const removeDottedServices = isServicesDataComplete(currentStop) ? styles.servicesNoDotted : '';
 
   // Decide if "Deactivate" is visible => hide if "Main Address"
-  const canDeactivate = currentStop.label !== 'Main Address';
+  const canDeactivate =
+  originStops.findIndex((s) => s.id === selectedOriginStopId) !== 0;
 
   return (
     <div className={styles.originContainer}>
       <div className={styles.originHeader}>
         <span className={styles.originTitle}>Origin</span>
         <button className={styles.minusButton} onClick={toggleCollapse}>
-          {isCollapsed ? '+' : '-'}
+          {isOriginCollapsed ? '+' : '-'}
         </button>
       </div>
 
-      {!isCollapsed && (
+      {!isOriginCollapsed && (
         <>
           {/* Row of origin stops + plus button */}
           <MainAndStopOffs
             stops={originStops}
-            onStopsUpdated={(newStops) => {
-              onLeadUpdated({ ...lead, originStops: newStops });
-            }}
-            selectedStopIndex={selectedStopIndex}
-            setSelectedStopIndex={setSelectedStopIndex}
+            onAddNormalStop={handleAddNormalStop}
             placeType="origin"
           />
 
@@ -513,8 +546,8 @@ function OriginDetails({
                   type="text"
                   className={styles.addressInput}
                   placeholder="Zip code"
-                  value={currentStop.zip || ''}
-                  onChange={(e) => handleStopFieldChange('zip', e.target.value)}
+                  value={currentStop.zipCode || ''}
+                  onChange={(e) => handleStopFieldChange('zipCode', e.target.value)}
                 />
               </div>
             </div>
@@ -784,31 +817,40 @@ function OriginDetails({
       )}
 
       {/* POPUPS */}
-      {isPlacePopupOpen && (
+      {isPlacePopupOpen && originStops.length > 0 && selectedOriginStopId &&(
         <PlacePopup
           lead={lead}
-          onLeadUpdated={onLeadUpdated}
+          onOriginUpdated={onOriginUpdated}
+          onDestinationUpdated={onDestinationUpdated}
           setIsPlacePopupVisible={setIsPlacePopupOpen}
+          originStops={originStops}
+          destinationStops={destinationStops}
           defaultTab="origin"
-          defaultStopIndex={selectedStopIndex}
+          defaultStopId={selectedOriginStopId}
         />
       )}
-      {isAccessPopupOpen && (
+      {isAccessPopupOpen &&  originStops.length > 0 && selectedOriginStopId &&(
         <AccessPopup
           lead={lead}
-          onLeadUpdated={onLeadUpdated}
+          onOriginUpdated={onOriginUpdated}
+          onDestinationUpdated={onDestinationUpdated}
           setIsAccessPopupVisible={setIsAccessPopupOpen}
+          originStops={originStops}
+          destinationStops={destinationStops}
           defaultTab="origin"
-          defaultStopIndex={selectedStopIndex}
+          defaultStopId={selectedOriginStopId}
         />
       )}
-      {isServicesPopupOpen && (
+      {isServicesPopupOpen && originStops.length > 0 && selectedOriginStopId && (
         <ServicesPopup
           lead={lead}
-          onLeadUpdated={onLeadUpdated}
+          onOriginUpdated={onOriginUpdated}
+          onDestinationUpdated={onDestinationUpdated}
           setIsServicesPopupVisible={setIsServicesPopupOpen}
+          originStops={originStops}
+          destinationStops={destinationStops}
           defaultTab="origin"
-          defaultStopIndex={selectedStopIndex}
+          defaultStopId={selectedOriginStopId}
         />
       )}
     </div>

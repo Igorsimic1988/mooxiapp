@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Lead" ALTER COLUMN "creationDateTime" SET DEFAULT CURRENT_TIMESTAMP;

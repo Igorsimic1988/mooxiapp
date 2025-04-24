@@ -13,21 +13,23 @@ import LeadsList from "./LeadsList/LeadsList";
 import LeadManagementPanel from "./LeadManagementPanel/LeadManagementPanel";
 import Inventory from "./LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory";
 
-import actualLeads from "../../data/constants/actualLeads";
 import LeadFormPopup from "./LeadFormPopup/LeadFormPopup";
 import FilterButtonPopup from "./FilterButtonPopup/FilterButtonPopup";
+import { getAllLeads, createLead, updateLead } from "src/app/services/leadsService";
+import { useAccessToken } from "src/app/lib/useAccessToken";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Utility to parse lead.survey_date + lead.survey_time => JS Date object
  */
 function parseSurveyDateTime(lead) {
-  if (!lead || !lead.survey_date) return null;
-  const d = new Date(lead.survey_date);
+  if (!lead || !lead.surveyDate) return null;
+  const d = new Date(lead.surveyDate);
   if (isNaN(d)) return null;
 
-  if (lead.survey_time) {
+  if (lead.surveyTime) {
     const regex = /^(\d{1,2}):(\d{2})\s?(AM|PM)$/i;
-    const match = lead.survey_time.match(regex);
+    const match = lead.surveyTime.match(regex);
     if (match) {
       let hour = parseInt(match[1], 10);
       const minute = parseInt(match[2], 10);
@@ -49,9 +51,9 @@ function filterLeadsByTab(leads, activeTab) {
   switch (activeTab) {
     case "Active Leads":
       return leads.filter((ld) => {
-        const st = ld.lead_status;
-        const na = ld.next_action;
-        const act = ld.lead_activity;
+        const st = ld.leadStatus;
+        const na = ld.nextAction;
+        const act = ld.leadActivity;
 
         // "isActive" is one of these statuses:
         const isActive =
@@ -77,7 +79,7 @@ function filterLeadsByTab(leads, activeTab) {
 
     case "Closed Leads":
       return leads.filter(
-        (ld) => ld.lead_status === "Bad Lead" || ld.lead_status === "Declined"
+        (ld) => ld.leadStatus === "Bad Lead" || ld.leadStatus === "Declined"
       );
 
     case "My Appointments":
@@ -87,20 +89,20 @@ function filterLeadsByTab(leads, activeTab) {
       // 3) next_action is "Survey Completed" or "Completed"
       return leads.filter(
         (ld) =>
-          ld.lead_status === "In Progress" &&
-          (ld.lead_activity === "In Home Estimate" ||
-            ld.lead_activity === "Virtual Estimate") &&
-          (ld.next_action === "Survey Completed" ||
-            ld.next_action === "Completed")
+          ld.leadStatus === "In Progress" &&
+          (ld.leadActivity === "In Home Estimate" ||
+            ld.leadActivity === "Virtual Estimate") &&
+          (ld.nextAction === "Survey Completed" ||
+            ld.nextAction === "Completed")
       );
 
     case "Pending":
-      return leads.filter((ld) => ld.lead_status === "");
+      return leads.filter((ld) => ld.leadStatus === "");
 
     case "Booked":
       // Double-check spelling for "Canceled"
       return leads.filter(
-        (ld) => ld.lead_status === "Booked" || ld.lead_status === "Canceled"
+        (ld) => ld.leadStatus === "Booked" || ld.leadStatus === "Canceled"
       );
 
     default:
@@ -120,22 +122,22 @@ function filterLeadsBySearch(leads, searchQuery) {
 
   return leads.filter((lead) => {
     // 1) job_number
-    if (String(lead.job_number).includes(normalizedQuery)) return true;
+    if (String(lead.jobNumber).includes(normalizedQuery)) return true;
     // 2) customer_name
     if (
-      lead.customer_name &&
-      lead.customer_name.toLowerCase().includes(normalizedQuery)
+      lead.customerName &&
+      lead.customerName.toLowerCase().includes(normalizedQuery)
     )
       return true;
     // 3) customer_email
     if (
-      lead.customer_email &&
-      lead.customer_email.toLowerCase().includes(normalizedQuery)
+      lead.customerEmail &&
+      lead.customerEmail.toLowerCase().includes(normalizedQuery)
     )
       return true;
     // 4) phone partial match
-    if (searchPhone && lead.customer_phone_number) {
-      const normalizedPhone = lead.customer_phone_number.replace(/\D/g, "");
+    if (searchPhone && lead.customerPhoneNumber) {
+      const normalizedPhone = lead.customerPhoneNumber.replace(/\D/g, "");
       if (normalizedPhone.includes(normalizedPhoneQuery)) return true;
     }
 
@@ -145,9 +147,37 @@ function filterLeadsBySearch(leads, searchQuery) {
 
 export default function Leads() {
   // All leads
-  const [leads, setLeads] = useState(
-    Array.isArray(actualLeads) ? [...actualLeads] : []
-  );
+  const token = useAccessToken();
+  const {
+    data: leads = [],
+    refetch,
+  } = useQuery({
+    queryKey: ['leads', token],
+    queryFn: () => getAllLeads(token),
+    enabled: !!token,
+  });
+  const queryClient = useQueryClient();
+
+  const createLeadMutation = useMutation({
+    mutationFn: (newLeadData) =>createLead({leadsData: newLeadData, token}),
+    onSuccess:(createdLead) => {
+      console.log("New lead created:", createdLead);
+      queryClient.invalidateQueries(['leads']);
+    },
+    onError: (err) => {
+      console.log(err)
+    }
+  });
+
+  const updateLeadMutation = useMutation({
+    mutationFn: ({id, data, token}) =>updateLead({id, data, token}),
+    onSuccess:(updatedLead) => {
+      console.log("Updated lead:", updatedLead);
+    },
+    onError: (err) => {
+      console.log(err)
+    }
+  });
 
   // Tabs
   const [activeTab, setActiveTab] = useState("Active Leads");
@@ -216,7 +246,7 @@ export default function Leads() {
 
   // Sort leads newest-first
   const sortedLeads = [...leads].sort(
-    (a, b) => new Date(b.creation_date_time) - new Date(a.creation_date_time)
+    (a, b) => new Date(b.creationDateTime) - new Date(a.creationDateTime)
   );
 
   // If search changes => reset to page 1
@@ -238,8 +268,8 @@ export default function Leads() {
   if (activeTab === "My Appointments" && !searchQuery.trim()) {
     filteredLeads.sort((a, b) => {
       // "Completed" leads first
-      const rankA = a.next_action === "Completed" ? 0 : 1;
-      const rankB = b.next_action === "Completed" ? 0 : 1;
+      const rankA = a.nextAction === "Completed" ? 0 : 1;
+      const rankB = b.nextAction === "Completed" ? 0 : 1;
       if (rankA !== rankB) return rankA - rankB;
 
       // Then sort by earliest date
@@ -255,12 +285,12 @@ export default function Leads() {
   if (activeTab === "Active Leads" && !searchQuery.trim()) {
     filteredLeads.sort((a, b) => {
       // "New Lead" first
-      if (a.lead_status === "New Lead" && b.lead_status !== "New Lead") return -1;
-      if (a.lead_status !== "New Lead" && b.lead_status === "New Lead") return 1;
+      if (a.leadStatus === "New Lead" && b.leadStatus !== "New Lead") return -1;
+      if (a.leadStatus !== "New Lead" && b.leadStatus === "New Lead") return 1;
 
       // Then by newest creation
       return (
-        new Date(b.creation_date_time) - new Date(a.creation_date_time)
+        new Date(b.creationDateTime) - new Date(a.creationDateTime)
       );
     });
   }
@@ -298,23 +328,24 @@ export default function Leads() {
   };
 
   // CRUD: Create new lead
-  const handleLeadCreated = (newLead) => {
-    setLeads((prev) => [...prev, newLead]);
+  const handleLeadCreated = (newLeadData) => {
+    createLeadMutation.mutate(newLeadData);
   };
 
   // CRUD: Update existing lead
-  const handleLeadUpdated = (updatedLead) => {
+  const handleLeadUpdated = (id, updates) => {
     // Console log so you can follow all changes
-    console.log("Lead updated =>", updatedLead);
-
-    setLeads((prevLeads) =>
-      prevLeads.map((ld) =>
-        ld.lead_id === updatedLead.lead_id ? updatedLead : ld
+    console.log("UPDATE LEAD → id:", id); // <--- OVO DODAJ
+    updateLeadMutation.mutate({ id, data: updates, token }, {
+      onSuccess: (updatedLead) =>{
+        setSelectedLead((prev) => prev && prev.id === updatedLead.id ? updatedLead : prev
       )
-    );
-    if (selectedLead && selectedLead.lead_id === updatedLead.lead_id) {
-      setSelectedLead(updatedLead);
-    }
+      refetch();
+      }
+    });
+    // if (selectedLead && selectedLead.id === id) {
+    //   setSelectedLead((prev) => ({ ...prev, ...updates }));
+    // }
   };
 
   // Edit lead

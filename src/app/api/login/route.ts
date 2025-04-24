@@ -42,13 +42,13 @@ export async function POST( req: Request) {
           const refreshToken = jwt.sign(
             { email },
             process.env.REFRESH_TOKEN_SECRET!,
-            { expiresIn: "7d" }
+            { expiresIn: "30d" }
           );
         
           (await cookies()).set("refresh-token", refreshToken, {
             httpOnly: true,
             secure: false,
-            maxAge: 7 * 24 * 60 * 60, // 7 dana, pitati je l to ok
+            maxAge: 30 * 24 * 60 * 60, // 7 dana, pitati je l to ok
             path: "/",
           });
       

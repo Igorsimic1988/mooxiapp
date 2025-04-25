@@ -9,3 +9,4 @@ yarn
 yarn prisma migrate dev # this will create dev.db file inside prisma folder
 yarn run dev
 ```
+

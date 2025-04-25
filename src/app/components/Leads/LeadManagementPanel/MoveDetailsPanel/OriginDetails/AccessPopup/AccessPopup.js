@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './AccessPopup.module.css';
 
@@ -199,10 +201,14 @@ function AccessPopup({
   const [showElevatorFloorsDropdown, setShowElevatorFloorsDropdown] = useState(false);
   const [showElevatorSizeDropdown, setShowElevatorSizeDropdown] = useState(false);
 
-  function DropdownButton({ label, value, onClick }) {
+  function DropdownButton({ label, value, onClick, isActive }) {
     const displayValue = value ? value : 'Select';
     return (
-      <button type="button" className={styles.dropdownButton} onClick={onClick}>
+      <button 
+        type="button" 
+        className={`${styles.dropdownButton} ${isActive ? styles.activeInput : ''}`} 
+        onClick={onClick}
+      >
         <span className={styles.oneLineEllipsis}>
           <span className={styles.dropdownPrefix}>{label}</span>
           <span className={styles.dropdownSelected}>{displayValue}</span>
@@ -296,7 +302,8 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Biggest Truck:"
-                value={localStop.biggestTruckAccess}
+                value={stop.biggestTruckAccess}
+                isActive={showTruckAccessDropdown}
                 onClick={() => {
                   setShowTruckAccessDropdown(!showTruckAccessDropdown);
                   setShowParkingDropdown(false);
@@ -346,7 +353,8 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Parking:"
-                value={localStop.parkingAccess}
+                value={stop.parkingAccess}
+                isActive={showParkingDropdown}
                 onClick={() => {
                   setShowParkingDropdown(!showParkingDropdown);
                   setShowTruckAccessDropdown(false);
@@ -382,7 +390,8 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Door to truck:"
-                value={localStop.distanceDoorTruck}
+                value={stop.distanceDoorTruck}
+                isActive={showDistanceDropdown}
                 onClick={() => {
                   setShowDistanceDropdown(!showDistanceDropdown);
                   setShowTruckAccessDropdown(false);
@@ -418,7 +427,8 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="How Many Steps:"
-                value={localStop.howManySteps}
+                value={stop.howManySteps}
+                isActive={showStepsDropdown}
                 onClick={() => {
                   setShowStepsDropdown(!showStepsDropdown);
                   setShowTruckAccessDropdown(false);
@@ -454,7 +464,8 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Door to truck Terrain:"
-                value={localStop.terrainDoorTruck}
+                value={stop.terrainDoorTruck}
+                isActive={showTerrainDropdown}
                 onClick={() => {
                   setShowTerrainDropdown(!showTerrainDropdown);
                   setShowTruckAccessDropdown(false);
@@ -520,7 +531,8 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
                 <div className={styles.inputWrapper}>
                   <DropdownButton
                     label="Elevator floors:"
-                    value={localStop.elevatorFloors}
+                    value={stop.elevatorFloors}
+                    isActive={showElevatorFloorsDropdown}
                     onClick={() => {
                       setShowElevatorFloorsDropdown(!showElevatorFloorsDropdown);
                       setShowElevatorSizeDropdown(false);
@@ -552,6 +564,7 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
                   <DropdownButton
                     label="Elevator Size:"
                     value={localStop.elevatorSize}
+                    isActive={showElevatorSizeDropdown}
                     onClick={() => {
                       setShowElevatorSizeDropdown(!showElevatorSizeDropdown);
                       setShowElevatorFloorsDropdown(false);

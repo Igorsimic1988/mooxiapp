@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './PlacePopup.module.css';
 
@@ -487,6 +489,7 @@ function PlacePopup({
                   value={localStop.typeOfPlace}
                   onClick={handleToggleTypeOfPlaceDropdown}
                   disabled={false}
+                  className={showTypeOfPlaceDropdown ? styles.activeInput : ''}
                 />
                 {showTypeOfPlaceDropdown && (
                   <ul className={styles.optionsList}>
@@ -512,6 +515,7 @@ function PlacePopup({
                   value={localStop.moveSize}
                   onClick={handleToggleMoveSizeDropdown}
                   disabled={!localStop.typeOfPlace}
+                  className={showMoveSizeDropdown ? styles.activeInput : ''}
                 />
                 {showMoveSizeDropdown && localStop.typeOfPlace && (
                   <ul className={styles.optionsList}>
@@ -537,6 +541,7 @@ function PlacePopup({
                   value={localStop.howManyStories}
                   onClick={handleToggleStoriesDropdown}
                   disabled={!storiesApplicable}
+                  className={showStoriesDropdown ? styles.activeInput : ''}
                 />
                 {showStoriesDropdown && storiesApplicable && (
                   <ul className={styles.optionsList}>
@@ -580,6 +585,7 @@ function PlacePopup({
                   value={localStop.furnishingStyle}
                   onClick={handleToggleFurnishingDropdown}
                   disabled={furnishingDisabled}
+                  className={showFurnishingDropdown ? styles.activeInput : ''}
                 />
                 {showFurnishingDropdown && !furnishingDisabled && (
                   <ul className={styles.optionsList}>
@@ -621,12 +627,17 @@ function PlacePopup({
           {selectedPlace === 'destination' && (
             <div className={styles.formFieldsWrapper}>
               <div className={styles.typeOfPlaceSelectWrapper}>
-                <DropdownButton
-                  label="Type of place:"
-                  value={localStop.typeOfPlace}
+                <button
+                  type="button"
+                  className={`${styles.dropdownButton} ${showTypeOfPlaceDropdown ? styles.activeInput : ''}`}
                   onClick={handleToggleTypeOfPlaceDropdown}
-                  disabled={false}
-                />
+                >
+                  <span className={styles.oneLineEllipsis}>
+                    <span className={styles.inputLabel}>Type of place:</span>
+                    <span className={styles.inputValue}>{currentStop.typeOfPlace || 'Select'}</span>
+                  </span>
+                  <Icon name="UnfoldMore" className={styles.rightIcon} />
+                </button>
                 {showTypeOfPlaceDropdown && (
                   <ul className={styles.optionsList}>
                     {typeOfPlaceOptions.map((option) => {
@@ -646,12 +657,18 @@ function PlacePopup({
               </div>
 
               <div className={styles.storiesSelectWrapper}>
-                <DropdownButton
-                  label="How many stories:"
-                  value={localStop.howManyStories}
+                <button
+                  type="button"
+                  className={`${styles.dropdownButton} ${!storiesApplicable ? styles.disabledDropdown : ''} ${showStoriesDropdown ? styles.activeInput : ''}`}
                   onClick={handleToggleStoriesDropdown}
                   disabled={!storiesApplicable}
-                />
+                >
+                  <span className={styles.oneLineEllipsis}>
+                    <span className={styles.inputLabel}>How many stories:</span>
+                    <span className={styles.inputValue}>{currentStop.howManyStories || 'Select'}</span>
+                  </span>
+                  <Icon name="UnfoldMore" className={styles.rightIcon} />
+                </button>
                 {showStoriesDropdown && storiesApplicable && (
                   <ul className={styles.optionsList}>
                     {howManyStoriesOptions.map((option) => {

@@ -550,16 +550,26 @@ function FilterButtonPopup({
                       <button onClick={goNextMonthFrom}>Next</button>
                     </div>
                     <div className={styles.calendarGrid}>
-                      {fromDaysInMonth.map((day) => (
-                        <button
-                          key={day}
-                          type="button"
-                          className={styles.calendarDay}
-                          onClick={() => handleSelectFromDate(day)}
-                        >
-                          {day}
-                        </button>
-                      ))}
+                      {fromDaysInMonth.map((day) => {
+                        // Check if this day matches the selected date
+                        const currentDate = new Date(
+                          fromCalendarMonth.getFullYear(),
+                          fromCalendarMonth.getMonth(),
+                          day
+                        );
+                        const isSelected = tempFromDate === currentDate.toDateString();
+                        
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            className={`${styles.calendarDay} ${isSelected ? styles.selected : ''}`}
+                            onClick={() => handleSelectFromDate(day)}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -604,16 +614,26 @@ function FilterButtonPopup({
                       <button onClick={goNextMonthTo}>Next</button>
                     </div>
                     <div className={styles.calendarGrid}>
-                      {toDaysInMonth.map((day) => (
-                        <button
-                          key={day}
-                          type="button"
-                          className={styles.calendarDay}
-                          onClick={() => handleSelectToDate(day)}
-                        >
-                          {day}
-                        </button>
-                      ))}
+                      {toDaysInMonth.map((day) => {
+                        // Check if this day matches the selected date
+                        const currentDate = new Date(
+                          toCalendarMonth.getFullYear(),
+                          toCalendarMonth.getMonth(),
+                          day
+                        );
+                        const isSelected = tempToDate === currentDate.toDateString();
+                        
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            className={`${styles.calendarDay} ${isSelected ? styles.selected : ''}`}
+                            onClick={() => handleSelectToDate(day)}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState, useRef } from 'react';
 
 import Icon from '../../../../Icon';
@@ -121,6 +123,53 @@ function OriginDetails({
   const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
   const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
   const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false);
+
+  // ---------- INPUT FOCUS STATES ----------
+  const [focusedAddressInput, setFocusedAddressInput] = useState(null);
+  const [optionDropdownActive, setOptionDropdownActive] = useState(false);
+  const [typeDropdownActive, setTypeDropdownActive] = useState(false);
+  const [startDropdownActive, setStartDropdownActive] = useState(false);
+  const [endDropdownActive, setEndDropdownActive] = useState(false);
+
+  // ---------- ENSURE ORIGIN/DEST STOPS EXIST ----------
+  useEffect(() => {
+    if (!Array.isArray(lead.originStops) || lead.originStops.length === 0) {
+      const defaultStops = [
+        {
+          label: 'Main Address',
+          address: '',
+          apt: '',
+          city: '',
+          state: '',
+          zip: '',
+          timeRestrictions: {
+            isEnabled: false,
+            option: 'Select',
+            restrictionType: 'Select',
+            startTime: '',
+            endTime: '',
+          },
+        },
+      ];
+      onLeadUpdated({ ...lead, originStops: defaultStops });
+    }
+
+    if (!Array.isArray(lead.destinationStops)) {
+      onLeadUpdated({
+        ...lead,
+        destinationStops: [
+          {
+            label: 'Main Address',
+            address: '',
+            apt: '',
+            city: '',
+            state: '',
+            zip: '',
+          },
+        ],
+      });
+    }
+  }, [lead, onLeadUpdated]);
 
   // ---------- Current Stop ----------
   const currentStop = originStops.find((s) => s.id === selectedOriginStopId) || {};
@@ -246,6 +295,11 @@ function OriginDetails({
       if (endDropdownOpen && endDropdownRef.current && !endDropdownRef.current.contains(e.target)) {
         setEndDropdownOpen(false);
       }
+      
+      // Reset focus state if clicking outside any input
+      if (!e.target.closest(`.${styles.inputContainer}`)) {
+        setFocusedAddressInput(null);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -257,6 +311,14 @@ function OriginDetails({
     startDropdownOpen,
     endDropdownOpen
   ]);
+
+  // Set active states when dropdowns open
+  useEffect(() => {
+    setOptionDropdownActive(optionDropdownOpen);
+    setTypeDropdownActive(typeDropdownOpen);
+    setStartDropdownActive(startDropdownOpen);
+    setEndDropdownActive(endDropdownOpen);
+  }, [optionDropdownOpen, typeDropdownOpen, startDropdownOpen, endDropdownOpen]);
 
   const updateCurrentStopRestrictions = (partialObj) => {
     if (!currentStop?.id) return;
@@ -497,13 +559,14 @@ function OriginDetails({
               )}
             </div>
 
-            <div className={styles.inputContainer}>
+            <div className={`${styles.inputContainer} ${focusedAddressInput === 'address' ? styles.activeInput : ''}`}>
               <input
                 type="text"
                 className={styles.addressInput}
                 placeholder="Property Address"
                 value={currentStop.address || ''}
                 onChange={(e) => handleStopFieldChange('address', e.target.value)}
+                onFocus={() => setFocusedAddressInput('address')}
               />
               <div className={styles.inputIconContainer}>
                 <Icon name="Location" className={styles.inputIcon} />
@@ -511,43 +574,47 @@ function OriginDetails({
             </div>
 
             <div className={styles.twoInputsRow}>
-              <div className={styles.inputContainer}>
+              <div className={`${styles.inputContainer} ${focusedAddressInput === 'apt' ? styles.activeInput : ''}`}>
                 <input
                   type="text"
                   className={styles.addressInput}
                   placeholder="Apt/Suite"
                   value={currentStop.apt || ''}
                   onChange={(e) => handleStopFieldChange('apt', e.target.value)}
+                  onFocus={() => setFocusedAddressInput('apt')}
                 />
               </div>
-              <div className={styles.inputContainer}>
+              <div className={`${styles.inputContainer} ${focusedAddressInput === 'city' ? styles.activeInput : ''}`}>
                 <input
                   type="text"
                   className={styles.addressInput}
                   placeholder="City"
                   value={currentStop.city || ''}
                   onChange={(e) => handleStopFieldChange('city', e.target.value)}
+                  onFocus={() => setFocusedAddressInput('city')}
                 />
               </div>
             </div>
 
             <div className={styles.twoInputsRow}>
-              <div className={styles.inputContainer}>
+              <div className={`${styles.inputContainer} ${focusedAddressInput === 'state' ? styles.activeInput : ''}`}>
                 <input
                   type="text"
                   className={styles.addressInput}
                   placeholder="State"
                   value={currentStop.state || ''}
                   onChange={(e) => handleStopFieldChange('state', e.target.value)}
+                  onFocus={() => setFocusedAddressInput('state')}
                 />
               </div>
-              <div className={styles.inputContainer}>
+              <div className={`${styles.inputContainer} ${focusedAddressInput === 'zip' ? styles.activeInput : ''}`}>
                 <input
                   type="text"
                   className={styles.addressInput}
                   placeholder="Zip code"
                   value={currentStop.zipCode || ''}
                   onChange={(e) => handleStopFieldChange('zipCode', e.target.value)}
+                  onFocus={() => setFocusedAddressInput('zipCode')}
                 />
               </div>
             </div>
@@ -638,7 +705,7 @@ function OriginDetails({
                 <div className={styles.timeRestrictionsInputsColumn}>
                   {/* Option dropdown */}
                   <div
-                    className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
+                    className={`${styles.inputContainer} ${styles.dropdownWrapper} ${optionDropdownActive ? styles.activeInput : ''}`}
                     ref={optionDropdownRef}
                   >
                     <div
@@ -663,7 +730,7 @@ function OriginDetails({
                         {timeRestrictionOptions.map((opt) => (
                           <div
                             key={opt}
-                            className={styles.dropdownOption}
+                            className={`${styles.dropdownOption} ${currentTR.option === opt ? styles.selectedOption : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSelectTimeRestrictionsOption(opt);
@@ -678,7 +745,7 @@ function OriginDetails({
 
                   {/* Type dropdown */}
                   <div
-                    className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
+                    className={`${styles.inputContainer} ${styles.dropdownWrapper} ${typeDropdownActive ? styles.activeInput : ''}`}
                     ref={typeDropdownRef}
                   >
                     <div
@@ -703,7 +770,7 @@ function OriginDetails({
                         {timeRestrictionTypes.map((typ) => (
                           <div
                             key={typ}
-                            className={styles.dropdownOption}
+                            className={`${styles.dropdownOption} ${currentTR.restrictionType === typ ? styles.selectedOption : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSelectTimeRestrictionsType(typ);
@@ -718,7 +785,7 @@ function OriginDetails({
 
                   {/* Start time dropdown */}
                   <div
-                    className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
+                    className={`${styles.inputContainer} ${styles.dropdownWrapper} ${startDropdownActive ? styles.activeInput : ''}`}
                     ref={startDropdownRef}
                   >
                     <div
@@ -743,7 +810,7 @@ function OriginDetails({
                         {timeOptions.map((t) => (
                           <div
                             key={t}
-                            className={styles.dropdownOption}
+                            className={`${styles.dropdownOption} ${currentTR.startTime === t ? styles.selectedOption : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSelectTimeRestrictionsStart(t);
@@ -758,7 +825,7 @@ function OriginDetails({
 
                   {/* End time dropdown */}
                   <div
-                    className={`${styles.inputContainer} ${styles.dropdownWrapper}`}
+                    className={`${styles.inputContainer} ${styles.dropdownWrapper} ${endDropdownActive ? styles.activeInput : ''}`}
                     ref={endDropdownRef}
                   >
                     <div
@@ -783,7 +850,7 @@ function OriginDetails({
                         {timeOptions.map((t) => (
                           <div
                             key={t}
-                            className={styles.dropdownOption}
+                            className={`${styles.dropdownOption} ${currentTR.endTime === t ? styles.selectedOption : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSelectTimeRestrictionsEnd(t);

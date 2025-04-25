@@ -1,4 +1,4 @@
-// src/components/BcalculatorMyitems/ToggleSwitch/ToggleSwitch.js
+"use client";
 
 import React from 'react';
 import styles from './ToogleSwitch.module.css';

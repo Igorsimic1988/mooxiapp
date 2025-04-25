@@ -1,4 +1,4 @@
-// src/components/Inventory/ItemSelection/AlphabetFilter/AlphabetFilter.js
+"use client";
 
 import React from 'react';
 import PropTypes from 'prop-types';

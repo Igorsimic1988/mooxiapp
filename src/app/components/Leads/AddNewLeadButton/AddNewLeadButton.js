@@ -1,4 +1,5 @@
-// src/components/Leads/AddNewLeadButton/AddNewLeadButton.js
+"use client";
+
 import React from 'react';
 import styles from './AddNewLeadButton.module.css';
 

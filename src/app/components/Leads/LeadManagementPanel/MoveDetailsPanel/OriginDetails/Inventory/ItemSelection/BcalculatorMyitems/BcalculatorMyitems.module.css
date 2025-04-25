@@ -2,9 +2,9 @@
 
 .filterHeader {
   display: flex;
-  height: 66px;
+  height: 62px;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   border-bottom: 1px solid #D8DCE0;
 }
 

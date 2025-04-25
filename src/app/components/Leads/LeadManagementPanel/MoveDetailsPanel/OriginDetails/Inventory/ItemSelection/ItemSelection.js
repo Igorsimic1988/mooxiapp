@@ -1,4 +1,4 @@
-// src/components/Inventory/ItemSelection/ItemSelection.js
+"use client";
 
 import React from 'react';
 import allItems from '../../../../../../../data/constants/funitureItems';

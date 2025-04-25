@@ -88,6 +88,11 @@
   margin-bottom: 10px;
 }
 
+/* Class applied when active / showing dropdown */
+.activeInput {
+  border: 1px solid var(--Blue, #3FA9F5) !important;
+}
+
 /* A class to visually show it's disabled (dim and no pointer events) */
 .disabledContainer {
   pointer-events: none;
@@ -165,6 +170,10 @@
   color: #6e7882;
 }
 
+.dateButton:focus {
+  outline: none;
+}
+
 .calendarRightIconWrapper {
   margin-left: auto;
   width: 30px;
@@ -181,17 +190,17 @@
   color: #FFF;
 }
 
-/* Calendar popup */
+/* Calendar popup - STANDARDIZED */
 .calendarPopup {
   position: absolute;
   top: 60px;
   left: 0;
   width: 100%;
   background: #fff;
-  border: 1px solid #D8DCE0;
+  border: none;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  padding: 10px;
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+  padding: 15px 10px 10px;
   z-index: 3100;
 }
 .calendarHeader {
@@ -228,12 +237,13 @@
   justify-content: center;
 }
 .calendarDay:hover {
-  background: rgba(0,0,0,0.05);
+  background: #F2F5F8;
 }
 
-/* highlight the selected day in the calendar */
+/* highlight the selected day in the calendar - STANDARDIZED */
 .selectedDay {
-  background: rgba(0,0,0,0.1) !important; 
+  background: #F2F5F8 !important;
+  border-radius: 8px;
 }
 
 /* Storage container/toggle */
@@ -249,6 +259,8 @@
   font-size: 16px;
   font-weight: 700;
 }
+
+/* Storage dropdown container */
 .storageDropdown {
   width: 100%;
   height: 50px;
@@ -263,32 +275,45 @@
   position: relative;
   cursor: pointer;
 }
+
+/* Dropdown menu - STANDARDIZED */
 .dropdownMenu {
   position: absolute;
   top: 60px;
   left: 0;
   right: 0;
   background: #FFF;
-  border: 1px solid #D8DCE0;
+  border: none;
   border-radius: 12px;
   z-index: 3000;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+  padding-top: 15px;
+  padding-bottom: 10px;
 }
+
+/* Dropdown option - STANDARDIZED */
 .dropdownOption {
-  padding: 10px 20px;
+  padding: 7px 10px;
   font-family: Satoshi, sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: #2F3236;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  color: #000;
   cursor: pointer;
+  margin: 0 10px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .dropdownOption:hover {
   background: #F2F5F8;
+  border-radius: 8px;
 }
 
-/* a selected dropdown item uses the same highlight: */
+/* a selected dropdown item - STANDARDIZED */
 .selectedOption {
-  background: rgba(0,0,0,0.1);
+  background: #F2F5F8;
+  border-radius: 8px;
 }
 
 .spacing30 {
@@ -325,42 +350,55 @@
   padding: 0 20px;
   margin-top: 12px;
   position: relative;
+  cursor: pointer;
 }
+
+/* Time dropdown - STANDARDIZED */
 .timeDropdown {
   position: absolute;
   top: 60px;
   left: 0;
   width: 100%;
   background: #FFF;
-  border: 1px solid #D8DCE0;
+  border: none;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
   max-height: 220px;
   overflow-y: auto;
   z-index: 3100;
+  padding-top: 15px;
+  padding-bottom: 10px;
 }
+
+/* Time option - STANDARDIZED */
 .timeOption {
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: 700;
+  padding: 7px 10px;
   font-family: Satoshi, sans-serif;
-  color: #2F3236;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  color: #000;
   cursor: pointer;
+  margin: 0 10px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .timeOption:hover {
   background: #F2F5F8;
+  border-radius: 8px;
 }
 
-/* 2x2 grid => +2h, +4h, +6h, +8h */
+/* 2x2 grid => +2h, +4h, +6h, +8h - STANDARDIZED */
 .addHoursGrid {
   position: absolute;
   top: 60px;
   left: 0;
   width: 100%;
   background: #FFF;
-  border: 1px solid #D8DCE0;
+  border: none;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: 50px 50px;
@@ -374,7 +412,7 @@
   border-radius: 8px;
   color: #2F3236;
   font-family: Satoshi, sans-serif;
-  font-weight: 700;
+  font-weight: 400;
   font-size: 16px;
   cursor: pointer;
 }

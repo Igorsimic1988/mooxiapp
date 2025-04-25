@@ -1,4 +1,4 @@
-// src/components/Inventory/InventoryDesktop/InventoryDesktop.js
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import styles from './InventoryDesktop.module.css';

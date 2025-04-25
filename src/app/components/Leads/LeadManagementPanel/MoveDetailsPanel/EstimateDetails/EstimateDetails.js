@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './EstimateDetails.module.css';
 
@@ -245,7 +247,7 @@ const estimateBalanceDue = watch('estimateBalanceDue');
                 <div className={styles.rateTypeWrapper} ref={rateTypeDropdownRef}>
                   <button
                     type="button"
-                    className={styles.estimateButton}
+                    className={`${styles.estimateButton} ${showRateTypeDropdown ? styles.activeInput : ''}`}
                     onClick={() => setShowRateTypeDropdown((p) => !p)}
                   >
                     <div className={styles.dropdownLabel}>

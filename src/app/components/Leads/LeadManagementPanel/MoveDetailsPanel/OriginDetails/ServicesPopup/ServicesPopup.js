@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import styles from './ServicesPopup.module.css';
 
@@ -175,10 +177,14 @@ const selectedStopId =
   const [showUnpackingDropdown, setShowUnpackingDropdown] = useState(false);
   const [showBlanketsDropdown, setShowBlanketsDropdown] = useState(false);
 
-  function DropdownButton({ label, value, onClick }) {
+  function DropdownButton({ label, value, onClick, isActive }) {
     const displayValue = value || 'Select';
     return (
-      <button type="button" className={styles.dropdownButton} onClick={onClick}>
+      <button 
+        type="button" 
+        className={`${styles.dropdownButton} ${isActive ? styles.activeInput : ''}`} 
+        onClick={onClick}
+      >
         <span className={styles.oneLineEllipsis}>
           <span className={styles.dropdownPrefix}>{label}</span>
           <span className={styles.dropdownSelected}>{displayValue}</span>
@@ -266,6 +272,7 @@ const selectedStopId =
                   <DropdownButton
                     label="What's Moving:"
                     value={localStop.whatsMoving}
+                    isActive={showWhatsMovingDropdown}
                     onClick={() => {
                       setShowWhatsMovingDropdown(!showWhatsMovingDropdown);
                       setShowPackingDropdown(false);
@@ -299,6 +306,7 @@ const selectedStopId =
                   <DropdownButton
                     label="Packing Option:"
                     value={localStop.packingOption}
+                    isActive={showPackingDropdown}
                     onClick={() => {
                       setShowPackingDropdown(!showPackingDropdown);
                       setShowWhatsMovingDropdown(false);
@@ -336,7 +344,8 @@ const selectedStopId =
                 <div className={`${styles.dropdownWrapper} ${styles.unpackingOptionMargin}`}>
                   <DropdownButton
                     label="Unpacking:"
-                    value={localStop.unpackingOption}
+                    value={stop.unpackingOption}
+                    isActive={showUnpackingDropdown}
                     onClick={() => {
                       setShowUnpackingDropdown(!showUnpackingDropdown);
                       setShowBlanketsDropdown(false);
@@ -428,7 +437,8 @@ const selectedStopId =
             <div className={`${styles.blanketsDropdownWrapper} ${styles.blanketsMargin}`}>
               <DropdownButton
                 label="Blankets:"
-                value={localStop.blanketsOption}
+                value={stop.blanketsOption}
+                isActive={showBlanketsDropdown}
                 onClick={() => {
                   setShowBlanketsDropdown(!showBlanketsDropdown);
                   setShowWhatsMovingDropdown(false);

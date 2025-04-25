@@ -20,7 +20,7 @@
   flex: 1;
   overflow-y: auto; /* scroll main content */
   background-color: #F2F5F8; /* optional */
-  padding: 14px 10px 86px 16px;
+  padding: 10px 10px 86px 16px;
 }
 
 .footerNavigation {

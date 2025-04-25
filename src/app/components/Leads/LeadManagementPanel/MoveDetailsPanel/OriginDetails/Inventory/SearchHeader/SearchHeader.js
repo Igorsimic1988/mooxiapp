@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useRef } from 'react';
 import styles from './SearchHeader.module.css';
 import Icon from 'src/app/components/Icon'; 

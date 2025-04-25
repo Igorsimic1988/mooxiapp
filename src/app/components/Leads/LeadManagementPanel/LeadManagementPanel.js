@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from 'react';
 
 import MoveDetailsPanel from './MoveDetailsPanel/MoveDetailsPanel';
@@ -485,7 +487,7 @@ function LeadManagementPanel({
   const displayPhone = formatPhoneNumber(rawPhone);
 
   return (
-<div className={styles.wrapper}>
+    <div className={styles.wrapper}>
       {/* Simplified blue bar with curved corner */}
       <div className={styles.topBarContainer}>
         <div className={styles.topBarBack}></div>
@@ -668,16 +670,22 @@ function LeadManagementPanel({
                       <button onClick={goNextMonth}>Next</button>
                     </div>
                     <div className={styles.calendarGrid}>
-                      {daysInMonth.map((dayNum) => (
-                        <button
-                          key={dayNum}
-                          type="button"
-                          className={styles.calendarDay}
-                          onClick={() => handleDayClick(dayNum)}
-                        >
-                          {dayNum}
-                        </button>
-                      ))}
+                      {daysInMonth.map((dayNum) => {
+                        // Check if this day matches the selected date
+                        const currentDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNum);
+                        const isSelected = selectedDate === currentDate.toDateString();
+                        
+                        return (
+                          <button
+                            key={dayNum}
+                            type="button"
+                            className={`${styles.calendarDay} ${isSelected ? styles.selected : ''}`}
+                            onClick={() => handleDayClick(dayNum)}
+                          >
+                            {dayNum}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

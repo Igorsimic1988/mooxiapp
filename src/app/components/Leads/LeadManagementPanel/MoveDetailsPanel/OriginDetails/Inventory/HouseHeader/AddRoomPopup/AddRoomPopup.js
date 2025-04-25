@@ -1,4 +1,4 @@
-// src/components/Inventory/HouseHeader/AddRoomPopup/AddRoomPopup.js
+"use client";
 
 import React, { useRef, useEffect } from 'react';
 import styles from './AddRoomPopup.module.css';

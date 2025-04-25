@@ -1,4 +1,4 @@
-// src/components/Inventory/HouseHeader/HouseInfo/HouseInfo.js
+"use client";
 
 import React, { useMemo, useEffect, useRef } from 'react';
 import styles from './HouseInfo.module.css';
@@ -80,12 +80,12 @@ function HouseInfo({ lead, stopIndex, onStopIndexChange }) {
 
       <div className={styles.houseInfo}>
         <div
-          className={`${styles.placeDropdownRow} ${isSingleStop ? styles.disabledRow : ''}`}
+          className={`${styles.placeDropdownRow} ${isSingleStop ? styles.disabledRow : ''} ${isOpen ? styles.activeInput : ''}`}
           onClick={handleToggleDropdown}
         >
           <h1 className={styles.houseTitle}>{typeOfPlace}</h1>
           {!isSingleStop && (
-            <Icon name="More" className={`${styles.moreIcon} ${isOpen ? styles.rotate : ''}`} />
+            <Icon name="UnfoldMore" className={styles.moreIcon} />
           )}
         </div>
         <p className={styles.stopLabel}>{label}</p>
@@ -102,7 +102,7 @@ function HouseInfo({ lead, stopIndex, onStopIndexChange }) {
                 <li
                   key={idx}
                   onClick={() => handleSelectStop(idx)}
-                  className={`${styles.dropdownItem} ${isSelected ? styles.selected : ''}`}
+                  className={`${styles.dropdownItem} ${isSelected ? styles.selectedOption : ''}`}
                 >
                   {displayText}
                 </li>

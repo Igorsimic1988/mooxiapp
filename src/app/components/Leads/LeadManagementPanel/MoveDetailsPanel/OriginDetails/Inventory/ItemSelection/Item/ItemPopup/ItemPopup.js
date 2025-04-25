@@ -1,13 +1,14 @@
-// src/components/Inventory/ItemSelection/Item/ItemPopup.js
+"use client";
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import Image from "next/image";
 import styles from './ItemPopup.module.css';
+
 import { optionsData } from '../../../../../../../../../data/constants/optionsData';
 import Select, { components as RSComponents } from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import packingOptions from '../../../../../../../../../data/constants/packingOptions';
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
-
 import Icon from 'src/app/components/Icon';
 
 /** 
@@ -43,8 +44,7 @@ const MultiValue = (props) => {
  */
 
 /**
- * 1) Build a big array of location tags that must be mutually exclusive
- *    (only one among them can be selected).
+ * Build location tags that must be mutually exclusive.
  */
 const EXCLUSIVE_LOCATION_TAGS = [
   'disposal',
@@ -72,10 +72,6 @@ const EXCLUSIVE_LOCATION_TAGS = [
   'post_storage_9_drop',
 ];
 
-/** 
- * This helper returns an object specifying that each tag
- * in EXCLUSIVE_LOCATION_TAGS is incompatible with all others in that list.
- */
 function buildExclusiveIncompat(tagsArr) {
   const output = {};
   for (const tag of tagsArr) {
@@ -86,32 +82,7 @@ function buildExclusiveIncompat(tagsArr) {
 const LOCATION_EXCLUSIVES = buildExclusiveIncompat(EXCLUSIVE_LOCATION_TAGS);
 
 /** 
- * The custom react-select styles
- */
-const customSelectStyles = {
-  multiValueRemove: (base) => ({
-    ...base,
-    fontSize: '1.2rem',
-    padding: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-  }),
-  multiValueLabel: (base) => ({
-    ...base,
-    fontSize: '1rem',
-    padding: '0 8px',
-  }),
-  option: (base, state) => ({
-    ...base,
-    color: state.isDisabled ? '#ccc' : '#000',
-  }),
-};
-
-/** 
- * Incompatible and required tags
- * We merge the location exclusives with our existing item-based pairs.
+ * Incompatible + required tags
  */
 const INCOMPATIBLE_TAGS = {
   // Existing item-based pairs:
@@ -134,13 +105,11 @@ const REQUIRED_TAGS = {
   crating: ['cp_packed_by_movers'],
 };
 
-/** 
- * Convert lead’s "label" (e.g. "Main Drop off", "Drop off 2")
- * into the dropPoint value (e.g. "main_drop_off", "2_drop").
+/**
+ * Convert lead’s "label" => dropPoint value
  */
 function labelToDropTag(labelString) {
   const trimmed = labelString.trim().toLowerCase();
-
   if (trimmed === 'main drop off') {
     return 'main_drop_off';
   }
@@ -158,10 +127,85 @@ function labelToDropTag(labelString) {
   return trimmed.replace(/\s+/g, '_').replace(/[^\w_]/g, '');
 }
 
+/** 
+ * ==============================================
+ * REACT-SELECT INLINE STYLES
+ * ==============================================
+ * We'll define everything in this object so that
+ * we don’t rely on .mySelect__ classes in CSS.
+ */
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    border: state.isFocused ? '1px solid #3FA9F5' : 'none',
+    borderRadius: '12px',
+    boxShadow: 'none',
+    backgroundColor: 'transparent',
+    minHeight: '50px',
+  }),
+  menu: (provided) => ({
+    ...provided,
+    borderRadius: '12px',
+    overflow: 'hidden',
+    zIndex: 1001,
+    border: 'none',
+    boxShadow: '0px 1px 16px 0px rgba(0, 0, 0, 0.08)',
+    padding: '7px 0 10px',
+  }),
+  menuList: (provided) => ({
+    ...provided,
+    padding: '7px 0 0 0',
+    overflowX: 'hidden', // Prevent horizontal scrollbar
+  }),
+  multiValue: (provided) => ({
+    ...provided,
+    backgroundColor: '#90A4B7',
+    borderRadius: '12px',
+  }),
+  multiValueLabel: (provided) => ({
+    ...provided,
+    color: '#fff',
+    fontWeight: 500,
+    fontSize: '1rem',
+  }),
+  multiValueRemove: (provided) => ({
+    ...provided,
+    color: '#fff',
+    cursor: 'pointer',
+    ':hover': {
+      backgroundColor: '#6E7882',
+      color: '#fff',
+    },
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: '#6E7882',
+    fontFamily: 'Satoshi, sans-serif',
+    fontSize: '1rem',
+    fontWeight: 500,
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    fontFamily: 'Satoshi, sans-serif',
+    fontSize: '15px',
+    fontStyle: 'normal',
+    fontWeight: 400,
+    lineHeight: 'normal',
+    backgroundColor: state.isSelected
+      ? '#F2F5F8'
+      : state.isFocused
+      ? '#F2F5F8'
+      : '#fff',
+    color: '#000',
+    cursor: 'pointer',
+    borderRadius: state.isSelected ? '8px' : state.isFocused ? '8px' : '0',
+    margin: '0 10px',
+    padding: '7px 10px',
+  }),
+};
+
 /**
- * ==============================================
  * ITEM POPUP COMPONENT
- * ==============================================
  */
 function ItemPopup({
   item,
@@ -169,9 +213,8 @@ function ItemPopup({
   onUpdateItem,
   onAddItem,
   itemInstance,
-  lead, // pass this from the parent
+  lead,
 }) {
-  // The local copy of the item instance
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -215,7 +258,7 @@ function ItemPopup({
   const imagePreviewModalRef = useRef(null);
   const deleteImageButtonRef = useRef(null);
 
-  // Convert packingNeedsCounts => array for the react-select
+  // For "packingNeeds" multi-select
   const selectedPackingNeeds = Object.keys(packingNeedsCounts).map((key) => {
     const foundOpt = packingOptions.find((o) => o.value === key);
     return {
@@ -225,10 +268,7 @@ function ItemPopup({
     };
   });
 
-  // Class prefix for react-select styling
-  const selectClassNamePrefix = 'custom-select';
-
-  // =============== Dynamic DropPoints based on the Lead ===============
+  // Dynamically filter dropPoints
   const allDropPoints = optionsData.locationTags.dropPoints;
   const baseAlwaysVisible = [
     'disposal',
@@ -239,8 +279,8 @@ function ItemPopup({
   ];
   const activeStops = lead?.destinationStops?.filter((s) => s.isActive) || [];
   const hasMultipleActiveStops = activeStops.length >= 2;
-
   const activeStopValues = new Set();
+
   if (hasMultipleActiveStops) {
     activeStops.forEach((stop) => {
       const val = labelToDropTag(stop.label);
@@ -249,17 +289,12 @@ function ItemPopup({
   }
 
   const dynamicDropPoints = allDropPoints.filter((dp) => {
-    if (baseAlwaysVisible.includes(dp.value)) {
-      return true;
-    }
-    if (hasMultipleActiveStops && activeStopValues.has(dp.value)) {
-      return true;
-    }
+    if (baseAlwaysVisible.includes(dp.value)) return true;
+    if (hasMultipleActiveStops && activeStopValues.has(dp.value)) return true;
     return false;
   });
-  // ===========================================================
 
-  // Gather all selected tags from the 4 multi-select groups
+  // Gather all selected tags
   const getAllSelectedTags = useCallback(() => {
     return [
       ...selectedPackingTags.map((opt) => opt.value),
@@ -274,7 +309,7 @@ function ItemPopup({
     dropPointsOptions,
   ]);
 
-  // Initialize from either currentItemInstance or item
+  // Initialize data on mount or if item changes
   useEffect(() => {
     const allOptions = [
       ...optionsData.itemTags.packing,
@@ -345,7 +380,7 @@ function ItemPopup({
     }
 
     // packingNeedsCounts
-    if (currentItemInstance && currentItemInstance.packingNeedsCounts) {
+    if (currentItemInstance?.packingNeedsCounts) {
       setPackingNeedsCounts(currentItemInstance.packingNeedsCounts);
     } else if (item.packing && item.packing.length > 0) {
       const counts = {};
@@ -373,22 +408,23 @@ function ItemPopup({
     setCameraImages(currentItemInstance?.cameraImages || []);
   }, [currentItemInstance, item]);
 
-  // Handlers for cuft/lbs/notes
+  // Input handlers
   const handleCuftChange = (e) => setCuft(e.target.value);
   const handleLbsChange = (e) => setLbs(e.target.value);
   const handleNotesChange = (e) => setNotes(e.target.value);
 
-  // Main logic for adding/removing tags with incompatible/required
+  // Tag logic with incompatible/required
   const handleTagChange = (selectedOptions, setOptions) => {
     const updated = selectedOptions || [];
     const oldAllTags = getAllSelectedTags();
 
     // figure out which tag was just added or removed
-    const newlyChanged = updated.length > oldAllTags.length
-      ? updated.find((opt) => !oldAllTags.includes(opt.value))
-      : oldAllTags.find(
-          (tg) => !updated.map((opt) => opt.value).includes(tg)
-        );
+    const newlyChanged =
+      updated.length > oldAllTags.length
+        ? updated.find((opt) => !oldAllTags.includes(opt.value))
+        : oldAllTags.find(
+            (tg) => !updated.map((opt) => opt.value).includes(tg)
+          );
 
     if (!newlyChanged) {
       setOptions(updated);
@@ -427,7 +463,6 @@ function ItemPopup({
     setOptions(updated);
   };
 
-  // Helper: find an option by .value
   const findOptionByValue = (value) => {
     const everything = [
       ...optionsData.itemTags.packing,
@@ -508,24 +543,20 @@ function ItemPopup({
     (opt) => opt.value === 'cp_packed_by_movers'
   );
 
-  // A useCallback that filters out incompatible tags
-  const filterOptions = useCallback(
-    (optionsArr, selectedTags) => {
-      return optionsArr.map((op) => {
-        const isIncomp = selectedTags.some((tg) => {
-          const arr = INCOMPATIBLE_TAGS[tg] || [];
-          return arr.includes(op.value);
-        });
-        return {
-          ...op,
-          isDisabled: isIncomp,
-        };
+  // filterOptions => remove incompatible
+  const filterOptions = useCallback((optionsArr, selectedTags) => {
+    return optionsArr.map((op) => {
+      const isIncomp = selectedTags.some((tg) => {
+        const arr = INCOMPATIBLE_TAGS[tg] || [];
+        return arr.includes(op.value);
       });
-    },
-    []
-  );
+      return {
+        ...op,
+        isDisabled: isIncomp,
+      };
+    });
+  }, []);
 
-  // The final arrays for each select
   const allSelectedTags = getAllSelectedTags();
   const filteredPackingOptions = filterOptions(optionsData.itemTags.packing, allSelectedTags);
   const filteredExtraAttentionOptions = filterOptions(optionsData.itemTags.extraAttention, allSelectedTags);
@@ -578,6 +609,7 @@ function ItemPopup({
     };
     reader.readAsDataURL(file);
   };
+
   const handleUploadClick = () => {
     if (uploadedImages.length === 0) {
       uploadInputRef.current?.click();
@@ -601,7 +633,6 @@ function ItemPopup({
     reader.readAsDataURL(file);
   };
 
-  // Link logic
   const handleLinkClick = () => {
     if (link) {
       setIsLinkOptionsVisible((p) => !p);
@@ -625,7 +656,6 @@ function ItemPopup({
   };
   const handleLinkInputChange = (e) => setLinkInput(e.target.value);
 
-  // Basic URL validation
   const validateURL = (url) => {
     const pattern = new RegExp(
       '^(https?:\\/\\/)' +
@@ -684,13 +714,11 @@ function ItemPopup({
     };
   }, [isLinkOptionsVisible, isEditingLink, isPreviewVisible]);
 
-  // Close the image preview
   const closePreview = () => {
     setIsPreviewVisible(false);
     setPreviewImage(null);
   };
 
-  // Deleting an image from preview
   const handleDeleteImage = () => {
     if (uploadedImages.includes(previewImage)) {
       const newUpl = uploadedImages.filter((img) => img !== previewImage);
@@ -720,7 +748,6 @@ function ItemPopup({
     }
   }, [isPreviewVisible]);
 
-  // Render the popup
   return (
     <div className={styles.popup} onClick={onClose}>
       <div
@@ -747,7 +774,13 @@ function ItemPopup({
           <div className={styles.itemGroup}>
             <div className={styles.furnitureOutline}>
               <div className={styles.furnitureWrapper}>
-                <img src={item.src} alt={item.name} className={styles.itemImage} />
+                <Image
+                  src={item.src}
+                  alt={item.name}
+                  width={72}
+                  height={72}
+                  className={styles.itemImage}
+                />
               </div>
             </div>
             <div className={styles.furnitureTextGroup}>
@@ -882,7 +915,6 @@ function ItemPopup({
               <Icon name="PasteLink" className={styles.icon} />
               <div>{link ? 'Link Added' : 'Add Link'}</div>
 
-              {/* Popup Options if link is present */}
               {isLinkOptionsVisible && link && (
                 <div
                   ref={linkOptionsRef}
@@ -986,9 +1018,11 @@ function ItemPopup({
                 >
                   <Icon name="Close" className={styles.closeIconPreview} />
                 </button>
-                <img
+                <Image
                   src={previewImage}
                   alt="Preview"
+                  width={300}
+                  height={300}
                   className={styles.previewImage}
                 />
                 <button
@@ -1015,7 +1049,8 @@ function ItemPopup({
                 isMulti
                 isClearable={false}
                 className={styles.selectInput}
-                classNamePrefix={selectClassNamePrefix}
+                // We do NOT rely on module .mySelect__... in CSS
+                // Instead we handle everything with inline styles
                 name="packing"
                 options={filteredPackingOptions}
                 placeholder="Packing"
@@ -1031,7 +1066,6 @@ function ItemPopup({
                 isMulti
                 isClearable={false}
                 className={styles.selectInput}
-                classNamePrefix={selectClassNamePrefix}
                 name="extraAttention"
                 options={filteredExtraAttentionOptions}
                 placeholder="Extra Attention"
@@ -1052,7 +1086,6 @@ function ItemPopup({
                 isMulti
                 isClearable={false}
                 className={styles.selectInput}
-                classNamePrefix={selectClassNamePrefix}
                 name="loadPoints"
                 options={filteredLoadPointsOptions}
                 placeholder="Load Points"
@@ -1068,7 +1101,6 @@ function ItemPopup({
                 isMulti
                 isClearable={false}
                 className={styles.selectInput}
-                classNamePrefix={selectClassNamePrefix}
                 name="dropPoints"
                 options={dynamicFilteredDropPoints}
                 placeholder="Drop Points"
@@ -1084,7 +1116,7 @@ function ItemPopup({
           {/* Informational Message */}
           {!isCpPackedByMoversSelected && (
             <div className={styles.infoMessage}>
-              <p>Select 'CP Packed by Movers' to specify packing materials.</p>
+              <p>Select &apos;CP Packed by Movers&apos; to specify packing materials.</p>
             </div>
           )}
 
@@ -1097,7 +1129,6 @@ function ItemPopup({
                   isMulti
                   isClearable
                   className={styles.selectInput}
-                  classNamePrefix={selectClassNamePrefix}
                   name="packingNeeds"
                   options={packingOptions}
                   placeholder="Select Packing Needs"

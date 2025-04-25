@@ -66,6 +66,11 @@
   margin-top: 20px;
 }
 
+/* Class applied when active / showing dropdown - STANDARDIZED */
+.activeInput {
+  border: 1px solid var(--Blue, #3FA9F5) !important;
+}
+
 .logisticsButton {
   display: flex;
   align-items: center;
@@ -129,36 +134,51 @@
   width: 100%;
 }
 
+/* Dropdown menu - STANDARDIZED */
 .rateTypeDropdown {
   position: absolute;
-  top: 55px;
+  top: 60px;
   left: 0;
   width: 100%;
   background: #fff;
-  border: 1px solid #D8DCE0;
+  border: none;
   border-radius: 12px;
-  padding: 8px 0;
-  margin-top: 5px;
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+  margin-top: 0;
   max-height: 220px;
   overflow-y: auto;
   z-index: 5000;
   list-style: none;
+  padding: 0;
+  padding-top: 15px;
+  padding-bottom: 10px;
 }
 
+/* Dropdown option - STANDARDIZED */
 .rateTypeOption {
-  padding: 10px 15px;
+  padding: 7px 10px;
   cursor: pointer;
   font-family: Satoshi, sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: #2F3236;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  color: #000;
   background: #FFF;
+  margin: 0 10px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .rateTypeOption:hover {
-  background: rgba(0,0,0,0.05);
+  background: #F2F5F8;
+  border-radius: 8px;
 }
+
+/* Selected dropdown item - STANDARDIZED */
 .selectedOption {
-  background: rgba(0,0,0,0.1);
+  background: #F2F5F8;
+  border-radius: 8px;
+  color: #000;
 }
 
 .logisticsInputContainer {
@@ -173,6 +193,11 @@
   align-items: center;
   justify-content: space-between;
   overflow: hidden;
+}
+
+/* Add focus styling for input containers */
+.logisticsInputContainer:focus-within {
+  border: 1px solid var(--Blue, #3FA9F5);
 }
 
 .inputLabel {
@@ -249,6 +274,12 @@
   box-sizing: border-box;
 }
 
+/* Add focus styling for details button */
+.detailsButton:focus {
+  border: 1px solid var(--Blue, #3FA9F5);
+  outline: none;
+}
+
 .plusMinusIcon {
   width: 24px;
   height: 24px;
@@ -271,25 +302,27 @@
   color: #2F3236;
 }
 
-/* The calendar popup (Earliest Delivery, etc.) */
+/* The calendar popup - STANDARDIZED */
 .calendarPopup {
   position: absolute;
-  top: 55px;
+  top: 60px;
   left: 0;
   width: 100%;
   background: #fff;
-  border: 1px solid #D8DCE0;
+  border: none;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  padding: 10px;
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+  padding: 15px 10px 10px;
   z-index: 6000;
 }
+
 .calendarHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
 }
+
 .calendarHeader button {
   background: #eee;
   border: none;
@@ -297,15 +330,23 @@
   padding: 4px 10px;
   cursor: pointer;
 }
+
+/* Add focus styling for calendar buttons */
+.calendarHeader button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(63, 169, 245, 0.5);
+}
+
 .calendarGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 5px;
 }
+
 .calendarDay {
   background: #fff;
   border: 1px solid #D8DCE0;
-  border-radius: 6px;
+  border-radius: 8px;
   height: 35px;
   cursor: pointer;
   font-family: Satoshi, sans-serif;
@@ -321,8 +362,16 @@
   background: #F2F5F8;
 }
 
+/* Add focus styling for calendar days */
+.calendarDay:focus {
+  outline: none;
+  border: 1px solid var(--Blue, #3FA9F5);
+}
+
+/* Selected day - STANDARDIZED */
 .selectedDay {
-  background: rgba(0,0,0,0.1) !important;
+  background: #F2F5F8 !important;
+  border-radius: 8px;
 }
 
 /* Icon approach on the right */
@@ -336,6 +385,7 @@
   align-items: center;
   justify-content: center;
 }
+
 .calendarIcon {
   width: 16px;
   height: 16px;

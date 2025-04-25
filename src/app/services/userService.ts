@@ -50,3 +50,20 @@ export const updateUser = async ({id, name, lastName, password}:
   
     return data;
   };
+
+  export const getSalesmen = async (token: string) => {
+    const res = await fetch('/api/user/readSalesmen', {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  
+    const data = await res.json();
+  
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to fetch salesmen');
+    }
+  
+    return data.users ?? [];
+  };

@@ -6,55 +6,20 @@ import styles from './EstimateDetails.module.css';
 import Invoice from './Invoice/Invoice';
 
 import Icon from '../../../../Icon';
+import { useForm } from 'react-hook-form';
+import { useUiState } from '../UiStateContext';
 
 /** Rate Type Options for the Estimate */
 const RATE_TYPE_OPTIONS = ['Flat Rate', 'Price Range', 'Single Estimate', 'Minimum Estimate'];
 
-// Function to process values from estimate to invoice
-// Takes only the right part if there's a dash/range
-const processEstimateValue = (value) => {
-  if (typeof value === 'string' && value.includes('-')) {
-    const rightPart = value.split('-')[1].trim();
-    // Ensure there's a dollar sign
-    return rightPart.startsWith('$') ? rightPart : `$${rightPart}`;
-  }
-  // If no dash, return the original value with $ if needed
-  return typeof value === 'string' 
-    ? (value.startsWith('$') ? value : `$${value}`)
-    : '$0';
+const formatCurrency = (value) => {
+  const numeric = typeof value === 'number' && !isNaN(value) ? value : 0;
+  return `$${numeric.toFixed(2)}`;
 };
 
-// Function to ensure dollar sign in input and format to 2 decimal places
-const formatCurrency = (value) => {
-  if (!value) return '$0.00';
-
-  // Remove dollar sign and any non-numeric characters except decimal point
-  let sanitized = value.replace(/^\$/, '').replace(/[^\d.]/g, '');
-  
-  // Handle decimal places
-  if (sanitized.includes('.')) {
-    const parts = sanitized.split('.');
-    // Keep only first two decimal places
-    sanitized = parts[0] + '.' + (parts[1] || '').slice(0, 2);
-    // If we have less than 2 decimal places, pad with zeros
-    if (parts[1] && parts[1].length < 2) {
-      sanitized = sanitized.padEnd(sanitized.length + (2 - parts[1].length), '0');
-    }
-  } else {
-    // No decimal point - add .00
-    sanitized = sanitized + '.00';
-  }
-  // If there's nothing before the decimal, add a 0
-  if (sanitized.startsWith('.')) {
-    sanitized = '0' + sanitized;
-  }
-
-  // If just 0, format as 0.00
-  if (sanitized === '0') {
-    sanitized = '0.00';
-  }
-
-  return `$${sanitized}`;
+const parseToNumber = (value) => {
+  const parsed = parseFloat(value.replace(/[^0-9.]/g, ''));
+  return isNaN(parsed) ? 0 : parsed;
 };
 
 // Select all text in an input field when clicked, but preserve the $ sign
@@ -77,24 +42,60 @@ const handleInputFocus = (e) => {
 function EstimateDetails({
   lead,            // The entire lead object
   onLeadUpdated,   // Callback to update the lead in the parent
-  isCollapsed,
-  setIsCollapsed,
 }) {
+  const {
+    setValue,
+    watch,
+  } = useForm({
+    defaultValues: {
+      typeOfQuote: lead?.typeOfQuote ?? 'Flat Rate',
+      estimateQuote: lead?.estimateQuote ?? 585,
+      estimateFuelSurcharge: lead?.estimateFuelSurcharge ?? 0,
+      estimateValuation: lead?.estimateValuation ?? 0,
+      estimatePacking: lead?.estimatePacking ?? 0,
+      estimateAdditionalServices: lead?.estimateAdditionalServices ?? 0,
+      estimateDiscount: lead?.estimateDiscount ?? 0,
+      estimateGrandTotal: lead?.estimateGrandTotal ?? 585,
+      estimateDeposit: lead?.estimateDeposit || 50,
+      estimatePayment: lead?.estimatePayment ?? 0,
+      estimateBalanceDue: lead?.estimateBalanceDue ?? 585,
+      
+      invoiceQuote: formatCurrency(lead?.invoiceQuote ?? lead?.estimateQuote),
+      invoiceFuelSurcharge: formatCurrency(lead?.invoiceFuelSurcharge ?? lead?.estimateFuelSurcharge),
+      invoiceValuation: formatCurrency(lead?.invoiceValuation ?? lead?.estimateValuation),
+      invoicePacking: formatCurrency(lead?.invoicePacking ?? lead?.estimatePacking),
+      invoiceAdditionalServices: formatCurrency(lead?.invoiceAdditionalServices ?? lead?.estimateAdditionalServices),
+      invoiceDiscount: formatCurrency(lead?.invoiceDiscount ?? lead?.estimateDiscount),
+      invoiceGrandTotal: formatCurrency(lead?.invoiceGrandTotal ?? lead?.estimateGrandTotal),
+      invoiceDeposit: formatCurrency(lead?.invoiceDeposit ?? lead?.estimateDeposit),
+      invoicePayment: formatCurrency(lead?.invoicePayment ?? lead?.estimatePayment),
+      invoiceBalanceDue: formatCurrency(lead?.invoiceBalanceDue ?? lead?.estimateBalanceDue),
+    }
+  });
+const typeOfQuote = watch('typeOfQuote');
+const estimateQuote = watch('estimateQuote');
+const estimateFuelSurcharge = watch('estimateFuelSurcharge');
+const estimateValuation = watch('estimateValuation');
+const estimatePacking = watch('estimatePacking');
+const estimateAdditionalServices = watch('estimateAdditionalServices');
+const estimateDiscount = watch('estimateDiscount');
+const estimateGrandTotal = watch('estimateGrandTotal');
+const estimateDeposit = watch('estimateDeposit');
+const estimatePayment = watch('estimatePayment');
+const estimateBalanceDue = watch('estimateBalanceDue');
+
+
     // ---------- ESTIMATE DATA ----------
   // Get the estimate object from lead, or create an empty object if it doesn't exist
-  const estimate = lead?.estimate || {};
+  //const estimate = lead?.estimate || {};
 
   // Collapsible panel toggle
-  const toggleCollapse = () => setIsCollapsed((prev) => !prev);
-
-  // If the lead has an invoice, show that initially
-  // We'll store either 'estimate' or 'invoice' in local state
-  const [activeOption, setActiveOption] = useState(
-    lead?.activeOption === 'invoice' ? 'invoice' : 'estimate'
-  );
+  const {isEstimateCollapsed, setIsEstimateCollapsed} = useUiState();
+  const { activeOption, setActiveOption } = useUiState();
+  const toggleCollapse = () => setIsEstimateCollapsed((prev) => !prev);
 
   // Check if Invoice component should be visible
-  const isInvoiceVisible = lead?.lead_status === 'Booked';
+  const isInvoiceVisible = lead?.leadStatus === 'Booked';
 
   // If lead.hasInvoice => show "invoice" UI, else only "estimate"
   const hasInvoice = Boolean(lead?.hasInvoice);
@@ -104,179 +105,48 @@ function EstimateDetails({
   const [estimateHeight, setEstimateHeight] = useState(0);
 
   // =========== ESTIMATE: Rate Type ===========
-  const [rateType, setRateType] = useState(estimate?.rateType ?? 'Flat Rate');
   const [showRateTypeDropdown, setShowRateTypeDropdown] = useState(false);
   const rateTypeDropdownRef = useRef(null);
 
   // =========== ESTIMATE: Pricing Fields ===========
-  const [deposit, setDeposit] = useState(formatCurrency(estimate?.deposit ?? '$50.00'));
-  const [quote, setQuote] = useState(estimate?.quote ?? '$520.00 - $585.00');
-  const [fuelSurcharge, setFuelSurcharge] = useState(formatCurrency(estimate?.fuelSurcharge ?? '$0'));
-  const [valuation, setValuation] = useState(formatCurrency(estimate?.valuation ?? '$0'));
-  const [packing, setPacking] = useState(formatCurrency(estimate?.packing ?? '$0'));
-  const [additionalServices, setAdditionalServices] = useState(
-    formatCurrency(estimate?.additionalServices ?? '$0')
-  );
-  const [discount, setDiscount] = useState(formatCurrency(estimate?.discount ?? '$0'));
-  const [grandTotal, setGrandTotal] = useState(estimate?.grandTotal ?? '$520 - $585');
-  const [payment, setPayment] = useState(formatCurrency(estimate?.payment ?? '$0'));
-  const [balanceDue, setBalanceDue] = useState(estimate?.balanceDue ?? '$520 - $585');
 
-  // Keep local state in sync with lead prop changes
-  useEffect(() => {
-    // Get nested objects, creating defaults if necessary
-    const est = lead?.estimate || {};
-    setRateType(est.rateType ?? 'Flat Rate');
-    setDeposit(formatCurrency(est.deposit ?? '$50.00'));
-    setQuote(est.quote ?? '$520.00 - $585.00');
-    setFuelSurcharge(formatCurrency(est.fuelSurcharge ?? '$0'));
-    setValuation(formatCurrency(est.valuation ?? '$0'));
-    setPacking(formatCurrency(est.packing ?? '$0'));
-    setAdditionalServices(formatCurrency(est.additionalServices ?? '$0'));
-    setDiscount(formatCurrency(est.discount ?? '$0'));
-    setGrandTotal(est.grandTotal ?? '$520 - $585');
-    setPayment(formatCurrency(est.payment ?? '$0'));
-    setBalanceDue(est.balanceDue ?? '$520 - $585');
+
+  //Keep local state in sync with lead prop changes
+  // useEffect(() => {
+  //   // Get nested objects, creating defaults if necessary
+  //   //const est = lead?.estimate || {};
+  //   setDeposit(formatCurrency(lead.estimateDeposit ?? '$50.00'));
+  //   setQuote(lead.estimateQuote ?? '$520.00 - $585.00');
+  //   setFuelSurcharge(formatCurrency(lead.estimateFuelSurcharge ?? '$0'));
+  //   setValuation(formatCurrency(lead.estimateValuation ?? '$0'));
+  //   setPacking(formatCurrency(lead.packing ?? '$0'));
+  //   setAdditionalServices(formatCurrency(lead.estimateAdditionalServices ?? '$0'));
+  //   setDiscount(formatCurrency(lead.estimateDiscount ?? '$0'));
+  //   setGrandTotal(lead.estimateGrandTotal ?? '$520 - $585');
+  //   setPayment(formatCurrency(lead.estimatePayment ?? '$0'));
+  //   setBalanceDue(lead.estimateBalanceDue ?? '$520 - $585');
     
-  }, [lead]);
+  // }, [lead]);
 
   // ---------- update lead in parent ----------
   // Helper function to update estimate object
   function handleUpdateEstimate(updates) {
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        estimate: {
-          ...lead.estimate || {},
-          ...updates,
-        },
-      });
+      onLeadUpdated(lead.id, updates);
     }
   }
-
+//r
   // ---------- INVOICE DATA (mirrors estimate, but editable) ----------
-  const invoice = lead?.invoice || {};
-
-  // For the invoice tab, we allow editing, but Rate Type is locked
-  const [invoiceQuote, setInvoiceQuote] = useState(
-    formatCurrency(invoice?.quote ?? processEstimateValue(quote))
-  );
-  const [invoiceFuelSurcharge, setInvoiceFuelSurcharge] = useState(
-    formatCurrency(invoice?.fuelSurcharge ?? processEstimateValue(fuelSurcharge))
-  );
-  const [invoiceValuation, setInvoiceValuation] = useState(
-    formatCurrency(invoice?.valuation ?? processEstimateValue(valuation))
-  );
-  const [invoicePacking, setInvoicePacking] = useState(
-    formatCurrency(invoice?.packing ?? processEstimateValue(packing))
-  );
-  const [invoiceAdditionalServices, setInvoiceAdditionalServices] = useState(
-    formatCurrency(invoice?.additionalServices ?? processEstimateValue(additionalServices))
-  );
-  const [invoiceGrandTotal, setInvoiceGrandTotal] = useState(
-    formatCurrency(invoice?.grandTotal ?? processEstimateValue(grandTotal))
-  );
-  const [invoiceDeposit, setInvoiceDeposit] = useState(
-    formatCurrency(invoice?.deposit ?? processEstimateValue(deposit))
-  );
-  const [invoicePayment, setInvoicePayment] = useState(
-    formatCurrency(invoice?.payment ?? processEstimateValue(payment))
-  );
-  const [invoiceDiscount, setInvoiceDiscount] = useState(
-    formatCurrency(invoice?.discount ?? processEstimateValue(discount))
-  );
-  const [invoiceBalanceDue, setInvoiceBalanceDue] = useState(
-    formatCurrency(invoice?.balanceDue ?? processEstimateValue(balanceDue))
-  );
 
   // Rate Type in Invoice is locked to the same as Estimate
   // (We simply display `rateType`, no dropdown, no editing)
-  const invoiceRateType = rateType;
+  const invoiceTypeOfQuote = lead.typeOfQuote;//ovo videti
 
-  // If we switch to "invoice" and there's no `lead.invoice`, copy from estimate
-  useEffect(() => {
-    if (activeOption === 'invoice' && !lead?.invoice) {
-      // Process each value and ensure dollar signs are present
-      const processedQuote = formatCurrency(processEstimateValue(quote));
-      const processedFuelSurcharge = formatCurrency(processEstimateValue(fuelSurcharge));
-      const processedValuation = formatCurrency(processEstimateValue(valuation));
-      const processedPacking = formatCurrency(processEstimateValue(packing));
-      const processedAdditionalServices = formatCurrency(processEstimateValue(additionalServices));
-      const processedGrandTotal = formatCurrency(processEstimateValue(grandTotal));
-      const processedDeposit = formatCurrency(processEstimateValue(deposit));
-      const processedPayment = formatCurrency(processEstimateValue(payment));
-      const processedDiscount = formatCurrency(processEstimateValue(discount));
-      const processedBalanceDue = formatCurrency(processEstimateValue(balanceDue));
+  
 
-      // Update invoice with processed values
-      handleUpdateInvoice({
-        quote: processedQuote,
-        fuelSurcharge: processedFuelSurcharge,
-        valuation: processedValuation,
-        packing: processedPacking,
-        additionalServices: processedAdditionalServices,
-        grandTotal: processedGrandTotal,
-        deposit: processedDeposit,
-        payment: processedPayment,
-        discount: processedDiscount,
-        balanceDue: processedBalanceDue,
-      });
-
-      // Update local state with processed values
-      setInvoiceQuote(processedQuote);
-      setInvoiceFuelSurcharge(processedFuelSurcharge);
-      setInvoiceValuation(processedValuation);
-      setInvoicePacking(processedPacking);
-      setInvoiceAdditionalServices(processedAdditionalServices);
-      setInvoiceGrandTotal(processedGrandTotal);
-      setInvoiceDeposit(processedDeposit);
-      setInvoicePayment(processedPayment);
-      setInvoiceDiscount(processedDiscount);
-      setInvoiceBalanceDue(processedBalanceDue);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeOption]);
-
-  // Keep local INVOICE state in sync with lead prop if lead.invoice changes
-  useEffect(() => {
-    if (lead?.invoice) {
-      const inv = lead.invoice;
-      setInvoiceQuote(formatCurrency(inv.quote ?? processEstimateValue(quote)));
-      setInvoiceFuelSurcharge(formatCurrency(inv.fuelSurcharge ?? processEstimateValue(fuelSurcharge)));
-      setInvoiceValuation(formatCurrency(inv.valuation ?? processEstimateValue(valuation)));
-      setInvoicePacking(formatCurrency(inv.packing ?? processEstimateValue(packing)));
-      setInvoiceAdditionalServices(formatCurrency(inv.additionalServices ?? processEstimateValue(additionalServices)));
-      setInvoiceGrandTotal(formatCurrency(inv.grandTotal ?? processEstimateValue(grandTotal)));
-      setInvoiceDeposit(formatCurrency(inv.deposit ?? processEstimateValue(deposit)));
-      setInvoicePayment(formatCurrency(inv.payment ?? processEstimateValue(payment)));
-      setInvoiceDiscount(formatCurrency(inv.discount ?? processEstimateValue(discount)));
-      setInvoiceBalanceDue(formatCurrency(inv.balanceDue ?? processEstimateValue(balanceDue)));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lead?.invoice]);
-
-  // Update hasInvoice and activeOption state when they change in the lead
-  useEffect(() => {
-    if (lead?.hasInvoice !== undefined) {
-      // This will be handled by the Invoice component, but we need to respond to changes
-    }
-    if (lead?.activeOption !== undefined) {
-      setActiveOption(lead.activeOption === 'invoice' ? 'invoice' : 'estimate');
-    }
-  }, [lead?.hasInvoice, lead?.activeOption]);
 
   // ---------- update lead's invoice object ----------
-  function handleUpdateInvoice(updates) {
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        invoice: {
-          ...lead.invoice || {},
-          ...updates,
-        },
-      });
-    }
-  }
+
 
   // ---------- Close dropdowns if user clicks outside ----------
   useEffect(() => {
@@ -313,27 +183,24 @@ function EstimateDetails({
   }, [ showEstimateSection, hasInvoice ]);
 
   // Handle input changes with proper currency formatting
-  const handleInputChange = (value, setter) => {
-    // Only allow digits, decimal points and $ sign during typing
-    const cleanValue = value.replace(/[^\d$.]/g, '');
-    setter(cleanValue);
+  const handleInputChange = (value, fieldName) => {
+    setValue(fieldName, parseToNumber(value));
   };
 
   // Handle blur event to format the value properly when user leaves the field
-  const handleInputBlur = (value, setter, field) => {
-    // Format the currency and update the field
-    const formattedValue = formatCurrency(value);
-    setter(formattedValue);
-    handleUpdateInvoice({ [field]: formattedValue });
+  const handleInputBlur = (value, fieldName) => {
+    const numericValue = parseToNumber(value);
+    onLeadUpdated(lead.id, { [fieldName]: numericValue });
+    const formatted = formatCurrency(numericValue)
+    setValue(fieldName, formatted);
   };
 
   // Handle key down event to apply changes on Enter key
-  const handleKeyDown = (e, value, setter, field) => {
+  const handleKeyDown = (e, value, fieldName) => {
     if (e.key === 'Enter') {
-      // Format the currency and update the field
-      const formattedValue = formatCurrency(value);
-      setter(formattedValue);
-      handleUpdateInvoice({ [field]: formattedValue });
+      const numericValue = parseToNumber(value);
+      setValue(fieldName, numericValue);
+      onLeadUpdated(lead.id, { [fieldName]: numericValue });
       // Blur/unfocus the input
       e.target.blur();
     }
@@ -344,11 +211,11 @@ function EstimateDetails({
       <div className={styles.estimateHeader}>
         <span className={styles.estimateTitle}>Estimate</span>
         <button className={styles.minusButton} onClick={toggleCollapse}>
-          {isCollapsed ? '+' : '-'}
+          {isEstimateCollapsed ? '+' : '-'}
         </button>
       </div>
 
-      {!isCollapsed && (
+      {!isEstimateCollapsed && (
         <div
           className={styles.innerContent}
           style={{ 
@@ -384,8 +251,8 @@ function EstimateDetails({
                     onClick={() => setShowRateTypeDropdown((p) => !p)}
                   >
                     <div className={styles.dropdownLabel}>
-                      <span className={styles.dropdownPrefix}>Rate Type:</span>
-                      <span className={styles.dropdownSelected}>{rateType}</span>
+                      <span className={styles.dropdownPrefix}>Type Of Quote:</span>
+                      <span className={styles.dropdownSelected}>{typeOfQuote}</span>
                     </div>
                     <Icon name="UnfoldMore" className={styles.dropdownIcon} />
                   </button>
@@ -393,7 +260,7 @@ function EstimateDetails({
                   {showRateTypeDropdown && (
                     <ul className={styles.rateTypeDropdown}>
                       {RATE_TYPE_OPTIONS.map((opt) => {
-                        const isSelected = opt === rateType;
+                        const isSelected = opt === typeOfQuote;
                         return (
                           <li
                             key={opt}
@@ -403,9 +270,9 @@ function EstimateDetails({
                                 : styles.rateTypeOption
                             }
                             onClick={() => {
-                              setRateType(opt);
+                              setValue('typeOfQuote', opt);
                               setShowRateTypeDropdown(false);
-                              handleUpdateEstimate({ rateType: opt });
+                              handleUpdateEstimate({ typeOfQuote: opt });
                             }}
                           >
                             {opt}
@@ -422,35 +289,37 @@ function EstimateDetails({
               {/* Quote Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Quote</span>
-                <span className={styles.pricingValue}>{quote}</span>
+                <span className={styles.pricingValue}>
+                {formatCurrency(estimateQuote)}
+                </span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Fuel Surcharge Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Fuel Surcharge</span>
-                <span className={styles.pricingValue}>{fuelSurcharge}</span>
+                <span className={styles.pricingValue}>{formatCurrency(estimateFuelSurcharge)}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Valuation Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Valuation</span>
-                <span className={styles.pricingValue}>{valuation}</span>
+                <span className={styles.pricingValue}>{formatCurrency(estimateValuation)}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Packing Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Packing</span>
-                <span className={styles.pricingValue}>{packing}</span>
+                <span className={styles.pricingValue}>{formatCurrency(estimatePacking)}</span>
               </div>
               <div className={styles.divider}></div>
 
               {/* Additional Services Row */}
               <div className={styles.pricingRow}>
                 <span className={styles.pricingLabel}>Additional Services</span>
-                <span className={styles.pricingValue}>{additionalServices}</span>
+                <span className={styles.pricingValue}>{formatCurrency(estimateAdditionalServices)}</span>
               </div>
               <div className={styles.divider}></div>
 
@@ -460,7 +329,7 @@ function EstimateDetails({
                   Grand Total
                 </span>
                 <span className={`${styles.pricingLabel} ${styles.grandTotalValue}`}>
-                  {grandTotal}
+                {formatCurrency(estimateGrandTotal)}
                 </span>
               </div>
               <div className={styles.divider}></div>
@@ -470,7 +339,7 @@ function EstimateDetails({
                 <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>
                   Deposit
                 </span>
-                <span className={styles.pricingValue}>{deposit}</span>
+                <span className={styles.pricingValue}>{formatCurrency(estimateDeposit)}</span>
               </div>
               <div className={styles.divider}></div>
 
@@ -479,7 +348,7 @@ function EstimateDetails({
                 <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>
                   Payment
                 </span>
-                <span className={styles.pricingValue}>{payment}</span>
+                <span className={styles.pricingValue}>{formatCurrency(estimatePayment)}</span>
               </div>
               <div className={styles.divider}></div>
 
@@ -488,7 +357,7 @@ function EstimateDetails({
                 <span className={`${styles.pricingLabel} ${styles.importantLabel}`}>
                   Discount
                 </span>
-                <span className={styles.pricingValue}>{discount}</span>
+                <span className={styles.pricingValue}>{formatCurrency(estimateDiscount)}</span>
               </div>
               <div className={styles.divider}></div>
 
@@ -498,7 +367,7 @@ function EstimateDetails({
                   Balance Due
                 </span>
                 <span className={`${styles.pricingValue} ${styles.balanceDueValue}`}>
-                  {balanceDue}
+                {formatCurrency(estimateBalanceDue)}
                 </span>
               </div>
 
@@ -535,7 +404,7 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput}`}
-                    value={invoiceRateType}
+                    value={invoiceTypeOfQuote}
                     readOnly
                   />
                 </div>
@@ -547,11 +416,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput}`}
-                    value={invoiceQuote}
+                    value={watch('invoiceQuote')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoiceQuote, 'quote')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoiceQuote, 'quote')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoiceQuote, 'quote')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoiceQuote')}
+                    onBlur={(e) => handleInputBlur(e.target.value,  'invoiceQuote')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value,'invoiceQuote')}
                   />
                 </div>
                 <div className={styles.divider}></div>
@@ -562,11 +431,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput}`}
-                    value={invoiceFuelSurcharge}
+                    value={watch('invoiceFuelSurcharge')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoiceFuelSurcharge, 'fuelSurcharge')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoiceFuelSurcharge, 'fuelSurcharge')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoiceFuelSurcharge, 'fuelSurcharge')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoiceFuelSurcharge')}
+                    onBlur={(e) => handleInputBlur(e.target.value, 'invoiceFuelSurcharge')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value,'invoiceFuelSurcharge')}
                   />
                 </div>
                 <div className={styles.divider}></div>
@@ -577,11 +446,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput}`}
-                    value={invoiceValuation}
+                    value={watch('invoiceValuation')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoiceValuation, 'valuation')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoiceValuation, 'valuation')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoiceValuation, 'valuation')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoiceValuation')}
+                    onBlur={(e) => handleInputBlur(e.target.value, 'invoiceValuation')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value,'invoiceValuation')}
                   />
                 </div>
                 <div className={styles.divider}></div>
@@ -592,11 +461,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput}`}
-                    value={invoicePacking}
+                    value={watch('invoicePacking')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoicePacking, 'packing')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoicePacking, 'packing')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoicePacking, 'packing')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoicePacking')}
+                    onBlur={(e) => handleInputBlur(e.target.value, 'invoicePacking')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value,'invoicePacking')}
                   />
                 </div>
                 <div className={styles.divider}></div>
@@ -607,11 +476,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput}`}
-                    value={invoiceAdditionalServices}
+                    value={watch('invoiceAdditionalServices')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoiceAdditionalServices, 'additionalServices')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoiceAdditionalServices, 'additionalServices')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoiceAdditionalServices, 'additionalServices')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoiceAdditionalServices')}
+                    onBlur={(e) => handleInputBlur(e.target.value, 'invoiceAdditionalServices')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value,'invoiceAdditionalServices')}
                   />
                 </div>
                 <div className={styles.divider}></div>
@@ -624,11 +493,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput} ${styles.grandTotalValue}`}
-                    value={invoiceGrandTotal}
+                    value={watch('invoiceGrandTotal')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoiceGrandTotal, 'grandTotal')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoiceGrandTotal, 'grandTotal')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoiceGrandTotal, 'grandTotal')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoiceGrandTotal')}
+                    onBlur={(e) => handleInputBlur(e.target.value, 'invoiceGrandTotal')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value, 'invoiceGrandTotal')}
                   />
                 </div>
                 <div className={styles.divider}></div>
@@ -641,11 +510,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput}`}
-                    value={invoiceDeposit}
+                    value={watch('invoiceDeposit')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoiceDeposit, 'deposit')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoiceDeposit, 'deposit')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoiceDeposit, 'deposit')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoiceDeposit')}
+                    onBlur={(e) => handleInputBlur(e.target.value, 'invoiceDeposit')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value,'invoiceDeposit')}
                   />
                 </div>
                 <div className={styles.divider}></div>
@@ -658,11 +527,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput}`}
-                    value={invoicePayment}
+                    value={watch('invoicePayment')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoicePayment, 'payment')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoicePayment, 'payment')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoicePayment, 'payment')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoicePayment')}
+                    onBlur={(e) => handleInputBlur(e.target.value, 'invoicePayment')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value,'invoicePayment')}
                   />
                 </div>
                 <div className={styles.divider}></div>
@@ -675,11 +544,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput}`}
-                    value={invoiceDiscount}
+                    value={watch('invoiceDiscount')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoiceDiscount, 'discount')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoiceDiscount, 'discount')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoiceDiscount, 'discount')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoiceDiscount')}
+                    onBlur={(e) => handleInputBlur(e.target.value, 'invoiceDiscount')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value,'invoiceDiscount')}
                   />
                 </div>
                 <div className={styles.divider}></div>
@@ -692,11 +561,11 @@ function EstimateDetails({
                   <input
                     type="text"
                     className={`${styles.pricingValue} ${styles.invoiceValueInput} ${styles.balanceDueValue}`}
-                    value={invoiceBalanceDue}
+                    value={watch('invoiceBalanceDue')}
                     onClick={handleInputFocus}
-                    onChange={(e) => handleInputChange(e.target.value, setInvoiceBalanceDue, 'balanceDue')}
-                    onBlur={(e) => handleInputBlur(e.target.value, setInvoiceBalanceDue, 'balanceDue')}
-                    onKeyDown={(e) => handleKeyDown(e, e.target.value, setInvoiceBalanceDue, 'balanceDue')}
+                    onChange={(e) => handleInputChange(e.target.value, 'invoiceBalanceDue')}
+                    onBlur={(e) => handleInputBlur(e.target.value, 'invoiceBalanceDue')}
+                    onKeyDown={(e) => handleKeyDown(e, e.target.value, 'invoiceBalanceDue')}
                   />
                 </div>
 

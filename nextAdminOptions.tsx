@@ -34,6 +34,18 @@ const options: NextAdminOptions = {
       toString: (brandSettings) => `${brandSettings.id}`,
       title: "BrandSettings",
     },
+    Lead: {
+      toString: (Lead) => `${Lead.id}`,
+      title: "Lead",
+    },
+    Origins: {
+      toString: (Origins) => `${Origins.id}`,
+      title: "Origins",
+    },
+    Destinations: {
+      toString: (Destinations) => `${Destinations.id}`,
+      title: "Destinations",
+    }
   }
 }
 

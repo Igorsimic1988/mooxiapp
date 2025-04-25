@@ -5,11 +5,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import MoveDetailsPanel from './MoveDetailsPanel/MoveDetailsPanel';
 import styles from './LeadManagementPanel.module.css';
 
-import PossibleSalesReps from '../../../data/constants/PossibleSalesReps';
 
 // 1) IMPORT THE updateLead SERVICE
-import { updateLead } from '../../../services/leadService';
 import Icon from '../../Icon';
+import { useForm } from 'react-hook-form';
+import { UiStateProvider } from './MoveDetailsPanel/UiStateContext';
+import { getSalesmen } from 'src/app/services/userService';
+import { useQuery } from '@tanstack/react-query';
+import { useAccessToken } from 'src/app/lib/useAccessToken';
+
+
 
 const statusOptions = [
   {
@@ -156,14 +161,29 @@ function LeadManagementPanel({
   onLeadUpdated,
   onInventoryFullScreen,
 }) {
-  // Local state
-  const [leadStatus, setLeadStatus] = useState(lead.lead_status);
-  const [leadActivity, setLeadActivity] = useState(lead.lead_activity || 'Contacting');
-  const [nextAction, setNextAction] = useState(lead.next_action || '');
-  const [selectedEstimator, setSelectedEstimator] = useState(lead.estimator || '');
-  const [selectedDate, setSelectedDate] = useState(lead.survey_date || '');
-  const [selectedTime, setSelectedTime] = useState(lead.survey_time || '');
-  const [inventoryOption, setInventoryOption] = useState(lead.inventory_option || 'Detailed Inventory Quote');
+  const {
+    watch,
+    setValue,
+    getValues,
+  } = useForm({
+    defaultValues: {
+      leadStatus: lead.leadStatus || '',
+      leadActivity: lead.leadActivity || 'Contacting',
+      nextAction: lead.nextAction || '',
+      estimator: lead.estimator || '',
+      surveyDate: lead.surveyDate || '',
+      surveyTime: lead.surveyTime || '',
+      inventoryOption: lead.inventoryOption || 'Detailed Inventory Quote',
+    },
+  });
+  const token = useAccessToken();
+  const leadStatus = watch('leadStatus');
+  const leadActivity = watch('leadActivity');
+  const nextAction = watch('nextAction');
+  const selectedEstimator = watch('estimator');
+  const selectedDate = watch('surveyDate');
+  const selectedTime = watch('surveyTime');
+  const inventoryOption = watch('inventoryOption');
 
   const [hideNextActionAfterSurvey, setHideNextActionAfterSurvey] = useState(false);
   const [animateNextAction, setAnimateNextAction] = useState(false);
@@ -180,6 +200,15 @@ function LeadManagementPanel({
   const inventoryRef = useRef(null);
   const statusContainerRef = useRef(null);
   const activityContainerRef = useRef(null);
+
+    const { data: users = [], } = useQuery({
+      queryKey: ['users', token],
+      queryFn: () => getSalesmen(token),
+      enabled: !!token,
+    })
+
+
+
 
   // Build days array
   useEffect(() => {
@@ -209,11 +238,18 @@ function LeadManagementPanel({
   }, [showStatusDropdown, showActivityDropdown, showInventoryDropdown]);
 
   // Actually call updateLead => get updated lead => call parent onLeadUpdated
-  async function doUpdateLead(changes) {
+  async function doUpdateLead(updatedFields = {}) {
+    if (!lead?.id || !onLeadUpdated) {
+      console.warn("Lead nema ID! Neće se poslati update.");
+      return;
+    }
+    
     try {
-      const updatedLead = await updateLead(lead.lead_id, changes);
       if (onLeadUpdated) {
-        onLeadUpdated(updatedLead);
+        await onLeadUpdated(lead.id,{
+          ...getValues(),
+          ...updatedFields,
+        });
       }
     } catch (err) {
       console.error('Failed to update lead:', err);
@@ -230,7 +266,6 @@ function LeadManagementPanel({
   const handleSelectStatus = async (option) => {
     if (option.isDisabled) return;
     setShowStatusDropdown(false);
-
     const newStatus = option.label;
     let newActivity = getActivityOptions(newStatus)[0] || '';
     let newNextAction = nextAction || '';
@@ -244,19 +279,19 @@ function LeadManagementPanel({
       newNextAction = 'Follow up 1';
       setHideNextActionAfterSurvey(false);
     }
-
-    setLeadStatus(newStatus);
-    setLeadActivity(newActivity);
-    setNextAction(newNextAction);
+    setValue('leadStatus', newStatus);
+    setValue('leadActivity', newActivity);
+    setValue('nextAction', newNextAction);
+    setShowStatusDropdown(false);
 
     await doUpdateLead({
-      lead_status: newStatus,
-      lead_activity: newActivity,
-      next_action: newNextAction,
-      estimator: selectedEstimator,
-      survey_date: selectedDate,
-      survey_time: selectedTime,
-      inventory_option: inventoryOption,
+      leadStatus: newStatus,
+      leadActivity: newActivity,
+      nextAction: newNextAction,
+      // estimator: selectedEstimator,
+      // surveyDate: selectedDate,
+      // surveyTime: selectedTime,
+      // inventoryOption: inventoryOption,
     });
   };
 
@@ -264,6 +299,7 @@ function LeadManagementPanel({
   const handleToggleActivityDropdown = () => setShowActivityDropdown((prev) => !prev);
 
   const handleSelectActivity = async (activityValue) => {
+    if (activityValue === leadActivity) return;
     setShowActivityDropdown(false);
 
     const oldActivity = leadActivity;
@@ -282,18 +318,12 @@ function LeadManagementPanel({
     ) {
       newNextAction = 'Attempt 1';
     }
-
-    setLeadActivity(activityValue);
-    setNextAction(newNextAction);
+    setValue('leadActivity', activityValue);
+    setValue('nextAction', newNextAction);
 
     await doUpdateLead({
-      lead_status: leadStatus,
-      lead_activity: activityValue,
-      next_action: newNextAction,
-      estimator: selectedEstimator,
-      survey_date: selectedDate,
-      survey_time: selectedTime,
-      inventory_option: inventoryOption,
+      leadActivity: activityValue,
+      nextAction: newNextAction,
     });
   };
 
@@ -303,15 +333,9 @@ function LeadManagementPanel({
     setTimeout(() => setAnimateNextAction(false), 600);
 
     if (nextAction === 'Schedule Survey') {
-      setNextAction('Survey Completed');
+      setValue('nextAction', 'Survey Completed');
       await doUpdateLead({
-        lead_status: leadStatus,
-        lead_activity: leadActivity,
-        next_action: 'Survey Completed',
-        estimator: selectedEstimator,
-        survey_date: selectedDate,
-        survey_time: selectedTime,
-        inventory_option: inventoryOption,
+        nextAction: 'Survey Completed',
       });
       return;
     }
@@ -319,15 +343,9 @@ function LeadManagementPanel({
     // If nextAction === 'Survey Completed', we set it to 'Completed'
     if (nextAction === 'Survey Completed') {
       setHideNextActionAfterSurvey(true);
-      setNextAction('Completed');
+      setValue('nextAction', 'Completed');
       await doUpdateLead({
-        lead_status: leadStatus,
-        lead_activity: leadActivity,
-        next_action: 'Completed',
-        estimator: selectedEstimator,
-        survey_date: selectedDate,
-        survey_time: selectedTime,
-        inventory_option: inventoryOption,
+        nextAction: 'Completed',
       });
       return;
     }
@@ -384,19 +402,14 @@ function LeadManagementPanel({
     if (HIDDEN_STATUSES.includes(newStatus)) {
       newNextAction = '';
     }
-
-    setLeadStatus(newStatus);
-    setLeadActivity(newActivity);
-    setNextAction(newNextAction);
+    setValue('leadStatus', newStatus);
+    setValue('leadActivity', newActivity);
+    setValue('nextAction', newNextAction);
 
     await doUpdateLead({
-      lead_status: newStatus,
-      lead_activity: newActivity,
-      next_action: newNextAction,
-      estimator: selectedEstimator,
-      survey_date: selectedDate,
-      survey_time: selectedTime,
-      inventory_option: inventoryOption,
+      leadStatus: newStatus,
+      leadActivity: newActivity,
+      nextAction: newNextAction,
     });
   };
 
@@ -404,17 +417,12 @@ function LeadManagementPanel({
   const handleToggleEstimatorDropdown = () => setShowEstimatorDropdown((prev) => !prev);
 
   const handleSelectEstimator = async (repName) => {
-    setSelectedEstimator(repName);
+    if (repName === selectedEstimator) return;
+    setValue('estimator', repName);
     setShowEstimatorDropdown(false);
 
     await doUpdateLead({
-      lead_status: leadStatus,
-      lead_activity: leadActivity,
-      next_action: nextAction,
       estimator: repName,
-      survey_date: selectedDate,
-      survey_time: selectedTime,
-      inventory_option: inventoryOption,
     });
   };
 
@@ -431,49 +439,35 @@ function LeadManagementPanel({
   const handleDayClick = async (dayNum) => {
     const dateObj = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNum);
     const newDateString = dateObj.toDateString();
-    setSelectedDate(newDateString);
+
+    if (newDateString === selectedDate) return;
+    setValue('surveyDate', newDateString);
     setShowCalendar(false);
 
     await doUpdateLead({
-      lead_status: leadStatus,
-      lead_activity: leadActivity,
-      next_action: nextAction,
-      estimator: selectedEstimator,
-      survey_date: newDateString,
-      survey_time: selectedTime,
-      inventory_option: inventoryOption,
+      surveyDate: newDateString,
     });
   };
 
   // TIME
   const handleSelectTime = async (timeStr) => {
-    setSelectedTime(timeStr);
+    if (timeStr === selectedTime) return;
+    setValue('surveyTime', timeStr);
     setShowTimeDropdown(false);
 
     await doUpdateLead({
-      lead_status: leadStatus,
-      lead_activity: leadActivity,
-      next_action: nextAction,
-      estimator: selectedEstimator,
-      survey_date: selectedDate,
-      survey_time: timeStr,
-      inventory_option: inventoryOption,
+      surveyTime: timeStr,
     });
   };
 
   // INVENTORY
   const handleSelectInventoryOption = async (opt) => {
-    setInventoryOption(opt.label);
+    if (opt.label === inventoryOption ) return;
+    setValue('inventoryOption', opt.label);
     setShowInventoryDropdown(false);
 
     await doUpdateLead({
-      lead_status: leadStatus,
-      lead_activity: leadActivity,
-      next_action: nextAction,
-      estimator: selectedEstimator,
-      survey_date: selectedDate,
-      survey_time: selectedTime,
-      inventory_option: opt.label,
+      inventoryOption: opt.label,
     });
   };
 
@@ -489,7 +483,7 @@ function LeadManagementPanel({
   const hideActivityButton = leadStatus === 'Move on Hold';
   const activityOptions = getActivityOptions(leadStatus);
 
-  const rawPhone = lead.customer_phone_number || '';
+  const rawPhone = lead.customerPhoneNumber || '';
   const displayPhone = formatPhoneNumber(rawPhone);
 
   return (
@@ -504,7 +498,7 @@ function LeadManagementPanel({
         <div className={styles.topRow}>
           <div className={styles.leftSection}>
             <Icon name="CustomerUser" className={styles.customerIcon} />
-            <span className={styles.customerName}>{lead.customer_name}</span>
+            <span className={styles.customerName}>{lead.customerName}</span>
           </div>
           <div className={styles.rightSection}>
             <div className={styles.scoreContainer}>
@@ -528,7 +522,7 @@ function LeadManagementPanel({
           <div className={styles.infoChip}>{displayPhone}</div>
           <div className={styles.emailRow}>
             <div className={styles.infoChip}>
-              {lead.customer_email || 'No Email'}
+              {lead.customerEmail || 'No Email'}
             </div>
             <button className={styles.editButton} onClick={handleEditClick}>
               <Icon name="Edit" className={styles.editIcon} />
@@ -568,13 +562,10 @@ function LeadManagementPanel({
                 {statusOptions
                   .filter((o) => o.label !== 'New Lead')
                   .map((option) => {
-                    const isSelected = option.label === leadStatus;
                     return (
                       <li
                         key={option.label}
-                        className={`${styles.statusOption} ${
-                          isSelected ? styles.selectedOption : ''
-                        }`}
+                        className={`${styles.statusOption} ${leadStatus === option.label ? styles.selectedOption : ''}`}
                         style={{ color: option.color }}
                         onClick={() => handleSelectStatus(option)}
                       >
@@ -604,13 +595,10 @@ function LeadManagementPanel({
               {showActivityDropdown && (
                 <ul className={styles.activityDropdown}>
                   {activityOptions.map((act) => {
-                    const isSelected = act === leadActivity;
                     return (
                       <li
                         key={act}
-                        className={`${styles.activityOption} ${
-                          isSelected ? styles.selectedOption : ''
-                        }`}
+                        className={`${styles.activityOption} ${act === leadActivity ? styles.selectedOption : ''}`}
                         onClick={() => handleSelectActivity(act)}
                       >
                         {act}
@@ -644,7 +632,7 @@ function LeadManagementPanel({
                 </button>
                 {showEstimatorDropdown && (
                   <ul className={styles.estimatorDropdown}>
-                    {PossibleSalesReps.map((rep) => (
+                    {users.map((rep) => (
                       <li
                         key={rep.id}
                         className={styles.estimatorOption}
@@ -835,12 +823,13 @@ function LeadManagementPanel({
           </div>
         </div>
       </div>
-
+      <UiStateProvider>
       <MoveDetailsPanel
         onShowInventory={onInventoryFullScreen}
         lead={lead}
         onLeadUpdated={onLeadUpdated}
       />
+      </UiStateProvider>
     </div>
   );
 }

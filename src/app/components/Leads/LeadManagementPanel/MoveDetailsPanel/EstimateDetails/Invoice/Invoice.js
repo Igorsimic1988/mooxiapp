@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './Invoice.module.css';
+import { useUiState } from '../../UiStateContext'; 
 
 /**
  * This component shows either:
@@ -12,37 +13,28 @@ import styles from './Invoice.module.css';
 function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
   // We read the initial "hasInvoice" from lead
   const [hasInvoice, setHasInvoice] = useState(Boolean(lead?.hasInvoice));
+  const { activeOption, setActiveOption } = useUiState();
 
   // If hasInvoice=true => which button is highlighted? default 'estimate'
-  // but if lead.activeOption==='invoice', we highlight that
-  const [selectedOption, setSelectedOption] = useState(
-    lead?.activeOption === 'invoice' ? 'invoice' : 'estimate'
-  );
+
 
   // Check if the invoice component should be visible (only if lead_status is "Booked")
-  const isVisible = lead?.lead_status === "Booked";
+  const isVisible = lead?.leadStatus === "Booked";
 
   // Update local state when lead prop changes
   useEffect(() => {
     setHasInvoice(Boolean(lead?.hasInvoice));
-    if (lead?.activeOption === 'invoice') {
-      setSelectedOption('invoice');
-    } else {
-      setSelectedOption('estimate');
-    }
-  }, [lead?.hasInvoice, lead?.activeOption]);
+  }, [lead?.hasInvoice]);
 
   const handleCreateInvoice = () => {
     // Update local state
     setHasInvoice(true);
-    setSelectedOption('invoice');
+    setActiveOption('invoice');
     
     // Update parent component and persist changes
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
+      onLeadUpdated(lead.id, {
         hasInvoice: true,
-        activeOption: 'invoice',  // store as lowercase
       });
     }
     
@@ -54,15 +46,7 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
 
   const handleSelectOption = (option) => {
     // Update local state
-    setSelectedOption(option);
-    
-    // Update parent component
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        activeOption: option, // store exactly 'estimate' or 'invoice'
-      });
-    }
+    setActiveOption(option);
     
     // Notify parent about selected option
     if (onOptionSelected) {
@@ -73,14 +57,12 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
   const handleRemoveInvoice = () => {
     // Update local state
     setHasInvoice(false);
-    setSelectedOption('estimate');
+    setActiveOption('estimate');
     
     // Update parent component and persist changes
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
+      onLeadUpdated(lead.id, {
         hasInvoice: false,
-        activeOption: 'estimate',
       });
     }
     
@@ -110,7 +92,7 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
             <button
               className={`
                 ${styles.optionButton}
-                ${selectedOption === 'estimate' ? styles.buttonSelected : styles.buttonUnselected}
+                ${activeOption === 'estimate' ? styles.buttonSelected : styles.buttonUnselected}
               `}
               onClick={() => handleSelectOption('estimate')}
             >
@@ -119,7 +101,7 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
             <button
               className={`
                 ${styles.optionButton}
-                ${selectedOption === 'invoice' ? styles.buttonSelected : styles.buttonUnselected}
+                ${activeOption === 'invoice' ? styles.buttonSelected : styles.buttonUnselected}
               `}
               onClick={() => handleSelectOption('invoice')}
             >
@@ -129,7 +111,7 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
         )}
       </div>
 
-      {hasInvoice && selectedOption === 'invoice' && (
+      {hasInvoice && activeOption === 'invoice' && (
         <button
           type="button"
           className={styles.removeInvoiceLink}

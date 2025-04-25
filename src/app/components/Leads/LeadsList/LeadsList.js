@@ -160,7 +160,7 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, tran
     >
       {leads.map((lead) => {
         // fallback to InProgress style if status is unknown
-        const { color, icon } = statusMapping[lead.lead_status] || {
+        const { color, icon } = statusMapping[lead.leadStatus] || {
           color: '#FAA61A',
           icon: () => (
             <Icon
@@ -172,21 +172,21 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, tran
         };
 
         // Default top/middle/bottom
-        let topLineText     = lead.lead_status;
+        let topLineText     = lead.leadStatus;
         let showTopLineIcon = true;
         let middleLineText  = (activeTab === 'Active Leads')
-          ? lead.next_action
-          : lead.lead_activity;
-        let bottomLineText  = lead.sales_name;
+          ? lead.nextAction
+          : lead.leadActivity;
+        let bottomLineText  = lead.salesName;
 
         // We'll handle adding a .completedText class if needed:
         let bottomLineClasses = `${styles.truncate} ${styles.salesName}`;
 
         // My Appointments
         if (activeTab === 'My Appointments') {
-          topLineText     = lead.lead_activity || '';
+          topLineText     = lead.leadActivity || '';
           showTopLineIcon = false;
-          middleLineText  = `${formatMonthDay(lead.survey_date)} ${lead.survey_time || ''}`.trim();
+          middleLineText  = `${formatMonthDay(lead.surveyDate)} ${lead.surveyTime || ''}`.trim();
 
           // If next_action === "Completed" => bottom line is "Completed" in #3fa9f5
           if (lead.next_action === 'Completed') {
@@ -208,20 +208,20 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, tran
         return (
           <div
             className={cardClass}
-            key={lead.job_number}
+            key={lead.jobNumber}
             onClick={() => onLeadClick(lead)}
           >
             {/* Column 1 */}
             <div className={styles.companyInfo}>
               <div className={`${styles.truncate} ${styles.companyName}`}>
-                {lead.company_name}
+                {lead.companyName}
               </div>
               <div className={`${styles.truncate} ${styles.jobNumber}`}>
-                {lead.job_number}
+                {lead.jobNumber}
               </div>
               <div className={styles.dateContainer}>
                 <span className={`${styles.truncate} ${styles.dateText}`}>
-                  {formatDate(lead.creation_date_time)}
+                  {formatDate(lead.creationDateTime)}
                 </span>
               </div>
             </div>
@@ -229,25 +229,25 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, tran
             {/* Column 2 */}
             <div className={styles.customerInfo}>
               <div className={styles.customerRow}>
-                {lead.is_new ? (
+                {lead.isNew ? (
                   <div className={styles.greenDot} />
                 ) : (
                   <div className={styles.greenDotPlaceholder} />
                 )}
                 <div className={`${styles.truncate} ${styles.customerName}`}>
-                  {lead.customer_name}
+                  {lead.customerName}
                 </div>
               </div>
               <div className={styles.customerRow}>
                 <div className={styles.greenDotPlaceholder} />
                 <div className={`${styles.truncate} ${styles.moveType}`}>
-                  {lead.rate_type}
+                  {lead.RateType}
                 </div>
               </div>
               <div className={styles.customerRow}>
                 <div className={styles.greenDotPlaceholder} />
                 <div className={`${styles.truncate} ${styles.customerPhone}`}>
-                  {formatPhone(lead.customer_phone_number)}
+                  {formatPhone(lead.customerPhoneNumber)}
                 </div>
               </div>
             </div>

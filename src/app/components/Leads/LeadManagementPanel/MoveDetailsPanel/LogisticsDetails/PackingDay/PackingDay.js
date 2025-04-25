@@ -9,11 +9,6 @@ import styles from './PackingDay.module.css';
  *   plus "Remove packing day" if user wants to remove it entirely.
  */
 function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
-  console.log("PackingDay render:", { 
-    hasPackingDay: lead?.hasPackingDay, 
-    activeDay: lead?.activeDay,
-    leadId: lead?.lead_id
-  });
 
   // Pull from the lead directly (no local state):
   const hasPackingDay = Boolean(lead?.hasPackingDay);
@@ -22,11 +17,8 @@ function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
   // Add packing day => hasPackingDay = true, activeDay = 'packing'
   const handleAddPackingDay = () => {
     console.log("Add packing day clicked");
-    
-    // First update the lead through onLeadUpdated
-    if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
+        if (onLeadUpdated) {
+      onLeadUpdated(lead.id, {
         hasPackingDay: true,
         activeDay: 'packing',
       });
@@ -45,8 +37,7 @@ function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
 
     // First update the lead
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
+      onLeadUpdated(lead.id, {
         hasPackingDay: true, // explicitly keep true
         activeDay: day,
       });
@@ -64,8 +55,7 @@ function PackingDay({ lead, onDaySelected, onLeadUpdated }) {
     
     // Update the lead
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
+      onLeadUpdated(lead.id, {
         hasPackingDay: false,
         activeDay: 'moving',
       });

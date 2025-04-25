@@ -12,6 +12,11 @@ import Icon from '../../../Icon';
 
 // Import your typeOfServiceChoices from the constants file
 import typeOfServiceChoices from '../../../../data/constants/typeOfServiceChoices';
+import { useForm } from 'react-hook-form';
+import { useMutation } from "@tanstack/react-query";
+import { updateOrigin } from 'src/app/services/originsService';
+import { updateDestination } from 'src/app/services/destinationsService';
+import { useAccessToken } from "src/app/lib/useAccessToken";
 
 /** Generate time slots from 7:00 AM to 9:00 PM in 15-min increments */
 function generateTimeSlots() {
@@ -45,13 +50,93 @@ const storageOptions = [
 ];
 
 function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
+
+    const {
+      watch,
+      setValue,
+    } = useForm({
+      defaultValues: {
+        moveDate: lead?.moveDate || '',
+        deliveryDate: lead?.deliveryDate || '',
+        serviceType: lead?.serviceType || 'Moving',
+        etaRequest: lead?.etaRequest || 'Flexible',
+        addStorage: Boolean(lead?.addStorage),
+        storageItems: lead?.storageItems || 'All items',
+        timePromised: Boolean(lead?.timePromised),
+        arrivalTime: lead?.arrivalTime || '',
+      },
+    });
+
+  const moveDate = watch('moveDate');
+  const deliveryDate = watch('deliveryDate');
+  const etaRequest = watch('etaRequest');
+  const addStorage = watch('addStorage');
+  const serviceType = watch('serviceType');
+  const storageItems = watch('storageItems');
+  const timePromised = watch('timePromised');
+  const arrivalTime = watch('arrivalTime');
+
+  const token = useAccessToken();
+  const [originStops, setOriginStops] = useState(lead.origins || []);
+  const [destinationStops, setDestinationStops] = useState(lead.destinations || []);
+
+
+  const updateOriginMutation = useMutation({
+    mutationFn: ({id, data }) =>updateOrigin({id, data, token}),
+    onSuccess:(updatedOrigin) => {
+      console.log("Updated origin:", updatedOrigin);
+    },
+    onError: (err) => {
+      console.log(err)
+    }
+  });
+
+  const handleOriginUpdated = (id, updates) => {
+    console.log("UPDATE Origin → id:", id); 
+    updateOriginMutation.mutate({ id, data: updates }, {
+      onSuccess: (updatedOrigin) =>{
+        console.log('UPDATED ORIGIN ', updatedOrigin);
+        setOriginStops((prev) =>
+          prev.map((s) =>
+            s.id === updatedOrigin.id ? { ...s, ...updatedOrigin } : s
+          )
+        );
+      }
+    });
+  };
+
+  const updateDestinationMutation = useMutation({
+      mutationFn: ({id, data}) =>updateDestination({id, data, token}),
+    onSuccess:(updatedDestination) => {
+      console.log("Updated destination:", updatedDestination);
+    },
+    onError: (err) => {
+      console.log(err)
+    }
+  });
+
+  const handleDestinationUpdated = (id, updates) => {
+    updateDestinationMutation.mutate(
+      { id, data: updates },
+      {
+        onSuccess: (updatedDestination) => {
+          console.log('UPDATED DESTINATION ', updatedDestination);
+          setDestinationStops((prev) =>
+            prev.map((s) =>
+              s.id === updatedDestination.id ? { ...s, ...updatedDestination } : s
+            )
+          );
+        }
+      }
+    );
+  };
+
+
   // Tabs
   const [selectedIndex, setSelectedIndex] = useState(0);
   const isSelectedTab = (idx) => idx === selectedIndex;
 
   // ---------- Move/Delivery Date ----------
-  const [moveDate, setMoveDate] = useState(lead?.move_date || '');
-  const [deliveryDate, setDeliveryDate] = useState(lead?.delivery_date || '');
   const [showMoveCalendar, setShowMoveCalendar] = useState(false);
   const [showDeliveryCalendar, setShowDeliveryCalendar] = useState(false);
 
@@ -59,61 +144,21 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const [daysInMonth, setDaysInMonth] = useState([]);
 
   // ---------- Type of Service ----------
-  const [typeOfService, setTypeOfService] = useState(lead?.service_type || 'Moving');
   const [showTypeOfServiceDropdown, setShowTypeOfServiceDropdown] = useState(false);
 
   // ---------- ETA Request ----------
-  const [etaRequest, setEtaRequest] = useState(lead?.eta_request || 'Flexible');
   const [showETARequestDropdown, setShowETARequestDropdown] = useState(false);
 
   // ---------- "Add storage" toggle + items dropdown ----------
-  const [isStorageToggled, setIsStorageToggled] = useState(Boolean(lead?.add_storage));
   const [storageDropdownOpen, setStorageDropdownOpen] = useState(false);
-  const [selectedStorage, setSelectedStorage] = useState(lead?.storage_items || 'All items');
 
   // ---------- Time Promised (Arrival Time) ----------
-  const [isTimePromisedToggled, setIsTimePromisedToggled] = useState(Boolean(lead?.time_promised));
-  const [arrivalTime, setArrivalTime] = useState(lead?.arrival_time || '');
   const [arrivalStart, setArrivalStart] = useState('');
   const [showStartTimeDropdown, setShowStartTimeDropdown] = useState(false);
   const [showIncrementsGrid, setShowIncrementsGrid] = useState(false);
 
-  // We'll store open/close states in lead.uiState to persist across re-mounts
-  const uiState = lead.uiState || {};
 
-  // read from lead.uiState, default origin = false (open), others = collapsed
-  const [isOriginCollapsed, setIsOriginCollapsed] = useState(
-    uiState.originCollapsed !== undefined ? uiState.originCollapsed : false
-  );
-  const [isDestinationCollapsed, setIsDestinationCollapsed] = useState(
-    uiState.destinationCollapsed !== undefined ? uiState.destinationCollapsed : true
-  );
-  const [isLogisticsCollapsed, setIsLogisticsCollapsed] = useState(
-    uiState.logisticsCollapsed !== undefined ? uiState.logisticsCollapsed : true
-  );
-  const [isEstimateCollapsed, setIsEstimateCollapsed] = useState(
-    uiState.estimateCollapsed !== undefined ? uiState.estimateCollapsed : true
-  );
 
-  // Whenever these collapse states change, we store them in lead.uiState.
-  useEffect(() => {
-    onLeadUpdated({
-      ...lead,
-      uiState: {
-        ...lead.uiState,
-        originCollapsed: isOriginCollapsed,
-        destinationCollapsed: isDestinationCollapsed,
-        logisticsCollapsed: isLogisticsCollapsed,
-        estimateCollapsed: isEstimateCollapsed,
-      },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isOriginCollapsed,
-    isDestinationCollapsed,
-    isLogisticsCollapsed,
-    isEstimateCollapsed,
-  ]);
 
   // For the calendars
   const today = new Date();
@@ -160,16 +205,15 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     if (hh === 0) hh = 12;
     const mmStr = mm.toString().padStart(2, '0');
     const endTime = `${hh}:${mmStr} ${suffix}`;
-    setArrivalTime(`${arrivalStart} - ${endTime}`);
+    setValue('arrivalTime',`${arrivalStart} - ${endTime}`)
 
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        time_promised: true,
-        arrival_time: `${arrivalStart} - ${endTime}`,
+      onLeadUpdated(lead.id, {
+        timePromised: true,
+        arrivalTime: `${arrivalStart} - ${endTime}`,
       });
     }
-  }, [arrivalStart, onLeadUpdated, lead]);
+  }, [arrivalStart, setValue, onLeadUpdated, lead.id]);
 
   // Outside click => close popups
   useEffect(() => {
@@ -217,76 +261,70 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
   // ---------- "Add Storage" ----------
   const handleToggleStorage = (value) => {
-    setIsStorageToggled(value);
+    setValue('addStorage', value);
 
     // If toggling storage OFF => also clear the delivery date visually
     if (!value) {
-      setDeliveryDate('');
+      setValue('deliveryDate', '')
       if (onLeadUpdated) {
-        onLeadUpdated({
-          ...lead,
-          add_storage: false,
-          storage_items: '',
-          delivery_date: '',
+        onLeadUpdated(lead.id, {
+          addStorage: false,
+          storageItems: '',
+          deliveryDate: '',
         });
       }
     } else {
       // If toggling storage ON => keep current or set default
       if (onLeadUpdated) {
-        onLeadUpdated({
-          ...lead,
-          add_storage: true,
-          storage_items: selectedStorage,
+        onLeadUpdated(lead.id, {
+          addStorage: true,
+          storageItems: storageItems,
         });
       }
     }
   };
 
   const handleSelectStorage = (option) => {
-    setSelectedStorage(option);
+    setValue('storageItems', option)
     setStorageDropdownOpen(false);
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        add_storage: true,
-        storage_items: option,
+      onLeadUpdated(lead.id, {
+        addStorage: true,
+        storageItems: option,
       });
     }
   };
 
   // ---------- "Time Promised" ----------
   const handleToggleTimePromised = (value) => {
-    setIsTimePromisedToggled(value);
+    setValue('timePromised', value);
     if (!value) {
-      setArrivalTime('');
+      setValue('arrivalTime','')
     }
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        time_promised: value,
-        arrival_time: value ? arrivalTime : '',
+      onLeadUpdated(lead.id, {
+        timePromised: value,
+        arrivalTime: value ? arrivalTime : '',
       });
     }
   };
   const handleSetArrivalTime = (rangeStr) => {
-    setArrivalTime(rangeStr);
+    setValue('arrivalTime',rangeStr)
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        time_promised: true,
-        arrival_time: rangeStr,
+      onLeadUpdated(lead.id, {
+        timePromised: true,
+        arrivalTime: rangeStr,
       });
     }
   };
 
   // ---------- "Type of Service" ----------
   const handleSelectServiceType = (svcName) => {
-    setTypeOfService(svcName);
+    setValue('serviceType', svcName)
     setShowTypeOfServiceDropdown(false);
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        service_type: svcName,
+      onLeadUpdated(lead.id,{
+        serviceType: svcName,
       });
     }
   };
@@ -294,11 +332,10 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   // ---------- "Move Date" ----------
   const handleSelectMoveDate = (dateObj) => {
     const dateStr = dateObj.toDateString();
-    setMoveDate(dateStr);
+    setValue('moveDate', dateStr)
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        move_date: dateStr,
+      onLeadUpdated(lead.id, {
+        moveDate: dateStr,
       });
     }
   };
@@ -306,23 +343,21 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   // ---------- "Delivery Date" ----------
   const handleSelectDeliveryDate = (dateObj) => {
     const dateStr = dateObj.toDateString();
-    setDeliveryDate(dateStr);
+    setValue('deliveryDate', dateStr)
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        delivery_date: dateStr,
+      onLeadUpdated(lead.id, {
+        deliveryDate: dateStr,
       });
     }
   };
 
   // ---------- "ETA Request" ----------
   const handleSelectEtaRequest = (opt) => {
-    setEtaRequest(opt);
+    setValue('etaRequest', opt)
     setShowETARequestDropdown(false);
     if (onLeadUpdated) {
-      onLeadUpdated({
-        ...lead,
-        eta_request: opt,
+      onLeadUpdated(lead.id, {
+        etaRequest: opt,
       });
     }
   };
@@ -459,14 +494,14 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       >
         <span className={styles.oneLineEllipsis}>
           <span className={styles.inputLabel}>Type of Service:</span>
-          <span className={styles.inputValue}> {typeOfService}</span>
+          <span className={styles.inputValue}> {serviceType}</span>
         </span>
         <Icon name="UnfoldMore" className={styles.moreIcon}/>
 
         {showTypeOfServiceDropdown && (
           <div className={styles.dropdownMenu}>
             {typeOfServiceChoices.map((svc) => {
-              const isSelected = svc.name === typeOfService;
+              const isSelected = svc.name === serviceType;
               return (
                 <div
                   key={svc.id}
@@ -487,11 +522,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       {/* ---------- ADD STORAGE TOGGLE ---------- */}
       <div className={styles.storageContainer}>
         <span className={styles.addStorageText}>Add storage</span>
-        <SimpleToggle isToggled={isStorageToggled} onToggle={handleToggleStorage} />
+        <SimpleToggle isToggled={addStorage} onToggle={handleToggleStorage} />
       </div>
 
       {/* If toggled => show Storage dropdown */}
-      {isStorageToggled && (
+      {addStorage && (
         <div
           className={`${styles.storageDropdown} ${storageDropdownOpen ? styles.activeInput : ''}`}
           onClick={() => {
@@ -505,13 +540,13 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         >
           <span className={styles.oneLineEllipsis}>
             <span className={styles.inputLabel}>Items in storage:</span>
-            <span className={styles.inputValue}> {selectedStorage}</span>
+            <span className={styles.inputValue}> {storageItems}</span>
           </span>
           <Icon name="UnfoldMore" className={styles.moreIcon}/>
           {storageDropdownOpen && (
             <div className={styles.dropdownMenu}>
               {storageOptions.map((option) => {
-                const isSelected = option === selectedStorage;
+                const isSelected = option === storageItems;
                 return (
                   <div
                     key={option}
@@ -546,11 +581,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
           type="button"
           className={styles.dateButton}
           onClick={() => {
-            if (!isStorageToggled) return;
+            if (!addStorage) return;
             setShowDeliveryCalendar((prev) => !prev);
             setShowMoveCalendar(false);
           }}
-          disabled={!isStorageToggled}
+          disabled={!addStorage}
         >
           <span className={styles.oneLineEllipsis}>
             <span className={styles.dateLabelPrefix}>Delivery Date:</span>
@@ -664,10 +699,10 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       {/* ---------- TIME PROMISED TOGGLE ---------- */}
       <div className={styles.timePromisedRow}>
         <span className={styles.timePromisedText}>Time promised</span>
-        <SimpleToggle isToggled={isTimePromisedToggled} onToggle={handleToggleTimePromised} />
+        <SimpleToggle isToggled={timePromised} onToggle={handleToggleTimePromised} />
       </div>
 
-      {isTimePromisedToggled && (
+      {timePromised && (
         <div
           className={`${styles.arrivalTimeInput} ${showStartTimeDropdown || showIncrementsGrid ? styles.activeInput : ''}`}
           onClick={() => {
@@ -704,7 +739,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                     onClick={(e) => {
                       e.stopPropagation();
                       setArrivalStart(slot);
-                      setArrivalTime('');
+                      setValue('arrivalTime','')
                       setShowIncrementsGrid(true);
                       setShowStartTimeDropdown(false);
                     }}
@@ -741,9 +776,8 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
                     if (hh === 0) hh = 12;
                     const mmStr = mm.toString().padStart(2, '0');
                     const rangeStr = `${arrivalStart} - ${hh}:${mmStr} ${suffix}`;
-                    setArrivalTime(rangeStr);
+                    setValue('arrivalTime',rangeStr)
                     setShowIncrementsGrid(false);
-
                     handleSetArrivalTime(rangeStr);
                   }}
                 >
@@ -760,32 +794,32 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       {/* PASS in isCollapsed states from local state */}
       <OriginDetails
         onShowInventory={onShowInventory}
+        onOriginUpdated={handleOriginUpdated}
+        onDestinationUpdated={handleDestinationUpdated}
         lead={lead}
-        onLeadUpdated={onLeadUpdated}
-        isCollapsed={isOriginCollapsed}
-        setIsCollapsed={setIsOriginCollapsed}
+        originStops={originStops}
+        setOriginStops={setOriginStops}
+        destinationStops={destinationStops}
       />
 
       <DestinationDetails
         lead={lead}
-        onLeadUpdated={onLeadUpdated}
-        isStorageToggled={isStorageToggled}
-        isCollapsed={isDestinationCollapsed}
-        setIsCollapsed={setIsDestinationCollapsed}
+        isStorageToggled={addStorage}
+        onOriginUpdated={handleOriginUpdated}
+        onDestinationUpdated={handleDestinationUpdated}
+        originStops={originStops}
+        destinationStops={destinationStops}
+        setDestinationStops={setDestinationStops}
       />
 
       <LogisticsDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
-        isCollapsed={isLogisticsCollapsed}
-        setIsCollapsed={setIsLogisticsCollapsed}
       />
 
       <EstimateDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
-        isCollapsed={isEstimateCollapsed}
-        setIsCollapsed={setIsEstimateCollapsed}
       />
     </div>
   );

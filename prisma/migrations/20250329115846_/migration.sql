@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Lead" ALTER COLUMN "moveDate" SET DATA TYPE TEXT;

@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import Icon from '../../../../Icon'
 
@@ -12,6 +10,10 @@ import AccessPopup from '../OriginDetails/AccessPopup/AccessPopup';
 import ServicesPopup from '../OriginDetails/ServicesPopup/ServicesPopup';
 
 import styles from './DestinationDetails.module.css';
+import { useUiState } from '../UiStateContext';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {  createDestination, deleteDestination } from 'src/app/services/destinationsService';
+import { useAccessToken } from "src/app/lib/useAccessToken";
 
 /** Generate 15-min increments from 7:00 AM to midnight. */
 function generateTimeOptions() {
@@ -43,16 +45,112 @@ const timeOptions = generateTimeOptions();
  */
 function DestinationDetails({
   lead,
-  onLeadUpdated,
   isStorageToggled,
-  isCollapsed,       // from parent
-  setIsCollapsed,    // from parent
+  onDestinationUpdated,
+  onOriginUpdated,
+  destinationStops,
+  setDestinationStops,
+  originStops
 }) {
-  // Index of the currently selected stop
-  const [selectedStopIndex, setSelectedStopIndex] = useState(0);
+  const {
+    selectedDestinationStopId,
+    setSelectedDestinationStopId,
+    isDestinationCollapsed,
+    setIsDestinationCollapsed,
+  } = useUiState();
+  
+  const token = useAccessToken();
+  const queryClient = useQueryClient();
+  const postStorageStops = destinationStops.filter((s) => s.postStorage);
+  const normalStops = destinationStops.filter((s) => !s.postStorage);
+
+  const createDestinationMutation = useMutation({
+    mutationFn: (newDestinationData) =>createDestination({destinationsData: newDestinationData, leadId:lead.id,  token: token}),
+    onSuccess:(createdDestination) => {
+      console.log("New destination created:", createdDestination);
+      queryClient.invalidateQueries(['destinations']);
+      setDestinationStops((prev) => [...prev, createdDestination]);
+    },
+    onError: (err) => {
+      console.log(err)
+    }
+  });
+
+
+
+const deleteDestinationMutation = useMutation({
+  mutationFn: deleteDestination,
+  onSuccess: () => {
+    console.log('Destination deleted!');
+    queryClient.invalidateQueries(['destinations']);
+  },
+  onError: (err) => {
+    console.error('Failed to delete destination', err);
+  }
+});
+
+
+
+const handleAddNormalStop = () => {
+  const newStop = {
+    address: '',
+    apt: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    isActive: true,
+    postStorage: false,
+  };
+  createDestinationMutation.mutate(newStop, {
+    onSuccess: (createdDestination) => {
+      console.log("New destination created:", createdDestination);
+      queryClient.invalidateQueries(['destinations']);
+      setSelectedDestinationStopId(createdDestination.id);
+    },
+    onError: (err) => {
+      console.error('Failed to create destination stop', err);
+    }
+  });
+}
+const handleAddPostStorageStop = () => {
+  const newStop = {
+    address: '',
+    apt: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    isActive: true,
+    postStorage: true,
+  };
+  createDestinationMutation.mutate(newStop, {
+    onSuccess: (createdDestination) => {
+      console.log("New destination created:", createdDestination);
+      queryClient.invalidateQueries(['destinations']);
+      setSelectedDestinationStopId(createdDestination.id);
+    },
+    onError: (err) => {
+      console.error('Failed to create destination stop', err);
+    }
+  });
+};
+// useEffect(() => {
+//   if (lead.destinations && lead.destinations.length > 0) {
+//     setDestinationStops(lead.destinations);
+//   }
+// }, [lead.destinations]);
+useEffect(() => {
+  if (destinationStops.length > 0 && !selectedDestinationStopId) {
+    if (isStorageToggled){
+      setSelectedDestinationStopId(postStorageStops[0].id)
+    }else {
+      setSelectedDestinationStopId(normalStops[0].id);
+    }
+  }
+}, [destinationStops, selectedDestinationStopId]);
+
 
   // Toggle open/close
-  const toggleCollapse = () => setIsCollapsed((prev) => !prev);
+  const toggleCollapse = () => setIsDestinationCollapsed((prev) => !prev);
 
   // Popups
   const [isPlacePopupOpen, setIsPlacePopupOpen] = useState(false);
@@ -61,74 +159,17 @@ function DestinationDetails({
 
   // If "Add storage" is ON + user picked 'All items' => hide normal stops
   const hideNormalStops =
-    isStorageToggled && lead.storage_items === 'All items';
+    isStorageToggled && lead.storageItems === 'All items';
 
-  /**
-   * 1) If no stops => create a normal "Main Drop off"
-   *    If storage toggled => ensure "Post Storage Main Drop off"
-   */
-  useEffect(() => {
-    const existingStops = lead.destinationStops;
-    if (!Array.isArray(existingStops) || existingStops.length === 0) {
-      const initial = [
-        {
-          label: 'Main Drop off',
-          address: '',
-          apt: '',
-          city: '',
-          state: '',
-          zip: '',
-          postStorage: false,
-          isActive: true,
-          timeRestrictions: {
-            isEnabled: false,
-            option: 'Select',
-            restrictionType: 'Select',
-            startTime: '',
-            endTime: '',
-          },
-        },
-      ];
-      onLeadUpdated({ ...lead, destinationStops: initial });
-      return;
-    }
 
-    if (isStorageToggled) {
-      const alreadyHasPS = existingStops.some((s) => s.postStorage === true);
-      if (!alreadyHasPS) {
-        const psStop = {
-          label: 'Post Storage Main Drop off',
-          address: '',
-          apt: '',
-          city: '',
-          state: '',
-          zip: '',
-          postStorage: true,
-          isActive: true,
-          timeRestrictions: {
-            isEnabled: false,
-            option: 'Select',
-            restrictionType: 'Select',
-            startTime: '',
-            endTime: '',
-          },
-        };
-        onLeadUpdated({
-          ...lead,
-          destinationStops: [...existingStops, psStop],
-        });
-      }
-    }
-  }, [lead, onLeadUpdated, isStorageToggled]);
-
-  // 2) Memo the array for performance
-  const destinationStops = useMemo(() => {
-    return Array.isArray(lead.destinationStops) ? lead.destinationStops : [];
-  }, [lead.destinationStops]);
-
-  /**
-   * 3) Hide normal stops if "All items"; or activate all if partial, etc.
-   */
+  function usePrevious(value) {
+    const ref = useRef();
+    useEffect(() => {
+      ref.current = value;
+    }, [value]);
+    return ref.current;
+  }
+  const prevIsStorageToggled = usePrevious(isStorageToggled);
   useEffect(() => {
     if (!destinationStops.length) return;
 
@@ -136,7 +177,6 @@ function DestinationDetails({
     let changed = false;
 
     if (hideNormalStops) {
-      // "All items" => normal => inactive, post => active
       updatedStops.forEach((stop, i) => {
         if (stop.postStorage) {
           if (stop.isActive !== true) {
@@ -151,7 +191,6 @@ function DestinationDetails({
         }
       });
     } else if (isStorageToggled) {
-      // partial => everything => active
       updatedStops.forEach((stop, i) => {
         if (!stop.isActive) {
           updatedStops[i] = { ...stop, isActive: true };
@@ -174,102 +213,140 @@ function DestinationDetails({
         }
       });
     }
-
     if (changed) {
-      onLeadUpdated({ ...lead, destinationStops: updatedStops });
+      updatedStops.forEach((stop, index) => {
+        const original = destinationStops[index];
+        if (
+          original &&
+          original.id &&
+          stop.isActive !== original.isActive
+        ) {
+          onDestinationUpdated(stop.id, {isActive: stop.isActive});
+        }
+      });
+      setDestinationStops(updatedStops);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hideNormalStops, isStorageToggled, destinationStops]);
+  // const handleDestinationUpdated = (id, updates) => {
+  //   setDestinationStops((prevStops) =>
+  //     prevStops.map((stop) =>
+  //       stop.id === id ? { ...stop, ...updates } : stop
+  //     )
+  //   );
+  //   onDestinationUpdated(id, updates); 
+  // };
+  
 
   /**
    * 4) If expanded & normal hidden => auto-select the *first post‐storage* if current is normal
    */
   useEffect(() => {
-    if (!isCollapsed && hideNormalStops && destinationStops.length > 0) {
-      const curStop = destinationStops[selectedStopIndex];
+    if (!isDestinationCollapsed && hideNormalStops && destinationStops.length > 0) {
+      const curStop = destinationStops.find((s) => s.id === selectedDestinationStopId);
       if (curStop && !curStop.postStorage) {
-        const postIdx = destinationStops.findIndex((s) => s.postStorage);
-        if (postIdx !== -1 && postIdx !== selectedStopIndex) {
-          setSelectedStopIndex(postIdx);
+        const firstPostStorageStop = postStorageStops[0];
+        if (firstPostStorageStop && firstPostStorageStop !== selectedDestinationStopId) {
+          setSelectedDestinationStopId(firstPostStorageStop.id);
         }
       }
     }
-  }, [isCollapsed, hideNormalStops, destinationStops, selectedStopIndex]);
+  }, [isDestinationCollapsed, hideNormalStops, destinationStops, selectedDestinationStopId]);
 
-  /**
-   * 5) If user turns OFF storage => if current is post => select 0
-   */
   useEffect(() => {
-    if (!isStorageToggled && destinationStops.length > 0) {
-      const current = destinationStops[selectedStopIndex];
-      if (current && current.postStorage) {
-        setSelectedStopIndex(0);
+    if (!destinationStops.length) return;
+  
+    const current = destinationStops.find((s) => s.id === selectedDestinationStopId);
+  
+    // Ako je storage isključen i trenutno selektovan postStorage stop
+    if (prevIsStorageToggled && !isStorageToggled && current?.postStorage) {
+      const firstNormal = normalStops[0];
+      if (firstNormal) {
+        setSelectedDestinationStopId(firstNormal.id);
       }
     }
-  }, [isStorageToggled, destinationStops, selectedStopIndex]);
+  
+    // Ako je storage uključen i trenutno selektovan normal stop
+    if (!prevIsStorageToggled && isStorageToggled && !current?.postStorage) {
+      const firstPostStorage = postStorageStops[0];
+      if (firstPostStorage) {
+        setSelectedDestinationStopId(firstPostStorage.id);
+      }
+    }
+  }, [
+    isStorageToggled,
+    destinationStops,
+    selectedDestinationStopId,
+    prevIsStorageToggled,
+    postStorageStops,
+    normalStops,
+  ]);
+  
 
   // Currently selected
-  const currentStop = destinationStops[selectedStopIndex] || {};
+  const currentStop = destinationStops.find((s) => s.id === selectedDestinationStopId) || {};
 
-  // Update a field on the current stop
-  function handleStopFieldChange(fieldName, newValue) {
-    const updated = [...destinationStops];
-    const copy = { ...updated[selectedStopIndex] };
-    copy[fieldName] = newValue;
-    updated[selectedStopIndex] = copy;
-    onLeadUpdated({ ...lead, destinationStops: updated });
-  }
 
-  // Deactivate => remove from array
+  const handleStopFieldChange = (fieldName, newValue) => {
+    const stop = destinationStops.find((s) => s.id === selectedDestinationStopId);
+    if (!stop?.id) return;
+    const updatedStop = { ...stop, [fieldName]: newValue };
+    setDestinationStops((prev) =>
+      prev.map((s) => (s.id === selectedDestinationStopId ? updatedStop : s))
+    );
+    onDestinationUpdated(stop.id, { [fieldName]: newValue })
+  };
   function handleDeactivateThisStop() {
-    if (!currentStop) return;
-    if (
-      currentStop.label === 'Main Drop off' ||
-      currentStop.label === 'Post Storage Main Drop off'
-    ) {
+    if (!currentStop?.id) {
       return;
     }
-
-    const updated = [...destinationStops];
-    updated.splice(selectedStopIndex, 1);
-
-    let newIndex = selectedStopIndex;
-    if (newIndex >= updated.length) {
-      newIndex = updated.length - 1;
+    const isPostStorage = currentStop.postStorage;
+    const groupStops = isPostStorage ? postStorageStops : normalStops;
+    const groupIndex = groupStops.findIndex(s => s.id === currentStop.id);
+    if (groupIndex === 0) {
+      return;
     }
-    if (newIndex < 0) newIndex = 0;
-
-    onLeadUpdated({ ...lead, destinationStops: updated });
-
-    if (updated.length > 0) {
-      setSelectedStopIndex(newIndex);
-    } else {
-      setSelectedStopIndex(0);
-    }
+    deleteDestinationMutation.mutate(
+      { id: currentStop.id },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries(['destinations']);
+          setDestinationStops((prev) => prev.filter((s) => s.id !== currentStop.id));
+          const nextStopInGroup = groupStops[groupIndex - 1];
+        if (nextStopInGroup?.id) {
+          setSelectedDestinationStopId(nextStopInGroup.id);
+        }
+      }}
+    );
   }
 
   // Time Restrictions
   function updateCurrentStopRestrictions(partial) {
-    const updated = [...destinationStops];
-    const stopCopy = { ...updated[selectedStopIndex] };
-    const oldTR = stopCopy.timeRestrictions || {
-      isEnabled: false,
-      option: 'Select',
-      restrictionType: 'Select',
-      startTime: '',
-      endTime: '',
-    };
-    stopCopy.timeRestrictions = { ...oldTR, ...partial };
-    updated[selectedStopIndex] = stopCopy;
-
-    onLeadUpdated({ ...lead, destinationStops: updated });
+    const stop = destinationStops.find((s) => s.id === selectedDestinationStopId);
+  if (!stop?.id) return;
+    const updates = {};
+    if ('isEnabled' in partial)
+      updates.timeRestriction = partial.isEnabled;
+    if ('option' in partial)
+      updates.timeRestrictionOption = partial.option;
+    if ('restrictionType' in partial)
+      updates.timeRestrictionType = partial.restrictionType;
+    if ('startTime' in partial)
+      updates.timeRestrictionStartTime = partial.startTime;
+    if ('endTime' in partial)
+      updates.timeRestrictionEndTime = partial.endTime;
+    const updatedStop = { ...stop, ...updates };
+    setDestinationStops((prev) =>
+      prev.map((s) => (s.id === selectedDestinationStopId ? updatedStop : s))
+    );
+    onDestinationUpdated(stop.id, updates);
   }
-  const currentTR = currentStop.timeRestrictions || {
-    isEnabled: false,
-    option: 'Select',
-    restrictionType: 'Select',
-    startTime: '',
-    endTime: '',
+  const currentTR = {
+    isEnabled: currentStop.timeRestriction ?? false,
+    option: currentStop.timeRestrictionOption || 'Select',
+    restrictionType: currentStop.timeRestrictionType || 'Select',
+    startTime: currentStop.timeRestrictionStartTime || '',
+    endTime: currentStop.timeRestrictionEndTime || '',
   };
 
   // Summaries
@@ -370,11 +447,14 @@ function DestinationDetails({
     setEndDropdownOpen(false);
     updateCurrentStopRestrictions({ endTime: val });
   }
+  
+ 
+  const isFirstStopInGroup =
+  currentStop?.postStorage
+    ? postStorageStops.findIndex(s => s.id === currentStop.id) === 0
+    : normalStops.findIndex(s => s.id === currentStop.id) === 0;
 
-  // Decide if "Deactivate this stop" is visible
-  const isDeactivateVisible =
-    currentStop?.label !== 'Main Drop off' &&
-    currentStop?.label !== 'Post Storage Main Drop off';
+  const isDeactivateVisible  = !isFirstStopInGroup; 
 
   return (
     <div className={styles.destinationContainer}>
@@ -382,20 +462,17 @@ function DestinationDetails({
       <div className={styles.destinationHeader}>
         <span className={styles.destinationTitle}>Destination</span>
         <button className={styles.minusButton} onClick={toggleCollapse}>
-          {isCollapsed ? '+' : '-'}
+          {isDestinationCollapsed ? '+' : '-'}
         </button>
       </div>
 
-      {!isCollapsed && (
+      {!isDestinationCollapsed && (
         <>
           {/* The row of stops (normal + postStorage) */}
           <MainAndStopOffs
             stops={destinationStops}
-            onStopsUpdated={(updatedStops) =>
-              onLeadUpdated({ ...lead, destinationStops: updatedStops })
-            }
-            selectedStopIndex={selectedStopIndex}
-            setSelectedStopIndex={setSelectedStopIndex}
+            onAddNormalStop={handleAddNormalStop}
+            onAddPostStorageStop={handleAddPostStorageStop}
             placeType="destination"
             isStorageToggled={isStorageToggled}
             hideNormalStops={hideNormalStops}
@@ -473,9 +550,9 @@ function DestinationDetails({
                   type="text"
                   className={styles.addressInput}
                   placeholder="Zip code"
-                  value={currentStop.zip || ''}
+                  value={currentStop.zipCode || ''}
                   onChange={(e) =>
-                    handleStopFieldChange('zip', e.target.value)
+                    handleStopFieldChange('zipCode', e.target.value)
                   }
                 />
               </div>
@@ -558,7 +635,6 @@ function DestinationDetails({
                 distanceDoorTruck,
                 howManySteps,
               } = currentStop;
-
               let line1 = biggestTruckAccess?.trim() || '';
               if (line1 && shuttleTruckRequired) {
                 line1 += ' + shuttle';
@@ -852,31 +928,39 @@ function DestinationDetails({
       )}
 
       {/* Popups */}
-      {isPlacePopupOpen && (
+      {isPlacePopupOpen && destinationStops.length > 0 &&  selectedDestinationStopId &&(
         <PlacePopup
           lead={lead}
-          onLeadUpdated={onLeadUpdated}
+          onDestinationUpdated={onDestinationUpdated}
+          onOriginUpdated={onOriginUpdated}
           setIsPlacePopupVisible={setIsPlacePopupOpen}
+          destinationStops={destinationStops}
+          originStops={originStops}
           defaultTab="destination"
-          defaultStopIndex={selectedStopIndex}
+          defaultStopId={selectedDestinationStopId}
         />
       )}
-      {isAccessPopupOpen && (
+      {isAccessPopupOpen && destinationStops.length > 0 && selectedDestinationStopId &&(
         <AccessPopup
           lead={lead}
-          onLeadUpdated={onLeadUpdated}
+          onDestinationUpdated={onDestinationUpdated}
+          onOriginUpdated={onOriginUpdated}
           setIsAccessPopupVisible={setIsAccessPopupOpen}
+          destinationStops={destinationStops}
+          originStops={originStops} 
           defaultTab="destination"
-          defaultStopIndex={selectedStopIndex}
         />
       )}
-      {isServicesPopupOpen && (
+      {isServicesPopupOpen && destinationStops.length > 0 && selectedDestinationStopId &&(
         <ServicesPopup
           lead={lead}
-          onLeadUpdated={onLeadUpdated}
+          onDestinationUpdated={onDestinationUpdated}
+          onOriginUpdated={onOriginUpdated}
           setIsServicesPopupVisible={setIsServicesPopupOpen}
+          destinationStops={destinationStops}
           defaultTab="destination"
-          defaultStopIndex={selectedStopIndex}
+          originStops={originStops} 
+          defaultStopId={selectedDestinationStopId}
         />
       )}
     </div>

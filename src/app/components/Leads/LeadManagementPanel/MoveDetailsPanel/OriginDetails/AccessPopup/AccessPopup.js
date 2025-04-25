@@ -7,6 +7,7 @@ import Icon from '../../.././../../Icon';
 
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 import SimpleToggle from '../../../../SimpleToggle/SimpleToggle';
+import { useUiState } from '../../UiStateContext';
 
 /** Dropdown options */
 const biggestTruckAccessOptions = [
@@ -65,87 +66,27 @@ const elevatorSizeOptions = [
 
 function AccessPopup({
   lead,
-  onLeadUpdated,
+  onDestinationUpdated,
+  onOriginUpdated ,
   setIsAccessPopupVisible,
   defaultTab = 'origin',
-  defaultStopIndex = 0,
+  destinationStops = [],
+  originStops = [],
 }) {
   const popupContentRef = useRef(null);
-
-  // local arrays for origin & destination
-  const [localOriginStops, setLocalOriginStops] = useState([]);
-  const [localDestinationStops, setLocalDestinationStops] = useState([]);
-
   // 'origin' or 'destination'
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
+  const [localStop, setLocalStop] = useState({});
+  const {
+    selectedOriginStopId,
+    setSelectedOriginStopId,
+    selectedDestinationStopId,
+    setSelectedDestinationStopId,
+  } = useUiState();
+  
+  console.log(selectedDestinationStopId, ' destination')
+  console.log(selectedOriginStopId, ' origin')
 
-  // separate indexes
-  const [selectedStopIndexOrigin, setSelectedStopIndexOrigin] = useState(
-    defaultTab === 'origin' ? defaultStopIndex : 0
-  );
-  const [selectedStopIndexDest, setSelectedStopIndexDest] = useState(
-    defaultTab === 'destination' ? defaultStopIndex : 0
-  );
-
-  // Copy from lead
-  useEffect(() => {
-    const originStops = Array.isArray(lead.originStops) && lead.originStops.length > 0
-      ? lead.originStops
-      : [
-          {
-            label: 'Main Address',
-            address: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-          },
-        ];
-
-    const destinationStops = Array.isArray(lead.destinationStops) && lead.destinationStops.length > 0
-      ? lead.destinationStops
-      : [
-          {
-            label: 'Main Address',
-            address: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-          },
-        ];
-
-    const mappedOrigin = originStops.map((stop) => ({
-      ...stop,
-      biggestTruckAccess: stop.biggestTruckAccess || '',
-      shuttleTruckRequired: !!stop.shuttleTruckRequired,
-      parkingAccess: stop.parkingAccess || '',
-      distanceDoorTruck: stop.distanceDoorTruck || '',
-      howManySteps: stop.howManySteps || '',
-      terrainDoorTruck: stop.terrainDoorTruck || '',
-      elevatorAtStop: !!stop.elevatorAtStop,
-      elevatorExclusive: !!stop.elevatorExclusive,
-      elevatorFloors: stop.elevatorFloors || '',
-      elevatorSize: stop.elevatorSize || '',
-    }));
-
-    const mappedDestination = destinationStops.map((stop) => ({
-      ...stop,
-      biggestTruckAccess: stop.biggestTruckAccess || '',
-      shuttleTruckRequired: !!stop.shuttleTruckRequired,
-      parkingAccess: stop.parkingAccess || '',
-      distanceDoorTruck: stop.distanceDoorTruck || '',
-      howManySteps: stop.howManySteps || '',
-      terrainDoorTruck: stop.terrainDoorTruck || '',
-      elevatorAtStop: !!stop.elevatorAtStop,
-      elevatorExclusive: !!stop.elevatorExclusive,
-      elevatorFloors: stop.elevatorFloors || '',
-      elevatorSize: stop.elevatorSize || '',
-    }));
-
-    setLocalOriginStops(mappedOrigin);
-    setLocalDestinationStops(mappedDestination);
-  }, [lead]);
 
   // Close if clicked outside
   const handleClose = useCallback(() => {
@@ -168,87 +109,87 @@ function AccessPopup({
   }, [handleClose]);
 
   // *** Auto-select first post if "destination" + "All items" hides normal stops ***
-  useEffect(() => {
-    if (selectedPlace === 'destination') {
-      const hideNormal = lead.add_storage && lead.storage_items === 'All items';
-      if (hideNormal) {
-        const stopsArr = localDestinationStops;
-        const curStop = stopsArr[selectedStopIndexDest];
-        if (curStop && !curStop.postStorage) {
-          // find first post-storage
-          const idx = stopsArr.findIndex((s) => s.postStorage);
-          if (idx !== -1 && idx !== selectedStopIndexDest) {
-            setSelectedStopIndexDest(idx);
-          }
-        }
-      }
-    }
-  }, [
-    selectedPlace,
-    lead.add_storage,
-    lead.storage_items,
-    localDestinationStops,
-    selectedStopIndexDest,
-  ]);
 
   // Decide which array + index
   const currentStops =
-    selectedPlace === 'origin' ? localOriginStops : localDestinationStops;
+    selectedPlace === 'origin' ? originStops : destinationStops;
 
-  const selectedStopIndex =
-    selectedPlace === 'origin' ? selectedStopIndexOrigin : selectedStopIndexDest;
+  const selectedStopId =
+    selectedPlace === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
 
-  // setSelectedStopIndex => we track origin & dest separately
-  function setSelectedStopIndexGlobal(idx) {
+  function setSelectedStopIdGlobal(id) {
     if (selectedPlace === 'origin') {
-      setSelectedStopIndexOrigin(idx);
+      setSelectedOriginStopId(id);
     } else {
-      setSelectedStopIndexDest(idx);
+      setSelectedDestinationStopId(id);
     }
   }
-
-  function handleStopsLocalUpdated(newStops) {
-    if (selectedPlace === 'origin') {
-      setLocalOriginStops(newStops);
-    } else {
-      setLocalDestinationStops(newStops);
+  useEffect(() => {
+    if (!selectedStopId) return;
+  
+    const found = currentStops.find((s) => s.id === selectedStopId);
+    if (found) {
+      setLocalStop(found);
     }
-  }
+  }, [selectedStopId, currentStops, selectedPlace]);
+  
 
-  const stop = currentStops[selectedStopIndex] || {};
+  // cc23 postStor je u active ali je stop normal c3d4
+  // 18b7 je origin
+
+  useEffect(() => {
+    if (selectedPlace === 'origin' && originStops.length > 0) {
+      setSelectedOriginStopId((prev) => {
+        const exists = originStops.find(s => s.id === prev);
+        return exists ? prev : originStops[0].id;
+      });
+    }
+  
+    if (selectedPlace === 'destination' && destinationStops.length > 0) {
+      const hideNormal = lead.addStorage && lead.storageItems === 'All items';
+      const stopsToUse = hideNormal
+        ? destinationStops.filter(s => s.postStorage)
+        : destinationStops;
+  
+        setSelectedDestinationStopId((prev) => {
+        const exists = stopsToUse.find(s => s.id === prev);
+        return exists ? prev : stopsToUse[0]?.id || null;
+      });
+    }
+  }, [selectedPlace, originStops, destinationStops, lead.addStorage, lead.storageItems, setSelectedDestinationStopId, setSelectedOriginStopId]);
+  
 
   function setStopField(fieldName, newValue) {
-    const updated = [...currentStops];
-    const cloned = { ...updated[selectedStopIndex] };
-    cloned[fieldName] = newValue;
-    updated[selectedStopIndex] = cloned;
-
-    if (selectedPlace === 'origin') {
-      setLocalOriginStops(updated);
-    } else {
-      setLocalDestinationStops(updated);
-    }
+    if (!selectedStopId) return;
+    setLocalStop((prev) => ({
+      ...prev,
+      [fieldName]: newValue,
+  }));
   }
+  
 
   // Save => update lead
   function handleSave() {
-    onLeadUpdated({
-      ...lead,
-      originStops: localOriginStops,
-      destinationStops: localDestinationStops,
-    });
+    if (!localStop?.id) return;
+
+  if (selectedPlace === 'origin') {
+    onOriginUpdated(localStop.id, localStop);
+  } else {
+    onDestinationUpdated(localStop.id, localStop);
+  }
+  
     setIsAccessPopupVisible(false);
   }
 
   // toggles
   function toggleShuttleTruckRequired() {
-    setStopField('shuttleTruckRequired', !stop.shuttleTruckRequired);
+    setStopField('shuttleTruckRequired', !localStop.shuttleTruckRequired);
   }
   function handleElevatorToggle(value) {
     setStopField('elevatorAtStop', value);
   }
   function toggleElevatorExclusive() {
-    setStopField('elevatorExclusive', !stop.elevatorExclusive);
+    setStopField('elevatorExclusive', !localStop.elevatorExclusive);
   }
 
   // dropdown states
@@ -280,11 +221,14 @@ function AccessPopup({
   // If user picks "destination" + lead.add_storage + "All items" => hide normal stops
   const hideNormalStops =
     selectedPlace === 'destination' &&
-    !!lead.add_storage &&
-    lead.storage_items === 'All items';
+    !!lead.addStorage &&
+    lead.storageItems === 'All items';
 
   // Filter out inactive stops
-  const activeStops = currentStops.filter((s) => s.isActive !== false);
+  const activeStops = (currentStops || []).filter((s) => s.isActive !== false);
+  console.log(activeStops, '   active')
+  console.log('originStops:', originStops);
+console.log('active origin stops:', originStops.filter(s => s.isActive !== false));
 
   return (
     <div className={styles.popup}>
@@ -311,7 +255,13 @@ function AccessPopup({
                 name="placeAccess"
                 className={styles.radioInput}
                 checked={selectedPlace === 'origin'}
-                onChange={() => setSelectedPlace('origin')}
+                onChange={() => {
+                  setSelectedPlace('origin');
+                  const originToUse = originStops.find(s => s.id === selectedOriginStopId);
+                  if (originToUse) {
+                    setLocalStop(originToUse);
+                  }
+                }}
               />
               <span className={styles.radioText}>Origin</span>
             </label>
@@ -321,7 +271,7 @@ function AccessPopup({
                 name="placeAccess"
                 className={styles.radioInput}
                 checked={selectedPlace === 'destination'}
-                onChange={() => setSelectedPlace('destination')}
+                onChange={() => {console.log('change to desti');setSelectedPlace('destination');}}
               />
               <span className={styles.radioText}>Destination</span>
             </label>
@@ -332,11 +282,10 @@ function AccessPopup({
             <div className={styles.stopOffsPaddingWrapper}>
               <MainAndStopOffs
                 stops={currentStops}
-                onStopsUpdated={handleStopsLocalUpdated}
-                selectedStopIndex={selectedStopIndex}
-                setSelectedStopIndex={setSelectedStopIndexGlobal}
+                selectedStopId={selectedStopId}
+                setSelectedStopId={setSelectedStopIdGlobal}
                 placeType={selectedPlace}
-                isStorageToggled={selectedPlace === 'destination' && !!lead.add_storage}
+                isStorageToggled={selectedPlace === 'destination' && !!lead.addStorage}
                 hideNormalStops={hideNormalStops}
 
                 /* Hide the plus buttons: */
@@ -368,7 +317,7 @@ function AccessPopup({
               {showTruckAccessDropdown && (
                 <ul className={styles.optionsList}>
                   {biggestTruckAccessOptions.map((option) => {
-                    const isSelected = stop.biggestTruckAccess === option;
+                    const isSelected = localStop.biggestTruckAccess === option;
                     return (
                       <li
                         key={option}
@@ -392,7 +341,7 @@ function AccessPopup({
                 <input
                   type="checkbox"
                   className={styles.hiddenCheckbox}
-                  checked={!!stop.shuttleTruckRequired}
+                  checked={!!localStop.shuttleTruckRequired}
                   onChange={toggleShuttleTruckRequired}
                 />
                 <span className={styles.customBox} />
@@ -419,7 +368,7 @@ function AccessPopup({
               {showParkingDropdown && (
                 <ul className={styles.optionsList}>
                   {parkingAccessOptions.map((option) => {
-                    const isSelected = stop.parkingAccess === option;
+                    const isSelected = localStop.parkingAccess === option;
                     return (
                       <li
                         key={option}
@@ -456,7 +405,7 @@ function AccessPopup({
               {showDistanceDropdown && (
                 <ul className={styles.optionsList}>
                   {distanceDoorTruckOptions.map((option) => {
-                    const isSelected = stop.distanceDoorTruck === option;
+                    const isSelected = localStop.distanceDoorTruck === option;
                     return (
                       <li
                         key={option}
@@ -493,7 +442,7 @@ function AccessPopup({
               {showStepsDropdown && (
                 <ul className={styles.optionsList}>
                   {howManyStepsOptions.map((option) => {
-                    const isSelected = stop.howManySteps === option;
+                    const isSelected = localStop.howManySteps === option;
                     return (
                       <li
                         key={option}
@@ -530,7 +479,7 @@ function AccessPopup({
               {showTerrainDropdown && (
                 <ul className={styles.optionsList}>
                   {terrainOptions.map((option) => {
-                    const isSelected = stop.terrainDoorTruck === option;
+                    const isSelected = localStop.terrainDoorTruck === option;
                     return (
                       <li
                         key={option}
@@ -557,12 +506,12 @@ function AccessPopup({
                   : 'Elevator at the Destination'}
               </span>
               <SimpleToggle
-                isToggled={stop.elevatorAtStop}
+                isToggled={localStop.elevatorAtStop}
                 onToggle={handleElevatorToggle}
               />
             </div>
 
-            {stop.elevatorAtStop && (
+            {localStop.elevatorAtStop && (
               <div className={styles.elevatorFieldsWrapper}>
                 {/* Exclusive use */}
                 <div className={styles.exclusiveCheckbox}>
@@ -570,7 +519,7 @@ function AccessPopup({
                     <input
                       type="checkbox"
                       className={styles.hiddenCheckbox}
-                      checked={!!stop.elevatorExclusive}
+                      checked={!!localStop.elevatorExclusive}
                       onChange={toggleElevatorExclusive}
                     />
                     <span className={styles.customBox} />
@@ -592,7 +541,7 @@ function AccessPopup({
                   {showElevatorFloorsDropdown && (
                     <ul className={styles.optionsList}>
                       {elevatorFloorsOptions.map((option) => {
-                        const isSelected = stop.elevatorFloors === option;
+                        const isSelected = localStop.elevatorFloors === option;
                         return (
                           <li
                             key={option}
@@ -614,7 +563,7 @@ function AccessPopup({
                 <div className={styles.inputWrapper}>
                   <DropdownButton
                     label="Elevator Size:"
-                    value={stop.elevatorSize}
+                    value={localStop.elevatorSize}
                     isActive={showElevatorSizeDropdown}
                     onClick={() => {
                       setShowElevatorSizeDropdown(!showElevatorSizeDropdown);
@@ -624,7 +573,7 @@ function AccessPopup({
                   {showElevatorSizeDropdown && (
                     <ul className={styles.optionsList}>
                       {elevatorSizeOptions.map((option) => {
-                        const isSelected = stop.elevatorSize === option;
+                        const isSelected = localStop.elevatorSize === option;
                         return (
                           <li
                             key={option}

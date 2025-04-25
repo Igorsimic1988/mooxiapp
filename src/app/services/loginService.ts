@@ -1,4 +1,4 @@
-export const loginUser = async ({email, password}: {email: string; password: string;}):Promise<{ message: string }> =>{
+export const loginUser = async ({email, password}: {email: string; password: string;}):Promise<{ token: string }> =>{
     const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -67,10 +67,18 @@ export async function POST(req: Request) {
                   }
                 ]
               },
+              statusHistory: {
+                create: [{
+                  leadStatus: inObject.leadStatus || '',
+                  leadActivity: inObject.leadActivity || '',
+                  nextAction: inObject.nextAction || '',
+                }]
+              }
             },
               include: {
                 origins: true,
-                destinations: true
+                destinations: true,
+                statusHistory: true,
               }
   });
     return NextResponse.json(newLead, { status: 201 });

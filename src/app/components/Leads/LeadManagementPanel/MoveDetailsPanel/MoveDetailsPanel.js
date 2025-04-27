@@ -573,7 +573,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       {/* Disable this entire container if storage is NOT toggled */}
       <div
         className={`${styles.inputContainer} ${showDeliveryCalendar ? styles.activeInput : ''} ${
-          !isStorageToggled ? styles.disabledContainer : ''
+          !addStorage ? styles.disabledContainer : ''
         }`}
         style={{ position: 'relative' }}
       >

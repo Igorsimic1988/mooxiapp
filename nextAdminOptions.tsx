@@ -45,6 +45,10 @@ const options: NextAdminOptions = {
     Destinations: {
       toString: (Destinations) => `${Destinations.id}`,
       title: "Destinations",
+    },
+    StatusHistory: {
+      toString: (StatusHistory) => `${StatusHistory.id}`,
+      title: "StatusHistory",
     }
   }
 }

@@ -62,3 +62,39 @@ export const updateLead= async ({id, data, token}:
   
     return data.leads;
 };
+
+export const createStatusHistory = async ({
+  leadId,
+  leadStatus,
+  leadActivity,
+  nextAction,
+  token,
+}: {
+  leadId: string;
+  leadStatus?: string;
+  leadActivity?: string;
+  nextAction?: string;
+  token: string;
+}) => {
+  const res = await fetch('/api/leads/statusHistoryCreate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      leadId,
+      leadStatus,
+      leadActivity,
+      nextAction,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to create status history record');
+  }
+
+  return data; 
+};

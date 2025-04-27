@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_POSTGRES_PRISMA_URL")
+  url      = env("POSTGRES_URL")
 }
 
 //role: admin, owner-oboje settings, salesman-svoji lidovi,salesmenager-svima
@@ -121,9 +121,6 @@ model FurnitureItem {
   brand   Brand  @relation(fields: [brandId], references: [id])
   inventoryItem   InventoryItem?   @relation(name: "FurnitureToInventory")
 }
-
-
-      
   
 
 model Lead {
@@ -150,6 +147,7 @@ model Lead {
   leadActivity          String?
   nextAction            String?
   isNew                 Boolean? @default(true)
+  lastUpdated           DateTime?
   inventoryOption       String?
   addStorage            Boolean? @default(false)
   storageItems          String?
@@ -207,7 +205,19 @@ model Lead {
   inventoryItems        InventoryItem[]
   origins       Origins[]
   destinations  Destinations[]
+  statusHistory StatusHistory[]
 }
+model StatusHistory {
+  id            String   @id @default(uuid())
+  leadId        String
+  lead          Lead     @relation(fields: [leadId], references: [id]) 
+  leadStatus    String
+  leadActivity  String
+  nextAction    String
+  changedAt     DateTime @default(now())
+  @@index([leadId])
+}
+
 
 model Origins {
   id                      String   @id @default(uuid())

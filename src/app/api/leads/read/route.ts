@@ -21,6 +21,11 @@ export async function GET(req: Request) {
         inventoryItems: true, 
         origins: true,        
         destinations: true, 
+        statusHistory: {
+          orderBy:{
+            changedAt: 'desc',
+          }
+        },
       }
     });
 

@@ -18,6 +18,7 @@ import FilterButtonPopup from "./FilterButtonPopup/FilterButtonPopup";
 import { getAllLeads, createLead, updateLead } from "src/app/services/leadsService";
 import { useAccessToken } from "src/app/lib/useAccessToken";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createStatusHistory } from "src/app/services/leadsService";
 
 /**
  * Utility to parse lead.survey_date + lead.survey_time => JS Date object
@@ -165,17 +166,17 @@ function applySecondaryFilters(leads, filterParams) {
   // Filter by company
   let result = leads;
   if (selectedCompany !== "All companies") {
-    result = result.filter(lead => lead.company_name === selectedCompany);
+    result = result.filter(lead => lead.companyName === selectedCompany);
   }
   
   // Filter by sales rep
   if (selectedSalesRep !== "All sales") {
-    result = result.filter(lead => lead.sales_name === selectedSalesRep);
+    result = result.filter(lead => lead.salesName === selectedSalesRep);
   }
   
   // Filter by status
   if (checkedStatuses && checkedStatuses.length > 0) {
-    result = result.filter(lead => checkedStatuses.includes(lead.lead_status));
+    result = result.filter(lead => checkedStatuses.includes(lead.leadStatus));
   }
   
   // Apply date filters or workflow filters
@@ -189,23 +190,23 @@ function applySecondaryFilters(leads, filterParams) {
       
       switch (selectedWhere) {
         case "Creation Date":
-          dateToCompare = new Date(lead.creation_date_time);
+          dateToCompare = new Date(lead.creationDateTime);
           break;
         case "Move Date":
           // Assuming move_date field exists
-          dateToCompare = lead.move_date ? new Date(lead.move_date) : null;
+          dateToCompare = lead.moveDate ? new Date(lead.moveDate) : null;
           break;
         case "Appointment Date":
-          dateToCompare = lead.survey_date ? new Date(lead.survey_date) : null;
+          dateToCompare = lead.surveyDate ? new Date(lead.surveyDate) : null;
           break;
         case "Sales Activity":
           // Look for the most recent status history item
-          if (Array.isArray(lead.status_history) && lead.status_history.length > 0) {
+          if (Array.isArray(lead.statusHistory) && lead.statusHistory.length > 0) {
             // Sort by changed_at in descending order
-            const sortedHistory = [...lead.status_history].sort(
-              (a, b) => new Date(b.changed_at) - new Date(a.changed_at)
+            const sortedHistory = [...lead.statusHistory].sort(
+              (a, b) => new Date(b.changedAt) - new Date(a.changedAt)
             );
-            dateToCompare = new Date(sortedHistory[0].changed_at);
+            dateToCompare = new Date(sortedHistory[0].changedAt);
           } else {
             dateToCompare = null;
           }
@@ -238,8 +239,8 @@ function applySecondaryFilters(leads, filterParams) {
       case "Today workflow":
         // Filter leads with survey_date today
         result = result.filter(lead => {
-          if (!lead.survey_date) return false;
-          const surveyDate = new Date(lead.survey_date);
+          if (!lead.surveyDate) return false;
+          const surveyDate = new Date(lead.surveyDate);
           surveyDate.setHours(0, 0, 0, 0);
           return surveyDate.getTime() === today.getTime();
         });
@@ -247,8 +248,8 @@ function applySecondaryFilters(leads, filterParams) {
       case "Tomorrow workflow":
         // Filter leads with survey_date tomorrow
         result = result.filter(lead => {
-          if (!lead.survey_date) return false;
-          const surveyDate = new Date(lead.survey_date);
+          if (!lead.surveyDate) return false;
+          const surveyDate = new Date(lead.surveyDate);
           surveyDate.setHours(0, 0, 0, 0);
           return surveyDate.getTime() === tomorrow.getTime();
         });
@@ -256,16 +257,16 @@ function applySecondaryFilters(leads, filterParams) {
       case "Next 7 days":
         // Filter leads with survey_date in the next 7 days
         result = result.filter(lead => {
-          if (!lead.survey_date) return false;
-          const surveyDate = new Date(lead.survey_date);
+          if (!lead.surveyDate) return false;
+          const surveyDate = new Date(lead.surveyDate);
           return surveyDate >= today && surveyDate <= nextWeek;
         });
         break;
       case "Current Month":
         // Filter leads with survey_date in the current month
         result = result.filter(lead => {
-          if (!lead.survey_date) return false;
-          const surveyDate = new Date(lead.survey_date);
+          if (!lead.surveyDate) return false;
+          const surveyDate = new Date(lead.surveyDate);
           return surveyDate.getMonth() === currentMonth && 
                  surveyDate.getFullYear() === currentYear;
         });
@@ -273,8 +274,8 @@ function applySecondaryFilters(leads, filterParams) {
       case "Next Month":
         // Filter leads with survey_date in the next month
         result = result.filter(lead => {
-          if (!lead.survey_date) return false;
-          const surveyDate = new Date(lead.survey_date);
+          if (!lead.surveyDate) return false;
+          const surveyDate = new Date(lead.surveyDate);
           return surveyDate.getMonth() === nextMonth && 
                  surveyDate.getFullYear() === nextMonthYear;
         });
@@ -321,6 +322,16 @@ function Leads() {
       console.log(err)
     }
   });
+
+  const createStatusHistoryMutation = useMutation({
+    mutationFn: ({ leadId, leadStatus, leadActivity, nextAction, token }) => createStatusHistory ({ leadId, leadStatus, leadActivity, nextAction, token }),
+    onSuccess: () => {
+      console.log("Status history successfully created!");
+    },
+    onError: (err) => {
+      console.log(err)
+    }
+  })
 
   // Tabs
   const [activeTab, setActiveTab] = useState("Active Leads");
@@ -506,15 +517,15 @@ function Leads() {
     if (transferModeActive && selectedSalesRepForTransfer) {
       const updatedLead = {
         ...lead,
-        sales_name: selectedSalesRepForTransfer,
-        last_updated: new Date().toISOString()
+        salesName: selectedSalesRepForTransfer,
+        lastUpdated: new Date().toISOString()
       };
       
       // Update the lead
       handleLeadUpdated(updatedLead);
       
       // Log the transfer action
-      console.log(`Transferred lead ${lead.job_number} to ${selectedSalesRepForTransfer}`);
+      console.log(`Transferred lead ${lead.jobNumber} to ${selectedSalesRepForTransfer}`);
     } else {
       // Normal mode - open the lead details panel
       if (leadsListRef.current) {
@@ -548,12 +559,17 @@ function Leads() {
         setSelectedLead((prev) => prev && prev.id === updatedLead.id ? updatedLead : prev
       )
       refetch();
-      }
-    });
-    // if (selectedLead && selectedLead.id === id) {
-    //   setSelectedLead((prev) => ({ ...prev, ...updates }));
-    // }
-  };
+      createStatusHistoryMutation.mutate({
+        leadId: updatedLead.id,
+        leadStatus: updates.leadStatus || updatedLead.leadStatus,
+        leadActivity: updates.leadActivity || updatedLead.leadActivity,
+        nextAction: updates.nextAction || updatedLead.nextAction,
+        token,
+      });
+      
+    }
+  });
+};
 
   // Edit lead
   const handleEditLead = (lead) => {
@@ -586,15 +602,15 @@ function Leads() {
     if (selectedLead) {
       const updatedLead = {
         ...selectedLead,
-        sales_name: salesRepName,
-        last_updated: new Date().toISOString()
+        salesName: salesRepName,
+        lastUpdated: new Date().toISOString()
       };
       
       // Use the existing handleLeadUpdated function to update the lead
       handleLeadUpdated(updatedLead);
       
       // Optional: Show a success notification
-      console.log(`Lead ${selectedLead.lead_id} transferred to ${salesRepName}`);
+      console.log(`Lead ${selectedLead.leadId} transferred to ${salesRepName}`);
     }
   };
 

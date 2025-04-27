@@ -634,7 +634,7 @@ function PlacePopup({
                 >
                   <span className={styles.oneLineEllipsis}>
                     <span className={styles.inputLabel}>Type of place:</span>
-                    <span className={styles.inputValue}>{currentStop.typeOfPlace || 'Select'}</span>
+                    <span className={styles.inputValue}>{localStop.typeOfPlace || 'Select'}</span>
                   </span>
                   <Icon name="UnfoldMore" className={styles.rightIcon} />
                 </button>
@@ -665,7 +665,7 @@ function PlacePopup({
                 >
                   <span className={styles.oneLineEllipsis}>
                     <span className={styles.inputLabel}>How many stories:</span>
-                    <span className={styles.inputValue}>{currentStop.howManyStories || 'Select'}</span>
+                    <span className={styles.inputValue}>{localStop.howManyStories || 'Select'}</span>
                   </span>
                   <Icon name="UnfoldMore" className={styles.rightIcon} />
                 </button>

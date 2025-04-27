@@ -132,44 +132,44 @@ function OriginDetails({
   const [endDropdownActive, setEndDropdownActive] = useState(false);
 
   // ---------- ENSURE ORIGIN/DEST STOPS EXIST ----------
-  useEffect(() => {
-    if (!Array.isArray(lead.originStops) || lead.originStops.length === 0) {
-      const defaultStops = [
-        {
-          label: 'Main Address',
-          address: '',
-          apt: '',
-          city: '',
-          state: '',
-          zip: '',
-          timeRestrictions: {
-            isEnabled: false,
-            option: 'Select',
-            restrictionType: 'Select',
-            startTime: '',
-            endTime: '',
-          },
-        },
-      ];
-      onLeadUpdated({ ...lead, originStops: defaultStops });
-    }
+  // useEffect(() => {
+  //   if (!Array.isArray(lead.originStops) || lead.originStops.length === 0) {
+  //     const defaultStops = [
+  //       {
+  //         label: 'Main Address',
+  //         address: '',
+  //         apt: '',
+  //         city: '',
+  //         state: '',
+  //         zip: '',
+  //         timeRestrictions: {
+  //           isEnabled: false,
+  //           option: 'Select',
+  //           restrictionType: 'Select',
+  //           startTime: '',
+  //           endTime: '',
+  //         },
+  //       },
+  //     ];
+  //     onLeadUpdated({ ...lead, originStops: defaultStops });
+  //   }
 
-    if (!Array.isArray(lead.destinationStops)) {
-      onLeadUpdated({
-        ...lead,
-        destinationStops: [
-          {
-            label: 'Main Address',
-            address: '',
-            apt: '',
-            city: '',
-            state: '',
-            zip: '',
-          },
-        ],
-      });
-    }
-  }, [lead, onLeadUpdated]);
+  //   if (!Array.isArray(lead.destinationStops)) {
+  //     onLeadUpdated({
+  //       ...lead,
+  //       destinationStops: [
+  //         {
+  //           label: 'Main Address',
+  //           address: '',
+  //           apt: '',
+  //           city: '',
+  //           state: '',
+  //           zip: '',
+  //         },
+  //       ],
+  //     });
+  //   }
+  // }, [lead, onLeadUpdated]);
 
   // ---------- Current Stop ----------
   const currentStop = originStops.find((s) => s.id === selectedOriginStopId) || {};

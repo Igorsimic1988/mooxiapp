@@ -6,10 +6,13 @@ import styles from './ItemPopup.module.css';
 
 import { optionsData } from '../../../../../../../../../data/constants/optionsData';
 import Select, { components as RSComponents } from 'react-select';
-import { v4 as uuidv4 } from 'uuid';
 import packingOptions from '../../../../../../../../../data/constants/packingOptions';
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
 import Icon from 'src/app/components/Icon';
+import { useMutation } from '@tanstack/react-query';
+import { mergeInventoryItem } from 'src/app/services/inventoryItemsService';
+import { useQueryClient } from '@tanstack/react-query';
+import { useUiState } from '../../../../../UiStateContext';
 
 /** 
  * ==============================================
@@ -204,6 +207,9 @@ const customSelectStyles = {
   }),
 };
 
+
+
+
 /**
  * ITEM POPUP COMPONENT
  */
@@ -212,9 +218,26 @@ function ItemPopup({
   onClose,
   onUpdateItem,
   onAddItem,
+  onMergeItems,
   itemInstance,
+  ItemInstances = [],
+  handleDeleteItem,
+  onStartFresh,
   lead,
 }) {
+  const { selectedOriginStopId, setSelectedOriginStopId } = useUiState();
+  const queryClient = useQueryClient();
+
+  const mergeInventoryItemMutation = useMutation({
+    mutationFn: ({fromId, intoId}) =>mergeInventoryItem({fromId, intoId}),
+  onSuccess:(mergeInventoryItem) => {
+    console.log("Merge inventory item:", mergeInventoryItem);
+    queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
+  },
+  onError: (err) => {
+    console.log(err)
+  }
+});
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -235,7 +258,7 @@ function ItemPopup({
   const [isSlidingIn, setIsSlidingIn] = useState(false);
 
   // Packing materials
-  const [packingNeedsCounts, setPackingNeedsCounts] = useState({});
+  const [packingNeeds, setPackingNeeds] = useState({});
 
   // Images
   const [cameraImages, setCameraImages] = useState([]);
@@ -259,12 +282,12 @@ function ItemPopup({
   const deleteImageButtonRef = useRef(null);
 
   // For "packingNeeds" multi-select
-  const selectedPackingNeeds = Object.keys(packingNeedsCounts).map((key) => {
+  const selectedPackingNeeds = Object.keys(packingNeeds).map((key) => {
     const foundOpt = packingOptions.find((o) => o.value === key);
     return {
       value: key,
       name: foundOpt ? foundOpt.name : key,
-      count: packingNeedsCounts[key],
+      count: packingNeeds[key],
     };
   });
 
@@ -308,6 +331,10 @@ function ItemPopup({
     loadPointsOptions,
     dropPointsOptions,
   ]);
+
+
+  
+  
 
   // Initialize data on mount or if item changes
   useEffect(() => {
@@ -380,24 +407,23 @@ function ItemPopup({
     }
 
     // packingNeedsCounts
-    if (currentItemInstance?.packingNeedsCounts) {
-      setPackingNeedsCounts(currentItemInstance.packingNeedsCounts);
+    if (currentItemInstance?.packingNeeds) {
+      setPackingNeeds(currentItemInstance.packingNeeds);
     } else if (item.packing && item.packing.length > 0) {
       const counts = {};
       item.packing.forEach((pack) => {
         counts[pack.type] = pack.quantity;
       });
-      setPackingNeedsCounts(counts);
+      setPackingNeeds(counts);
     } else {
-      setPackingNeedsCounts({});
+      setPackingNeeds({});
     }
 
     // Basic fields
     setCuft(currentItemInstance?.cuft || item.cuft || '');
     setLbs(currentItemInstance?.lbs || item.lbs || '');
-    setItemCount(
-      currentItemInstance?.count !== undefined ? currentItemInstance.count : 1
-    );
+    setItemCount(currentItemInstance?.count || 1);
+    
     setNotes(currentItemInstance?.notes || '');
 
     // Link
@@ -477,13 +503,13 @@ function ItemPopup({
   const handlePackingNeedsChange = (selection, actionMeta) => {
     if (actionMeta.action === 'select-option' && actionMeta.option) {
       const selOpt = actionMeta.option;
-      setPackingNeedsCounts((prev) => ({
+      setPackingNeeds((prev) => ({
         ...prev,
         [selOpt.value]: (prev[selOpt.value] || 0) + 1,
       }));
     } else if (actionMeta.action === 'remove-value' && actionMeta.removedValue) {
       const remOpt = actionMeta.removedValue;
-      setPackingNeedsCounts((prev) => {
+      setPackingNeeds((prev) => {
         const cpy = { ...prev };
         if (cpy[remOpt.value] > 1) {
           cpy[remOpt.value] -= 1;
@@ -493,42 +519,74 @@ function ItemPopup({
         return cpy;
       });
     } else if (actionMeta.action === 'clear') {
-      setPackingNeedsCounts({});
+      setPackingNeeds({});
     }
   };
-
-  // Save item
   const handleSaveItem = (overrides = {}) => {
     const selectedTags = getAllSelectedTags();
+  
     const newInstance = {
-      id: currentItemInstance ? currentItemInstance.id : uuidv4(),
-      itemId: item.id.toString(),
-      item: { ...item },
+      furnitureItemId: item.furnitureItemId,
+      originId: currentItemInstance?.originId,
+      roomId: currentItemInstance?.roomId,
+      name: item.name || '',
+      imageName: item.imageName || '',
+      letters: item.letters || [],
+      search: item.search || '',
       tags: selectedTags,
-      count: itemCount,
       notes,
-      cuft,
-      lbs,
-      packingNeedsCounts,
+      cuft: cuft !== '' ? parseInt(cuft, 10) : null,
+      lbs: lbs !== '' ? parseInt(lbs, 10) : null,
+      packingNeeds,
+      count: itemCount,
       link: overrides.link !== undefined ? overrides.link : link,
       uploadedImages:
-        overrides.uploadedImages !== undefined
-          ? overrides.uploadedImages
-          : uploadedImages,
+        overrides.uploadedImages !== undefined ? overrides.uploadedImages : uploadedImages,
       cameraImages:
-        overrides.cameraImages !== undefined
-          ? overrides.cameraImages
-          : cameraImages,
+        overrides.cameraImages !== undefined ? overrides.cameraImages : cameraImages,
     };
     newInstance.groupingKey = generateGroupingKey(newInstance);
-
-    if (currentItemInstance) {
-      onUpdateItem(newInstance, currentItemInstance);
-    } else {
-      onAddItem(newInstance);
+    const existing = ItemInstances.find(
+      (i) =>
+        i.groupingKey === newInstance.groupingKey &&
+        i.id !== currentItemInstance?.id 
+    );
+    console.log('🧩 Current:', currentItemInstance.groupingKey);
+    console.log('🧩 New:', newInstance.groupingKey);
+    if (existing) {
+      console.log('🧩 Existing:', existing.groupingKey);
+      mergeInventoryItemMutation.mutate(
+        { fromId: currentItemInstance.id, intoId: existing.id },
+        {
+          onSuccess: (mergedItem) => {
+            setCurrentItemInstance({ ...mergedItem });
+            setItemCount(mergedItem.count);
+            onMergeItems(currentItemInstance.id, existing.id, mergedItem);
+          },
+          onError: (err) => {
+            console.error("Merge failed:", err);
+          },
+        }
+      );
+    } else{
+      if (currentItemInstance?.id) {
+        if (itemCount === 0){
+          handleDeleteItem(currentItemInstance.id)
+        }
+        else{
+          onUpdateItem(newInstance, currentItemInstance);
+        }
+    }else {
+      if (itemCount > 0){
+        onAddItem(newInstance);
+      }
     }
-    setCurrentItemInstance(newInstance);
+      setCurrentItemInstance({ ...newInstance });
+      setItemCount(newInstance.count);
+  }
   };
+
+
 
   // itemCount plus/minus
   const handleIncrement = () => setItemCount((p) => p + 1);
@@ -566,6 +624,11 @@ function ItemPopup({
   // "Start Fresh"
   const handleStartFreshClick = () => {
     setIsSlidingOut(true);
+    setTimeout(() => {
+      if (onStartFresh && currentItemInstance) {
+        onStartFresh(currentItemInstance);
+      }
+    }, 300);
   };
   useEffect(() => {
     let timer;
@@ -747,6 +810,8 @@ function ItemPopup({
       deleteImageButtonRef.current.focus();
     }
   }, [isPreviewVisible]);
+  console.log("ItemPopup count:", itemCount);
+
 
   return (
     <div className={styles.popup} onClick={onClose}>
@@ -775,7 +840,7 @@ function ItemPopup({
             <div className={styles.furnitureOutline}>
               <div className={styles.furnitureWrapper}>
                 <Image
-                  src={item.src}
+                  src={item.imageName}
                   alt={item.name}
                   width={72}
                   height={72}

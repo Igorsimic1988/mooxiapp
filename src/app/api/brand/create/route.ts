@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(newBrand, { status: 201 });
   } catch (error) {
-    console.error("Error creating brand:", error);
+    console.log(`${error}`)
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

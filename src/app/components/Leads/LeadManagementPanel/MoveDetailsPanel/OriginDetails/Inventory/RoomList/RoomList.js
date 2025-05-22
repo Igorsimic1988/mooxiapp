@@ -14,7 +14,7 @@ import Icon from 'src/app/components/Icon';
  */
 function RoomList({
   onRoomSelect,
-  roomItemSelections = {},
+  itemsByRoom = {},
   displayedRooms = [],
   selectedRoom
 }) {
@@ -81,7 +81,7 @@ function RoomList({
       {/* Rooms except the 'Boxes' room */}
       {otherRooms.map((room, index) => {
         const roomId = room.id ?? `fallback-${index}`;
-        const itemInstances = roomItemSelections[roomId] || [];
+        const itemInstances = itemsByRoom[roomId] || [];
         const isActive = selectedRoom && selectedRoom.id === room.id;
         const selectedItemCount = itemInstances.length;
 
@@ -143,9 +143,9 @@ function RoomList({
         >
           <p className={styles.roomName}>{boxesRoom.name || 'Boxes'}</p>
           <div className={styles.rightSection}>
-            {roomItemSelections[boxesRoom.id]?.length > 0 && (
+            {itemsByRoom[boxesRoom.id]?.length > 0 && (
               <div className={styles.itemCount}>
-                <p>{roomItemSelections[boxesRoom.id].length}</p>
+                <p>{itemsByRoom[boxesRoom.id].length}</p>
               </div>
             )}
             <div className={styles.moreIcon}>

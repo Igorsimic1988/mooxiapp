@@ -1,3 +1,5 @@
+import { FurnitureInput } from "./types";
+
 export const getAllFurnitureItems = async ({brandId}: {brandId: string;}) => {
     const res = await fetch(`/api/furniture/readAll?brandId=${brandId}`, {
       method: 'GET',
@@ -7,7 +9,7 @@ export const getAllFurnitureItems = async ({brandId}: {brandId: string;}) => {
     });
   
     const data = await res.json();
-  
+
     if (!res.ok) {
       throw new Error(data.error || 'Failed to fetch all furniture items');
     }
@@ -15,7 +17,7 @@ export const getAllFurnitureItems = async ({brandId}: {brandId: string;}) => {
     return data.furnitureItems;
 };
 
-export const getlFurnitureItemById = async ({id}: {id: string;}) => {
+export const getFurnitureItemById = async ({id}: {id: string;}) => {
     const res = await fetch(`/api/furniture/readById?id=${id}`, {
       method: 'GET',
       headers: {
@@ -54,4 +56,23 @@ export const updateFurnitureItem = async ({id, data, token}:
   
     return response.item;
   };
-  //dodati za validation, tj pitati stefana
+
+  export const createFurnitureItem = async ({ data, token }: { data: FurnitureInput; token: string; }) => {
+    const res = await fetch('/api/furniture/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+  
+    const response = await res.json();
+  
+    if (!res.ok) {
+      throw new Error(response.error || 'Failed to create furniture item');
+    }
+  
+    return response; 
+  };
+  

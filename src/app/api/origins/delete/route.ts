@@ -6,6 +6,9 @@ const prisma = new PrismaClient();
 export async function DELETE(req: Request) {
   try {
     const { id } = await req.json();
+    await prisma.inventoryItem.deleteMany({
+      where: { originId: id },
+    });
 
     await prisma.origins.delete({
         where: { id },

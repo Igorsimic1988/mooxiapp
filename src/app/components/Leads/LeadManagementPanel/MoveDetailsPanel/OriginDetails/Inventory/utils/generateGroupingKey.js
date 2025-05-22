@@ -17,12 +17,12 @@
  */
 
 export const generateGroupingKey = (instance) => {
-    const tagsKey = instance.tags.sort().join(',');
+  const tagsKey = Array.isArray(instance.tags) ? instance.tags.sort().join(',') : '';
     const notesKey = instance.notes || '';
     const cuftKey = instance.cuft || '';
     const lbsKey = instance.lbs || '';
   
-    const packingNeedsEntries = Object.entries(instance.packingNeedsCounts || {}).sort();
+    const packingNeedsEntries = Object.entries(instance.packingNeeds || {}).sort();
     const packingNeedsKey = packingNeedsEntries
       .map(([key, value]) => `${key}:${value}`)
       .join(',');
@@ -38,9 +38,11 @@ export const generateGroupingKey = (instance) => {
     const cameraImagesHash = simpleHash(cameraImagesData);
   
     const imagesKey = `${uploadedImagesHash}-${cameraImagesHash}`;
+    const baseId = instance.furnitureItemId ?? instance.id;
+    const roomKey = instance.roomId || '';
   
     // Now include link and imagesKey in the grouping key
-    return `${instance.itemId}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}-${linkKey}-${imagesKey}`;
+    return `${baseId}-${roomKey}-${tagsKey}-${notesKey}-${cuftKey}-${lbsKey}-${packingNeedsKey}-${linkKey}-${imagesKey}`;
   };
   
   // Simple hash function

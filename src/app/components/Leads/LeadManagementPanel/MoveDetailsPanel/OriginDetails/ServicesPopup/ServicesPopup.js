@@ -47,6 +47,26 @@ const typeOfServiceChoices = [
   { id: 6, name: 'Help with Unloading' },
 ];
 
+const allowedOriginFields = [
+  'whatsMoving',
+  'packingOption',
+  'blanketsOption',
+  'itemsToBeTakenApart',
+  'hoistItems',
+  'craneNeeded',
+  'additionalServices',
+];
+
+const allowedDestinationFields = [
+  'unpackingOption',
+  'blanketsOption',
+  'itemsToBeAssembled',
+  'hoistItems',
+  'craneNeeded',
+  'additionalServices',
+];
+
+
 function ServicesPopup({
   lead,
   onDestinationUpdated ,
@@ -105,7 +125,7 @@ const selectedStopId =
         
     const found = currentStops.find((s) => s.id === selectedStopId);
     if (found) {
-      setLocalStop(found);
+      setLocalStop({...found});
     }
   }, [selectedStopId, currentStops, selectedPlace]);
 
@@ -137,16 +157,31 @@ const selectedStopId =
         [fieldName]: newValue,
     }));
   }
+  function filterAllowedFields(obj, allowedKeys) {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([key]) => allowedKeys.includes(key))
+    );
+  }
+  
 
   function handleSave() {
     if (!localStop?.id) return;
+  
+    const filteredData = filterAllowedFields(
+      localStop,
+      selectedPlace === 'origin' ? allowedOriginFields : allowedDestinationFields
+    );
+  
     if (selectedPlace === 'origin') {
-      onOriginUpdated(localStop.id, localStop);
+      console.log(filteredData, ' fiiil')
+      onOriginUpdated(localStop.id, filteredData);
     } else {
-      onDestinationUpdated(localStop.id, localStop);
-    }   
-      setIsServicesPopupVisible(false);
+      onDestinationUpdated(localStop.id, filteredData);
     }
+  
+    setIsServicesPopupVisible(false);
+  }
+  
 
   function toggleField(fieldName) {
     setStopField(fieldName, !localStop[fieldName]);
@@ -344,7 +379,7 @@ const selectedStopId =
                 <div className={`${styles.dropdownWrapper} ${styles.unpackingOptionMargin}`}>
                   <DropdownButton
                     label="Unpacking:"
-                    value={stop.unpackingOption}
+                    value={localStop.unpackingOption}
                     isActive={showUnpackingDropdown}
                     onClick={() => {
                       setShowUnpackingDropdown(!showUnpackingDropdown);
@@ -437,7 +472,7 @@ const selectedStopId =
             <div className={`${styles.blanketsDropdownWrapper} ${styles.blanketsMargin}`}>
               <DropdownButton
                 label="Blankets:"
-                value={stop.blanketsOption}
+                value={localStop.blanketsOption}
                 isActive={showBlanketsDropdown}
                 onClick={() => {
                   setShowBlanketsDropdown(!showBlanketsDropdown);

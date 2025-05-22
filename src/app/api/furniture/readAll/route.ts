@@ -16,6 +16,7 @@ export async function GET(req: Request) {
       where: { brandId }, 
     }); 
 
+
     return NextResponse.json({ furnitureItems });
   } catch (error) {
     console.error("Error fetching furniture items:", error);

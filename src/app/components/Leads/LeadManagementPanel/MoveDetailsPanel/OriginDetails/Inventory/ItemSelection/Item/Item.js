@@ -12,10 +12,10 @@ function Item({
   isMyItemsActive,
   isDeleteActive,
   itemInstance,
-
   isMoved = false,
   onOpenPopup, // Added prop
 }) {
+
   const [isBadgeExpanded, setIsBadgeExpanded] = useState(false);
   const timerRef = useRef(null);
   const eventRef = useRef(null);
@@ -171,7 +171,7 @@ function Item({
         )}
         <div className={styles.itemImagewrapper}>
         <Image 
-  src={item.src} 
+  src={item.imageName} 
   alt={item.name} 
   className={styles.itemImage}
   width={72}  // Adjust based on your design requirements

@@ -9,7 +9,6 @@ import styles from './LeadManagementPanel.module.css';
 // 1) IMPORT THE updateLead SERVICE
 import Icon from '../../Icon';
 import { useForm } from 'react-hook-form';
-import { UiStateProvider } from './MoveDetailsPanel/UiStateContext';
 import { getSalesmen } from 'src/app/services/userService';
 import { useQuery } from '@tanstack/react-query';
 import { useAccessToken } from 'src/app/lib/useAccessToken';
@@ -823,13 +822,11 @@ function LeadManagementPanel({
           </div>
         </div>
       </div>
-      <UiStateProvider>
       <MoveDetailsPanel
         onShowInventory={onInventoryFullScreen}
         lead={lead}
         onLeadUpdated={onLeadUpdated}
       />
-      </UiStateProvider>
     </div>
   );
 }

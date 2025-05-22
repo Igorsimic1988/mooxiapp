@@ -17,6 +17,8 @@ import { LeadFormSchema } from 'src/app/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import Icon from '../../Icon'
+import { useMutation } from '@tanstack/react-query';
+import { createFurnitureItem } from 'src/app/services/furnitureService';
 
 /**
  * Props:
@@ -76,6 +78,16 @@ function LeadFormPopup({
     queryFn: () => getSalesmen(token),
     enabled: !!token,
   })
+  const createFurnitureItemsMutation = useMutation({
+    mutationFn: ({ brandId }) =>
+      createFurnitureItem({ data: { brandId }, token }),
+    onSuccess: (res) => {
+      console.log('Furniture items successfully created:', res);
+    },
+    onError: (err) => {
+      console.error('Failed to create furniture items:', err);
+    },
+  });
 
   const assignSalesRep = watch('assignSalesRep');
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
@@ -349,6 +361,7 @@ function LeadFormPopup({
                         setValue('companyName', brand.name);
                         setValue('brandId', brand.id);
                         setShowCompanyDropdown(false);
+                        createFurnitureItemsMutation.mutate({ brandId: brand.id });
                       }}
                       tabIndex={0}
                     >

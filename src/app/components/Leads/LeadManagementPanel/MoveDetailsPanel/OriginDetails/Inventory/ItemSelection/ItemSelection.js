@@ -1,16 +1,13 @@
 "use client";
 
 import React from 'react';
-import allItems from '../../../../../../../data/constants/funitureItems';
 import styles from './ItemSelection.module.css';
 import ItemList from './ItemList/ItemList';
 import BcalculatorMyitems from './BcalculatorMyitems/BcalculatorMyitems';
 import AlphabetFilter from './AlphabetFilter/AlphabetFilter';
 
-// Import the generateGroupingKey function from the utils directory
-import { generateGroupingKey } from '../utils/generateGroupingKey';
-
 function ItemSelection({
+  allItems,
   room,
   searchQuery,
   setSearchQuery,
@@ -35,7 +32,7 @@ function ItemSelection({
   const handleToggle = () => {
     setIsToggled((prev) => !prev);
   };
-
+  
   // Handle "My Items" button click to toggle its active state
   const handleMyItemsClick = () => {
     const newMyItemsState = !isMyItemsActive;
@@ -65,46 +62,12 @@ function ItemSelection({
     onSubButtonSelect(letter, subButton);
   };
 
-  // Compute itemCounts based on isMyItemsActive
-  const itemCounts = itemInstances.reduce((counts, instance) => {
-    const key = instance.itemId.toString(); // Ensure key is a string
-    counts[key] = (counts[key] || 0) + 1; // Each instance represents a count of 1
-    return counts;
-  }, {});
-
+  
   // Group items by current properties when isMyItemsActive is true
-  const groupedItems = isMyItemsActive
-    ? Object.values(
-        itemInstances.reduce((groups, instance) => {
-          const key = generateGroupingKey(instance);
-          if (!groups[key]) {
-            groups[key] = {
-              // Assign a stable id to use as a key
-              id: instance.id, // Use the existing id
-              groupingKey: key,
-              itemId: instance.itemId,
-              item: instance.item,
-              tags: [...instance.tags],
-              notes: instance.notes,
-              cuft: instance.cuft,
-              lbs: instance.lbs,
-              packingNeedsCounts: { ...instance.packingNeedsCounts },
-              link: instance.link || '',
-              uploadedImages: [...(instance.uploadedImages || [])],
-              cameraImages: [...(instance.cameraImages || [])],
-              count: 1,
-            };
-          } else {
-            groups[key].count += 1; // Aggregate counts
-          }
-          return groups;
-        }, {})
-      )
-    : [];
 
   // Filter items based on "My Items" button state
   let filteredItems = isMyItemsActive
-  ? groupedItems
+  ? itemInstances
   : allItems.filter((item) => {
       const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -125,7 +88,7 @@ function ItemSelection({
 
       // No search query, letter, or sub-button selected
       // Display default items for the current room
-      return item.rooms.includes(Number(room.id));
+      return item.rooms.includes(room.id);
     });
 
 // Include "Custom Item" when no other items match the search
@@ -159,7 +122,7 @@ if (!isMyItemsActive && filteredItems.length === 0 && searchQuery.trim() !== '')
         <div className={styles.scrollableItemList}>
           <ItemList
             items={filteredItems}
-            itemClickCounts={itemCounts}
+            itemInstances={itemInstances}
             onItemClick={onItemClick}
             isMyItemsActive={isMyItemsActive}
             isDeleteActive={isDeleteActive}

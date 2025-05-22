@@ -613,13 +613,23 @@ function Leads() {
       console.log(`Lead ${selectedLead.leadId} transferred to ${salesRepName}`);
     }
   };
+  const handleLeadRefetch = async () => {
+    const freshLeads = await refetch(); // ovo refetchuje sve leadove
+    const updatedLead = freshLeads.data?.find(ld => ld.id === selectedLead?.id);
+    if (updatedLead) {
+      setSelectedLead(updatedLead);
+    }
+  };
+  
 
   // Inventory
   const openInventoryFullScreen = () => {
     setShowInventoryFullScreen(true);
+    handleLeadRefetch(); // osveži lead sa servera
   };
   const closeInventoryFullScreen = () => {
     setShowInventoryFullScreen(false);
+    handleLeadRefetch(); // osveži lead sa servera
   };
 
   // Count how many filters are active

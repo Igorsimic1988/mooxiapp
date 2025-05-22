@@ -122,7 +122,7 @@ function isNumericDropBeyond3(tagValue) {
 function MyInventory({
   lead,
   setIsMyInventoryVisible,
-  roomItemSelections = {},
+  itemsByRoom = {},
   displayedRooms = []
 }) {
   const handleClose = useCallback(() => {
@@ -198,11 +198,11 @@ function MyInventory({
     let grandTotalLbs = 0;
     let grandTotalCuft = 0;
 
-    const validRoomIds = Object.keys(roomItemSelections)
+    const validRoomIds = Object.keys(itemsByRoom)
       .filter((roomId) => {
         const numId = parseInt(roomId, 10);
         if (!displayedRooms.includes(numId)) return false;
-        const arr = roomItemSelections[roomId];
+        const arr = itemsByRoom[roomId];
         return Array.isArray(arr) && arr.length > 0;
       })
       .sort((a, b) => {
@@ -214,7 +214,7 @@ function MyInventory({
 
     const roomsWithItems = validRoomIds.map((roomId) => {
       const numId = parseInt(roomId, 10);
-      const roomArr = roomItemSelections[roomId];
+      const roomArr = itemsByRoom[roomId];
       const roomObj = rooms.find(r => r.id === numId) || {
         id: numId,
         name: `Room #${roomId}`,
@@ -226,8 +226,8 @@ function MyInventory({
         const gk = inst.groupingKey || 'no-group';
         if (!grouped[gk]) {
           grouped[gk] = {
-            itemId: inst.itemId,
-            itemName: inst.item?.name || '(Unnamed)',
+            furnitureItemId: inst.furnitureItemId,
+            name: inst.name || '(Unnamed)',
             tags: Array.isArray(inst.tags) ? [...inst.tags] : [],
             cuft: parseFloat(inst.cuft) || 0,
             lbs: parseFloat(inst.lbs) || 0,
@@ -263,7 +263,7 @@ function MyInventory({
       grandTotalLbs,
       grandTotalCuft,
     };
-  }, [roomItemSelections, displayedRooms]);
+  }, [itemsByRoom, displayedRooms]);
 
   const {
     roomsWithItems,
@@ -365,7 +365,7 @@ function MyInventory({
                             >
                               <div className={styles.descriptionCell}>
                                 <div className={styles.descriptionContent}>
-                                  <span>{itm.itemName}</span>
+                                  <span>{itm.name}</span>
                                 </div>
                               </div>
                               <div className={styles.qtyCell}>{itm.count}</div>

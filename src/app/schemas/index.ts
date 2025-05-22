@@ -25,18 +25,25 @@ const allowedTags = ["bulky", "blanket_wrapped", "cp_packed_by_movers", "disasse
 
 // Schema validacije
 export const FurnitureSchema = z.object({
-  name: z.string().min(3),
-  imageName: z.string(),
-  rooms: z.array(z.number()), 
-  letters: z.array(z.string()), 
-  cuft: z.number().positive(),
-  lbs: z.number().positive(),
-  search: z.enum(["Y", "N"]),
+  name: z.string().min(3).optional(),
+  imageName: z.string().optional(),
+  rooms: z.array(z.number()).optional(), 
+  letters: z.array(z.string()).optional(), 
+  cuft: z.number().positive().optional(),
+  lbs: z.number().positive().optional(),
+  search: z.enum(["Y", "N"]).optional(),
   tags: z.array(z.string()).refine((tags) => tags.every(tag => allowedTags.includes(tag)), {
     message: "Invalid tag detected",
-  }),
-  packingType: z.string(),
-  packingQuantity: z.number(),
+  }).optional(),
+  notes: z.string().optional(), 
+  packingType: z.string().optional(),
+  packingQuantity: z.number().optional(),
+  link: z.string().optional(),
+  uploadedImages: z.array(z.string()).optional().default([]),
+  cameraImages:  z.array(z.string()).optional().default([]),
+  groupingKey:  z.array(z.string()).optional().default([]),
+  autoAdded: z.boolean().optional(),
+  brandId: z.string().min(1), 
 });
 
 export const LeadFormSchema = z.object({

@@ -57,7 +57,7 @@ export const updateLead= async ({id, data, token}:
     const data = await res.json();
   
     if (!res.ok) {
-      throw new Error(data.error || 'Failed to fetch all furniture items');
+      throw new Error(data.error || 'Failed to fetch all leads');
     }
   
     return data.leads;

@@ -209,6 +209,23 @@ const furnishingEligibleTypes = new Set([
   'Government Institution',
 ]);
 
+const allowedOriginFields = [
+  'typeOfPlace',
+  'moveSize',
+  'howManyStories',
+  'furnishingStyle',
+  'features',
+  'needsCOI',
+];
+
+const allowedDestinationFields = [
+  'typeOfPlace',
+  'howManyStories',
+  'features',
+  'needsCOI',
+];
+
+
 function PlacePopup({
   lead,
   onDestinationUpdated,
@@ -282,7 +299,7 @@ function PlacePopup({
       
         const found = currentStops.find((s) => s.id === selectedStopId);
         if (found) {
-          setLocalStop(found);
+          setLocalStop({...found});
         }
       }, [selectedStopId, currentStops, selectedPlace]);
 
@@ -383,14 +400,26 @@ function PlacePopup({
   function toggleCOI() {
     setStopField('needsCOI', !localStop.needsCOI);
   }
+
+  function filterAllowedFields(obj, allowedKeys) {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([key]) => allowedKeys.includes(key))
+    );
+  }
+  
   function handleSave() {
     if (!localStop?.id) return;
 
-  if (selectedPlace === 'origin') {
-    onOriginUpdated(localStop.id, localStop);
-  } else {
-    onDestinationUpdated(localStop.id, localStop);
-  }
+    const filteredData = filterAllowedFields(
+      localStop,
+      selectedPlace === 'origin' ? allowedOriginFields : allowedDestinationFields
+    );
+    
+    if (selectedPlace === 'origin') {
+      onOriginUpdated(localStop.id, filteredData);
+    } else {
+      onDestinationUpdated(localStop.id, filteredData);
+    }
   
     setIsPlacePopupVisible(false);
   }

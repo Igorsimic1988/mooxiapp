@@ -1,3 +1,4 @@
+'use client'
 import React, { createContext, useState, useContext } from 'react';
 
 const UiStateContext = createContext();
@@ -28,7 +29,7 @@ export const UiStateProvider = ({ children }) => {
         selectedOriginStopId,            
         setSelectedOriginStopId,
         selectedDestinationStopId,
-        setSelectedDestinationStopId
+        setSelectedDestinationStopId,
       }}
     >
       {children}

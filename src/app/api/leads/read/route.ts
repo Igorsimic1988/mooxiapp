@@ -18,7 +18,6 @@ export async function GET(req: Request) {
     const leads = await prisma.lead.findMany({
       include: {
         brand: true, 
-        inventoryItems: true, 
         origins: true,        
         destinations: true, 
         statusHistory: {
@@ -31,7 +30,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ leads });
   } catch (error) {
-    console.error("Error fetching leads:", error);
+    console.log(`${error}`)
     return NextResponse.json(
       { error: "Something went wrong while fetching leads" },
       { status: 500 }

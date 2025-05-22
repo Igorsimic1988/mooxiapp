@@ -64,6 +64,21 @@ const elevatorSizeOptions = [
   'Large (9+ People)',
 ];
 
+const allowedOriginFields = [
+  'biggestTruckAccess',
+  'shuttleTruckRequired',
+  'parkingAccess',
+  'distanceDoorTruck',
+  'howManySteps',
+  'terrainDoorTruck',
+  'elevatorAtStop',
+  'elevatorExclusive',
+  'elevatorFloors',
+  'elevatorSize',
+];
+
+const allowedDestinationFields = [...allowedOriginFields]; 
+
 function AccessPopup({
   lead,
   onDestinationUpdated,
@@ -129,7 +144,7 @@ function AccessPopup({
   
     const found = currentStops.find((s) => s.id === selectedStopId);
     if (found) {
-      setLocalStop(found);
+      setLocalStop({...found});
     }
   }, [selectedStopId, currentStops, selectedPlace]);
   
@@ -166,17 +181,29 @@ function AccessPopup({
       [fieldName]: newValue,
   }));
   }
+  function filterAllowedFields(obj, allowedKeys) {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([key]) => allowedKeys.includes(key))
+    );
+  }
+  
   
 
   // Save => update lead
   function handleSave() {
     if (!localStop?.id) return;
 
-  if (selectedPlace === 'origin') {
-    onOriginUpdated(localStop.id, localStop);
-  } else {
-    onDestinationUpdated(localStop.id, localStop);
-  }
+    const filteredData = filterAllowedFields(
+      localStop,
+      selectedPlace === 'origin' ? allowedOriginFields : allowedDestinationFields
+    );
+    
+    if (selectedPlace === 'origin') {
+      onOriginUpdated(localStop.id, filteredData);
+    } else {
+      onDestinationUpdated(localStop.id, filteredData);
+    }
+    
   
     setIsAccessPopupVisible(false);
   }
@@ -259,7 +286,7 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
                   setSelectedPlace('origin');
                   const originToUse = originStops.find(s => s.id === selectedOriginStopId);
                   if (originToUse) {
-                    setLocalStop(originToUse);
+                    setLocalStop({...originToUse});
                   }
                 }}
               />
@@ -271,7 +298,13 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
                 name="placeAccess"
                 className={styles.radioInput}
                 checked={selectedPlace === 'destination'}
-                onChange={() => {console.log('change to desti');setSelectedPlace('destination');}}
+                onChange={() => {
+                  setSelectedPlace('destination');
+                  const destToUse = destinationStops.find(s => s.id === selectedDestinationStopId);
+                  if (destToUse) {
+                    setLocalStop({ ...destToUse }); 
+                  }
+                }}
               />
               <span className={styles.radioText}>Destination</span>
             </label>
@@ -302,7 +335,7 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Biggest Truck:"
-                value={stop.biggestTruckAccess}
+                value={localStop.biggestTruckAccess}
                 isActive={showTruckAccessDropdown}
                 onClick={() => {
                   setShowTruckAccessDropdown(!showTruckAccessDropdown);
@@ -353,7 +386,7 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Parking:"
-                value={stop.parkingAccess}
+                value={localStop.parkingAccess}
                 isActive={showParkingDropdown}
                 onClick={() => {
                   setShowParkingDropdown(!showParkingDropdown);
@@ -390,7 +423,7 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Door to truck:"
-                value={stop.distanceDoorTruck}
+                value={localStop.distanceDoorTruck}
                 isActive={showDistanceDropdown}
                 onClick={() => {
                   setShowDistanceDropdown(!showDistanceDropdown);
@@ -427,7 +460,7 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="How Many Steps:"
-                value={stop.howManySteps}
+                value={localStop.howManySteps}
                 isActive={showStepsDropdown}
                 onClick={() => {
                   setShowStepsDropdown(!showStepsDropdown);
@@ -464,7 +497,7 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
             <div className={styles.inputWrapper}>
               <DropdownButton
                 label="Door to truck Terrain:"
-                value={stop.terrainDoorTruck}
+                value={localStop.terrainDoorTruck}
                 isActive={showTerrainDropdown}
                 onClick={() => {
                   setShowTerrainDropdown(!showTerrainDropdown);
@@ -531,7 +564,7 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
                 <div className={styles.inputWrapper}>
                   <DropdownButton
                     label="Elevator floors:"
-                    value={stop.elevatorFloors}
+                    value={localStop.elevatorFloors}
                     isActive={showElevatorFloorsDropdown}
                     onClick={() => {
                       setShowElevatorFloorsDropdown(!showElevatorFloorsDropdown);

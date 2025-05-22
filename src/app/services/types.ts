@@ -1,3 +1,4 @@
+
 export type LeadInput = {
     customerName: string;
     customerEmail: string;
@@ -77,6 +78,8 @@ export type LeadInput = {
     apt?: string;
     city?: string;
     state?: string;
+    displayedRooms?: number[]
+    itemsByRoom?: JSON,
     zipCode?: string;
     typeOfPlace?: string;
     moveSize?: string;
@@ -147,6 +150,49 @@ export type LeadInput = {
     timeRestrictionEndTime?: string;
     isActive?: boolean;
   };
+  
+  export type FurnitureInput = {
+    name: string;
+    imageName: string;
+    rooms?: number[];
+    letters?: string[];
+    cuft?: number;
+    lbs?: number;
+    search?: "Y" | "N";
+    tags?: string[];
+    notes?: string;
+    packingType?: string;
+    packingQuantity?: number;
+    link?: string;
+    uploadedImages?: string [];
+    cameraImages?: string [];
+    groupingKey?: string;
+    autoAdded?: boolean;
+    brandId?: string;
+  };
+
+  export type InventoryItemInput = {
+    originId: string;               
+    furnitureItemId: number;        
+    roomId?: number;     
+    name?: string;
+    imageName?: string;
+    letters?: string[];  
+    search?: string;
+    cuft?: number;
+    lbs?: number;
+    tags?: string[];
+    notes?: string;
+    packingNeeds?: Record<string, number>;
+    link?: string;
+    uploadedImages?: string [];
+    cameraImages?: string [];
+    groupingKey?: string;
+    autoAdded?: boolean;
+    count?:number;
+  };
+
+  
   
   
   

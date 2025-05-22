@@ -1,7 +1,7 @@
 "use client";
 // If you're using Next.js 13 app router, you often need "use client" at the top
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import styles from "./Inventory.module.css";
 
 // Child components
@@ -15,18 +15,15 @@ import ItemPopup from "./ItemSelection/Item/ItemPopup/ItemPopup";
 
 // Data + Utils
 import rooms from "../../../../../../data/constants/AllRoomsList";
-import allItems from "../../../../../../data/constants/funitureItems";
-import { v4 as uuidv4 } from "uuid";
 import { generateGroupingKey } from "./utils/generateGroupingKey";
-
-// Inventory Service
-import {
-  getInventoryByLeadId,
-  createOrUpdateInventory,
-} from "../../../../../../services/inventoryService";
+import { useAccessToken } from "src/app/lib/useAccessToken";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAllFurnitureItems } from "src/app/services/furnitureService";
+import { createInventoryItem, deleteInventoryItem, getInventoryByOriginId, updateInventoryItem } from "src/app/services/inventoryItemsService";
+import { useUiState } from "../../UiStateContext";
+import { updateOrigin } from 'src/app/services/originsService';
 
 // The “default displayed” rooms as numeric IDs
-const defaultRoomIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
 function Inventory({
   lead,
@@ -34,17 +31,61 @@ function Inventory({
   inventoryRoom,    // the currently selected room object (for mobile)
   setInventoryRoom, // function to set selected room object (for mobile)
 }) {
+
+   const token = useAccessToken();
+  const { data: allItems = [] } = useQuery({
+    queryKey: ['furnitureItems', lead?.brandId],
+    queryFn: () => getAllFurnitureItems({ brandId: lead?.brandId }),
+    enabled: !!lead?.brandId,
+  });
+
+  const queryClient = useQueryClient();
+    const createInventoryItemMutation = useMutation({
+      mutationFn: (data) =>createInventoryItem({data, token}),
+      onSuccess:(createdInventoryItem) => {
+        console.log("New inventory item created:", createdInventoryItem);
+        queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
+      },
+      onError: (err) => {
+        console.log(err)
+      }
+    });
+  const deleteInventoryItemMutation = useMutation({
+    mutationFn: deleteInventoryItem,
+    onSuccess: () => {
+      console.log('InventoryItem deleted!');
+      queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
+    },
+    onError: (err) => {
+      console.error('Failed to delete inventory item', err);
+    }
+  });
+
+    const updateInventoryItemMutation = useMutation({
+        mutationFn: ({id, data}) =>updateInventoryItem({id, data}),
+      onSuccess:(updatedInventoryItem) => {
+        console.log("Updated inventory item:", updatedInventoryItem);
+        queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
+      },
+      onError: (err) => {
+        console.log(err)
+      }
+    });
+
+      const updateOriginMutation = useMutation({
+        mutationFn: ({id, data }) =>updateOrigin({id, data, token}),
+        onSuccess:(updatedOrigin) => {
+          //console.log("Updated origin:", updatedOrigin);
+          queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
+        },
+        onError: (err) => {
+          console.log(err)
+        }
+      });
+  
   // Which "Stop" index we’re on (0-based)
-  const [stopIndex, setStopIndex] = useState(0);
+  const { selectedOriginStopId, setSelectedOriginStopId } = useUiState();
 
-  // Keep track if we’ve loaded data so we don’t immediately overwrite
-  const [hasLoadedInventory, setHasLoadedInventory] = useState(false);
-
-  // The big object keyed by stopIndex => { displayedRooms, itemsByRoom }
-  const [inventoryByStop, setInventoryByStop] = useState({});
-
-  // If mobile, "inventoryRoom" is the selected room object
-  const selectedRoom = inventoryRoom;
 
   // Searching/filtering states
   const [searchQuery, setSearchQuery] = useState("");
@@ -82,34 +123,84 @@ function Inventory({
     return () => window.removeEventListener("resize", setAppHeight);
   }, []);
 
-  // ==================== LOAD INVENTORY ON MOUNT ====================
-  useEffect(() => {
-    if (lead?.lead_id && lead?.tenant_id) {
-      const existing = getInventoryByLeadId(lead.lead_id, lead.tenant_id);
-      if (existing && existing.inventoryByStop) {
-        // Already in new shape
-        setInventoryByStop(existing.inventoryByStop);
-      } else if (existing && existing.roomItemSelections) {
-        // Old shape => convert to new shape for stop 0
-        const old = existing.roomItemSelections; // { [roomId]: items }
-        setInventoryByStop({
-          0: {
-            displayedRooms: defaultRoomIds.slice(),
-            itemsByRoom: { ...old },
-          },
-        });
-      }
-    }
-    setHasLoadedInventory(true);
-  }, [lead]);
+  
+  
 
-  // ==================== SAVE CHANGES ====================
+  // ==================== LOAD INVENTORY ON MOUNT ====================
+
+  const { data: inventoryData } = useQuery({
+    queryKey: ['inventoryByOrigin', selectedOriginStopId],
+    queryFn: () => getInventoryByOriginId({ originId: selectedOriginStopId }),
+    enabled: !!selectedOriginStopId, 
+  });
+  const inventoryItems = inventoryData?.inventoryItems || [];
+  const itemsByRoom = inventoryData?.itemsByRoom || {};
+  const displayedRooms = inventoryData?.displayedRooms || [];
   useEffect(() => {
-    if (!hasLoadedInventory) return;
-    if (lead?.lead_id && lead?.tenant_id) {
-      createOrUpdateInventory(lead.lead_id, lead.tenant_id, inventoryByStop);
+    //console.log('Selected Origin Stop ID:', selectedOriginStopId);
+  }, [selectedOriginStopId]);
+  
+  const selectedRoom = inventoryRoom;
+
+  useEffect(() => {
+    if (!selectedOriginStopId || !Array.isArray(inventoryData)) return;
+  
+    const hasRealItems = inventoryData.some(item => item.furnitureItemId !== null);
+  
+    if (inventoryData.length === 0 || !hasRealItems) {
+      const placeholderItem = allItems.find(item => item.id === 640);
+      if (!placeholderItem) return;
+  
+      const defaultPacking =
+        placeholderItem.packingType && placeholderItem.packingQuantity
+          ? { [placeholderItem.packingType]: placeholderItem.packingQuantity }
+          : {};
+  
+      const initialItem = {
+        originId: selectedOriginStopId,
+        roomId: 13,
+        furnitureItemId: placeholderItem.id,
+        name: placeholderItem.name,
+        imageName: placeholderItem.imageName,
+        letters: placeholderItem.letters,
+        search: placeholderItem.search,
+        tags: placeholderItem.tags || [],
+        notes: "Initial item",
+        cuft: placeholderItem.cuft || "",
+        lbs: placeholderItem.lbs || "",
+        packingNeeds: defaultPacking,
+        uploadedImages: [],
+        cameraImages: [],
+        autoAdded: true,
+        groupingKey: generateGroupingKey({
+          furnitureItemId: placeholderItem.id,
+          roomId: 13,
+          autoAdded: true,
+        }),
+      };
+  
+      console.log("Pozivam mutate sa:", initialItem);
+  
+      createInventoryItemMutation.mutate(initialItem, {
+        onSuccess: (createdItem) => {
+          const updatedItemsByRoom = {
+            ...itemsByRoom,
+            13: [...(itemsByRoom[13] || []), createdItem],
+          };
+  
+          updateOriginMutation.mutate({
+            id: selectedOriginStopId,
+            data: {
+              itemsByRoom: updatedItemsByRoom,
+            },
+          });
+        }
+      });
     }
-  }, [inventoryByStop, lead, hasLoadedInventory]);
+  }, [inventoryData, selectedOriginStopId, allItems]);
+  
+
+
 
   // ==================== CHECK DESKTOP OR MOBILE ====================
   useEffect(() => {
@@ -121,50 +212,43 @@ function Inventory({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ------------------- Helpers -------------------
-  const getStopData = useCallback(
-    (stopIdx) => {
-      let stopData = inventoryByStop[stopIdx];
-      if (!stopData) {
-        stopData = {
-          displayedRooms: defaultRoomIds.slice(), // store numeric IDs
-          itemsByRoom: {}, // { [roomId]: [itemInstances] }
-        };
-      }
-      return stopData;
-    },
-    [inventoryByStop]
-  );
-
-  // For debugging
-  useEffect(() => {
-    if (lead?.lead_id && lead?.tenant_id) {
-      console.log("Current Inventory Record:", {
-        lead_id: lead.lead_id,
-        tenant_id: lead.tenant_id,
-        inventoryByStop,
-      });
-    }
-  }, [lead, inventoryByStop]);
-
   // ==================== ROOM + ITEM LOGIC (MOBILE) ====================
+
   const handleStartFresh = (newItemInstance) => {
     if (!selectedRoom) return;
-    setInventoryByStop((prev) => {
-      const stopData = getStopData(stopIndex);
-      const items = stopData.itemsByRoom[selectedRoom.id] || [];
-      const updatedItems = [...items, newItemInstance];
-      const updatedStopData = {
-        ...stopData,
-        itemsByRoom: {
-          ...stopData.itemsByRoom,
-          [selectedRoom.id]: updatedItems,
-        },
-      };
-      return { ...prev, [stopIndex]: updatedStopData };
+  
+    const roomId = selectedRoom.id;    
+    const baseItem = allItems.find(
+      (f) => f.id === newItemInstance.furnitureItemId
+    );
+  
+    const resetItem = {
+      originId: selectedOriginStopId,
+      roomId,
+      furnitureItemId: newItemInstance.furnitureItemId,
+      name: baseItem.name,
+      imageName: baseItem.imageName,
+      letters: baseItem.letters,
+      search: baseItem.search,
+      tags: [],
+      notes: "",
+      cuft: baseItem.cuft,
+      lbs: baseItem.lbs,
+      packingNeeds: {},
+      uploadedImages: [],
+      cameraImages: [],
+      autoAdded: false,
+      count: 1,
+    };
+    resetItem.groupingKey = generateGroupingKey(resetItem);
+  
+    updateInventoryItemMutation.mutate({
+      id: newItemInstance.id,
+      data: resetItem,
     });
   };
-
+  
+  
   const handleRoomSelect = (room) => {
     if (setInventoryRoom) setInventoryRoom(room);
   };
@@ -217,216 +301,379 @@ function Inventory({
 
   const handleItemSelection = (clickedItem, action) => {
     if (!selectedRoom) return;
+  
+    const roomId = selectedRoom.id;
+    const current = itemsByRoom[roomId] || [];
     const doAction = action || (isDeleteActive ? "decrease" : "increase");
-
-    setInventoryByStop((prev) => {
-      const stopData = getStopData(stopIndex);
-      const items = [...(stopData.itemsByRoom[selectedRoom.id] || [])];
-
-      if (doAction === "decrease") {
-        let idx = -1;
-        if (isMyItemsActive) {
-          // Decrease from "My Items" by groupingKey
-          idx = items.findIndex(
-            (itm) => itm.groupingKey === clickedItem.groupingKey
-          );
-        } else {
-          // Standard item removal by itemId
-          const itemIdToDelete = clickedItem.id?.toString();
-          idx = items.findIndex((itm) => itm.itemId === itemIdToDelete);
-        }
-        if (idx !== -1) items.splice(idx, 1);
-      } else {
-        // "increase"
-        let newItemInstance;
-        if (isMyItemsActive) {
-          // Creating new from existing item instance
-          newItemInstance = {
-            id: uuidv4(),
-            itemId: clickedItem.itemId,
-            item: { ...clickedItem.item },
-            tags: [...clickedItem.tags],
-            notes: clickedItem.notes || "",
-            cuft: clickedItem.cuft || "",
-            lbs: clickedItem.lbs || "",
-            packingNeedsCounts: { ...clickedItem.packingNeedsCounts },
-            link: clickedItem.link || "",
-            uploadedImages: [...(clickedItem.uploadedImages || [])],
-            cameraImages: [...(clickedItem.cameraImages || [])],
-            groupingKey: clickedItem.groupingKey,
-          };
-        } else {
-          // New item from allItems
-          let defaultPacking = {};
-          if (clickedItem.packing?.length) {
-            clickedItem.packing.forEach((pack) => {
-              defaultPacking[pack.type] = pack.quantity;
+  
+    const hasFurnitureId = !!clickedItem.furnitureItemId;
+    const furnitureItemId = hasFurnitureId
+      ? Number(clickedItem.furnitureItemId)
+      : Number(clickedItem.id);
+  
+    const groupingKey = generateGroupingKey({
+      furnitureItemId,
+      roomId,
+      tags: clickedItem.tags || [],
+      notes: clickedItem.notes || '',
+      cuft: clickedItem.cuft || '',
+      lbs: clickedItem.lbs || '',
+      packingNeeds: clickedItem.packingNeeds || {},
+      link: clickedItem.link || '',
+      uploadedImages: clickedItem.uploadedImages || [],
+      cameraImages: clickedItem.cameraImages || [],
+    });
+    console.log('group   ', groupingKey)
+  
+    const existingItem = current.find((item) => item.groupingKey === groupingKey);
+  
+    if (doAction === "decrease") {
+      if (!existingItem?.id) return;
+  
+      deleteInventoryItemMutation.mutate(
+        { id: existingItem.id },
+        {
+          onSuccess: ({item}) => {
+            const updated = item === null
+            ? current.filter((itm) => itm.id !== existingItem.id)
+            : current.map((itm) =>
+                itm.id === item.id ? item : itm
+              );
+  
+            updateOriginMutation.mutate({
+              id: selectedOriginStopId,
+              data: {
+                itemsByRoom: {
+                  ...itemsByRoom,
+                  [roomId]: updated,
+                },
+              },
             });
-          }
-          newItemInstance = {
-            id: uuidv4(),
-            itemId: clickedItem.id.toString(),
-            item: { ...clickedItem },
-            tags: [...clickedItem.tags],
-            notes: "",
-            cuft: clickedItem.cuft || "",
-            lbs: clickedItem.lbs || "",
-            packingNeedsCounts: defaultPacking,
-            link: "",
-            uploadedImages: [],
-            cameraImages: [],
-          };
-          newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
+          },
         }
-        items.push(newItemInstance);
-      }
-
-      const updatedStopData = {
-        ...stopData,
-        itemsByRoom: {
-          ...stopData.itemsByRoom,
-          [selectedRoom.id]: items,
+      );
+    } else {
+      console.log('jjeeee')
+      const defaultPacking =
+        clickedItem.packingType && clickedItem.packingQuantity
+          ? { [clickedItem.packingType]: clickedItem.packingQuantity }
+          : {};
+  
+      const newItemInstance = {
+        originId: selectedOriginStopId,
+        roomId,
+        furnitureItemId,
+        name: clickedItem.name,
+        imageName: clickedItem.imageName,
+        letters: [...(clickedItem.letters || [])],
+        search: clickedItem.search,
+        tags: [...(clickedItem.tags || [])],
+        notes: clickedItem.notes || '',
+        cuft: clickedItem.cuft || '',
+        lbs: clickedItem.lbs || '',
+        packingNeeds: isMyItemsActive
+          ? { ...clickedItem.packingNeeds }
+          : defaultPacking,
+        link: clickedItem.link || '',
+        autoAdded: clickedItem.autoAdded || false,
+        uploadedImages: [...(clickedItem.uploadedImages || [])],
+        cameraImages: [...(clickedItem.cameraImages || [])],
+        groupingKey,
+        count: 1,
+      };
+  
+      createInventoryItemMutation.mutate(newItemInstance, {
+        onSuccess: (createdOrUpdatedItem) => {
+          // Bilo da je kreiran novi ili povećan postojeći, osveži lokalni state
+          const existingIndex = current.findIndex(
+            (item) => item.groupingKey === createdOrUpdatedItem.groupingKey
+          );
+  
+          const updated =
+            existingIndex !== -1
+              ? current.map((itm, i) =>
+                  i === existingIndex ? createdOrUpdatedItem : itm
+                )
+              : [...current, createdOrUpdatedItem];
+  
+          updateOriginMutation.mutate({
+            id: selectedOriginStopId,
+            data: {
+              itemsByRoom: {
+                ...itemsByRoom,
+                [roomId]: updated,
+              },
+            },
+          });
         },
-      };
-      return { ...prev, [stopIndex]: updatedStopData };
-    });
+      });
+    }
   };
-
+  
+  
+  
   const handleToggleRoom = (roomId) => {
-    // Keep "Boxes" (#13) always
-    if (roomId === 13) return;
-
-    setInventoryByStop((prev) => {
-      const stopData = getStopData(stopIndex);
-      const oldDisplayed = stopData.displayedRooms || [];
-
-      let newDisplayed;
-      if (oldDisplayed.includes(roomId)) {
-        newDisplayed = oldDisplayed.filter((id) => id !== roomId);
-      } else {
-        newDisplayed = [...oldDisplayed, roomId];
-      }
-
-      // Ensure #13 is always included
-      if (!newDisplayed.includes(13)) {
-        newDisplayed.push(13);
-      }
-
-      const updatedStopData = {
-        ...stopData,
-        displayedRooms: newDisplayed,
-      };
-      return { ...prev, [stopIndex]: updatedStopData };
+    if (roomId === 13) return; // Boxes should always stay
+  
+    const isVisible = displayedRooms.includes(roomId);
+    let updated = isVisible
+      ? displayedRooms.filter((id) => id !== roomId)
+      : [...displayedRooms, roomId];
+  
+    // Ensure Boxes (13) is always included
+    if (!updated.includes(13)) {
+      updated.push(13);
+    }
+  
+    updateOriginMutation.mutate({
+      id: selectedOriginStopId,
+      data: {
+        displayedRooms: updated,
+      },
     });
   };
+  
+  const handleSetRoomItemSelections = (fnOrObj) => {
+    if (!selectedRoom) return;
+  
+    const roomId = selectedRoom.id;
+    const oldItems = itemsByRoom[roomId] || [];
+  
+    const newItems =
+      typeof fnOrObj === "function"
+        ? fnOrObj({ [roomId]: oldItems })[roomId]
+        : fnOrObj[roomId];
+  
+    const createdItems = [];
+    const updatedItems = [];
+  
+    const updatedItemsByRoom = { ...itemsByRoom };
+  
+    newItems.forEach((item) => {
+      const payload = {
+        ...item,
+        originId: selectedOriginStopId,
+        roomId,
+        groupingKey: item.groupingKey || generateGroupingKey(item),
+      };
+  
+      if (!item.id) {
+        createInventoryItemMutation.mutate(payload, {
+          onSuccess: (created) => {
+            createdItems.push(created);
+            updatedItemsByRoom[roomId] = [...(updatedItemsByRoom[roomId] || []), created];
+  
+            if (createdItems.length + updatedItems.length === newItems.length) {
+              updateOriginMutation.mutate({
+                id: selectedOriginStopId,
+                data: {
+                  itemsByRoom: updatedItemsByRoom,
+                },
+              });
+            }
+          },
+        });
+      } else {
+        updateInventoryItemMutation.mutate(
+          { id: item.id, data: payload },
+          {
+            onSuccess: (updated) => {
+              updatedItems.push(updated);
+              const others = (updatedItemsByRoom[roomId] || []).filter(
+                (i) => i.id !== updated.id
+              );
+              updatedItemsByRoom[roomId] = [...others, updated];
+  
+              if (createdItems.length + updatedItems.length === newItems.length) {
+                updateOriginMutation.mutate({
+                  id: selectedOriginStopId,
+                  data: {
+                    itemsByRoom: updatedItemsByRoom,
+                  },
+                });
+              }
+            },
+          }
+        );
+      }
+    });
+  };
+  
+  
 
   const getItemCountForCurrentRoom = () => {
     if (!selectedRoom) return 0;
-    const stopData = getStopData(stopIndex);
-    const items = stopData.itemsByRoom[selectedRoom.id] || [];
+    const items = itemsByRoom[selectedRoom.id] || [];
     return items.length;
   };
 
   // ==================== POPUP: UPDATE / ADD ITEM ====================
   const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
     if (!selectedRoom) return;
-    setInventoryByStop((prev) => {
-      const stopData = getStopData(stopIndex);
-      let arr = [...(stopData.itemsByRoom[selectedRoom.id] || [])];
-
-      // find all items with the same groupingKey
-      const groupItems = arr.filter(
-        (itm) => itm.groupingKey === originalItemInstance.groupingKey
-      );
-      if (!groupItems.length) return prev;
-
-      // remove old group
-      arr = arr.filter(
-        (itm) => itm.groupingKey !== originalItemInstance.groupingKey
-      );
-
-      // new grouping key
-      const newKey = generateGroupingKey(updatedItemInstance);
-      updatedItemInstance.groupingKey = newKey;
-
-      // create new group
-      const count = updatedItemInstance.count ?? 1;
-      const newGroup = [];
-      for (let i = 0; i < count; i++) {
-        newGroup.push({
-          ...updatedItemInstance,
-          id: i === 0 ? originalItemInstance.id : uuidv4(),
-        });
-      }
-
-      const updatedStopData = {
-        ...stopData,
-        itemsByRoom: {
-          ...stopData.itemsByRoom,
-          [selectedRoom.id]: [...arr, ...newGroup],
+    const roomId = selectedRoom.id;
+    const currentItems = itemsByRoom[roomId] || [];
+  
+    const existingItem = currentItems.find(
+      (item) => item.groupingKey === originalItemInstance.groupingKey
+    );
+  
+    if (!existingItem) return;
+  
+    const updatedPayload = {
+      ...updatedItemInstance,
+      originId: selectedOriginStopId,
+      roomId,
+      groupingKey: updatedItemInstance.groupingKey,
+      count: updatedItemInstance.count,
+    };
+  
+    updateInventoryItemMutation.mutate(
+      {
+        id: existingItem.id,
+        data: updatedPayload,
+      },
+      {
+        onSuccess: (updatedItemFromServer) => {
+          const updatedRoomItems = currentItems.map((itm) =>
+            itm.id === existingItem.id ? updatedItemFromServer : itm
+          );
+  
+          updateOriginMutation.mutate({
+            id: selectedOriginStopId,
+            data: {
+              itemsByRoom: {
+                ...itemsByRoom,
+                [roomId]: updatedRoomItems,
+              },
+            },
+          });
         },
-      };
-      return { ...prev, [stopIndex]: updatedStopData };
-    });
+      }
+    );
   };
-
+  
+  
+  const handleDeleteItem = (id) => {
+    const roomId = selectedRoom?.id;
+    if (!roomId) return;
+  
+    const currentItems = itemsByRoom[roomId] || [];
+  
+    deleteInventoryItemMutation.mutate(
+      { id },
+      {
+        onSuccess: ({ item: updatedItem }) => {
+          let updatedItems;
+  
+          if (updatedItem === null) {
+            updatedItems = currentItems.filter((itm) => itm.id !== id);
+          } else {
+            updatedItems = currentItems.map((itm) =>
+              itm.id === id ? updatedItem : itm
+            );
+          }
+  
+          updateOriginMutation.mutate({
+            id: selectedOriginStopId,
+            data: {
+              itemsByRoom: {
+                ...itemsByRoom,
+                [roomId]: updatedItems,
+              },
+            },
+          });
+        },
+      }
+    );
+  };
   const handleAddItem = (newItemInstance) => {
     if (!selectedRoom) return;
-    setInventoryByStop((prev) => {
-      const stopData = getStopData(stopIndex);
-      let arr = [...(stopData.itemsByRoom[selectedRoom.id] || [])];
-
-      newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
-      const count = newItemInstance.count ?? 1;
-      for (let i = 0; i < count; i++) {
-        arr.push({
-          ...newItemInstance,
-          id: i === 0 ? newItemInstance.id : uuidv4(),
+  
+    const roomId = selectedRoom.id;
+    const itemData = {
+      ...newItemInstance,
+      originId: selectedOriginStopId,
+      roomId,
+      groupingKey: newItemInstance.groupingKey || generateGroupingKey(newItemInstance),
+    };
+  
+    createInventoryItemMutation.mutate(itemData, {
+      onSuccess: (updatedOrCreatedItem) => {
+        const currentItems = itemsByRoom[roomId] || [];
+        const existingIndex = currentItems.findIndex(
+          (item) => item.groupingKey === updatedOrCreatedItem.groupingKey
+        );
+  
+        let updated;
+        if (existingIndex !== -1) {
+          updated = [...currentItems];
+          updated[existingIndex] = updatedOrCreatedItem;
+        } else {
+          updated = [...currentItems, updatedOrCreatedItem];
+        }
+  
+        updateOriginMutation.mutate({
+          id: selectedOriginStopId,
+          data:{
+            itemsByRoom: {
+              ...itemsByRoom,
+              [roomId]: updated,
+            },
+          }
         });
-      }
+      },
 
-      const updatedStopData = {
-        ...stopData,
-        itemsByRoom: {
-          ...stopData.itemsByRoom,
-          [selectedRoom.id]: arr,
-        },
-      };
-      return { ...prev, [stopIndex]: updatedStopData };
     });
   };
+
+  const handleMergeItems = (fromId, intoId, mergedItem) => {
+    if (!selectedRoom || !itemsByRoom[selectedRoom.id]) return;
+  
+    const roomId = selectedRoom.id;
+    const currentItems = itemsByRoom[roomId];
+  
+    const updatedRoomItems = currentItems
+      .filter((itm) => itm.id !== fromId && itm.id !== intoId)
+      .concat(mergedItem);
+  
+    updateOriginMutation.mutate({
+      id: selectedOriginStopId,
+      data: {
+        itemsByRoom: {
+          ...itemsByRoom,
+          [roomId]: updatedRoomItems,
+        },
+      },
+    });
+  };
+  
+  
 
   // ==================== AUTO-ADD BOXES (if isToggled) ====================
   useEffect(() => {
-    if (!isToggled) return;
-
-    const stopData = getStopData(stopIndex);
-    const itemsByRoom = stopData.itemsByRoom || {};
-
-    // Calculate total LBS
+    if (!isToggled || !inventoryItems) return;
+  
     let totalLbs = 0;
     const excludedRoomId = 13;
     const excludedIds = ["529", "530", "531", "532", "533", "534", "535", "536", "537"];
-
-    Object.keys(itemsByRoom).forEach((rId) => {
-      if (Number(rId) === excludedRoomId) return;
-      itemsByRoom[rId].forEach((itm) => {
-        if (!excludedIds.includes(itm.itemId)) {
-          const lbsVal = parseFloat(itm.lbs || itm.item.lbs);
-          if (!isNaN(lbsVal)) {
-            totalLbs += lbsVal;
-          }
+  
+    inventoryItems.forEach((itm) => {
+      if (itm.roomId === excludedRoomId) return;
+      if (!excludedIds.includes(itm.furnitureItemId?.toString())) {
+        const lbsVal = parseFloat(itm.lbs || itm.furnitureItem?.lbs);
+        if (!isNaN(lbsVal)) {
+          totalLbs += lbsVal;
         }
-      });
+      }
     });
-
+  
     if (prevTotalLbsRef.current === totalLbs) return;
     prevTotalLbsRef.current = totalLbs;
-
+  
     const boxesPer200lbs = 3;
     const nUnits = Math.ceil(totalLbs / 200);
     const totalBoxes = nUnits * boxesPer200lbs;
-
+  
     const distribution = [
       { percent: 0.10, itemId: "533" },
       { percent: 0.05, itemId: "529" },
@@ -438,96 +685,102 @@ function Inventory({
       itemId: dist.itemId,
       count: Math.round(totalBoxes * dist.percent),
     }));
-
-    // Update the "Boxes" array
-    setInventoryByStop((prev) => {
-      const updatedStopData = getStopData(stopIndex);
-      const itemsByRoom2 = { ...updatedStopData.itemsByRoom };
-      const oldBoxes = itemsByRoom2["13"] || [];
-      const nonAuto = oldBoxes.filter((bx) => !bx.autoAdded);
-
-      const newBoxes = [];
-      boxesToAdd.forEach((bx) => {
-        for (let i = 0; i < bx.count; i++) {
-          const itemData = allItems.find((it) => it.id.toString() === bx.itemId);
-          if (itemData) {
-            let packing = {};
-            if (itemData.packing?.length) {
-              itemData.packing.forEach((p) => {
-                packing[p.type] = p.quantity;
-              });
-            }
-            const newInst = {
-              id: uuidv4(),
-              itemId: bx.itemId,
-              item: { ...itemData },
-              tags: [...itemData.tags],
-              notes: "",
-              cuft: itemData.cuft || "",
-              lbs: itemData.lbs || "",
-              packingNeedsCounts: packing,
-              autoAdded: true,
-              groupingKey: "",
-            };
-            newInst.groupingKey = generateGroupingKey(newInst);
-            newBoxes.push(newInst);
-          }
-        }
+  
+    // Step 1: Delete old autoAdded from DB
+    const currentBoxes = itemsByRoom[13] || [];
+    //const nonAuto = currentBoxes.filter((itm) => !itm.autoAdded);
+    const autoAdded = currentBoxes.filter((itm) => itm.autoAdded);
+  
+    // Step 2: Create new autoAdded
+    const usedGroupingKeys = [];
+  
+    boxesToAdd.forEach((bx) => {
+      const itemData = allItems.find((it) => it.id.toString() === bx.itemId.toString());
+      if (!itemData  || bx.count === 0) return;
+      const groupingKey = generateGroupingKey({
+        furnitureItemId: itemData.id,
+        roomId: 13,
+        autoAdded: true,
       });
-
-      itemsByRoom2["13"] = [...nonAuto, ...newBoxes];
-      return {
-        ...prev,
-        [stopIndex]: {
-          ...updatedStopData,
-          itemsByRoom: itemsByRoom2,
-        },
-      };
+      usedGroupingKeys.push(groupingKey);
+  
+      const packing =
+        itemData.packingType && itemData.packingQuantity
+          ? { [itemData.packingType]: itemData.packingQuantity }
+          : {};
+          const existing = autoAdded.find((itm) => itm.groupingKey === groupingKey);
+  
+        const payload = {
+          originId: selectedOriginStopId,
+          furnitureItemId: itemData.id,
+          roomId: 13,
+          name: itemData.name,
+          imageName: itemData.imageName,
+          letters: [...itemData.letters],
+          search: itemData.search,
+          tags: [...itemData.tags],
+          notes: "",
+          cuft: itemData.cuft || "",
+          lbs: itemData.lbs || "",
+          packingNeeds: packing,
+          uploadedImages: [],
+          cameraImages: [],
+          autoAdded: true,
+          groupingKey,
+          count: bx.count,
+        }
+        if (existing) {
+          if (existing.count !== bx.count) {
+            updateInventoryItemMutation.mutate({ id: existing.id, data: payload });
+          }
+        } else {
+          createInventoryItemMutation.mutate(payload);
+        }
+      }
+    );
+    autoAdded.forEach((itm) => {
+      const stillNeeded = usedGroupingKeys.includes(itm.groupingKey);
+      if (!stillNeeded) {
+        deleteInventoryItemMutation.mutate({ id: itm.id });
+      }
     });
-  }, [isToggled, stopIndex, getStopData]);
+  }, [isToggled, inventoryItems, allItems, selectedOriginStopId]);
+  
+  
 
   // Close entire Inventory
   const handleClose = () => {
     onCloseInventory();
   };
+  const displayedRoomObjects = (displayedRooms || []).map((rId) => {
+    const found = rooms.find((rm) => rm.id === rId);
+    return found || { id: rId, name: `Room #${rId}` };
+  });
+  useEffect(() => {
+    if (selectedRoom && itemsByRoom[selectedRoom.id]) {
+      console.log('Room Items Updated:', itemsByRoom[selectedRoom.id]);
+    }
+  }, [itemsByRoom, selectedRoom]);
+
+  const currentRoomInstances = useMemo(() => {
+    return itemsByRoom[selectedRoom?.id] || [];
+  }, [itemsByRoom, selectedRoom]);
+  
+  
+
 
   // ==================== DESKTOP VIEW ====================
   if (isDesktop) {
-    const stopData = getStopData(stopIndex);
-
-    // Convert numeric IDs to room objects
-    const displayedRoomObjects = (stopData.displayedRooms || []).map((rId) => {
-      const found = rooms.find((rm) => rm.id === rId);
-      return found || { id: rId, name: `Room #${rId}` };
-    });
-
     return (
       <InventoryDesktop
         // The entire multi-stop object
-        inventoryByStop={inventoryByStop}
-        setInventoryByStop={setInventoryByStop}
-        stopIndex={stopIndex}
-        setStopIndex={setStopIndex}
+        inventoryItems={inventoryItems}
+        stopIndex={selectedOriginStopId}
+        setStopIndex={setSelectedOriginStopId}
         // The “subset” for this stop
-        roomItemSelections={stopData.itemsByRoom}
-        // crucial so we can mutate items
-        setRoomItemSelections={(fnOrObj) => {
-          setInventoryByStop((prev) => {
-            const oldStopData = getStopData(stopIndex);
-            const oldItems = oldStopData.itemsByRoom;
-            const newItems =
-              typeof fnOrObj === "function" ? fnOrObj(oldItems) : fnOrObj;
-            return {
-              ...prev,
-              [stopIndex]: {
-                ...oldStopData,
-                itemsByRoom: newItems,
-              },
-            };
-          });
-        }}
+        itemsByRoom={itemsByRoom}
+        setRoomItemSelections={handleSetRoomItemSelections}
         displayedRooms={displayedRoomObjects}
-        // Toggles
         isToggled={isToggled}
         setIsToggled={setIsToggled}
         selectedRoom={selectedRoom}
@@ -548,7 +801,9 @@ function Inventory({
         // item add/update logic
         handleItemSelection={handleItemSelection}
         handleUpdateItem={handleUpdateItem}
+        handleDeleteItem={handleDeleteItem}
         handleAddItem={handleAddItem}
+        onMergeItems={handleMergeItems}
         handleStartFresh={handleStartFresh}
         // Delete toggle
         isDeleteActive={isDeleteActive}
@@ -557,15 +812,6 @@ function Inventory({
       />
     );
   }
-
-  // ==================== MOBILE VIEW ====================
-  const stopData = getStopData(stopIndex);
-
-  // Convert numeric IDs (e.g. 1,2,13) to room objects
-  const displayedRoomObjects = (stopData.displayedRooms || []).map((rId) => {
-    const found = rooms.find((rm) => rm.id === rId);
-    return found || { id: rId, name: `Room #${rId}` };
-  });
 
   return (
     <div className={styles.inventoryContainer}>
@@ -581,11 +827,11 @@ function Inventory({
         ) : (
           <HouseHeader
             rooms={rooms} // your master list
-            displayedRooms={stopData.displayedRooms} // numeric IDs
+            displayedRooms={displayedRooms} // numeric IDs
             onToggleRoom={handleToggleRoom}
             lead={lead}
-            stopIndex={stopIndex}
-            onStopIndexChange={setStopIndex}
+            stopIndex={selectedOriginStopId}
+            onStopIndexChange={setSelectedOriginStopId}
           />
         )}
       </header>
@@ -593,6 +839,7 @@ function Inventory({
       <main className={styles.mainContent}>
         {selectedRoom ? (
           <ItemSelection
+            allItems={allItems}
             room={selectedRoom}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -600,8 +847,8 @@ function Inventory({
             selectedSubButton={selectedSubButton}
             onLetterSelect={handleLetterSelect}
             onSubButtonSelect={handleSubButtonSelect}
-            itemClickCounts={stopData.itemsByRoom[selectedRoom.id] || {}}
-            itemInstances={stopData.itemsByRoom[selectedRoom.id] || []}
+            itemClickCounts={currentRoomInstances || []}
+            itemInstances={currentRoomInstances || []}
             onItemClick={handleItemSelection}
             itemCount={getItemCountForCurrentRoom()}
             isMyItemsActive={isMyItemsActive}
@@ -618,20 +865,24 @@ function Inventory({
         ) : (
           <RoomList
             onRoomSelect={handleRoomSelect}
-            roomItemSelections={stopData.itemsByRoom}
+            itemsByRoom={itemsByRoom}
             displayedRooms={displayedRoomObjects}
            
           />
         )}
       </main>
+      
 
-      {popupData && (
+      {popupData && selectedRoom &&(
         <ItemPopup
           item={popupData.item}
           itemInstance={popupData.itemInstance}
+          itemInstances={currentRoomInstances}
+          handleDeleteItem={handleDeleteItem}
           onClose={handleClosePopup}
           onUpdateItem={handleUpdateItem}
           onAddItem={handleAddItem}
+          onMergeItems={handleMergeItems}
           onStartFresh={handleStartFresh}
           lead={lead}
         />
@@ -645,25 +896,10 @@ function Inventory({
         isSpecialHVisible={isSpecialHVisible}
         setIsSpecialHVisible={setIsSpecialHVisible}
         // The item data for this stop
-        roomItemSelections={stopData.itemsByRoom}
-        // Pass a function so MyInventory / SpecialH in mobile can update items
-        setRoomItemSelections={(fnOrObj) => {
-          setInventoryByStop((prev) => {
-            const oldStopData = getStopData(stopIndex);
-            const oldItems = oldStopData.itemsByRoom;
-            const newItems =
-              typeof fnOrObj === "function" ? fnOrObj(oldItems) : fnOrObj;
-            return {
-              ...prev,
-              [stopIndex]: {
-                ...oldStopData,
-                itemsByRoom: newItems,
-              },
-            };
-          });
-        }}
+        itemsByRoom={itemsByRoom}
+        setRoomItemSelections={handleSetRoomItemSelections}
         selectedRoom={selectedRoom}
-        displayedRooms={stopData.displayedRooms}
+        displayedRooms={displayedRooms}
         onCloseInventory={handleClose}
         lead={lead}
       />

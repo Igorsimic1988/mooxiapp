@@ -131,45 +131,6 @@ function OriginDetails({
   const [startDropdownActive, setStartDropdownActive] = useState(false);
   const [endDropdownActive, setEndDropdownActive] = useState(false);
 
-  // ---------- ENSURE ORIGIN/DEST STOPS EXIST ----------
-  // useEffect(() => {
-  //   if (!Array.isArray(lead.originStops) || lead.originStops.length === 0) {
-  //     const defaultStops = [
-  //       {
-  //         label: 'Main Address',
-  //         address: '',
-  //         apt: '',
-  //         city: '',
-  //         state: '',
-  //         zip: '',
-  //         timeRestrictions: {
-  //           isEnabled: false,
-  //           option: 'Select',
-  //           restrictionType: 'Select',
-  //           startTime: '',
-  //           endTime: '',
-  //         },
-  //       },
-  //     ];
-  //     onLeadUpdated({ ...lead, originStops: defaultStops });
-  //   }
-
-  //   if (!Array.isArray(lead.destinationStops)) {
-  //     onLeadUpdated({
-  //       ...lead,
-  //       destinationStops: [
-  //         {
-  //           label: 'Main Address',
-  //           address: '',
-  //           apt: '',
-  //           city: '',
-  //           state: '',
-  //           zip: '',
-  //         },
-  //       ],
-  //     });
-  //   }
-  // }, [lead, onLeadUpdated]);
 
   // ---------- Current Stop ----------
   const currentStop = originStops.find((s) => s.id === selectedOriginStopId) || {};
@@ -194,7 +155,9 @@ function OriginDetails({
             const updated = prev.filter((s) => s.id !== currentStop.id);
             const nextStop = prev[originIndex - 1];
             if (nextStop?.id) {
-              setSelectedOriginStopId(nextStop.id);
+              setTimeout(() => {
+                setSelectedOriginStopId(nextStop.id);
+              }, 0);
             }
             return updated;
           });
@@ -248,14 +211,6 @@ function OriginDetails({
   );
   onOriginUpdated(stop.id, { [fieldName]: newValue });
   };
-  // const handleOriginUpdated = (id, updates) => {
-  //   setOriginStops((prevStops) =>
-  //     prevStops.map((stop) =>
-  //       stop.id === id ? { ...stop, ...updates } : stop
-  //     )
-  //   );
-  //   onOriginUpdated(id, updates); // ovo šalje i ka gore
-  // };
 
   // ---------- Time restrictions ----------
 

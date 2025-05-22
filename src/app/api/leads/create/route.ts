@@ -81,6 +81,7 @@ export async function POST(req: Request) {
                 statusHistory: true,
               }
   });
+  
     return NextResponse.json(newLead, { status: 201 });
   } catch (error) {
     console.log(`${error}`)

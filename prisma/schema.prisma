@@ -99,10 +99,27 @@ model VerificationToken {
 
 model InventoryItem {
   id              String        @id @default(uuid())
-  leadId          String
-  lead            Lead          @relation(fields: [leadId], references: [id])
-  furnitureItemId Int            @unique
-  furnitureItem   FurnitureItem @relation(name: "FurnitureToInventory", fields: [furnitureItemId], references: [id])
+  originId        String 
+  origins         Origins          @relation(fields: [originId], references: [id])
+  furnitureItemId Int
+  furnitureItem   FurnitureItem @relation(fields: [furnitureItemId], references: [id])
+  name            String?
+  imageName       String?
+  letters         String[] @default([])
+  search          String?
+  tags            String[]
+  cuft            Int?
+  lbs             Int? 
+  roomId          Int?
+  displayedRooms  Int[] @default([])
+  packingNeeds   Json?
+  link        String?
+  notes    String?
+  uploadedImages  String[] @default([])
+  cameraImages    String[] @default([])
+  groupingKey     String?
+  count           Int @default(1)
+  autoAdded       Boolean @default(false)
 }
 
 model FurnitureItem {
@@ -116,10 +133,10 @@ model FurnitureItem {
   search   String?
   tags     String[] @default([])
   packingType  String?
-  packingQuantity Int? 
+  packingQuantity Int?
   brandId String  
   brand   Brand  @relation(fields: [brandId], references: [id])
-  inventoryItem   InventoryItem?   @relation(name: "FurnitureToInventory")
+  inventoryItems InventoryItem[]
 }
   
 
@@ -202,7 +219,6 @@ model Lead {
   invoicePayment             Float?
   invoiceDeposit             Float?
   invoiceBalanceDue       Float?
-  inventoryItems        InventoryItem[]
   origins       Origins[]
   destinations  Destinations[]
   statusHistory StatusHistory[]
@@ -218,11 +234,20 @@ model StatusHistory {
   @@index([leadId])
 }
 
+model Event {
+  id           String  @id @default(uuid())
+  type         String
+  data         Json
+  created_at   DateTime @default(now())
+}
+
 
 model Origins {
   id                      String   @id @default(uuid())
   leadId                  String
   lead                   Lead     @relation(fields: [leadId], references: [id])
+  displayedRooms        Int[]   @default([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+  itemsByRoom Json? @default("{}")
   address                String?
   apt                    String?
   city                   String?
@@ -257,6 +282,7 @@ model Origins {
   timeRestrictionStartTime String?
   timeRestrictionEndTime String?
   isActive               Boolean?
+  inventoryItems        InventoryItem[]
 }
 
 model Destinations {

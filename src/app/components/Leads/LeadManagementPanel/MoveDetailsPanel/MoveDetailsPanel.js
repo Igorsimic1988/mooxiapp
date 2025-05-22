@@ -17,6 +17,7 @@ import { useMutation } from "@tanstack/react-query";
 import { updateOrigin } from 'src/app/services/originsService';
 import { updateDestination } from 'src/app/services/destinationsService';
 import { useAccessToken } from "src/app/lib/useAccessToken";
+import { useQueryClient } from '@tanstack/react-query';
 
 /** Generate time slots from 7:00 AM to 9:00 PM in 15-min increments */
 function generateTimeSlots() {
@@ -76,6 +77,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const timePromised = watch('timePromised');
   const arrivalTime = watch('arrivalTime');
 
+  const queryClient = useQueryClient();
   const token = useAccessToken();
   const [originStops, setOriginStops] = useState(lead.origins || []);
   const [destinationStops, setDestinationStops] = useState(lead.destinations || []);
@@ -101,6 +103,9 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
             s.id === updatedOrigin.id ? { ...s, ...updatedOrigin } : s
           )
         );
+        queryClient.invalidateQueries(['origins']);
+        queryClient.invalidateQueries(['leads']);
+
       }
     });
   };
@@ -126,6 +131,9 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
               s.id === updatedDestination.id ? { ...s, ...updatedDestination } : s
             )
           );
+          queryClient.invalidateQueries(['destinations']);
+          queryClient.invalidateQueries(['leads']);
+
         }
       }
     );

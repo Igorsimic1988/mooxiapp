@@ -20,7 +20,7 @@ const boxItemIds = [
  *       A) array of objects like [ { id: 1, name: '...'}, ... ]
  *       B) array of numeric IDs (or strings) like [1,2,13] 
  */
-function FurnitureCounter({ roomItemSelections, displayedRooms }) {
+function FurnitureCounter({ itemsByRoom, displayedRooms }) {
   const { totalFurniture, totalBoxes, totalCuft, totalLbs } = useMemo(() => {
     let totalItems = 0;
     let totalBoxes = 0;
@@ -28,7 +28,7 @@ function FurnitureCounter({ roomItemSelections, displayedRooms }) {
     let totalLbs = 0;
 
     // For each roomId in the roomItemSelections object:
-    Object.keys(roomItemSelections).forEach((roomId) => {
+    Object.keys(itemsByRoom).forEach((roomId) => {
       // Check if that "roomId" is included in displayedRooms:
       // displayedRooms might be objects OR might be raw IDs:
       const isDisplayed = displayedRooms.some((entry) => {
@@ -51,9 +51,9 @@ function FurnitureCounter({ roomItemSelections, displayedRooms }) {
       }
 
       // Otherwise => count up items
-      const items = roomItemSelections[roomId] || [];
+      const items = itemsByRoom[roomId] || [];
       items.forEach((itemInstance) => {
-        const itemId = itemInstance.itemId;
+        const itemId = itemInstance.id;
         const cuftVal = parseFloat(itemInstance.cuft) || 0;
         const lbsVal = parseFloat(itemInstance.lbs) || 0;
 
@@ -76,7 +76,7 @@ function FurnitureCounter({ roomItemSelections, displayedRooms }) {
       totalCuft,
       totalLbs,
     };
-  }, [roomItemSelections, displayedRooms]);
+  }, [itemsByRoom, displayedRooms]);
 
   return (
     <div className={styles.counterContainer}>

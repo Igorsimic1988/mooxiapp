@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styles from './InventoryDesktop.module.css';
-import { v4 as uuidv4 } from 'uuid';
 
 // Child components
 import BackButton from './BackButton/BackButton';
@@ -21,11 +20,12 @@ import ItemPopup from '../ItemSelection/Item/ItemPopup/ItemPopup';
 import MyInventory from '../FooterNavigation/MyInventory/MyInventory';
 import SpecialH from '../FooterNavigation/SpecialH/SpecialH';
 import DeleteButton from '../FooterNavigation/DeleteButton/DeleteButton';
+import { getAllFurnitureItems } from 'src/app/services/furnitureService';
+import { useQuery } from '@tanstack/react-query';
 
 import Icon from 'src/app/components/Icon';
 
 // Data + Utils
-import allItems from '../../../../../../../data/constants/funitureItems';
 
 /**
  * InventoryDesktop
@@ -49,15 +49,16 @@ import allItems from '../../../../../../../data/constants/funitureItems';
  *  - handleItemSelection, handleUpdateItem, handleAddItem, handleStartFresh
  *  - isDeleteActive, setIsDeleteActive
  */
+
+
 function InventoryDesktop({
   // Multi-stop
   stopIndex,
   setStopIndex,
 
   // Items for this stop
-  roomItemSelections,
+  itemsByRoom,
   setRoomItemSelections,
-
   // Currently displayed rooms => array of { id, name }
   displayedRooms,
 
@@ -89,13 +90,20 @@ function InventoryDesktop({
   // Item logic
   handleItemSelection,
   handleUpdateItem,
+  handleDeleteItem,
   handleAddItem,
+  onMergeItems,
   handleStartFresh,
 
   // Delete toggle
   isDeleteActive,
   setIsDeleteActive,
 }) {
+  const { data: allItems = [] } = useQuery({
+    queryKey: ['furnitureItems', lead?.brandId],
+    queryFn: () => getAllFurnitureItems({ brandId: lead?.brandId }),
+    enabled: !!lead?.brandId,
+  });
   // Show/hide item popup
   const [isItemPopupVisible, setIsItemPopupVisible] = useState(false);
   const [currentItemData, setCurrentItemData] = useState(null);
@@ -177,10 +185,12 @@ function InventoryDesktop({
   };
 
   // Count how many times each item appears in "Items" panel
-  const itemCounts = (roomItemSelections[selectedRoom?.id] || []).reduce(
+  const allItemsByRoom = Object.values(itemsByRoom[selectedRoom?.id] || []).flat();
+  const itemCounts = allItemsByRoom.reduce(
     (acc, inst) => {
-      const key = inst.itemId.toString();
-      acc[key] = (acc[key] || 0) + 1;
+      const key = inst.furnitureItemId.toString();
+      acc[key] = (acc[key] || 0)  + (inst.count);
+      console.log(acc[key], '  acc[key]', acc, 'acc')
       return acc;
     },
     {}
@@ -211,6 +221,7 @@ function InventoryDesktop({
     if (selectedLetter) {
       return allItems.filter((itm) => itm.letters.includes(selectedLetter));
     }
+
     // else => items in the current room
     return allItems.filter((itm) => itm.rooms.includes(Number(selectedRoom.id)));
   };
@@ -218,85 +229,38 @@ function InventoryDesktop({
   // FIXED: Improved getGroupedItems function to ensure all properties exist
   const getGroupedItems = () => {
     if (!selectedRoom) return [];
-    const arr = roomItemSelections[selectedRoom.id] || [];
-    const grouped = {};
-    
-    for (const inst of arr) {
-      // Make sure groupingKey exists
-      const gKey = inst.groupingKey || '';
-      
-      if (!grouped[gKey]) {
-        // Create a new grouped item with all necessary properties
-        grouped[gKey] = {
-          ...inst,
-          count: 1,
-          // Ensure the item property contains all necessary data
-          item: inst.item || {},
-          // Make sure these arrays exist to avoid null reference errors
-          tags: inst.tags || [],
-          uploadedImages: inst.uploadedImages || [],
-          cameraImages: inst.cameraImages || [],
-          // Make sure this object exists
-          packingNeedsCounts: inst.packingNeedsCounts || {}
-        };
-      } else {
-        grouped[gKey].count += 1;
-      }
-    }
-    
-    return Object.values(grouped);
+    const arr = itemsByRoom[selectedRoom.id] || [];
+  
+    return arr.map((inst) => ({
+      id: inst.id,
+      originId: inst.originId,
+      furnitureItemId: inst.furnitureItemId,
+      name: inst.name || '',
+      imageName: inst.imageName || '',
+      letters: inst.letters || [],
+      search: inst.search || '',
+      tags: inst.tags || [],
+      cuft: inst.cuft || 0,
+      lbs: inst.lbs || 0,
+      roomId: inst.roomId,
+      displayedRooms: inst.displayedRooms || [],
+      packingNeeds: inst.packingNeeds || {},
+      link: inst.link || '',
+      notes: inst.notes || '',
+      uploadedImages: inst.uploadedImages || [],
+      cameraImages: inst.cameraImages || [],
+      groupingKey: inst.groupingKey || '',
+      autoAdded: inst.autoAdded || false,
+      count: inst.count, 
+    }));
   };
+  
+  
+  
 
   // ADDED: New handleItemClick function for My Items panel
   const handleItemClick = (itemData, action) => {
-    if (!selectedRoom) return;
-    
-    console.log('handleItemClick in InventoryDesktop:', {
-      itemData, 
-      action
-    });
-    
-    if (action === 'decrease') {
-      // Remove an item with the specific groupingKey
-      if (itemData.groupingKey) {
-        const items = [...(roomItemSelections[selectedRoom.id] || [])];
-        const idx = items.findIndex(item => item.groupingKey === itemData.groupingKey);
-        
-        if (idx !== -1) {
-          items.splice(idx, 1);
-          setRoomItemSelections({
-            ...roomItemSelections,
-            [selectedRoom.id]: items
-          });
-        }
-      }
-    } else { // 'increase'
-      // Add a new instance of this item with the same properties
-      if (itemData.groupingKey) {
-        const newItemInstance = {
-          id: uuidv4(),
-          itemId: itemData.itemId,
-          item: { ...itemData.item },
-          tags: [...(itemData.tags || [])],
-          notes: itemData.notes || '',
-          cuft: itemData.cuft || '',
-          lbs: itemData.lbs || '',
-          packingNeedsCounts: { ...(itemData.packingNeedsCounts || {}) },
-          link: itemData.link || '',
-          uploadedImages: [...(itemData.uploadedImages || [])],
-          cameraImages: [...(itemData.cameraImages || [])],
-          groupingKey: itemData.groupingKey
-        };
-        
-        const items = [...(roomItemSelections[selectedRoom.id] || [])];
-        items.push(newItemInstance);
-        
-        setRoomItemSelections({
-          ...roomItemSelections,
-          [selectedRoom.id]: items
-        });
-      }
-    }
+    handleItemSelection(itemData,action)
   };
 
   // ADDED: Wrapper function for standard items panel
@@ -339,6 +303,10 @@ function InventoryDesktop({
     setCurrentItemData(null);
     setCurrentItemInstance(null);
   };
+  const currentRoomInstances = useMemo(() => {
+    return itemsByRoom[selectedRoom?.id] || [];
+  }, [itemsByRoom, selectedRoom]);
+  
 
   return (
     <div
@@ -365,7 +333,7 @@ function InventoryDesktop({
 
       <div className={styles.topRowCol3}>
         <FurnitureCounter
-          roomItemSelections={roomItemSelections}
+          itemsByRoom={itemsByRoom}
           displayedRooms={displayedRooms}
         />
       </div>
@@ -382,7 +350,7 @@ function InventoryDesktop({
         <div className={styles.roomListContainer}>
           <RoomList
             onRoomSelect={handleRoomSelect}
-            roomItemSelections={roomItemSelections}
+            itemsByRoom={itemsByRoom}
             displayedRooms={displayedRooms}
             selectedRoom={selectedRoom}
           />
@@ -445,11 +413,12 @@ function InventoryDesktop({
             {/* Debug check for items */}
             {selectedRoom && (() => {
               const myItems = getGroupedItems();
-              console.log('My Items for display:', myItems);
+              console.log("🧪 MyItems groupedItems:", myItems);
+
               
               // Check for any items with missing properties
               myItems.forEach(item => {
-                if (!item.item || !item.item.src || !item.item.name) {
+                if (!item.imageName || !item.name) {
                   console.error('Invalid item in My Items:', item);
                 }
               });
@@ -458,7 +427,6 @@ function InventoryDesktop({
             
             <ItemList
               items={getGroupedItems()}
-              itemClickCounts={{}}
               onItemClick={handleItemClick} // CHANGED: Use the new function
               isMyItemsActive={true}
               isDeleteActive={isDeleteActive}
@@ -513,12 +481,16 @@ function InventoryDesktop({
       </div>
 
       {/* ====== ItemPopup (edit item) ====== */}
-      {isItemPopupVisible && (
+      {isItemPopupVisible && selectedRoom && (
         <ItemPopup
           item={currentItemData}
+          selectedRoom={selectedRoom}
           onClose={handleCloseItemPopup}
           onUpdateItem={handleUpdateItem}
           onAddItem={handleAddItem}
+          onMergeItems={onMergeItems}
+          ItemInstances={currentRoomInstances}
+          handleDeleteItem={handleDeleteItem}
           itemInstance={currentItemInstance}
           onStartFresh={handleStartFresh}
           lead={lead}
@@ -529,7 +501,7 @@ function InventoryDesktop({
       {isMyInventoryVisible && (
         <MyInventory
           setIsMyInventoryVisible={setIsMyInventoryVisible}
-          roomItemSelections={roomItemSelections}
+          itemsByRoom={itemsByRoom}
           setRoomItemSelections={setRoomItemSelections}
           displayedRooms={displayedRoomIds} // numeric IDs
           lead={lead}
@@ -540,10 +512,11 @@ function InventoryDesktop({
       {isSpecialHVisible && (
         <SpecialH
           setIsSpecialHVisible={setIsSpecialHVisible}
-          roomItemSelections={roomItemSelections}
+          itemsByRoom={itemsByRoom}
           setRoomItemSelections={setRoomItemSelections}
           displayedRooms={displayedRoomIds} // numeric IDs
           lead={lead}
+          handleUpdateItem={handleUpdateItem}
         />
       )}
     </div>

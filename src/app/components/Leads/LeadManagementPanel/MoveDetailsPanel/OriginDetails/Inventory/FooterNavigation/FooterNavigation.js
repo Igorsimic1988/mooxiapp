@@ -15,7 +15,7 @@ function FooterNavigation({
   setIsDeleteActive,
   isSpecialHVisible,
   setIsSpecialHVisible,
-  roomItemSelections,
+  itemsByRoom,
   setRoomItemSelections,
   selectedRoom,
   displayedRooms,
@@ -88,7 +88,7 @@ function FooterNavigation({
       {isSpecialHVisible && (
         <SpecialH 
           setIsSpecialHVisible={setIsSpecialHVisible} 
-          roomItemSelections={roomItemSelections}
+          itemsByRoom={itemsByRoom}
           setRoomItemSelections={setRoomItemSelections}
           selectedRoom={selectedRoom}
           displayedRooms={displayedRooms}
@@ -100,7 +100,7 @@ function FooterNavigation({
       {isMyInventoryVisible && (
         <MyInventory
           setIsMyInventoryVisible={setIsMyInventoryVisible}
-          roomItemSelections={roomItemSelections}
+          itemsByRoom={itemsByRoom}
           setRoomItemSelections={setRoomItemSelections}
           selectedRoom={selectedRoom}
           displayedRooms={displayedRooms}

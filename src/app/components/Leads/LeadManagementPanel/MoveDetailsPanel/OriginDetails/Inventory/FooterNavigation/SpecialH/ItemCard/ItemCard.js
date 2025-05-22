@@ -34,7 +34,7 @@ function ItemCard({ item, onItemClick, isSelected }) {
         {/* Item Image */}
         <div className={styles.imageWrapper}>
         <Image 
-  src={item.src} 
+  src={item.imageName} 
   alt={item.name} 
   className={styles.itemImage}
   width={100}  // Adjust based on your design requirements

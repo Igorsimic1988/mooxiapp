@@ -97,8 +97,8 @@ function labelToDropTag(labelString) {
 function SpecialH({
   lead, 
   setIsSpecialHVisible,
-  roomItemSelections = {},
-  setRoomItemSelections,
+  itemsByRoom = {},
+  handleUpdateItem,
   displayedRooms = [],
 }) {
   const handleClose = useCallback(() => {
@@ -139,13 +139,14 @@ function SpecialH({
     'hoisting_destination',
     'crane_destination',
   ];
-  const activeStops = lead?.destinationStops?.filter(s => s.isActive) || [];
+  const activeStops = lead?.destinations?.filter(s => s.isActive) || [];
   const hasMultipleActiveStops = activeStops.length >= 2;
 
   const activeStopValues = new Set();
   if (hasMultipleActiveStops) {
-    activeStops.forEach(stop => {
-      const dropVal = labelToDropTag(stop.label);
+    activeStops.forEach((stop, index) => {
+      const label = index === 0 ? 'Main Drop off' : `Drop off ${index + 1}`;
+      const dropVal = labelToDropTag(label);
       activeStopValues.add(dropVal);
     });
   }
@@ -197,89 +198,72 @@ function SpecialH({
    *  When user clicks an item => toggle the `currentTag`.
    *  Also remove any other tags from the EXCLUSIVE_LOCATION_TAGS set if we are adding a new one.
    */
+
   const handleItemClick = (roomId, itemId) => {
     if (!currentTag) {
       alert("Please select a tag from the dropdown before assigning.");
       return;
     }
-
-    setRoomItemSelections((prev) => {
-      const copy = { ...prev };
-      const itemsInRoom = Array.isArray(copy[roomId]) ? [...copy[roomId]] : [];
-      const newItems = itemsInRoom.map((inst) => {
-        if (inst.id === itemId) {
-          let newTags = Array.isArray(inst.tags) ? [...inst.tags] : [];
-          const alreadyHas = newTags.includes(currentTag);
-
-          if (alreadyHas) {
-            // Remove it
-            newTags = newTags.filter((t) => t !== currentTag);
-          } else {
-            // Add the new tag
-            newTags.push(currentTag);
-
-            // ========== EXCLUSIVE TAGS LOGIC ==========
-            if (EXCLUSIVE_LOCATION_TAGS.includes(currentTag)) {
-              // remove all other exclusive ones from newTags
-              newTags = newTags.filter(t => {
-                if (t === currentTag) return true; // keep the newly added one
-                // remove if it's in EXCLUSIVE_LOCATION_TAGS
-                if (EXCLUSIVE_LOCATION_TAGS.includes(t)) return false;
-                return true;
-              });
-            }
-            // ==========================================
-
-            // If "excluded" => remove all except 'excluded' or 'pack_and_leave_behind'
-            if (currentTag === 'excluded') {
-              newTags = newTags.filter(
-                (t) => t === 'excluded' || t === 'pack_and_leave_behind'
-              );
-            } else {
-              // remove incompatible
-              const incomp = incompatibleTags[currentTag] || [];
-              newTags = newTags.filter((t) => !incomp.includes(t));
-
-              // add required
-              const reqs = requiredTags[currentTag] || [];
-              reqs.forEach((reqT) => {
-                if (!newTags.includes(reqT)) {
-                  newTags.push(reqT);
-                }
-              });
-
-              // e.g. if user picks 'item_for_company_storage'
-              // and there's a protective tag => add keep_blanket_on
-              if (currentTag === 'item_for_company_storage') {
-                const protectiveTags = [
-                  'blanket_wrapped',
-                  'paper_blanket_wrapped',
-                  'purchased_blankets',
-                ];
-                const hasProtective = newTags.some((t) =>
-                  protectiveTags.includes(t)
-                );
-                if (hasProtective && !newTags.includes('keep_blanket_on')) {
-                  newTags.push('keep_blanket_on');
-                }
-              }
-            }
+  
+    const itemsInRoom = itemsByRoom[roomId] || [];
+    const originalInstance = itemsInRoom.find(inst => inst.id === itemId);
+    if (!originalInstance) return;
+  
+    let newTags = Array.isArray(originalInstance.tags) ? [...originalInstance.tags] : [];
+    const alreadyHas = newTags.includes(currentTag);
+  
+    if (alreadyHas) {
+      newTags = newTags.filter((t) => t !== currentTag);
+    } else {
+      newTags.push(currentTag);
+  
+      // EXCLUSIVE TAGS LOGIC
+      if (EXCLUSIVE_LOCATION_TAGS.includes(currentTag)) {
+        newTags = newTags.filter(t =>
+          t === currentTag || !EXCLUSIVE_LOCATION_TAGS.includes(t)
+        );
+      }
+  
+      // "excluded" logic
+      if (currentTag === 'excluded') {
+        newTags = newTags.filter(
+          (t) => t === 'excluded' || t === 'pack_and_leave_behind'
+        );
+      } else {
+        const incomp = incompatibleTags[currentTag] || [];
+        newTags = newTags.filter((t) => !incomp.includes(t));
+  
+        const reqs = requiredTags[currentTag] || [];
+        reqs.forEach((reqT) => {
+          if (!newTags.includes(reqT)) {
+            newTags.push(reqT);
           }
-
-          // Rebuild instance
-          const updated = {
-            ...inst,
-            tags: newTags,
-          };
-          updated.groupingKey = generateGroupingKey(updated);
-          return updated;
+        });
+  
+        if (currentTag === 'item_for_company_storage') {
+          const protectiveTags = [
+            'blanket_wrapped',
+            'paper_blanket_wrapped',
+            'purchased_blankets',
+          ];
+          const hasProtective = newTags.some((t) => protectiveTags.includes(t));
+          if (hasProtective && !newTags.includes('keep_blanket_on')) {
+            newTags.push('keep_blanket_on');
+          }
         }
-        return inst;
-      });
-
-      copy[roomId] = newItems;
-      return copy;
-    });
+      }
+    }
+  
+    const updatedInstance = {
+      ...originalInstance,
+      tags: newTags,
+      groupingKey: generateGroupingKey({
+        ...originalInstance,
+        tags: newTags,
+      }),
+    };
+  
+    handleUpdateItem(updatedInstance, originalInstance);
   };
 
   // Close popup if outside click
@@ -401,13 +385,13 @@ function SpecialH({
 
         {/* List items for each displayed room */}
         <div className={styles.roomLists}>
-          {Object.keys(roomItemSelections)
+          {Object.keys(itemsByRoom)
             .filter((roomId) => {
               const numericId = parseInt(roomId, 10);
               return (
                 displayedRooms.includes(numericId) &&
-                Array.isArray(roomItemSelections[roomId]) &&
-                roomItemSelections[roomId].length > 0
+                Array.isArray(itemsByRoom[roomId]) &&
+                itemsByRoom[roomId].length > 0
               );
             })
             .sort((a, b) => {
@@ -422,7 +406,7 @@ function SpecialH({
                 rooms.find((r) => r.id === numericId) ||
                 { id: numericId, name: `Room #${roomId}` };
 
-              const itemArray = roomItemSelections[roomId] || [];
+              const itemArray = itemsByRoom[roomId] || [];
               return (
                 <div key={`room-${roomId}`} className={styles.room}>
                   <div className={styles.roomNameWrapper}>
@@ -433,7 +417,7 @@ function SpecialH({
                       <ItemCard
                         key={inst.id}
                         id={inst.id}
-                        item={inst.item}
+                        item={inst}
                         tags={inst.tags}
                         isSelected={
                           !!currentTag && inst.tags.includes(currentTag)

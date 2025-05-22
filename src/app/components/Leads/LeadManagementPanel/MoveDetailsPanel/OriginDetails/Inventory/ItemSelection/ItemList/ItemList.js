@@ -6,6 +6,7 @@ import Item from '../Item/Item';
 
 function ItemList({
   items,
+  itemInstances = [],
   itemClickCounts,
   onItemClick,
   isMyItemsActive,
@@ -122,20 +123,20 @@ function ItemList({
       {Array.isArray(items) && items.length > 0 ? (
         <ul className={styles.itemList}>
           {items.map((itemData) => {
-            let key, item, count, itemInstance;
-
-            if (isMyItemsActive) {
-              key = itemData.groupingKey;
-              item = itemData.item;
-              count = itemData.count || 1;
-              itemInstance = itemData;
-            } else {
-              const itemIdStr = itemData.id.toString();
-              key = itemIdStr;
-              item = itemData;
-              count = itemClickCounts[itemIdStr] || 0;
-              itemInstance = null;
-            }
+            const key = isMyItemsActive && itemData.groupingKey
+            ? itemData.groupingKey
+            : itemData.id?.toString();
+            const item = itemData;
+            const matchingInstances = itemInstances.filter(
+              (inst) => inst.furnitureItemId === itemData.id
+            );
+            const count = isMyItemsActive
+              ? itemData.count || 1
+              : itemClickCounts?.[key] || 0;
+          
+            const itemInstance = isMyItemsActive
+              ? itemData
+              : matchingInstances[0]; 
 
             return (
               <Item

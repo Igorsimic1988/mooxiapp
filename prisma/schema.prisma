@@ -106,7 +106,7 @@ model InventoryItem {
   name            String?
   imageName       String?
   letters         String[] @default([])
-  search          String?
+  search          Boolean?
   tags            String[]
   cuft            Int?
   lbs             Int? 
@@ -130,7 +130,7 @@ model FurnitureItem {
   letters  String[] @default([])  
   cuft     Int?   
   lbs      Int?   
-  search   String?
+  search   Boolean?
   tags     String[] @default([])
   packingType  String?
   packingQuantity Int?

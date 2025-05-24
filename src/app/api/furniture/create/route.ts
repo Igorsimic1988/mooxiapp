@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       letters: item.letters ?? [], 
       cuft: item.cuft ?? null, 
       lbs: item.lbs ?? null,
-      search: item.search ?? null,
+      search: item.search === "Y" ? true : item.search === "N" ? false : null,
       tags: item.tags ?? [],
       packingType: item.packing.length > 0 ? item.packing[0].type : null,
       packingQuantity: item.packing.length > 1 ? item.packing[1].quantity : null,

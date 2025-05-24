@@ -12,13 +12,12 @@ import AddNewLeadButton from "./AddNewLeadButton/AddNewLeadButton";
 import LeadsList from "./LeadsList/LeadsList";
 import LeadManagementPanel from "./LeadManagementPanel/LeadManagementPanel";
 import Inventory from "./LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory";
-
 import LeadFormPopup from "./LeadFormPopup/LeadFormPopup";
 import FilterButtonPopup from "./FilterButtonPopup/FilterButtonPopup";
 import { getAllLeads, createLead, updateLead } from "src/app/services/leadsService";
 import { useAccessToken } from "src/app/lib/useAccessToken";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createStatusHistory } from "src/app/services/leadsService";
+import { createEvent } from "src/app/services/eventService";
 
 /**
  * Utility to parse lead.survey_date + lead.survey_time => JS Date object
@@ -201,18 +200,20 @@ function applySecondaryFilters(leads, filterParams) {
           break;
         case "Sales Activity":
           // Look for the most recent status history item
-          if (Array.isArray(lead.statusHistory) && lead.statusHistory.length > 0) {
+          if (Array.isArray(lead.events)) {
             // Sort by changed_at in descending order
-            const sortedHistory = [...lead.statusHistory].sort(
-              (a, b) => new Date(b.changedAt) - new Date(a.changedAt)
+            const activityEvents = lead.events.filter((e) => e.type === "LEAD_ACTIVITY_CHANGED");
+            if (activityEvents.length > 0) {
+              const sorted = [...activityEvents].sort(
+              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
-            dateToCompare = new Date(sortedHistory[0].changedAt);
+            dateToCompare = new Date(sorted[0].created_at);
           } else {
             dateToCompare = null;
           }
-          break;
-        default:
-          dateToCompare = null;
+        }else{
+            dateToCompare = null;
+          }
       }
       
       if (!dateToCompare) return false;
@@ -323,10 +324,10 @@ function Leads() {
     }
   });
 
-  const createStatusHistoryMutation = useMutation({
-    mutationFn: ({ leadId, leadStatus, leadActivity, nextAction, token }) => createStatusHistory ({ leadId, leadStatus, leadActivity, nextAction, token }),
-    onSuccess: () => {
-      console.log("Status history successfully created!");
+  const createEventMutation = useMutation({
+    mutationFn: ({ type, data, token}) => createEvent({ type, data, token }),
+    onSuccess:() => {
+      console.log("Event create successfully")
     },
     onError: (err) => {
       console.log(err)
@@ -559,13 +560,45 @@ function Leads() {
         setSelectedLead((prev) => prev && prev.id === updatedLead.id ? updatedLead : prev
       )
       refetch();
-      createStatusHistoryMutation.mutate({
-        leadId: updatedLead.id,
-        leadStatus: updates.leadStatus || updatedLead.leadStatus,
-        leadActivity: updates.leadActivity || updatedLead.leadActivity,
-        nextAction: updates.nextAction || updatedLead.nextAction,
-        token,
-      });
+      const prev = selectedLead;
+      if (updates.leadStatus && updates.leadStatus !== selectedLead.leadStatus) {
+        createEventMutation.mutate({
+          type: "LEAD_STATUS_CHANGED",
+          data: {
+            leadId: updatedLead.id,
+            field: "leadStatus",
+            oldValue: prev.leadStatus || null,
+            newValue: updates.leadStatus || null,
+          },
+          token,
+        });
+      }
+      
+      if (updates.leadActivity && updates.leadActivity !== selectedLead.leadActivity) {
+        createEventMutation.mutate({
+          type: "LEAD_ACTIVITY_CHANGED",
+          data: {
+            leadId: updatedLead.id,
+            field: "leadActivity",
+            oldValue: prev.leadActivity || null,
+            newValue: updates.leadActivity || null,
+          },
+          token,
+        });
+      }
+      
+      if (updates.nextAction && updates.nextAction !== selectedLead.nextAction) {
+        createEventMutation.mutate({
+          type: "NEXT_ACTION_CHANGED",
+          data: {
+            leadId: updatedLead.id,
+            field: "nextAction",
+            oldValue: prev.nextAction || null,
+            newValue: updates.nextAction || null,
+          },
+          token,
+        });
+      }
       
     }
   });

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Events } from "@prisma/client";
 import { validateToken } from "src/app/lib/validateToken";
 
 
@@ -14,7 +14,6 @@ export async function POST(req: Request) {
             role: { in: ["OWNER", "ADMIN"] },
           },
         });
-    //proveriti role
         if (!account){
           return NextResponse.json({ error: "Only OWNERS and ADMINS can create new lead" }, { status: 403 });
         }
@@ -67,20 +66,57 @@ export async function POST(req: Request) {
                   }
                 ]
               },
-              statusHistory: {
-                create: [{
-                  leadStatus: inObject.leadStatus || '',
-                  leadActivity: inObject.leadActivity || '',
-                  nextAction: inObject.nextAction || '',
-                }]
-              }
             },
               include: {
                 origins: true,
                 destinations: true,
-                statusHistory: true,
               }
   });
+  const eventPayloads = [];
+
+if (inObject.leadStatus) {
+  eventPayloads.push({
+    type: Events.LEAD_STATUS_CHANGED,
+    data: {
+      leadId: newLead.id,
+      field: "leadStatus",
+      oldValue: null,
+      newValue: inObject.leadStatus,
+    },
+  });
+}
+
+if (inObject.leadActivity) {
+  eventPayloads.push({
+    type: Events.LEAD_ACTIVITY_CHANGED,
+    data: {
+      leadId: newLead.id,
+      field: "leadActivity",
+      oldValue: null,
+      newValue: inObject.leadActivity,
+    },
+  });
+}
+
+if (inObject.nextAction) {
+  eventPayloads.push({
+    type: Events.NEXT_ACTION_CHANGED,
+    data: {
+      leadId: newLead.id,
+      field: "nextAction",
+      oldValue: null,
+      newValue: inObject.nextAction,
+    },
+  });
+}
+
+await Promise.all(
+  eventPayloads.map((event) =>
+    prisma.event.create({
+      data: event,
+    })
+  )
+);
   
     return NextResponse.json(newLead, { status: 201 });
   } catch (error) {

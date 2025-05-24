@@ -221,22 +221,18 @@ model Lead {
   invoiceBalanceDue       Float?
   origins       Origins[]
   destinations  Destinations[]
-  statusHistory StatusHistory[]
 }
-model StatusHistory {
-  id            String   @id @default(uuid())
-  leadId        String
-  lead          Lead     @relation(fields: [leadId], references: [id]) 
-  leadStatus    String
-  leadActivity  String
-  nextAction    String
-  changedAt     DateTime @default(now())
-  @@index([leadId])
+
+
+enum Events {
+  LEAD_STATUS_CHANGED
+  LEAD_ACTIVITY_CHANGED
+  NEXT_ACTION_CHANGED
 }
 
 model Event {
   id           String  @id @default(uuid())
-  type         String
+  type         Events
   data         Json
   created_at   DateTime @default(now())
 }

@@ -46,9 +46,9 @@ const options: NextAdminOptions = {
       toString: (Destinations) => `${Destinations.id}`,
       title: "Destinations",
     },
-    StatusHistory: {
-      toString: (StatusHistory) => `${StatusHistory.id}`,
-      title: "StatusHistory",
+    Event: {
+      toString: (Event) => `${Event.id}`,
+      title: "Event",
     },
     FurnitureItem: {
       toString: (FurnitureItem) => `${FurnitureItem.id}`,

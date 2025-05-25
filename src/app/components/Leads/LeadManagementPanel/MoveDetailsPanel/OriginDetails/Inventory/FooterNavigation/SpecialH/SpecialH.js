@@ -139,15 +139,34 @@ function SpecialH({
     'hoisting_destination',
     'crane_destination',
   ];
-  const activeStops = lead?.destinations?.filter(s => s.isActive) || [];
+  const destinationStops = lead?.destinations || [];
+
+  const postStorageStops = destinationStops.filter((s) => s.postStorage);
+  const normalStops = destinationStops.filter((s) => !s.postStorage);
+
+  const activeStops = destinationStops.filter((s) => s.isActive);
   const hasMultipleActiveStops = activeStops.length >= 2;
 
   const activeStopValues = new Set();
   if (hasMultipleActiveStops) {
-    activeStops.forEach((stop, index) => {
-      const label = index === 0 ? 'Main Drop off' : `Drop off ${index + 1}`;
-      const dropVal = labelToDropTag(label);
-      activeStopValues.add(dropVal);
+    activeStops.forEach((stop) => {
+      const group = stop.postStorage ? postStorageStops : normalStops;
+  const indexInGroup = group.indexOf(stop);
+  const isFirst = indexInGroup === 0;
+
+  const label = stop.postStorage
+    ? isFirst
+      ? "Post Storage Main Drop off"
+      : `Post Storage Drop off ${indexInGroup + 1}`
+    : isFirst
+      ? "Main Drop off"
+      : `Drop off ${indexInGroup + 1}`;
+
+  const tag = labelToDropTag(label);
+  activeStopValues.add(tag);
+      // const label = index === 0 ? 'Main Drop off' : `Drop off ${index + 1}`;
+      // const dropVal = labelToDropTag(label);
+      // activeStopValues.add(dropVal);
     });
   }
   // Filter the dropPoints

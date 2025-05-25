@@ -148,12 +148,32 @@ function MyInventory({
   }, [handleClose]);
 
   // Build a set of "active" drop points from lead
-  const activeStops = lead?.destinationStops?.filter(s => s.isActive) || [];
-  const activeDropPointsSet = new Set();
-  activeStops.forEach((stop) => {
-    const val = labelToDropTag(stop.label);
-    activeDropPointsSet.add(val);
-  });
+  const destinationStops = lead?.destinations?.filter(s => s.isActive) || [];
+  const postStorageStops = destinationStops.filter((s) => s.postStorage);
+  const normalStops = destinationStops.filter((s) => !s.postStorage);
+  const labeledActiveStops = destinationStops
+  .map((stop) => {
+    const isPost = stop.postStorage;
+    const group = isPost ? postStorageStops : normalStops;
+    const position = group.indexOf(stop);
+    const isFirst = position === 0;
+
+    const label = isPost
+      ? isFirst
+        ? "Post Storage Main Drop off"
+        : `Post Storage Drop off ${position + 1}`
+      : isFirst
+        ? "Main Drop off"
+        : `Drop off ${position + 1}`;
+
+
+    return { ...stop, label };
+  })
+  .filter((s) => s.isActive);
+  const activeDropPointsSet = new Set(
+    labeledActiveStops.map((s) => labelToDropTag(s.label))
+  );
+  
 
   // Combine all base tags from optionsData
   const allBaseTags = [

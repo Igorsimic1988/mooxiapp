@@ -9,10 +9,7 @@ import Select, { components as RSComponents } from 'react-select';
 import packingOptions from '../../../../../../../../../data/constants/packingOptions';
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
 import Icon from 'src/app/components/Icon';
-import { useMutation } from '@tanstack/react-query';
-import { mergeInventoryItem } from 'src/app/services/inventoryItemsService';
-import { useQueryClient } from '@tanstack/react-query';
-import { useUiState } from '../../../../../UiStateContext';
+
 
 /** 
  * ==============================================
@@ -218,28 +215,15 @@ function ItemPopup({
   onClose,
   onUpdateItem,
   onAddItem,
-  onMergeItems,
   itemInstance,
   ItemInstances = [],
   handleDeleteItem,
   onStartFresh,
   lead,
 }) {
-  const { selectedOriginStopId, setSelectedOriginStopId } = useUiState();
-  const queryClient = useQueryClient();
-
-  const mergeInventoryItemMutation = useMutation({
-    mutationFn: ({fromId, intoId}) =>mergeInventoryItem({fromId, intoId}),
-  onSuccess:(mergeInventoryItem) => {
-    console.log("Merge inventory item:", mergeInventoryItem);
-    queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
-  },
-  onError: (err) => {
-    console.log(err)
-  }
-});
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
   const [isSaving, setIsSaving] = useState(false);
+  console.log(currentItemInstance, ' curr')
 
   // Tag states
   const [selectedPackingTags, setSelectedPackingTags] = useState([]);
@@ -522,6 +506,20 @@ function ItemPopup({
       setPackingNeeds({});
     }
   };
+  // Sync state fields kad se currentItemInstance promeni
+useEffect(() => {
+  if (!currentItemInstance) return;
+
+  setCuft(currentItemInstance.cuft || '');
+  setLbs(currentItemInstance.lbs || '');
+  setNotes(currentItemInstance.notes || '');
+  setItemCount(currentItemInstance.count || 1);
+  setUploadedImages(currentItemInstance.uploadedImages || []);
+  setCameraImages(currentItemInstance.cameraImages || []);
+  setLink(currentItemInstance.link || '');
+  setPackingNeeds(currentItemInstance.packingNeeds || {});
+}, [currentItemInstance]);
+
   const handleSaveItem = (overrides = {}) => {
     const selectedTags = getAllSelectedTags();
   
@@ -546,44 +544,19 @@ function ItemPopup({
         overrides.cameraImages !== undefined ? overrides.cameraImages : cameraImages,
     };
     newInstance.groupingKey = generateGroupingKey(newInstance);
-    const existing = ItemInstances.find(
-      (i) =>
-        i.groupingKey === newInstance.groupingKey &&
-        i.id !== currentItemInstance?.id 
-    );
-    console.log('🧩 Current:', currentItemInstance.groupingKey);
-    console.log('🧩 New:', newInstance.groupingKey);
-    if (existing) {
-      console.log('🧩 Existing:', existing.groupingKey);
-      mergeInventoryItemMutation.mutate(
-        { fromId: currentItemInstance.id, intoId: existing.id },
-        {
-          onSuccess: (mergedItem) => {
-            setCurrentItemInstance({ ...mergedItem });
-            setItemCount(mergedItem.count);
-            onMergeItems(currentItemInstance.id, existing.id, mergedItem);
-          },
-          onError: (err) => {
-            console.error("Merge failed:", err);
-          },
-        }
-      );
-    } else{
-      if (currentItemInstance?.id) {
-        if (itemCount === 0){
-          handleDeleteItem(currentItemInstance.id)
-        }
-        else{
-          onUpdateItem(newInstance, currentItemInstance);
-        }
-    }else {
-      if (itemCount > 0){
+    if (currentItemInstance?.groupingKey) {
+      if (itemCount === 0) {
+        handleDeleteItem(currentItemInstance);
+      } else {
+        onUpdateItem(newInstance, currentItemInstance);
+      }
+    } else {
+      if (itemCount > 0) {
         onAddItem(newInstance);
       }
     }
       setCurrentItemInstance({ ...newInstance });
       setItemCount(newInstance.count);
-  }
   };
 
 
@@ -624,9 +597,12 @@ function ItemPopup({
   // "Start Fresh"
   const handleStartFreshClick = () => {
     setIsSlidingOut(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       if (onStartFresh && currentItemInstance) {
-        onStartFresh(currentItemInstance);
+        const resetInstance = await onStartFresh(currentItemInstance);
+        if (resetInstance) {
+        setCurrentItemInstance(resetInstance);
+        }
       }
     }, 300);
   };
@@ -634,7 +610,6 @@ function ItemPopup({
     let timer;
     if (isSlidingOut) {
       timer = setTimeout(() => {
-        setCurrentItemInstance(null);
         setIsSlidingOut(false);
         setIsSlidingIn(true);
       }, 300);

@@ -109,7 +109,7 @@ function Item({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {clickCount > 0 && (
+        {clickCount >= 1 && (
           <div
             className={`${styles.numberBadge} ${
               isDeleteActive ? styles.numberBadgeRed : ''

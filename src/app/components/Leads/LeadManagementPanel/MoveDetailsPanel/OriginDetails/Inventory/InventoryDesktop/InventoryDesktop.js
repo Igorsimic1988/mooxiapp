@@ -33,7 +33,6 @@ import Icon from 'src/app/components/Icon';
  * Props:
  *  - stopIndex, setStopIndex
  *  - roomItemSelections: { [roomId]: arrayOfItemInstances }
- *  - setRoomItemSelections: (fnOrObj) => void  (for MyInventory/SpecialH)
  *  - displayedRooms: array of {id, name}
  *  - handleToggleRoom: function(roomId) => toggles displayedRooms in parent's inventory
  *  - isToggled, setIsToggled
@@ -58,7 +57,6 @@ function InventoryDesktop({
 
   // Items for this stop
   itemsByRoom,
-  setRoomItemSelections,
   // Currently displayed rooms => array of { id, name }
   displayedRooms,
 
@@ -92,7 +90,6 @@ function InventoryDesktop({
   handleUpdateItem,
   handleDeleteItem,
   handleAddItem,
-  onMergeItems,
   handleStartFresh,
 
   // Delete toggle
@@ -488,7 +485,6 @@ function InventoryDesktop({
           onClose={handleCloseItemPopup}
           onUpdateItem={handleUpdateItem}
           onAddItem={handleAddItem}
-          onMergeItems={onMergeItems}
           ItemInstances={currentRoomInstances}
           handleDeleteItem={handleDeleteItem}
           itemInstance={currentItemInstance}
@@ -502,7 +498,6 @@ function InventoryDesktop({
         <MyInventory
           setIsMyInventoryVisible={setIsMyInventoryVisible}
           itemsByRoom={itemsByRoom}
-          setRoomItemSelections={setRoomItemSelections}
           displayedRooms={displayedRoomIds} // numeric IDs
           lead={lead}
         />
@@ -513,7 +508,6 @@ function InventoryDesktop({
         <SpecialH
           setIsSpecialHVisible={setIsSpecialHVisible}
           itemsByRoom={itemsByRoom}
-          setRoomItemSelections={setRoomItemSelections}
           displayedRooms={displayedRoomIds} // numeric IDs
           lead={lead}
           handleUpdateItem={handleUpdateItem}

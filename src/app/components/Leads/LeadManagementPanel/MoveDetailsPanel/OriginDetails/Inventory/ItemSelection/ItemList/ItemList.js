@@ -130,8 +130,8 @@ function ItemList({
             const matchingInstances = itemInstances.filter(
               (inst) => inst.furnitureItemId === itemData.id
             );
-            const count = isMyItemsActive
-              ? itemData.count || 1
+            const count = true
+              ? itemData.count || 0
               : itemClickCounts?.[key] || 0;
           
             const itemInstance = isMyItemsActive

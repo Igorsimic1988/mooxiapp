@@ -16,7 +16,6 @@ function FooterNavigation({
   isSpecialHVisible,
   setIsSpecialHVisible,
   itemsByRoom,
-  setRoomItemSelections,
   selectedRoom,
   displayedRooms,
   onCloseInventory,
@@ -89,7 +88,6 @@ function FooterNavigation({
         <SpecialH 
           setIsSpecialHVisible={setIsSpecialHVisible} 
           itemsByRoom={itemsByRoom}
-          setRoomItemSelections={setRoomItemSelections}
           selectedRoom={selectedRoom}
           displayedRooms={displayedRooms}
           lead={lead}
@@ -101,7 +99,6 @@ function FooterNavigation({
         <MyInventory
           setIsMyInventoryVisible={setIsMyInventoryVisible}
           itemsByRoom={itemsByRoom}
-          setRoomItemSelections={setRoomItemSelections}
           selectedRoom={selectedRoom}
           displayedRooms={displayedRooms}
           lead={lead}

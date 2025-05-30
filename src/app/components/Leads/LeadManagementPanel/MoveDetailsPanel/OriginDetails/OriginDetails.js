@@ -54,8 +54,6 @@ function OriginDetails({
     mutationFn: (newOriginData) =>createOrigin({originsData: newOriginData, leadId:lead.id,  token: token}),
     onSuccess:(createdOrigin) => {
       console.log("New origin created:", createdOrigin);
-      queryClient.invalidateQueries(['origins']);
-      setOriginStops((prev) => [...prev, createdOrigin]);
     },
     onError: (err) => {
       console.log(err)
@@ -85,8 +83,9 @@ function OriginDetails({
     createOriginMutation.mutate(newStop, {
       onSuccess: (createdOrigin) => {
         console.log("New origin created:", createdOrigin);
-        queryClient.invalidateQueries(['origins']);
+        setOriginStops((prev) => [...prev, createdOrigin]);
         setSelectedOriginStopId(createdOrigin.id);
+        queryClient.invalidateQueries(['origins']);
       },
       onError: (err) => {
         console.error('Failed to create origin stop', err);
@@ -100,7 +99,7 @@ function OriginDetails({
   const toggleCollapse = () => setIsOriginCollapsed((prev) => !prev);
   useEffect(() => {
     if (originStops.length > 0 && !selectedOriginStopId) {
-      setSelectedOriginStopId(lead.origins[0].id)
+      setSelectedOriginStopId(originStops[0].id)
     }
   }, [originStops, selectedOriginStopId]);
 
@@ -150,19 +149,16 @@ function OriginDetails({
       { id: currentStop.id },
       {
         onSuccess: () => {
+          const nextStop = originStops[originIndex - 1];
+          setOriginStops((prev) => prev.filter((s) => s.id !== currentStop.id));
+          if (nextStop?.id) {
+            setSelectedOriginStopId(nextStop.id);
+          }
           queryClient.invalidateQueries(['origins']);
-          setOriginStops((prev) => {
-            const updated = prev.filter((s) => s.id !== currentStop.id);
-            const nextStop = prev[originIndex - 1];
-            if (nextStop?.id) {
-              setTimeout(() => {
-                setSelectedOriginStopId(nextStop.id);
-              }, 0);
-            }
-            return updated;
-          });
+        },
       }
-    });
+    );
+    
    }
    useEffect(() => {
     if (fallbackOriginStopId) {

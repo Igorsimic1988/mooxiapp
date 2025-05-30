@@ -22,7 +22,8 @@ import { getAllFurnitureItems } from "src/app/services/furnitureService";
 import { createInventoryItem, deleteInventoryItem, getInventoryByOriginId, updateInventoryItem } from "src/app/services/inventoryItemsService";
 import { useUiState } from "../../UiStateContext";
 import { updateOrigin } from 'src/app/services/originsService';
-
+import { useInventoryContext } from "../../InventoryContext";
+import { generateAutoBoxes } from './utils/generateAutoBoxes';
 // The “default displayed” rooms as numeric IDs
 
 function Inventory({
@@ -85,6 +86,12 @@ function Inventory({
   
   // Which "Stop" index we’re on (0-based)
   const { selectedOriginStopId, setSelectedOriginStopId } = useUiState();
+  const { itemsByRoom,
+    setItemsByRoom,
+    displayedRooms,
+    setDisplayedRooms,
+    inventoryItems,
+    setInventoryItems } = useInventoryContext();
 
 
   // Searching/filtering states
@@ -94,6 +101,7 @@ function Inventory({
     letter: null,
     subButton: null,
   });
+
 
   // Toggles
   const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
@@ -122,6 +130,42 @@ function Inventory({
     setAppHeight();
     return () => window.removeEventListener("resize", setAppHeight);
   }, []);
+  const refreshAutoBoxes = (updatedInventory) => {
+    const result = generateAutoBoxes({
+      inventoryItems: updatedInventory,
+      allItems,
+      originId: selectedOriginStopId,
+      prevTotalLbs: prevTotalLbsRef.current,
+    });
+  
+    if (!result) return;
+  
+    setItemsByRoom((prev) => ({
+      ...prev,
+      [13]: result.updatedRoom13,
+    }));
+  
+    setInventoryItems(() => {
+      const rest = updatedInventory.filter((itm) => itm.roomId !== 13 || !itm.autoAdded);
+      return [...rest, ...result.autoBoxes];
+    });
+  
+    prevTotalLbsRef.current = result.totalLbs;
+  };
+
+  const applyInventoryUpdates = ({ roomId, updatedRoomItems, updatedInventoryItems, refreshBoxes = false }) => {
+    setItemsByRoom(prev => ({
+      ...prev,
+      [roomId]: updatedRoomItems,
+    }));
+  
+    setInventoryItems(updatedInventoryItems);
+    if (refreshBoxes && isToggled) {
+      refreshAutoBoxes(updatedInventoryItems);
+    }
+  };
+  
+  
 
   
   
@@ -133,71 +177,20 @@ function Inventory({
     queryFn: () => getInventoryByOriginId({ originId: selectedOriginStopId }),
     enabled: !!selectedOriginStopId, 
   });
-  const inventoryItems = inventoryData?.inventoryItems || [];
-  const itemsByRoom = inventoryData?.itemsByRoom || {};
-  const displayedRooms = inventoryData?.displayedRooms || [];
+  useEffect(() => {
+    if (inventoryData) {
+      setItemsByRoom(inventoryData.itemsByRoom || {});
+      setDisplayedRooms(inventoryData.displayedRooms || []);
+      setInventoryItems(inventoryData.inventoryItems || []);
+    }
+  }, [inventoryData]);
+  
+  console.log('inventoryItems ', inventoryItems)
   useEffect(() => {
     //console.log('Selected Origin Stop ID:', selectedOriginStopId);
   }, [selectedOriginStopId]);
   
   const selectedRoom = inventoryRoom;
-
-  useEffect(() => {
-    if (!selectedOriginStopId || !Array.isArray(inventoryData)) return;
-  
-    const hasRealItems = inventoryData.some(item => item.furnitureItemId !== null);
-  
-    if (inventoryData.length === 0 || !hasRealItems) {
-      const placeholderItem = allItems.find(item => item.id === 640);
-      if (!placeholderItem) return;
-  
-      const defaultPacking =
-        placeholderItem.packingType && placeholderItem.packingQuantity
-          ? { [placeholderItem.packingType]: placeholderItem.packingQuantity }
-          : {};
-  
-      const initialItem = {
-        originId: selectedOriginStopId,
-        roomId: 13,
-        furnitureItemId: placeholderItem.id,
-        name: placeholderItem.name,
-        imageName: placeholderItem.imageName,
-        letters: placeholderItem.letters,
-        search: placeholderItem.search,
-        tags: placeholderItem.tags || [],
-        notes: "Initial item",
-        cuft: placeholderItem.cuft || "",
-        lbs: placeholderItem.lbs || "",
-        packingNeeds: defaultPacking,
-        uploadedImages: [],
-        cameraImages: [],
-        autoAdded: true,
-        groupingKey: generateGroupingKey({
-          furnitureItemId: placeholderItem.id,
-          roomId: 13,
-          autoAdded: true,
-        }),
-      };
-  
-      console.log("Pozivam mutate sa:", initialItem);
-  
-      createInventoryItemMutation.mutate(initialItem, {
-        onSuccess: (createdItem) => {
-          const updatedItemsByRoom = {
-            ...itemsByRoom,
-            13: [...(itemsByRoom[13] || []), createdItem],
-          };
-  
-          updateOriginMutation.mutate({
-            id: selectedOriginStopId,
-            data: {
-              itemsByRoom: updatedItemsByRoom,
-            },
-          });
-        }
-      });
-    }
-  }, [inventoryData, selectedOriginStopId, allItems]);
   
 
 
@@ -214,13 +207,17 @@ function Inventory({
 
   // ==================== ROOM + ITEM LOGIC (MOBILE) ====================
 
-  const handleStartFresh = (newItemInstance) => {
+  const handleStartFresh = async (newItemInstance) => {
     if (!selectedRoom) return;
   
     const roomId = selectedRoom.id;    
     const baseItem = allItems.find(
       (f) => f.id === newItemInstance.furnitureItemId
     );
+    const defaultPacking =
+        baseItem.packingType && baseItem.packingQuantity
+          ? { [baseItem.packingType]: baseItem.packingQuantity }
+          : {};
   
     const resetItem = {
       originId: selectedOriginStopId,
@@ -230,11 +227,11 @@ function Inventory({
       imageName: baseItem.imageName,
       letters: baseItem.letters,
       search: baseItem.search,
-      tags: [],
+      tags: baseItem.tags || [],
       notes: "",
       cuft: baseItem.cuft,
       lbs: baseItem.lbs,
-      packingNeeds: {},
+      packingNeeds: defaultPacking,
       uploadedImages: [],
       cameraImages: [],
       autoAdded: false,
@@ -242,10 +239,60 @@ function Inventory({
     };
     resetItem.groupingKey = generateGroupingKey(resetItem);
   
-    updateInventoryItemMutation.mutate({
-      id: newItemInstance.id,
-      data: resetItem,
+    const currentRoomItems = itemsByRoom[roomId] || [];
+  const updatedRoomItems = [...currentRoomItems];
+  const updatedInventoryItems = [...inventoryItems];
+
+  const originalItemIndex = updatedRoomItems.findIndex(
+    (itm) => itm.groupingKey === newItemInstance.groupingKey
+  );
+
+  const duplicate = updatedInventoryItems.find(
+    (itm) =>
+      itm.groupingKey === resetItem.groupingKey &&
+      itm.groupingKey !== newItemInstance.groupingKey // da ne uzme samog sebe
+  );
+
+  if (duplicate) {
+    const mergedItem = {
+      ...duplicate,
+      count: duplicate.count + 1,
+    };
+
+    const filteredRoom = updatedRoomItems.filter((itm) => itm.groupingKey !== newItemInstance.groupingKey);
+    const filteredInventory = updatedInventoryItems.filter((itm) => itm.groupingKey !== newItemInstance.groupingKey);
+
+    const finalRoomItems = filteredRoom.map((itm) =>
+      itm.groupingKey === duplicate.groupingKey ? mergedItem : itm
+    );
+    const finalInventoryItems = filteredInventory.map((itm) =>
+      itm.groupingKey === duplicate.groupingKey ? mergedItem : itm
+    );
+
+    applyInventoryUpdates({
+      roomId,
+      updatedRoomItems: finalRoomItems,
+      updatedInventoryItems: finalInventoryItems,
+      refreshBoxes: true, 
     });
+
+    return { ...mergedItem }; 
+  }
+
+  updatedRoomItems[originalItemIndex] = resetItem;
+  const inventoryIndex = updatedInventoryItems.findIndex(
+    (itm) => itm.groupingKey === newItemInstance.groupingKey
+  );
+  updatedInventoryItems[inventoryIndex] = resetItem;
+
+  applyInventoryUpdates({
+    roomId,
+    updatedRoomItems,
+    updatedInventoryItems,
+    refreshBoxes: true, 
+  });
+
+  return { ...resetItem };
   };
   
   
@@ -323,37 +370,30 @@ function Inventory({
       uploadedImages: clickedItem.uploadedImages || [],
       cameraImages: clickedItem.cameraImages || [],
     });
-    console.log('group   ', groupingKey)
   
     const existingItem = current.find((item) => item.groupingKey === groupingKey);
   
+    let updatedRoomItems;
+    let updatedInventoryItems;
+  
     if (doAction === "decrease") {
-      if (!existingItem?.id) return;
+      if (!existingItem) return;
   
-      deleteInventoryItemMutation.mutate(
-        { id: existingItem.id },
-        {
-          onSuccess: ({item}) => {
-            const updated = item === null
-            ? current.filter((itm) => itm.id !== existingItem.id)
-            : current.map((itm) =>
-                itm.id === item.id ? item : itm
-              );
+      if (existingItem.count > 1) {
+        const updatedItem = { ...existingItem, count: existingItem.count - 1 };
   
-            updateOriginMutation.mutate({
-              id: selectedOriginStopId,
-              data: {
-                itemsByRoom: {
-                  ...itemsByRoom,
-                  [roomId]: updated,
-                },
-              },
-            });
-          },
-        }
-      );
+        updatedRoomItems = current.map((itm) =>
+          itm.groupingKey === groupingKey ? updatedItem : itm
+        );
+  
+        updatedInventoryItems = inventoryItems.map((itm) =>
+          itm.groupingKey === groupingKey ? updatedItem : itm
+        );
+      } else {
+        updatedRoomItems = current.filter((itm) => itm.groupingKey !== groupingKey);
+        updatedInventoryItems = inventoryItems.filter((itm) => itm.groupingKey !== groupingKey);
+      }
     } else {
-      console.log('jjeeee')
       const defaultPacking =
         clickedItem.packingType && clickedItem.packingQuantity
           ? { [clickedItem.packingType]: clickedItem.packingQuantity }
@@ -382,33 +422,33 @@ function Inventory({
         count: 1,
       };
   
-      createInventoryItemMutation.mutate(newItemInstance, {
-        onSuccess: (createdOrUpdatedItem) => {
-          // Bilo da je kreiran novi ili povećan postojeći, osveži lokalni state
-          const existingIndex = current.findIndex(
-            (item) => item.groupingKey === createdOrUpdatedItem.groupingKey
-          );
+      if (existingItem) {
+        const updatedItem = {
+          ...existingItem,
+          count: existingItem.count + 1,
+        };
   
-          const updated =
-            existingIndex !== -1
-              ? current.map((itm, i) =>
-                  i === existingIndex ? createdOrUpdatedItem : itm
-                )
-              : [...current, createdOrUpdatedItem];
+        updatedRoomItems = current.map((itm) =>
+          itm.groupingKey === groupingKey ? updatedItem : itm
+        );
   
-          updateOriginMutation.mutate({
-            id: selectedOriginStopId,
-            data: {
-              itemsByRoom: {
-                ...itemsByRoom,
-                [roomId]: updated,
-              },
-            },
-          });
-        },
-      });
+        updatedInventoryItems = inventoryItems.map((itm) =>
+          itm.groupingKey === groupingKey ? updatedItem : itm
+        );
+      } else {
+        updatedRoomItems = [...current, newItemInstance];
+        updatedInventoryItems = [...inventoryItems, newItemInstance];
+      }
     }
+  
+    applyInventoryUpdates({
+      roomId,
+      updatedRoomItems,
+      updatedInventoryItems,
+      refreshBoxes: true, 
+    });
   };
+  
   
   
   
@@ -424,328 +464,145 @@ function Inventory({
     if (!updated.includes(13)) {
       updated.push(13);
     }
-  
-    updateOriginMutation.mutate({
-      id: selectedOriginStopId,
-      data: {
-        displayedRooms: updated,
-      },
-    });
+    setDisplayedRooms(updated);
+
   };
-  
-  const handleSetRoomItemSelections = (fnOrObj) => {
-    if (!selectedRoom) return;
-  
-    const roomId = selectedRoom.id;
-    const oldItems = itemsByRoom[roomId] || [];
-  
-    const newItems =
-      typeof fnOrObj === "function"
-        ? fnOrObj({ [roomId]: oldItems })[roomId]
-        : fnOrObj[roomId];
-  
-    const createdItems = [];
-    const updatedItems = [];
-  
-    const updatedItemsByRoom = { ...itemsByRoom };
-  
-    newItems.forEach((item) => {
-      const payload = {
-        ...item,
-        originId: selectedOriginStopId,
-        roomId,
-        groupingKey: item.groupingKey || generateGroupingKey(item),
-      };
-  
-      if (!item.id) {
-        createInventoryItemMutation.mutate(payload, {
-          onSuccess: (created) => {
-            createdItems.push(created);
-            updatedItemsByRoom[roomId] = [...(updatedItemsByRoom[roomId] || []), created];
-  
-            if (createdItems.length + updatedItems.length === newItems.length) {
-              updateOriginMutation.mutate({
-                id: selectedOriginStopId,
-                data: {
-                  itemsByRoom: updatedItemsByRoom,
-                },
-              });
-            }
-          },
-        });
-      } else {
-        updateInventoryItemMutation.mutate(
-          { id: item.id, data: payload },
-          {
-            onSuccess: (updated) => {
-              updatedItems.push(updated);
-              const others = (updatedItemsByRoom[roomId] || []).filter(
-                (i) => i.id !== updated.id
-              );
-              updatedItemsByRoom[roomId] = [...others, updated];
-  
-              if (createdItems.length + updatedItems.length === newItems.length) {
-                updateOriginMutation.mutate({
-                  id: selectedOriginStopId,
-                  data: {
-                    itemsByRoom: updatedItemsByRoom,
-                  },
-                });
-              }
-            },
-          }
-        );
-      }
-    });
-  };
-  
   
 
   const getItemCountForCurrentRoom = () => {
     if (!selectedRoom) return 0;
     const items = itemsByRoom[selectedRoom.id] || [];
-    return items.length;
+    return items.reduce((total, item) => total + (item.count || 1), 0);
   };
+  
 
   // ==================== POPUP: UPDATE / ADD ITEM ====================
   const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
     if (!selectedRoom) return;
     const roomId = selectedRoom.id;
     const currentItems = itemsByRoom[roomId] || [];
+
+    const originalKey = originalItemInstance.groupingKey;
+    const newKey = updatedItemInstance.groupingKey || generateGroupingKey(updatedItemInstance);
   
-    const existingItem = currentItems.find(
-      (item) => item.groupingKey === originalItemInstance.groupingKey
-    );
-  
-    if (!existingItem) return;
-  
-    const updatedPayload = {
+    const updatedItem = {
       ...updatedItemInstance,
       originId: selectedOriginStopId,
       roomId,
-      groupingKey: updatedItemInstance.groupingKey,
+      groupingKey: newKey,
       count: updatedItemInstance.count,
     };
-  
-    updateInventoryItemMutation.mutate(
-      {
-        id: existingItem.id,
-        data: updatedPayload,
-      },
-      {
-        onSuccess: (updatedItemFromServer) => {
-          const updatedRoomItems = currentItems.map((itm) =>
-            itm.id === existingItem.id ? updatedItemFromServer : itm
-          );
-  
-          updateOriginMutation.mutate({
-            id: selectedOriginStopId,
-            data: {
-              itemsByRoom: {
-                ...itemsByRoom,
-                [roomId]: updatedRoomItems,
-              },
-            },
-          });
-        },
-      }
-    );
+    let updatedRoomItems = [...currentItems];
+    let updatedInventoryItems = [...inventoryItems];
+    const duplicate = newKey !== originalKey
+  ? inventoryItems.find((item) => item.groupingKey === newKey)
+  : null;
+
+if (duplicate) {
+  const mergedCount = duplicate.count + updatedItem.count;
+
+  updatedRoomItems = updatedRoomItems.filter(
+    (itm) => itm.groupingKey !== originalKey
+  );
+  updatedInventoryItems = updatedInventoryItems.filter(
+    (itm) => itm.groupingKey !== originalKey
+  );
+
+  const updatedDuplicate = {
+    ...duplicate,
+    count: mergedCount,
   };
+
+  updatedRoomItems = updatedRoomItems.map((itm) =>
+    itm.groupingKey === newKey ? updatedDuplicate : itm
+  );
+  updatedInventoryItems = updatedInventoryItems.map((itm) =>
+    itm.groupingKey === newKey ? updatedDuplicate : itm
+  );
+} else {
+  updatedRoomItems = updatedRoomItems.map((itm) =>
+    itm.groupingKey === originalKey ? updatedItem : itm
+  );
+  updatedInventoryItems = updatedInventoryItems.map((itm) =>
+    itm.groupingKey === originalKey ? updatedItem : itm
+  );
+}
+applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshBoxes: true});
+
+
+};
   
   
-  const handleDeleteItem = (id) => {
+  const handleDeleteItem = (itemToDelete) => {
     const roomId = selectedRoom?.id;
     if (!roomId) return;
   
     const currentItems = itemsByRoom[roomId] || [];
+    const currentItem = currentItems.find(itm => itm.groupingKey === itemToDelete.groupingKey);
+    if (!currentItem) return;
+    let updatedRoomItems;
+    let updatedInventory;
+    if (currentItem.count > 1) {
+      const updatedItem = { ...currentItem, count: currentItem.count - 1 };
+      updatedRoomItems = currentItems.map(itm =>
+        itm.groupingKey === itemToDelete.groupingKey ? updatedItem : itm
+      );
   
-    deleteInventoryItemMutation.mutate(
-      { id },
-      {
-        onSuccess: ({ item: updatedItem }) => {
-          let updatedItems;
-  
-          if (updatedItem === null) {
-            updatedItems = currentItems.filter((itm) => itm.id !== id);
-          } else {
-            updatedItems = currentItems.map((itm) =>
-              itm.id === id ? updatedItem : itm
-            );
-          }
-  
-          updateOriginMutation.mutate({
-            id: selectedOriginStopId,
-            data: {
-              itemsByRoom: {
-                ...itemsByRoom,
-                [roomId]: updatedItems,
-              },
-            },
-          });
-        },
-      }
-    );
+      updatedInventory = inventoryItems.map(itm =>
+        itm.groupingKey === itemToDelete.groupingKey ? updatedItem : itm
+      );
+    } else {
+      updatedRoomItems = currentItems.filter(itm => itm.groupingKey !== itemToDelete.groupingKey);
+      updatedInventory = inventoryItems.filter(itm => itm.groupingKey !== itemToDelete.groupingKey);
+    }
+    applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventory, refreshBoxes: false   });
+    setTimeout(() => {
+      refreshAutoBoxes();
+    }, 0);
   };
   const handleAddItem = (newItemInstance) => {
     if (!selectedRoom) return;
   
     const roomId = selectedRoom.id;
+    const groupingKey = newItemInstance.groupingKey || generateGroupingKey(newItemInstance);
     const itemData = {
       ...newItemInstance,
       originId: selectedOriginStopId,
       roomId,
-      groupingKey: newItemInstance.groupingKey || generateGroupingKey(newItemInstance),
+      groupingKey,
+      count: 1,
     };
-  
-    createInventoryItemMutation.mutate(itemData, {
-      onSuccess: (updatedOrCreatedItem) => {
-        const currentItems = itemsByRoom[roomId] || [];
-        const existingIndex = currentItems.findIndex(
-          (item) => item.groupingKey === updatedOrCreatedItem.groupingKey
-        );
-  
-        let updated;
-        if (existingIndex !== -1) {
-          updated = [...currentItems];
-          updated[existingIndex] = updatedOrCreatedItem;
-        } else {
-          updated = [...currentItems, updatedOrCreatedItem];
-        }
-  
-        updateOriginMutation.mutate({
-          id: selectedOriginStopId,
-          data:{
-            itemsByRoom: {
-              ...itemsByRoom,
-              [roomId]: updated,
-            },
-          }
-        });
-      },
 
-    });
-  };
-
-  const handleMergeItems = (fromId, intoId, mergedItem) => {
-    if (!selectedRoom || !itemsByRoom[selectedRoom.id]) return;
+    const currentRoomItems = itemsByRoom[roomId] || [];
+    const existingInRoom = currentRoomItems.find(item => item.groupingKey === groupingKey);
   
-    const roomId = selectedRoom.id;
-    const currentItems = itemsByRoom[roomId];
+    let updatedRoomItems;
+    if (existingInRoom) {
+      updatedRoomItems = currentRoomItems.map(item =>
+        item.groupingKey === groupingKey
+          ? { ...item, count: item.count + 1 }
+          : item
+      );
+    } else {
+      updatedRoomItems = [...currentRoomItems, itemData];
+    }
   
-    const updatedRoomItems = currentItems
-      .filter((itm) => itm.id !== fromId && itm.id !== intoId)
-      .concat(mergedItem);
+    const existingInInventory = inventoryItems.find(item => item.groupingKey === groupingKey);
   
-    updateOriginMutation.mutate({
-      id: selectedOriginStopId,
-      data: {
-        itemsByRoom: {
-          ...itemsByRoom,
-          [roomId]: updatedRoomItems,
-        },
-      },
-    });
-  };
-  
-  
-
-  // ==================== AUTO-ADD BOXES (if isToggled) ====================
-  useEffect(() => {
-    if (!isToggled || !inventoryItems) return;
-  
-    let totalLbs = 0;
-    const excludedRoomId = 13;
-    const excludedIds = ["529", "530", "531", "532", "533", "534", "535", "536", "537"];
-  
-    inventoryItems.forEach((itm) => {
-      if (itm.roomId === excludedRoomId) return;
-      if (!excludedIds.includes(itm.furnitureItemId?.toString())) {
-        const lbsVal = parseFloat(itm.lbs || itm.furnitureItem?.lbs);
-        if (!isNaN(lbsVal)) {
-          totalLbs += lbsVal;
-        }
-      }
-    });
-  
-    if (prevTotalLbsRef.current === totalLbs) return;
-    prevTotalLbsRef.current = totalLbs;
-  
-    const boxesPer200lbs = 3;
-    const nUnits = Math.ceil(totalLbs / 200);
-    const totalBoxes = nUnits * boxesPer200lbs;
-  
-    const distribution = [
-      { percent: 0.10, itemId: "533" },
-      { percent: 0.05, itemId: "529" },
-      { percent: 0.20, itemId: "534" },
-      { percent: 0.45, itemId: "535" },
-      { percent: 0.20, itemId: "536" },
-    ];
-    const boxesToAdd = distribution.map((dist) => ({
-      itemId: dist.itemId,
-      count: Math.round(totalBoxes * dist.percent),
-    }));
-  
-    // Step 1: Delete old autoAdded from DB
-    const currentBoxes = itemsByRoom[13] || [];
-    //const nonAuto = currentBoxes.filter((itm) => !itm.autoAdded);
-    const autoAdded = currentBoxes.filter((itm) => itm.autoAdded);
-  
-    // Step 2: Create new autoAdded
-    const usedGroupingKeys = [];
-  
-    boxesToAdd.forEach((bx) => {
-      const itemData = allItems.find((it) => it.id.toString() === bx.itemId.toString());
-      if (!itemData  || bx.count === 0) return;
-      const groupingKey = generateGroupingKey({
-        furnitureItemId: itemData.id,
-        roomId: 13,
-        autoAdded: true,
-      });
-      usedGroupingKeys.push(groupingKey);
-  
-      const packing =
-        itemData.packingType && itemData.packingQuantity
-          ? { [itemData.packingType]: itemData.packingQuantity }
-          : {};
-          const existing = autoAdded.find((itm) => itm.groupingKey === groupingKey);
-  
-        const payload = {
-          originId: selectedOriginStopId,
-          furnitureItemId: itemData.id,
-          roomId: 13,
-          name: itemData.name,
-          imageName: itemData.imageName,
-          letters: [...itemData.letters],
-          search: itemData.search,
-          tags: [...itemData.tags],
-          notes: "",
-          cuft: itemData.cuft || "",
-          lbs: itemData.lbs || "",
-          packingNeeds: packing,
-          uploadedImages: [],
-          cameraImages: [],
-          autoAdded: true,
-          groupingKey,
-          count: bx.count,
-        }
-        if (existing) {
-          if (existing.count !== bx.count) {
-            updateInventoryItemMutation.mutate({ id: existing.id, data: payload });
-          }
-        } else {
-          createInventoryItemMutation.mutate(payload);
-        }
-      }
-    );
-    autoAdded.forEach((itm) => {
-      const stillNeeded = usedGroupingKeys.includes(itm.groupingKey);
-      if (!stillNeeded) {
-        deleteInventoryItemMutation.mutate({ id: itm.id });
-      }
-    });
-  }, [isToggled, inventoryItems, allItems, selectedOriginStopId]);
-  
+    let updatedInventoryItems;
+    if (existingInInventory) {
+      updatedInventoryItems = inventoryItems.map(item =>
+        item.groupingKey === groupingKey
+          ? { ...item, count: item.count + 1 }
+          : item
+      );
+    } else {
+      updatedInventoryItems = [...inventoryItems, itemData];
+    }
+    applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems, refreshBoxes: true });
+    
+    
+  }; 
   
 
   // Close entire Inventory
@@ -764,7 +621,8 @@ function Inventory({
 
   const currentRoomInstances = useMemo(() => {
     return itemsByRoom[selectedRoom?.id] || [];
-  }, [itemsByRoom, selectedRoom]);
+  }, [itemsByRoom, selectedRoom])
+
   
   
 
@@ -779,7 +637,6 @@ function Inventory({
         setStopIndex={setSelectedOriginStopId}
         // The “subset” for this stop
         itemsByRoom={itemsByRoom}
-        setRoomItemSelections={handleSetRoomItemSelections}
         displayedRooms={displayedRoomObjects}
         isToggled={isToggled}
         setIsToggled={setIsToggled}
@@ -803,7 +660,6 @@ function Inventory({
         handleUpdateItem={handleUpdateItem}
         handleDeleteItem={handleDeleteItem}
         handleAddItem={handleAddItem}
-        onMergeItems={handleMergeItems}
         handleStartFresh={handleStartFresh}
         // Delete toggle
         isDeleteActive={isDeleteActive}
@@ -872,6 +728,7 @@ function Inventory({
         )}
       </main>
       
+      
 
       {popupData && selectedRoom &&(
         <ItemPopup
@@ -882,7 +739,6 @@ function Inventory({
           onClose={handleClosePopup}
           onUpdateItem={handleUpdateItem}
           onAddItem={handleAddItem}
-          onMergeItems={handleMergeItems}
           onStartFresh={handleStartFresh}
           lead={lead}
         />
@@ -895,9 +751,7 @@ function Inventory({
         setIsDeleteActive={setIsDeleteActive}
         isSpecialHVisible={isSpecialHVisible}
         setIsSpecialHVisible={setIsSpecialHVisible}
-        // The item data for this stop
         itemsByRoom={itemsByRoom}
-        setRoomItemSelections={handleSetRoomItemSelections}
         selectedRoom={selectedRoom}
         displayedRooms={displayedRooms}
         onCloseInventory={handleClose}

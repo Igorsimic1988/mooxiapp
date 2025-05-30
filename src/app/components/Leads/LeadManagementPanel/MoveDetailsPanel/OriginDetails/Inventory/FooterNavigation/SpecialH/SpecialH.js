@@ -218,14 +218,14 @@ function SpecialH({
    *  Also remove any other tags from the EXCLUSIVE_LOCATION_TAGS set if we are adding a new one.
    */
 
-  const handleItemClick = (roomId, itemId) => {
+  const handleItemClick = (roomId, itemGroupingKey) => {
     if (!currentTag) {
       alert("Please select a tag from the dropdown before assigning.");
       return;
     }
   
     const itemsInRoom = itemsByRoom[roomId] || [];
-    const originalInstance = itemsInRoom.find(inst => inst.id === itemId);
+    const originalInstance = itemsInRoom.find(inst => inst.groupingKey === itemGroupingKey);
     if (!originalInstance) return;
   
     let newTags = Array.isArray(originalInstance.tags) ? [...originalInstance.tags] : [];
@@ -434,14 +434,13 @@ function SpecialH({
                   <ul className={styles.itemList}>
                     {itemArray.map((inst) => (
                       <ItemCard
-                        key={inst.id}
-                        id={inst.id}
+                        key={inst.groupingKey}
                         item={inst}
                         tags={inst.tags}
                         isSelected={
                           !!currentTag && inst.tags.includes(currentTag)
                         }
-                        onItemClick={() => handleItemClick(roomId, inst.id)}
+                        onItemClick={() => handleItemClick(roomId, inst.groupingKey)}
                       />
                     ))}
                   </ul>

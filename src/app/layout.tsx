@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ReactQueryProvider from "./reactQueryProvider";
 import { UiStateProvider } from "./components/Leads/LeadManagementPanel/MoveDetailsPanel/UiStateContext";
+import { InventoryProvider } from "./components/Leads/LeadManagementPanel/MoveDetailsPanel/InventoryContext";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -61,7 +62,9 @@ export default function RootLayout({
       >
         <ReactQueryProvider>
         <UiStateProvider>
+          <InventoryProvider>
           {children}
+          </InventoryProvider>
           </UiStateProvider>
         </ReactQueryProvider>
         </body>

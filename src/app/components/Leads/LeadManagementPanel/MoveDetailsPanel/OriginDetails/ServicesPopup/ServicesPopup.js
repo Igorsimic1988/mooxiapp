@@ -79,13 +79,26 @@ function ServicesPopup({
   const popupContentRef = useRef(null);
 
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
-    const [localStop, setLocalStop] = useState({});
+    const [originEdits, setOriginEdits] = useState({});
+    const [destinationEdits, setDestinationEdits] = useState({});
     const {
         selectedOriginStopId,
         setSelectedOriginStopId,
         selectedDestinationStopId,
         setSelectedDestinationStopId,
     } = useUiState();
+    const currentStops =
+    selectedPlace === 'origin' ? originStops : destinationStops;
+  
+  const selectedStopId =
+    selectedPlace === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
+    const originalStop = currentStops.find((s) => s.id === selectedStopId) || {};
+  const edits = selectedPlace === 'origin'
+    ? originEdits[selectedStopId] || {}
+    : destinationEdits[selectedStopId] || {};
+  const localStop = { ...originalStop, ...edits };
+  
+
 
   // close if clicked outside
   const handleClose = useCallback(() => {
@@ -104,12 +117,6 @@ function ServicesPopup({
     };
   }, [handleClose]);
 
-  const currentStops =
-  selectedPlace === 'origin' ? originStops : destinationStops;
-
-const selectedStopId =
-  selectedPlace === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
-
 
   // Decide which array
 
@@ -120,14 +127,7 @@ const selectedStopId =
       setSelectedDestinationStopId(id);
     }
   }
-  useEffect(() => {
-    if (!selectedStopId) return;
-        
-    const found = currentStops.find((s) => s.id === selectedStopId);
-    if (found) {
-      setLocalStop({...found});
-    }
-  }, [selectedStopId, currentStops, selectedPlace]);
+
 
     useEffect(() => {
       if (selectedPlace === 'origin' && originStops.length > 0) {
@@ -150,13 +150,29 @@ const selectedStopId =
       }
     }, [selectedPlace, originStops, destinationStops, lead.addStorage, lead.storageItems]);
 
-    function setStopField(fieldName, newValue) {
-      if (!selectedStopId) return;
-        setLocalStop((prev) => ({
+
+  function setStopField(fieldName, newValue) {
+    if (!selectedStopId) return;
+  
+    if (selectedPlace === 'origin') {
+      setOriginEdits((prev) => ({
         ...prev,
-        [fieldName]: newValue,
-    }));
+        [selectedStopId]: {
+          ...prev[selectedStopId],
+          [fieldName]: newValue,
+        },
+      }));
+    } else {
+      setDestinationEdits((prev) => ({
+        ...prev,
+        [selectedStopId]: {
+          ...prev[selectedStopId],
+          [fieldName]: newValue,
+        },
+      }));
+    }
   }
+  
   function filterAllowedFields(obj, allowedKeys) {
     return Object.fromEntries(
       Object.entries(obj).filter(([key]) => allowedKeys.includes(key))
@@ -164,23 +180,32 @@ const selectedStopId =
   }
   
 
+
   function handleSave() {
-    if (!localStop?.id) return;
+    // 1. Sacuvaj sve izmene za origin stopove
+    Object.entries(originEdits).forEach(([stopId, stopData]) => {
+      const filtered = filterAllowedFields(stopData, allowedOriginFields);
+      if (Object.keys(filtered).length > 0) {
+        onOriginUpdated(stopId, filtered);
+      }
+    });
   
-    const filteredData = filterAllowedFields(
-      localStop,
-      selectedPlace === 'origin' ? allowedOriginFields : allowedDestinationFields
-    );
+    // 2. Sacuvaj sve izmene za destination stopove
+    Object.entries(destinationEdits).forEach(([stopId, stopData]) => {
+      const filtered = filterAllowedFields(stopData, allowedDestinationFields);
+      if (Object.keys(filtered).length > 0) {
+        onDestinationUpdated(stopId, filtered);
+      }
+    });
   
-    if (selectedPlace === 'origin') {
-      console.log(filteredData, ' fiiil')
-      onOriginUpdated(localStop.id, filteredData);
-    } else {
-      onDestinationUpdated(localStop.id, filteredData);
-    }
+    setOriginEdits({});
+    setDestinationEdits({});
   
+    // 4. Zatvori popup
     setIsServicesPopupVisible(false);
   }
+  
+  
   
 
   function toggleField(fieldName) {

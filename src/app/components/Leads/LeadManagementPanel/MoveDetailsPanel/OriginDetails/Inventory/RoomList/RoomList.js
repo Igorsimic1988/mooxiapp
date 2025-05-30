@@ -83,7 +83,7 @@ function RoomList({
         const roomId = room.id ?? `fallback-${index}`;
         const itemInstances = itemsByRoom[roomId] || [];
         const isActive = selectedRoom && selectedRoom.id === room.id;
-        const selectedItemCount = itemInstances.length;
+        const selectedItemCount = itemInstances.reduce((sum, item) => sum + (item.count || 1), 0);
 
         const roomName = room.name || `Room #${roomId}`;
 
@@ -145,7 +145,7 @@ function RoomList({
           <div className={styles.rightSection}>
             {itemsByRoom[boxesRoom.id]?.length > 0 && (
               <div className={styles.itemCount}>
-                <p>{itemsByRoom[boxesRoom.id].length}</p>
+                <p>{itemsByRoom[boxesRoom.id].reduce((sum, item) => sum + (item.count || 1), 0)}</p>
               </div>
             )}
             <div className={styles.moreIcon}>

@@ -68,8 +68,6 @@ function DestinationDetails({
     mutationFn: (newDestinationData) =>createDestination({destinationsData: newDestinationData, leadId:lead.id,  token: token}),
     onSuccess:(createdDestination) => {
       console.log("New destination created:", createdDestination);
-      queryClient.invalidateQueries(['destinations']);
-      setDestinationStops((prev) => [...prev, createdDestination]);
     },
     onError: (err) => {
       console.log(err)
@@ -104,8 +102,9 @@ const handleAddNormalStop = () => {
   createDestinationMutation.mutate(newStop, {
     onSuccess: (createdDestination) => {
       console.log("New destination created:", createdDestination);
-      queryClient.invalidateQueries(['destinations']);
+      setDestinationStops((prev) => [...prev, createdDestination]);
       setSelectedDestinationStopId(createdDestination.id);
+      queryClient.invalidateQueries(['destinations']);
     },
     onError: (err) => {
       console.error('Failed to create destination stop', err);
@@ -125,8 +124,9 @@ const handleAddPostStorageStop = () => {
   createDestinationMutation.mutate(newStop, {
     onSuccess: (createdDestination) => {
       console.log("New destination created:", createdDestination);
-      queryClient.invalidateQueries(['destinations']);
+      setDestinationStops((prev) => [...prev, createdDestination]);
       setSelectedDestinationStopId(createdDestination.id);
+      queryClient.invalidateQueries(['destinations']);
     },
     onError: (err) => {
       console.error('Failed to create destination stop', err);
@@ -310,12 +310,12 @@ useEffect(() => {
       { id: currentStop.id },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries(['destinations']);
-          setDestinationStops((prev) => prev.filter((s) => s.id !== currentStop.id));
           const nextStopInGroup = groupStops[groupIndex - 1];
+          setDestinationStops((prev) => prev.filter((s) => s.id !== currentStop.id));
         if (nextStopInGroup?.id) {
           setSelectedDestinationStopId(nextStopInGroup.id);
         }
+        queryClient.invalidateQueries(['destinations']);
       }}
     );
   }

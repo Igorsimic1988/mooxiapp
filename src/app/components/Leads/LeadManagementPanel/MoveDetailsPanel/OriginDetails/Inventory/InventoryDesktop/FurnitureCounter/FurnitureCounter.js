@@ -4,9 +4,31 @@ import React, { useMemo } from 'react';
 import styles from './FurnitureCounter.module.css';
 
 // The IDs of items that should be counted as "Boxes"
-const boxItemIds = [
-  '127', '128', '129', '130', '131', '438',
-  ...Array.from({ length: 20 }, (_, i) => (529 + i).toString()), // '529'..'548'
+const boxItemNames = [
+  'Plastic Tote Large',
+  'Plastic Tote Medium',
+  'Plastic Tote Small',
+  'Plastic Tote Flat',
+  'Box Wardrobe 12cuft',
+  'Box Wardrobe Short',
+  'Box Lamp Large',
+  'Box Extra Large 6 cuft',
+  'Box Dishpack',
+  'Box Large 4,5 cuft',
+  'Box Medium 3 cuft',
+  'Box Small 1,5 cuft',
+  'Box Book ',
+  'Box File Large',
+  'Box File Small',
+  'Box Mirror Picture Large',
+  'Box Mirror Picture Small',
+  'Box TV 60 - 75 inch',
+  'Box TV 50 - 60 inch',
+  'Box TV 32 - 49 inch',
+  'Box TV 14 - 32 inch',
+  'Box TV Large',
+  'Box TV Medium',
+  'Box TV Small',
 ];
 
 /**
@@ -53,16 +75,16 @@ function FurnitureCounter({ itemsByRoom, displayedRooms }) {
       // Otherwise => count up items
       const items = itemsByRoom[roomId] || [];
       items.forEach((itemInstance) => {
-        const itemId = itemInstance.id;
+        const count = parseInt(itemInstance.count) || 1;
         const cuftVal = parseFloat(itemInstance.cuft) || 0;
         const lbsVal = parseFloat(itemInstance.lbs) || 0;
 
-        totalItems += 1;
-        totalCuft += cuftVal;
-        totalLbs += lbsVal;
+        totalItems += count;
+        totalCuft += cuftVal * count;
+        totalLbs += lbsVal * count;
 
-        if (boxItemIds.includes(itemId)) {
-          totalBoxes += 1;
+        if (boxItemNames.includes(itemInstance.name)) {
+          totalBoxes += count;
         }
       });
     });

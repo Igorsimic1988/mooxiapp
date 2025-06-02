@@ -528,7 +528,7 @@ useEffect(() => {
       name: item.name || '',
       imageName: item.imageName || '',
       letters: item.letters || [],
-      search: item.search || '',
+      search: item.search || false,
       tags: selectedTags,
       notes,
       cuft: cuft !== '' ? parseInt(cuft, 10) : null,

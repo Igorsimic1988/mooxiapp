@@ -199,7 +199,7 @@ function InventoryDesktop({
     if (searchQuery.trim() !== '') {
       const filtered = allItems.filter((itm) => {
         const match = itm.name.toLowerCase().includes(searchQuery.toLowerCase());
-        return match && itm.search !== 'N';
+        return match && itm.search !== false;
       });
       if (filtered.length === 0) {
         const customItem = allItems.find((x) => x.name === 'Custom Item');
@@ -234,7 +234,7 @@ function InventoryDesktop({
       name: inst.name || '',
       imageName: inst.imageName || '',
       letters: inst.letters || [],
-      search: inst.search || '',
+      search: inst.search || false,
       tags: inst.tags || [],
       cuft: inst.cuft || 0,
       lbs: inst.lbs || 0,

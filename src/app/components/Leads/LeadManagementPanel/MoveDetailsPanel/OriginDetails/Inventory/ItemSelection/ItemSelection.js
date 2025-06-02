@@ -73,7 +73,7 @@ function ItemSelection({
 
       if (searchQuery.trim() !== '') {
         // Search through all items but exclude items where search is 'N'
-        return matchesQuery && item.search !== 'N';
+        return matchesQuery && item.search !== false;
       }
 
       if (selectedSubButton.subButton) {

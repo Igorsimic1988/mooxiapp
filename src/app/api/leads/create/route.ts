@@ -49,6 +49,7 @@ export async function POST(req: Request) {
                   {
                     postStorage: false,
                     isActive: true,
+                    isVisible: true,
                     address: '',
                     apt: '',
                     city: '',
@@ -58,6 +59,7 @@ export async function POST(req: Request) {
                   {
                     postStorage: true,
                     isActive: false,
+                    isVisible: true,
                     address: '',
                     apt: '',
                     city: '',

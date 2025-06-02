@@ -16,7 +16,7 @@ import ServicesPopup from './ServicesPopup/ServicesPopup';
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
 import { useUiState } from '../UiStateContext';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createOrigin, deleteOrigin } from 'src/app/services/originsService';
+import { createOrigin } from 'src/app/services/originsService';
 import { useAccessToken } from "src/app/lib/useAccessToken";
 
 
@@ -60,18 +60,28 @@ function OriginDetails({
     }
   });
 
-  const deleteOriginMutation = useMutation({
-    mutationFn: deleteOrigin,
-    onSuccess: () => {
-      console.log('Origin deleted!');
-      queryClient.invalidateQueries(['origins']);
-    },
-    onError: (err) => {
-      console.error('Failed to delete origin', err);
-    }
-  });
-
   const handleAddNormalStop = () => {
+    const reusableStop = originStops.find(
+      (s) => s.isVisible === false
+    );
+  
+    if (reusableStop) {
+      onOriginUpdated(reusableStop.id, {
+        isVisible: true,
+        isActive: true,
+      });
+  
+      setOriginStops((prev) =>
+        prev.map((s) =>
+          s.id === reusableStop.id
+            ? { ...s, isVisible: true, isActive: true }
+            : s
+        )
+      );
+  
+      setSelectedOriginStopId(reusableStop.id);
+      return;
+    }
     const newStop = {
       address: '',
       apt: '',
@@ -79,6 +89,7 @@ function OriginDetails({
       state: '',
       zipCode: '',
       isActive: true,
+      isVisible: true,
     };
     createOriginMutation.mutate(newStop, {
       onSuccess: (createdOrigin) => {
@@ -145,20 +156,19 @@ function OriginDetails({
     
     const originIndex = originStops.findIndex(s => s.id === currentStop.id);
     if (originIndex === 0) return;
-    deleteOriginMutation.mutate(
-      { id: currentStop.id },
-      {
-        onSuccess: () => {
-          const nextStop = originStops[originIndex - 1];
-          setOriginStops((prev) => prev.filter((s) => s.id !== currentStop.id));
-          if (nextStop?.id) {
-            setSelectedOriginStopId(nextStop.id);
-          }
-          queryClient.invalidateQueries(['origins']);
-        },
-      }
+    const nextStop = originStops[originIndex - 1];
+    onOriginUpdated(currentStop.id, { isVisible: false, isActive: false});
+    setOriginStops((prev) =>
+      prev.map((s) =>
+        s.id === currentStop.id
+          ? { ...s, isVisible: false, isActive: false }
+          : s
+      )
     );
-    
+  
+    if (nextStop?.id) {
+      setSelectedOriginStopId(nextStop.id);
+    }    
    }
    useEffect(() => {
     if (fallbackOriginStopId) {
@@ -474,6 +484,7 @@ function OriginDetails({
   // Decide if "Deactivate" is visible => hide if "Main Address"
   const canDeactivate =
   originStops.findIndex((s) => s.id === selectedOriginStopId) !== 0;
+  const visibleOriginStops = originStops.filter((s) => s.isVisible !== false);
 
   return (
     <div className={styles.originContainer}>
@@ -488,7 +499,7 @@ function OriginDetails({
         <>
           {/* Row of origin stops + plus button */}
           <MainAndStopOffs
-            stops={originStops}
+            stops={visibleOriginStops}
             onAddNormalStop={handleAddNormalStop}
             placeType="origin"
           />

@@ -77,18 +77,4 @@ export const getDestinationById = async ({id}: {id: string;}) => {
     return data.destinations;
 };
 
-export const deleteDestination = async ({id}: {id: string;}) => {
-  const res = await fetch("/api/destinations/delete", {
-      method: "DELETE",
-      headers: { 
-          "Content-Type": "application/json",
-      },
-      body: JSON.stringify({id}),
-  });
 
-  const data = await res.json();
-  if (!res.ok) {
-      throw new Error(data.error || "Failed to delete destination");
-  }
-  return data;
-};

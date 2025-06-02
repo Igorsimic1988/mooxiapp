@@ -148,7 +148,7 @@ function MyInventory({
   }, [handleClose]);
 
   // Build a set of "active" drop points from lead
-  const destinationStops = lead?.destinations?.filter(s => s.isActive) || [];
+  const destinationStops = lead?.destinations?.filter(s => s.isActive && s.isVisible) || [];
   const postStorageStops = destinationStops.filter((s) => s.postStorage);
   const normalStops = destinationStops.filter((s) => !s.postStorage);
   const labeledActiveStops = destinationStops

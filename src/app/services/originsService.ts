@@ -76,19 +76,3 @@ export const getOiriginById = async ({id}: {id: string;}) => {
   
     return data.origins;
 };
-
-export const deleteOrigin = async ({id}: {id: string;}) => {
-  const res = await fetch("/api/origins/delete", {
-      method: "DELETE",
-      headers: { 
-          "Content-Type": "application/json",
-      },
-      body: JSON.stringify({id}),
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-      throw new Error(data.error || "Failed to delete origin");
-  }
-  return data;
-};

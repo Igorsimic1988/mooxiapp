@@ -144,7 +144,7 @@ function SpecialH({
   const postStorageStops = destinationStops.filter((s) => s.postStorage);
   const normalStops = destinationStops.filter((s) => !s.postStorage);
 
-  const activeStops = destinationStops.filter((s) => s.isActive);
+  const activeStops = destinationStops.filter((s) => s.isActive && s.isVisible);
   const hasMultipleActiveStops = activeStops.length >= 2;
 
   const activeStopValues = new Set();

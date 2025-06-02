@@ -12,7 +12,7 @@ import ServicesPopup from '../OriginDetails/ServicesPopup/ServicesPopup';
 import styles from './DestinationDetails.module.css';
 import { useUiState } from '../UiStateContext';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {  createDestination, deleteDestination } from 'src/app/services/destinationsService';
+import {  createDestination } from 'src/app/services/destinationsService';
 import { useAccessToken } from "src/app/lib/useAccessToken";
 
 /** Generate 15-min increments from 7:00 AM to midnight. */
@@ -76,20 +76,32 @@ function DestinationDetails({
 
 
 
-const deleteDestinationMutation = useMutation({
-  mutationFn: deleteDestination,
-  onSuccess: () => {
-    console.log('Destination deleted!');
-    queryClient.invalidateQueries(['destinations']);
-  },
-  onError: (err) => {
-    console.error('Failed to delete destination', err);
-  }
-});
+
 
 
 
 const handleAddNormalStop = () => {
+  const reusableStop = destinationStops.find(
+    (s) => !s.postStorage && s.isVisible === false
+  );
+
+  if (reusableStop) {
+    onDestinationUpdated(reusableStop.id, {
+      isVisible: true,
+      isActive: true,
+    });
+
+    setDestinationStops((prev) =>
+      prev.map((s) =>
+        s.id === reusableStop.id
+          ? { ...s, isVisible: true, isActive: true }
+          : s
+      )
+    );
+
+    setSelectedDestinationStopId(reusableStop.id);
+    return;
+  }
   const newStop = {
     address: '',
     apt: '',
@@ -97,6 +109,7 @@ const handleAddNormalStop = () => {
     state: '',
     zipCode: '',
     isActive: true,
+    isVisible: true,
     postStorage: false,
   };
   createDestinationMutation.mutate(newStop, {
@@ -112,6 +125,27 @@ const handleAddNormalStop = () => {
   });
 }
 const handleAddPostStorageStop = () => {
+  const reusableStop = destinationStops.find(
+    (s) => s.postStorage && s.isVisible === false
+  );
+
+  if (reusableStop) {
+    onDestinationUpdated(reusableStop.id, {
+      isVisible: true,
+      isActive: true,
+    });
+
+    setDestinationStops((prev) =>
+      prev.map((s) =>
+        s.id === reusableStop.id
+          ? { ...s, isVisible: true, isActive: true }
+          : s
+      )
+    );
+
+    setSelectedDestinationStopId(reusableStop.id);
+    return;
+  }
   const newStop = {
     address: '',
     apt: '',
@@ -119,6 +153,7 @@ const handleAddPostStorageStop = () => {
     state: '',
     zipCode: '',
     isActive: true,
+    isVisible: true,
     postStorage: true,
   };
   createDestinationMutation.mutate(newStop, {
@@ -306,18 +341,23 @@ useEffect(() => {
     if (groupIndex === 0) {
       return;
     }
-    deleteDestinationMutation.mutate(
-      { id: currentStop.id },
-      {
-        onSuccess: () => {
-          const nextStopInGroup = groupStops[groupIndex - 1];
-          setDestinationStops((prev) => prev.filter((s) => s.id !== currentStop.id));
-        if (nextStopInGroup?.id) {
-          setSelectedDestinationStopId(nextStopInGroup.id);
-        }
-        queryClient.invalidateQueries(['destinations']);
-      }}
+    onDestinationUpdated(currentStop.id, {
+      isVisible: false,
+      isActive: false,
+    });
+  
+    setDestinationStops((prev) =>
+      prev.map((s) =>
+        s.id === currentStop.id
+          ? { ...s, isVisible: false, isActive: false }
+          : s
+      )
     );
+  
+    const nextStopInGroup = groupStops[groupIndex - 1];
+    if (nextStopInGroup?.id) {
+      setSelectedDestinationStopId(nextStopInGroup.id);
+    }
   }
 
   // Time Restrictions
@@ -455,6 +495,8 @@ useEffect(() => {
     : normalStops.findIndex(s => s.id === currentStop.id) === 0;
 
   const isDeactivateVisible  = !isFirstStopInGroup; 
+  const visibleDestinationStops = destinationStops.filter((s) => s.isVisible !== false);
+
 
   return (
     <div className={styles.destinationContainer}>
@@ -470,7 +512,7 @@ useEffect(() => {
         <>
           {/* The row of stops (normal + postStorage) */}
           <MainAndStopOffs
-            stops={destinationStops}
+            stops={visibleDestinationStops}
             onAddNormalStop={handleAddNormalStop}
             onAddPostStorageStop={handleAddPostStorageStop}
             placeType="destination"

@@ -282,7 +282,7 @@ function ItemPopup({
     'hoisting_destination',
     'crane_destination',
   ];
-  const activeStops = lead?.destinationStops?.filter((s) => s.isActive) || [];
+  const activeStops = lead?.destinationStops?.filter((s) => s.isActive && isVisible) || [];
   const hasMultipleActiveStops = activeStops.length >= 2;
   const activeStopValues = new Set();
 

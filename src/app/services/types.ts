@@ -110,6 +110,7 @@ export type LeadInput = {
     timeRestrictionStartTime?: string;
     timeRestrictionEndTime?: string;
     isActive?: boolean;
+    isVisible?:boolean;
   };
   
   
@@ -149,6 +150,7 @@ export type LeadInput = {
     timeRestrictionStartTime?: string;
     timeRestrictionEndTime?: string;
     isActive?: boolean;
+    isVisible?: boolean;
   };
   
   export type FurnitureInput = {

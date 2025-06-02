@@ -23,10 +23,17 @@ function HouseInfo({ lead }) {
   // 1) combine stops
   const combinedStops = useMemo(() => {
     if (!lead) return [];
-    const origin = (lead.origins || []).map((stop) => ({ ...stop, stopType: 'origin' }));
-    const destination = (lead.destinations || [])
-      .filter((stop) => stop.additionalServices && stop.additionalServices.length > 0)
-      .map((stop) => ({ ...stop, stopType: 'destination' }));
+    const origin = (lead.origins || [])
+    .filter((stop) => stop.isVisible !== false)
+    .map((stop) => ({ ...stop, stopType: 'origin' }));
+
+  const destination = (lead.destinations || [])
+    .filter((stop) => 
+      stop.isVisible !== false &&
+      stop.additionalServices &&
+      stop.additionalServices.length > 0
+    )
+    .map((stop) => ({ ...stop, stopType: 'destination' }));
     return [...origin, ...destination];
   }, [lead]);
 

@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_POSTGRES_PRISMA_URL")
+  url      = env("POSTGRES_URL")
 }
 
 //role: admin, owner-oboje settings, salesman-svoji lidovi,salesmenager-svima
@@ -278,6 +278,7 @@ model Origins {
   timeRestrictionStartTime String?
   timeRestrictionEndTime String?
   isActive               Boolean?
+  isVisible              Boolean?
   inventoryItems        InventoryItem[]
 }
 
@@ -320,6 +321,7 @@ model Destinations {
   timeRestrictionStartTime String?
   timeRestrictionEndTime String?
   isActive               Boolean?
+  isVisible              Boolean?
 }
 
 

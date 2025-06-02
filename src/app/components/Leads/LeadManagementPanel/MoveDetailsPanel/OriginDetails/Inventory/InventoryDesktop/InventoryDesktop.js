@@ -187,7 +187,6 @@ function InventoryDesktop({
     (acc, inst) => {
       const key = inst.furnitureItemId.toString();
       acc[key] = (acc[key] || 0)  + (inst.count);
-      console.log(acc[key], '  acc[key]', acc, 'acc')
       return acc;
     },
     {}

@@ -34,18 +34,7 @@ function MainAndStopOffs({
   
   const selectedStopId = placeType === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
   const setSelectedStopId = placeType === 'origin' ? setSelectedOriginStopId : setSelectedDestinationStopId;
-  
 
-
-  // const mappedStops = useMemo(() => {
-  //   return stops.map((stopObj, realIndex) => ({
-  //     ...stopObj,
-  //     realIndex,
-  //   }));
-  // }, [stops]);
-  // useEffect(() => {
-  //   ///const selectedStop = stops[selectedStopIndex];
-  // }, [selectedStopIndex, stops]);
 
 
   const normalStops = stops.filter((s) => !s.postStorage);

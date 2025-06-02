@@ -29,11 +29,13 @@ export function generateAutoBoxes({
     if (itm.roomId === excludedRoomId) return;
     if (!excludedNames.includes(itm.name?.trim())) {
       const lbsVal = parseFloat(itm.lbs || itm.furnitureItem?.lbs);
+      const count = itm.count || 1;
       if (!isNaN(lbsVal)) {
-        totalLbs += lbsVal;
+        totalLbs += lbsVal * count;
       }
     }
   });
+  console.log (prevTotalLbs, totalLbs, ' iz generate')
 
   if (prevTotalLbs === totalLbs) return null;
 

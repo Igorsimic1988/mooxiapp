@@ -4,6 +4,7 @@ import React, { useMemo, useEffect, useRef } from 'react';
 import styles from './HouseInfo.module.css';
 import Icon from 'src/app/components/Icon';
 import { useUiState } from '../../../../UiStateContext';
+import { getStopLabel } from 'src/app/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/utils/getStopLabel'
 
 /**
  * HouseInfo:
@@ -26,7 +27,6 @@ function HouseInfo({ lead }) {
     const destination = (lead.destinations || [])
       .filter((stop) => stop.additionalServices && stop.additionalServices.length > 0)
       .map((stop) => ({ ...stop, stopType: 'destination' }));
-      console.log(origin)
     return [...origin, ...destination];
   }, [lead]);
 
@@ -61,17 +61,9 @@ function HouseInfo({ lead }) {
   // Current stop
   const stopIndexInList = combinedStops.findIndex(stop => stop.id === selectedOriginStopId);
   const currentStop = combinedStops[stopIndexInList] || combinedStops[0];
-  const destinationStops = combinedStops.filter(s => s.stopType === 'destination');
-const originStops = combinedStops.filter(s => s.stopType === 'origin');
 
-const isDestination = currentStop.stopType === 'destination';
-const sameTypeStops = isDestination ? destinationStops : originStops;
-const stopOrder = sameTypeStops.findIndex(s => s.id === currentStop.id);
-const isFirst = stopOrder === 0;
 
-const label = isDestination
-  ? isFirst ? 'Main Drop off' : `Drop off ${stopOrder + 1}`
-  : isFirst ? 'Main Address' : `Stop off ${stopOrder + 1}`;
+const label = getStopLabel(currentStop, combinedStops);
 
   const typeOfPlace = currentStop?.typeOfPlace?.trim() || 'No Place Set';
 
@@ -111,15 +103,8 @@ const label = isDestination
         {!isSingleStop && isOpen && (
           <ul className={styles.customDropdown}>
             {combinedStops.map((stop) => {
-                const isDestination = stop.stopType === 'destination';
-                const sameTypeStops = isDestination ? destinationStops : originStops;
-                const stopOrder = sameTypeStops.findIndex(s => s.id === stop.id);
-                const isFirst = stopOrder === 0;
               
-                const label = isDestination
-                  ? isFirst ? 'Main Drop off' : `Drop off ${stopOrder + 1}`
-                  : isFirst ? 'Main Address' : `Stop off ${stopOrder + 1}`;
-              console.log(label, '  laa')
+                const label = getStopLabel(stop, combinedStops)
               const itemTypeOfPlace = stop.typeOfPlace?.trim() || 'No Place Set';
               const displayText = `${itemTypeOfPlace} - ${label}`;
               const isSelected = stop.id === selectedOriginStopId;

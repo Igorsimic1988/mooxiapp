@@ -216,14 +216,12 @@ function ItemPopup({
   onUpdateItem,
   onAddItem,
   itemInstance,
-  ItemInstances = [],
   handleDeleteItem,
   onStartFresh,
   lead,
 }) {
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
   const [isSaving, setIsSaving] = useState(false);
-  console.log(currentItemInstance, ' curr')
 
   // Tag states
   const [selectedPackingTags, setSelectedPackingTags] = useState([]);
@@ -785,7 +783,6 @@ useEffect(() => {
       deleteImageButtonRef.current.focus();
     }
   }, [isPreviewVisible]);
-  console.log("ItemPopup count:", itemCount);
 
 
   return (

@@ -26,7 +26,6 @@ function HeaderDashboard({
 }) {
   const handleArrowClick = () => {
     if (isInInventory) {
-      console.log(isDesktopInventory, '  is')
       // If it's desktop, always close inventory
       if (isDesktopInventory) {
         onCloseInventory();

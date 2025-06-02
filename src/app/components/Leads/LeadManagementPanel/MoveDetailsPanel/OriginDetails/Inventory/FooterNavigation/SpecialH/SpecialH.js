@@ -164,9 +164,6 @@ function SpecialH({
 
   const tag = labelToDropTag(label);
   activeStopValues.add(tag);
-      // const label = index === 0 ? 'Main Drop off' : `Drop off ${index + 1}`;
-      // const dropVal = labelToDropTag(label);
-      // activeStopValues.add(dropVal);
     });
   }
   // Filter the dropPoints

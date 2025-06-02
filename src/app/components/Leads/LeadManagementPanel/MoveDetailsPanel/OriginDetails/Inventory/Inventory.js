@@ -16,12 +16,10 @@ import ItemPopup from "./ItemSelection/Item/ItemPopup/ItemPopup";
 // Data + Utils
 import rooms from "../../../../../../data/constants/AllRoomsList";
 import { generateGroupingKey } from "./utils/generateGroupingKey";
-import { useAccessToken } from "src/app/lib/useAccessToken";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllFurnitureItems } from "src/app/services/furnitureService";
-import { createInventoryItem, deleteInventoryItem, getInventoryByOriginId, updateInventoryItem } from "src/app/services/inventoryItemsService";
+import { getInventoryByOriginId, syncInventoryForOrigin } from "src/app/services/inventoryItemsService";
 import { useUiState } from "../../UiStateContext";
-import { updateOrigin } from 'src/app/services/originsService';
 import { useInventoryContext } from "../../InventoryContext";
 import { generateAutoBoxes } from './utils/generateAutoBoxes';
 // The “default displayed” rooms as numeric IDs
@@ -33,7 +31,6 @@ function Inventory({
   setInventoryRoom, // function to set selected room object (for mobile)
 }) {
 
-   const token = useAccessToken();
   const { data: allItems = [] } = useQuery({
     queryKey: ['furnitureItems', lead?.brandId],
     queryFn: () => getAllFurnitureItems({ brandId: lead?.brandId }),
@@ -41,48 +38,17 @@ function Inventory({
   });
 
   const queryClient = useQueryClient();
-    const createInventoryItemMutation = useMutation({
-      mutationFn: (data) =>createInventoryItem({data, token}),
-      onSuccess:(createdInventoryItem) => {
-        console.log("New inventory item created:", createdInventoryItem);
-        queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
-      },
-      onError: (err) => {
-        console.log(err)
-      }
-    });
-  const deleteInventoryItemMutation = useMutation({
-    mutationFn: deleteInventoryItem,
+
+  const syncAllInventoryDataMutation = useMutation({
+    mutationFn: ({originId, displayedRooms, itemsByRoom, inventoryItems}) => syncInventoryForOrigin({originId, displayedRooms, itemsByRoom, inventoryItems}),
     onSuccess: () => {
-      console.log('InventoryItem deleted!');
+      console.log('success');
       queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
     },
     onError: (err) => {
-      console.error('Failed to delete inventory item', err);
+      console.log(err);
     }
   });
-
-    const updateInventoryItemMutation = useMutation({
-        mutationFn: ({id, data}) =>updateInventoryItem({id, data}),
-      onSuccess:(updatedInventoryItem) => {
-        console.log("Updated inventory item:", updatedInventoryItem);
-        queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
-      },
-      onError: (err) => {
-        console.log(err)
-      }
-    });
-
-      const updateOriginMutation = useMutation({
-        mutationFn: ({id, data }) =>updateOrigin({id, data, token}),
-        onSuccess:(updatedOrigin) => {
-          //console.log("Updated origin:", updatedOrigin);
-          queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
-        },
-        onError: (err) => {
-          console.log(err)
-        }
-      });
   
   // Which "Stop" index we’re on (0-based)
   const { selectedOriginStopId, setSelectedOriginStopId } = useUiState();
@@ -185,9 +151,7 @@ function Inventory({
     }
   }, [inventoryData]);
   
-  console.log('inventoryItems ', inventoryItems)
   useEffect(() => {
-    //console.log('Selected Origin Stop ID:', selectedOriginStopId);
   }, [selectedOriginStopId]);
   
   const selectedRoom = inventoryRoom;
@@ -250,7 +214,7 @@ function Inventory({
   const duplicate = updatedInventoryItems.find(
     (itm) =>
       itm.groupingKey === resetItem.groupingKey &&
-      itm.groupingKey !== newItemInstance.groupingKey // da ne uzme samog sebe
+      itm.groupingKey !== newItemInstance.groupingKey
   );
 
   if (duplicate) {
@@ -606,16 +570,27 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
   
 
   // Close entire Inventory
-  const handleClose = () => {
-    onCloseInventory();
+  const handleClose = async () => {
+    try {
+      await syncAllInventoryDataMutation.mutateAsync({
+        originId: selectedOriginStopId,
+        displayedRooms,
+        itemsByRoom,
+        inventoryItems,
+      });
+  
+      onCloseInventory(); 
+    } catch (error) {
+      console.error("Sync failed:", error);
+    }
   };
+  
   const displayedRoomObjects = (displayedRooms || []).map((rId) => {
     const found = rooms.find((rm) => rm.id === rId);
     return found || { id: rId, name: `Room #${rId}` };
   });
   useEffect(() => {
     if (selectedRoom && itemsByRoom[selectedRoom.id]) {
-      console.log('Room Items Updated:', itemsByRoom[selectedRoom.id]);
     }
   }, [itemsByRoom, selectedRoom]);
 

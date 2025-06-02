@@ -18,7 +18,8 @@ export const getInventoryByOriginId = async ({originId}: {originId: string;}) =>
       inventoryItems: data.inventoryItems,
       itemsByRoom: data.itemsByRoom,
       displayedRooms: data.displayedRooms,
-    };};
+    };
+  };
 
 
   export const createInventoryItem = async ({ data, token }: { data: InventoryItemInput; token: string; }) => {
@@ -96,4 +97,22 @@ export const getInventoryByOriginId = async ({originId}: {originId: string;}) =>
       }
     
       return response;
+    };
+
+    export const syncInventoryForOrigin = async ({ originId, displayedRooms, itemsByRoom, inventoryItems }: { originId: string; displayedRooms: number[]; itemsByRoom: Record<number, InventoryItemInput[]>; inventoryItems: InventoryItemInput[]; }) => {
+      const res = await fetch('/api/inventoryItem/full-inventory', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({originId, displayedRooms, itemsByRoom, inventoryItems}),
+      });
+    
+      const response = await res.json();
+    
+      if (!res.ok) {
+        throw new Error(response.error || 'Failed to sync inventory data');
+      }
+    
+      return response; 
     };

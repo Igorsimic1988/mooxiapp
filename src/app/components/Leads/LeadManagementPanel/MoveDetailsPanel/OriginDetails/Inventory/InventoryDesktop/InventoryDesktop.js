@@ -239,7 +239,7 @@ function InventoryDesktop({
       lbs: inst.lbs || 0,
       roomId: inst.roomId,
       displayedRooms: inst.displayedRooms || [],
-      packingNeeds: inst.packingNeeds || {},
+      packingNeeds: inst.packingNeeds || [],
       link: inst.link || '',
       notes: inst.notes || '',
       uploadedImages: inst.uploadedImages || [],

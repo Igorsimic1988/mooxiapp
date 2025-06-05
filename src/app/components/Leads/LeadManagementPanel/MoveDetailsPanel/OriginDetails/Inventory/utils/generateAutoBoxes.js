@@ -73,10 +73,8 @@ export function generateAutoBoxes({
     });
     usedGroupingKeys.push(groupingKey);
 
-    const packing =
-      itemData.packingType && itemData.packingQuantity
-        ? { [itemData.packingType]: itemData.packingQuantity }
-        : {};
+    const packing = Array.isArray(itemData.packingNeeds) ? itemData.packingNeeds : [];
+
 
     const existing = autoAdded.find((itm) => itm.groupingKey === groupingKey);
 

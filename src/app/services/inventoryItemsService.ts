@@ -18,17 +18,18 @@ export const getInventoryByOriginId = async ({originId}: {originId: string;}) =>
       inventoryItems: data.inventoryItems,
       itemsByRoom: data.itemsByRoom,
       displayedRooms: data.displayedRooms,
+      autoBoxEnabled: data.autoBoxEnabled,
     };
   };
 
 
-    export const syncInventory = async ({ stopId, stopType, displayedRooms, itemsByRoom, inventoryItems }: { stopId: string;  stopType: 'origin' | 'destination';displayedRooms: number[]; itemsByRoom: Record<number, InventoryItemInput[]>; inventoryItems: InventoryItemInput[]; }) => {
+    export const syncInventory = async ({ stopId, stopType, displayedRooms, itemsByRoom, inventoryItems, autoBoxEnabled }: { stopId: string;  stopType: 'origin' | 'destination';displayedRooms: number[]; itemsByRoom: Record<number, InventoryItemInput[]>; inventoryItems: InventoryItemInput[];autoBoxEnabled: boolean; }) => {
       const res = await fetch('/api/inventoryItem/full-inventory', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({stopId, stopType, displayedRooms, itemsByRoom, inventoryItems}),
+        body: JSON.stringify({stopId, stopType, displayedRooms, itemsByRoom, inventoryItems, autoBoxEnabled}),
       });
     
       const response = await res.json();
@@ -58,5 +59,6 @@ export const getInventoryByOriginId = async ({originId}: {originId: string;}) =>
         inventoryItems: data.inventoryItems,
         itemsByRoom: data.itemsByRoom,
         displayedRooms: data.displayedRooms,
+        autoBoxEnabled: data.autoBoxEnabled,
       };
     };

@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { stopId, stopType, displayedRooms, itemsByRoom, inventoryItems } = body;
+    const { stopId, stopType, displayedRooms, itemsByRoom, inventoryItems, autoBoxEnabled } = body;
 
     if (!stopId || !stopType) {
       return NextResponse.json({ error: "Stop ID and stopType are required" }, { status: 400 });
@@ -20,6 +20,7 @@ export async function POST(req: Request) {
         data: {
           displayedRooms,
           itemsByRoom,
+          autoBoxEnabled,
         },
       });
     } else {
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
         data: {
           displayedRooms,
           itemsByRoom,
+          autoBoxEnabled,
         },
       });
     }

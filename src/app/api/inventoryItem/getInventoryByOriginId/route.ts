@@ -28,7 +28,8 @@ export async function GET(req: Request) {
 
     return NextResponse.json({  inventoryItems: origin.inventoryItems,
       itemsByRoom: origin.itemsByRoom ?? {},      // Ovo mora postojati u modelu!
-      displayedRooms: origin.displayedRooms ?? [], });
+      displayedRooms: origin.displayedRooms ?? [], 
+      autoBoxEnabled: origin.autoBoxEnabled});
   } catch (error) {
     console.error("Error fetching inventory for origin:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

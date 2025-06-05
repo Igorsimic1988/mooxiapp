@@ -245,6 +245,7 @@ model Origins {
   lead                   Lead     @relation(fields: [leadId], references: [id])
   displayedRooms        Int[]   @default([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
   itemsByRoom Json? @default("{}")
+  autoBoxEnabled         Boolean @default(true)
   address                String?
   apt                    String?
   city                   String?
@@ -289,6 +290,7 @@ model Destinations {
   lead                   Lead     @relation(fields: [leadId], references: [id])
   displayedRooms        Int[]   @default([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
   itemsByRoom Json? @default("{}")
+  autoBoxEnabled         Boolean @default(true)
   address                String?
   apt                    String?
   city                   String?

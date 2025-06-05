@@ -78,8 +78,9 @@ export type LeadInput = {
     apt?: string;
     city?: string;
     state?: string;
-    displayedRooms?: number[]
-    itemsByRoom?: JSON,
+    displayedRooms?: number[];
+    itemsByRoom?: JSON;
+    autoBoxEnabled?:boolean;
     zipCode?: string;
     typeOfPlace?: string;
     moveSize?: string;
@@ -119,8 +120,9 @@ export type LeadInput = {
     apt?: string;
     city?: string;
     state?: string;
-    displayedRooms?: number[]
-    itemsByRoom?: JSON,
+    displayedRooms?: number[];
+    itemsByRoom?: JSON;
+    autoBoxEnabled?:boolean;
     zipCode?: string;
     typeOfPlace?: string;
     moveSize?: string;

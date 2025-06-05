@@ -40,7 +40,7 @@ function Inventory({
   const queryClient = useQueryClient();
 
   const syncAllInventoryDataMutation = useMutation({
-    mutationFn: ({stopId, stopType, displayedRooms, itemsByRoom, inventoryItems}) => syncInventory({stopId, stopType, displayedRooms, itemsByRoom, inventoryItems}),
+    mutationFn: ({stopId, stopType, displayedRooms, itemsByRoom, inventoryItems, autoBoxEnabled}) => syncInventory({stopId, stopType, displayedRooms, itemsByRoom, inventoryItems, autoBoxEnabled}),
     onSuccess: (_data, variables) => {
       const { stopType } = variables;
       console.log('success');
@@ -80,8 +80,34 @@ function Inventory({
     itemsByRoom: {},
     displayedRooms: [],
     inventoryItems: [],
+    autoBoxEnabled: true,
   };
   const { itemsByRoom, displayedRooms, inventoryItems } = currentStopData;
+  const isToggled = currentStopData.autoBoxEnabled ?? true;
+  const setIsToggled = (newValue) => {
+    console.log(newValue, ' new')
+    setInventoryByStop((prev) => {
+      const stopData = prev[stopId] || {
+        itemsByRoom: {},
+        displayedRooms: [],
+        inventoryItems: [],
+        autoBoxEnabled: true,
+      };
+      const currentValue = stopData.autoBoxEnabled ?? true;
+      const resolvedValue =
+        typeof newValue === 'function' ? newValue(currentValue) : newValue;
+  
+      return {
+        ...prev,
+        [stopId]: {
+          ...stopData,
+          autoBoxEnabled: resolvedValue,
+        },
+      };
+    });
+  };
+  console.log(isToggled, '  is')
+  
 
 
 
@@ -98,7 +124,6 @@ function Inventory({
 
   // Toggles
   const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
-  const [isToggled, setIsToggled] = useState(true); // e.g. auto-box toggle
   const [isDesktop, setIsDesktop] = useState(false);
   const [isMyItemsActive, setIsMyItemsActive] = useState(false);
   const [isDeleteActive, setIsDeleteActive] = useState(false);
@@ -139,6 +164,7 @@ function Inventory({
         itemsByRoom: {},
         displayedRooms: [],
         inventoryItems: [],
+        autoBoxEnabled: true,
       };
   
       const newItemsByRoom = {
@@ -171,6 +197,7 @@ function Inventory({
         itemsByRoom: {},
         displayedRooms: [],
         inventoryItems: [],
+        autoBoxEnabled: true,
       };
   
       const newItemsByRoom = {
@@ -223,6 +250,7 @@ useEffect(() => {
         itemsByRoom: inventoryData.itemsByRoom || {},
         displayedRooms: inventoryData.displayedRooms || [],
         inventoryItems: inventoryData.inventoryItems || [],
+        autoBoxEnabled: inventoryData.autoBoxEnabled !== undefined ? inventoryData.autoBoxEnabled : true,
       }
     }));
   }
@@ -665,6 +693,7 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
           displayedRooms: stopData.displayedRooms,
           itemsByRoom: stopData.itemsByRoom,
           inventoryItems: stopData.inventoryItems,
+          autoBoxEnabled: stopData.autoBoxEnabled,
         });
       });
       

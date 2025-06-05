@@ -28,7 +28,8 @@ export async function GET(req: Request) {
 
     return NextResponse.json({  inventoryItems: destination.inventoryItems,
       itemsByRoom: destination.itemsByRoom ?? {},      
-      displayedRooms: destination.displayedRooms ?? [], });
+      displayedRooms: destination.displayedRooms ?? [], 
+      autoBoxEnabled: destination.autoBoxEnabled,});
   } catch (error) {
     console.error("Error fetching inventory for destination:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

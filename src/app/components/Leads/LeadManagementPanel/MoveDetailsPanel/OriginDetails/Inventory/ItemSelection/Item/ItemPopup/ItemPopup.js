@@ -240,7 +240,7 @@ function ItemPopup({
   const [isSlidingIn, setIsSlidingIn] = useState(false);
 
   // Packing materials
-  const [packingNeeds, setPackingNeeds] = useState({});
+  const [packingNeeds, setPackingNeeds] = useState([]);
 
   // Images
   const [cameraImages, setCameraImages] = useState([]);
@@ -264,14 +264,17 @@ function ItemPopup({
   const deleteImageButtonRef = useRef(null);
 
   // For "packingNeeds" multi-select
-  const selectedPackingNeeds = Object.keys(packingNeeds).map((key) => {
-    const foundOpt = packingOptions.find((o) => o.value === key);
-    return {
-      value: key,
-      name: foundOpt ? foundOpt.name : key,
-      count: packingNeeds[key],
-    };
-  });
+  const selectedPackingNeeds = Array.isArray(packingNeeds)
+  ? packingNeeds.map((entry) => {
+      const foundOpt = packingOptions.find((o) => o.value === entry.type);
+      return {
+        value: entry.type,
+        name: foundOpt ? foundOpt.name : entry.type,
+        count: entry.quantity,
+      };
+    })
+  : [];
+
 
   // Dynamically filter dropPoints
   const allDropPoints = optionsData.locationTags.dropPoints;
@@ -389,17 +392,14 @@ function ItemPopup({
     }
 
     // packingNeedsCounts
-    if (currentItemInstance?.packingNeeds) {
+    if (Array.isArray(currentItemInstance?.packingNeeds)) {
       setPackingNeeds(currentItemInstance.packingNeeds);
-    } else if (item.packing && item.packing.length > 0) {
-      const counts = {};
-      item.packing.forEach((pack) => {
-        counts[pack.type] = pack.quantity;
-      });
-      setPackingNeeds(counts);
+    } else if (item.packingNeeds && item.packingNeeds.length > 0) {
+      setPackingNeeds(item.packingNeeds);
     } else {
-      setPackingNeeds({});
+      setPackingNeeds([]);
     }
+    
 
     // Basic fields
     setCuft(currentItemInstance?.cuft || item.cuft || '');
@@ -485,25 +485,36 @@ function ItemPopup({
   const handlePackingNeedsChange = (selection, actionMeta) => {
     if (actionMeta.action === 'select-option' && actionMeta.option) {
       const selOpt = actionMeta.option;
-      setPackingNeeds((prev) => ({
-        ...prev,
-        [selOpt.value]: (prev[selOpt.value] || 0) + 1,
-      }));
+      setPackingNeeds((prev) => {
+        const existing = prev.find((p) => p.type === selOpt.value);
+        if (existing) {
+          return prev.map((p) =>
+            p.type === selOpt.value
+              ? { ...p, quantity: p.quantity + 1 }
+              : p
+          );
+        }
+        return [...prev, { type: selOpt.value, quantity: 1 }];
+      });
     } else if (actionMeta.action === 'remove-value' && actionMeta.removedValue) {
       const remOpt = actionMeta.removedValue;
       setPackingNeeds((prev) => {
-        const cpy = { ...prev };
-        if (cpy[remOpt.value] > 1) {
-          cpy[remOpt.value] -= 1;
-        } else {
-          delete cpy[remOpt.value];
+        const existing = prev.find((p) => p.type === remOpt.value);
+        if (!existing) return prev;
+        if (existing.quantity > 1) {
+          return prev.map((p) =>
+            p.type === remOpt.value
+              ? { ...p, quantity: p.quantity - 1 }
+              : p
+          );
         }
-        return cpy;
+        return prev.filter((p) => p.type !== remOpt.value);
       });
     } else if (actionMeta.action === 'clear') {
-      setPackingNeeds({});
+      setPackingNeeds([]);
     }
   };
+  
   // Sync state fields kad se currentItemInstance promeni
 useEffect(() => {
   if (!currentItemInstance) return;
@@ -515,7 +526,7 @@ useEffect(() => {
   setUploadedImages(currentItemInstance.uploadedImages || []);
   setCameraImages(currentItemInstance.cameraImages || []);
   setLink(currentItemInstance.link || '');
-  setPackingNeeds(currentItemInstance.packingNeeds || {});
+  setPackingNeeds(Array.isArray(currentItemInstance.packingNeeds) ? currentItemInstance.packingNeeds : []);
 }, [currentItemInstance]);
 
   const handleSaveItem = (overrides = {}) => {

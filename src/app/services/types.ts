@@ -165,8 +165,7 @@ export type LeadInput = {
     search?: "Y" | "N";
     tags?: string[];
     notes?: string;
-    packingType?: string;
-    packingQuantity?: number;
+    packingNeeds?: Record<string, number>;
     link?: string;
     uploadedImages?: string [];
     cameraImages?: string [];

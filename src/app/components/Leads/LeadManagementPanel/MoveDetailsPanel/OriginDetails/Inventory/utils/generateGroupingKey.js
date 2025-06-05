@@ -21,10 +21,11 @@ export const generateGroupingKey = (instance) => {
     const notesKey = instance.notes || '';
     const cuftKey = instance.cuft || '';
     const lbsKey = instance.lbs || '';
-  
-    const packingNeedsEntries = Object.entries(instance.packingNeeds || {}).sort();
-    const packingNeedsKey = packingNeedsEntries
-      .map(([key, value]) => `${key}:${value}`)
+    const packingNeedsArray = Array.isArray(instance.packingNeeds) ? instance.packingNeeds : [];
+    const packingNeedsKey = packingNeedsArray
+      .slice()
+      .sort((a, b) => a.type.localeCompare(b.type))
+      .map(({ type, quantity }) => `${type}:${quantity}`)
       .join(',');
   
     const linkKey = instance.link || '';

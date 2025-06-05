@@ -257,9 +257,9 @@ useEffect(() => {
       (f) => f.id === newItemInstance.furnitureItemId
     );
     const defaultPacking =
-        baseItem.packingType && baseItem.packingQuantity
-          ? { [baseItem.packingType]: baseItem.packingQuantity }
-          : {};
+      Array.isArray(baseItem.packingNeeds) && baseItem.packingNeeds.length > 0
+      ? [...baseItem.packingNeeds]
+      : [];
   
     const resetItem = {
       roomId,
@@ -406,7 +406,7 @@ useEffect(() => {
       notes: clickedItem.notes || '',
       cuft: clickedItem.cuft || '',
       lbs: clickedItem.lbs || '',
-      packingNeeds: clickedItem.packingNeeds || {},
+      packingNeeds: clickedItem.packingNeeds || [],
       link: clickedItem.link || '',
       uploadedImages: clickedItem.uploadedImages || [],
       cameraImages: clickedItem.cameraImages || [],
@@ -436,10 +436,11 @@ useEffect(() => {
       }
     } else {
       const defaultPacking =
-        clickedItem.packingType && clickedItem.packingQuantity
-          ? { [clickedItem.packingType]: clickedItem.packingQuantity }
-          : {};
-  
+        Array.isArray(clickedItem.packingNeeds) && clickedItem.packingNeeds.length > 0
+        ? [...clickedItem.packingNeeds]
+        : [];
+          console.log(defaultPacking)
+
       const newItemInstance = {
         roomId,
         furnitureItemId,
@@ -452,8 +453,8 @@ useEffect(() => {
         cuft: clickedItem.cuft || '',
         lbs: clickedItem.lbs || '',
         packingNeeds: isMyItemsActive
-          ? { ...clickedItem.packingNeeds }
-          : defaultPacking,
+        ? { ...clickedItem.packingNeeds }
+        : defaultPacking,        
         link: clickedItem.link || '',
         autoAdded: clickedItem.autoAdded || false,
         uploadedImages: [...(clickedItem.uploadedImages || [])],
@@ -461,6 +462,7 @@ useEffect(() => {
         groupingKey,
         count: 1,
       };
+      console.log(newItemInstance.packingNeeds, '  aa')
   
       if (existingItem) {
         const updatedItem = {

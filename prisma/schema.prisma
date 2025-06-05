@@ -134,8 +134,7 @@ model FurnitureItem {
   lbs      Int?   
   search   Boolean?
   tags     String[] @default([])
-  packingType  String?
-  packingQuantity Int?
+  packingNeeds  Json? 
   brandId String  
   brand   Brand  @relation(fields: [brandId], references: [id])
   inventoryItems InventoryItem[]

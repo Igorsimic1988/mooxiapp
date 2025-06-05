@@ -4,19 +4,13 @@ import React, { createContext, useContext, useState } from "react";
 const InventoryContext = createContext();
 
 export const InventoryProvider = ({ children }) => {
-  const [itemsByRoom, setItemsByRoom] = useState({});
-  const [displayedRooms, setDisplayedRooms] = useState([]);
-  const [inventoryItems, setInventoryItems] = useState([]);
+  const [inventoryByStop, setInventoryByStop] = useState({});
 
   return (
     <InventoryContext.Provider
       value={{
-        itemsByRoom,
-        setItemsByRoom,
-        displayedRooms,
-        setDisplayedRooms,
-        inventoryItems,
-        setInventoryItems,
+        inventoryByStop,
+        setInventoryByStop,
       }}
     >
       {children}

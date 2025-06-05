@@ -30,7 +30,7 @@ export async function GET(req: Request) {
       itemsByRoom: origin.itemsByRoom ?? {},      // Ovo mora postojati u modelu!
       displayedRooms: origin.displayedRooms ?? [], });
   } catch (error) {
-    console.error("Error fetching brand:", error);
+    console.error("Error fetching inventory for origin:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

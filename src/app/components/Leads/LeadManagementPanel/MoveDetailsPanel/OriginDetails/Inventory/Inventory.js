@@ -18,7 +18,7 @@ import rooms from "../../../../../../data/constants/AllRoomsList";
 import { generateGroupingKey } from "./utils/generateGroupingKey";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllFurnitureItems } from "src/app/services/furnitureService";
-import { getInventoryByOriginId, syncInventoryForOrigin } from "src/app/services/inventoryItemsService";
+import { getInventoryByOriginId, syncInventory, getInventoryByDestinationId } from "src/app/services/inventoryItemsService";
 import { useUiState } from "../../UiStateContext";
 import { useInventoryContext } from "../../InventoryContext";
 import { generateAutoBoxes } from './utils/generateAutoBoxes';
@@ -40,10 +40,15 @@ function Inventory({
   const queryClient = useQueryClient();
 
   const syncAllInventoryDataMutation = useMutation({
-    mutationFn: ({originId, displayedRooms, itemsByRoom, inventoryItems}) => syncInventoryForOrigin({originId, displayedRooms, itemsByRoom, inventoryItems}),
-    onSuccess: () => {
+    mutationFn: ({stopId, stopType, displayedRooms, itemsByRoom, inventoryItems}) => syncInventory({stopId, stopType, displayedRooms, itemsByRoom, inventoryItems}),
+    onSuccess: (_data, variables) => {
+      const { stopType } = variables;
       console.log('success');
-      queryClient.invalidateQueries(['inventoryByOrigin', selectedOriginStopId]);
+      if (stopType === 'origin'){
+        queryClient.invalidateQueries(['inventoryByOrigin', selectedStopInfo.id]);
+      } else {
+        queryClient.invalidateQueries(['inventoryByDestination', selectedStopInfo.id]);
+      }
     },
     onError: (err) => {
       console.log(err);
@@ -51,13 +56,35 @@ function Inventory({
   });
   
   // Which "Stop" index we’re on (0-based)
-  const { selectedOriginStopId, setSelectedOriginStopId } = useUiState();
-  const { itemsByRoom,
-    setItemsByRoom,
-    displayedRooms,
-    setDisplayedRooms,
-    inventoryItems,
-    setInventoryItems } = useInventoryContext();
+  const { selectedOriginStopId, setSelectedOriginStopId, selectedDestinationStopId, setSelectedDestinationStopId } = useUiState();
+  const selectedStopInfo = useMemo(() => {
+    if (selectedOriginStopId) {
+      return {
+        type: 'origin',
+        id: selectedOriginStopId,
+        setId: setSelectedOriginStopId
+      };
+    } else if (selectedDestinationStopId) {
+      return {
+        type: 'destination',
+        id: selectedDestinationStopId,
+        setId: setSelectedDestinationStopId
+      };
+    } else {
+      return null;
+    }
+  }, [selectedOriginStopId, selectedDestinationStopId, setSelectedOriginStopId, setSelectedDestinationStopId]);
+  const { inventoryByStop, setInventoryByStop } = useInventoryContext();
+  const stopId = selectedStopInfo?.id;
+  const currentStopData = inventoryByStop?.[stopId] || {
+    itemsByRoom: {},
+    displayedRooms: [],
+    inventoryItems: [],
+  };
+  const { itemsByRoom, displayedRooms, inventoryItems } = currentStopData;
+
+
+
 
 
   // Searching/filtering states
@@ -97,35 +124,71 @@ function Inventory({
     return () => window.removeEventListener("resize", setAppHeight);
   }, []);
   const refreshAutoBoxes = (updatedInventory) => {
+    if (!Array.isArray(updatedInventory) || !stopId) return;
+  
     const result = generateAutoBoxes({
       inventoryItems: updatedInventory,
       allItems,
-      originId: selectedOriginStopId,
       prevTotalLbs: prevTotalLbsRef.current,
     });
   
     if (!result) return;
   
-    setItemsByRoom((prev) => ({
-      ...prev,
-      [13]: result.updatedRoom13,
-    }));
+    setInventoryByStop((prev) => {
+      const currentStop = prev[stopId] || {
+        itemsByRoom: {},
+        displayedRooms: [],
+        inventoryItems: [],
+      };
   
-    setInventoryItems(() => {
-      const rest = updatedInventory.filter((itm) => itm.roomId !== 13 || !itm.autoAdded);
-      return [...rest, ...result.autoBoxes];
+      const newItemsByRoom = {
+        ...currentStop.itemsByRoom,
+        [13]: result.updatedRoom13,
+      };
+      const cleanedInventory = updatedInventory.filter(
+        (itm) => itm.roomId !== 13 || !itm.autoAdded
+      );
+      const newInventory = [...cleanedInventory, ...result.autoBoxes];
+  
+      prevTotalLbsRef.current = result.totalLbs;
+  
+      return {
+        ...prev,
+        [stopId]: {
+          ...currentStop,
+          itemsByRoom: newItemsByRoom,
+          inventoryItems: newInventory,
+        },
+      };
     });
-  
-    prevTotalLbsRef.current = result.totalLbs;
   };
+  
 
   const applyInventoryUpdates = ({ roomId, updatedRoomItems, updatedInventoryItems, refreshBoxes = false }) => {
-    setItemsByRoom(prev => ({
-      ...prev,
-      [roomId]: updatedRoomItems,
-    }));
+    if (!Array.isArray(updatedInventoryItems)) return;
+    setInventoryByStop(prev => {
+      const stopData = prev[stopId] || {
+        itemsByRoom: {},
+        displayedRooms: [],
+        inventoryItems: [],
+      };
   
-    setInventoryItems(updatedInventoryItems);
+      const newItemsByRoom = {
+        ...stopData.itemsByRoom,
+        [roomId]: updatedRoomItems,
+      };
+  
+      const updatedStop = {
+        ...stopData,
+        itemsByRoom: newItemsByRoom,
+        inventoryItems: updatedInventoryItems,
+      };
+  
+      return {
+        ...prev,
+        [stopId]: updatedStop,
+      };
+    });
     if (refreshBoxes && isToggled) {
       refreshAutoBoxes(updatedInventoryItems);
     }
@@ -138,21 +201,36 @@ function Inventory({
 
   // ==================== LOAD INVENTORY ON MOUNT ====================
 
-  const { data: inventoryData } = useQuery({
-    queryKey: ['inventoryByOrigin', selectedOriginStopId],
-    queryFn: () => getInventoryByOriginId({ originId: selectedOriginStopId }),
-    enabled: !!selectedOriginStopId, 
-  });
-  useEffect(() => {
-    if (inventoryData) {
-      setItemsByRoom(inventoryData.itemsByRoom || {});
-      setDisplayedRooms(inventoryData.displayedRooms || []);
-      setInventoryItems(inventoryData.inventoryItems || []);
-    }
-  }, [inventoryData]);
-  
-  useEffect(() => {
-  }, [selectedOriginStopId]);
+  const inventoryQueryKey = selectedStopInfo.type === 'origin'
+  ? ['inventoryByOrigin', selectedStopInfo.id]
+  : ['inventoryByDestination', selectedStopInfo.id];
+
+const inventoryQueryFn = selectedStopInfo.type === 'origin'
+  ? () => getInventoryByOriginId({ originId: selectedStopInfo.id })
+  : () => getInventoryByDestinationId({ destinationId: selectedStopInfo.id });
+
+const { data: inventoryData } = useQuery({
+  queryKey: inventoryQueryKey,
+  queryFn: inventoryQueryFn,
+  enabled: !!selectedStopInfo.id,
+});
+
+useEffect(() => {
+  if (inventoryData && selectedStopInfo?.id) {
+    setInventoryByStop((prev) => ({
+      ...prev,
+      [selectedStopInfo.id]: {
+        itemsByRoom: inventoryData.itemsByRoom || {},
+        displayedRooms: inventoryData.displayedRooms || [],
+        inventoryItems: inventoryData.inventoryItems || [],
+      }
+    }));
+  }
+}, [inventoryData, selectedStopInfo]);
+
+
+
+
   
   const selectedRoom = inventoryRoom;
   
@@ -184,7 +262,6 @@ function Inventory({
           : {};
   
     const resetItem = {
-      originId: selectedOriginStopId,
       roomId,
       furnitureItemId: newItemInstance.furnitureItemId,
       name: baseItem.name,
@@ -364,7 +441,6 @@ function Inventory({
           : {};
   
       const newItemInstance = {
-        originId: selectedOriginStopId,
         roomId,
         furnitureItemId,
         name: clickedItem.name,
@@ -428,7 +504,17 @@ function Inventory({
     if (!updated.includes(13)) {
       updated.push(13);
     }
-    setDisplayedRooms(updated);
+    setInventoryByStop(prev => {
+      const stopData = prev[stopId] || { itemsByRoom: {}, inventoryItems: [], displayedRooms: [] };
+    
+      return {
+        ...prev,
+        [stopId]: {
+          ...stopData,
+          displayedRooms: updated,
+        },
+      };
+    });
 
   };
   
@@ -451,7 +537,6 @@ function Inventory({
   
     const updatedItem = {
       ...updatedItemInstance,
-      originId: selectedOriginStopId,
       roomId,
       groupingKey: newKey,
       count: updatedItemInstance.count,
@@ -521,7 +606,7 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
     }
     applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventory, refreshBoxes: false   });
     setTimeout(() => {
-      refreshAutoBoxes();
+      refreshAutoBoxes(updatedInventory);
     }, 0);
   };
   const handleAddItem = (newItemInstance) => {
@@ -531,7 +616,6 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
     const groupingKey = newItemInstance.groupingKey || generateGroupingKey(newItemInstance);
     const itemData = {
       ...newItemInstance,
-      originId: selectedOriginStopId,
       roomId,
       groupingKey,
       count: 1,
@@ -567,19 +651,24 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
     
     
   }; 
-  
 
-  // Close entire Inventory
   const handleClose = async () => {
     try {
-      await syncAllInventoryDataMutation.mutateAsync({
-        originId: selectedOriginStopId,
-        displayedRooms,
-        itemsByRoom,
-        inventoryItems,
+      const stopSyncs = Object.entries(inventoryByStop).map(([stopId, stopData]) => {
+        const isOrigin = lead?.origins?.some((s) => String(s.id) === stopId);
+        const stopType = isOrigin ? "origin" : "destination";
+        return syncAllInventoryDataMutation.mutateAsync({
+          stopId,
+          stopType,
+          displayedRooms: stopData.displayedRooms,
+          itemsByRoom: stopData.itemsByRoom,
+          inventoryItems: stopData.inventoryItems,
+        });
       });
-  
-      onCloseInventory(); 
+      
+      await Promise.all(stopSyncs);
+      onCloseInventory();
+      
     } catch (error) {
       console.error("Sync failed:", error);
     }
@@ -608,8 +697,8 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
       <InventoryDesktop
         // The entire multi-stop object
         inventoryItems={inventoryItems}
-        stopIndex={selectedOriginStopId}
-        setStopIndex={setSelectedOriginStopId}
+        stopIndex={selectedStopInfo.id}
+        setStopIndex={selectedStopInfo.setId}
         // The “subset” for this stop
         itemsByRoom={itemsByRoom}
         displayedRooms={displayedRoomObjects}
@@ -661,8 +750,8 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
             displayedRooms={displayedRooms} // numeric IDs
             onToggleRoom={handleToggleRoom}
             lead={lead}
-            stopIndex={selectedOriginStopId}
-            onStopIndexChange={setSelectedOriginStopId}
+            stopIndex={selectedStopInfo.id}
+            onStopIndexChange={selectedStopInfo.setId}
           />
         )}
       </header>

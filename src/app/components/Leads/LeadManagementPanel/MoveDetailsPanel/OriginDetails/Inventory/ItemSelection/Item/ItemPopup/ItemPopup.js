@@ -523,7 +523,6 @@ useEffect(() => {
   
     const newInstance = {
       furnitureItemId: item.furnitureItemId,
-      originId: currentItemInstance?.originId,
       roomId: currentItemInstance?.roomId,
       name: item.name || '',
       imageName: item.imageName || '',

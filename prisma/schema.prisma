@@ -99,8 +99,10 @@ model VerificationToken {
 
 model InventoryItem {
   id              String        @id @default(uuid())
-  originId        String 
-  origins         Origins          @relation(fields: [originId], references: [id])
+  originId        String?
+  origins         Origins?          @relation(fields: [originId], references: [id])
+  destinationId   String?
+  destinations    Destinations?     @relation(fields: [destinationId], references: [id])
   furnitureItemId Int
   furnitureItem   FurnitureItem @relation(fields: [furnitureItemId], references: [id])
   name            String?
@@ -286,6 +288,8 @@ model Destinations {
   id                      String   @id @default(uuid())
   leadId                  String
   lead                   Lead     @relation(fields: [leadId], references: [id])
+  displayedRooms        Int[]   @default([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+  itemsByRoom Json? @default("{}")
   address                String?
   apt                    String?
   city                   String?
@@ -322,6 +326,7 @@ model Destinations {
   timeRestrictionEndTime String?
   isActive               Boolean?
   isVisible              Boolean?
+  inventoryItems        InventoryItem[]
 }
 
 

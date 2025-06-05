@@ -4,47 +4,67 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { originId, displayedRooms, itemsByRoom, inventoryItems } = body;
+    const { stopId, stopType, displayedRooms, itemsByRoom, inventoryItems } = body;
 
-    if (!originId) {
-      return NextResponse.json({ error: "Origin ID is required" }, { status: 400 });
+    if (!stopId || !stopType) {
+      return NextResponse.json({ error: "Stop ID and stopType are required" }, { status: 400 });
     }
 
-    await prisma.origins.update({
-      where: { id: originId },
-      data: {
-        displayedRooms,
-        itemsByRoom,
-      },
-    });
+    if (stopType === 'origin') {
+      await prisma.origins.update({
+        where: { id: stopId },
+        data: {
+          displayedRooms,
+          itemsByRoom,
+        },
+      });
+    } else {
+      await prisma.destinations.update({
+        where: { id: stopId },
+        data: {
+          displayedRooms,
+          itemsByRoom,
+        },
+      });
+    }
 
     for (const item of inventoryItems) {
-        const { id, originId: itemOriginId, furnitureItemId, ...rest } = item;
-  
-        const baseData = {
-          ...rest,
-          origins: {
-            connect: { id: itemOriginId }, 
-          },
-          furnitureItem: {
-            connect: { id: furnitureItemId },
+      const { id, furnitureItemId, destinationId, originId, ...rest } = item;
+
+      const relationField = stopType === 'origin' ? 'origins' : 'destinations';
+
+      const baseData = {
+        ...rest,
+        [relationField]: {
+          connect: { id: stopId },
+        },
+        furnitureItem: {
+          connect: { id: furnitureItemId },
+        },
+      };
+
+      if (id) {
+        const updateData = {
+          ...baseData,
+          [stopType === 'origin' ? 'destinations' : 'origins']: {
+            disconnect: true,
           },
         };
-  
-        if (id) {
-          await prisma.inventoryItem.update({
-            where: { id },
-            data: baseData,
-          });
-        } else {
-          await prisma.inventoryItem.create({
-            data: baseData,
-          });
-        }
+
+        await prisma.inventoryItem.update({
+          where: { id },
+          data: updateData,
+        });
+      } else {
+        await prisma.inventoryItem.create({
+          data: baseData,
+        });
       }
+    }
   
 
     return NextResponse.json({ success: true });

@@ -5,7 +5,6 @@ import { generateGroupingKey } from "./generateGroupingKey";
 export function generateAutoBoxes({
   inventoryItems,
   allItems,
-  originId,
   prevTotalLbs,
 }) {
   if (!inventoryItems) return null;
@@ -82,7 +81,6 @@ export function generateAutoBoxes({
     const existing = autoAdded.find((itm) => itm.groupingKey === groupingKey);
 
     const payload = {
-      originId,
       furnitureItemId: itemData.id,
       roomId: 13,
       name: itemData.name,
@@ -116,7 +114,6 @@ export function generateAutoBoxes({
     }
   });
 
-  // 🧹 Ukloni stare autoAdded koje više ne treba
   const unusedAutoBoxes = autoAdded.filter(
     (itm) => !usedGroupingKeys.includes(itm.groupingKey)
   );

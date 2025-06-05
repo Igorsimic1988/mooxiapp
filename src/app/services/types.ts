@@ -119,6 +119,8 @@ export type LeadInput = {
     apt?: string;
     city?: string;
     state?: string;
+    displayedRooms?: number[]
+    itemsByRoom?: JSON,
     zipCode?: string;
     typeOfPlace?: string;
     moveSize?: string;
@@ -174,12 +176,11 @@ export type LeadInput = {
   };
 
   export type InventoryItemInput = {
-    originId: string;               
-    furnitureItemId: number;        
-    roomId?: number;     
+    furnitureItemId: number;
+    roomId?: number;
     name?: string;
     imageName?: string;
-    letters?: string[];  
+    letters?: string[];
     search?: string;
     cuft?: number;
     lbs?: number;
@@ -187,12 +188,13 @@ export type LeadInput = {
     notes?: string;
     packingNeeds?: Record<string, number>;
     link?: string;
-    uploadedImages?: string [];
-    cameraImages?: string [];
+    uploadedImages?: string[];
+    cameraImages?: string[];
     groupingKey?: string;
     autoAdded?: boolean;
-    count?:number;
+    count?: number;
   };
+  
 
   
   

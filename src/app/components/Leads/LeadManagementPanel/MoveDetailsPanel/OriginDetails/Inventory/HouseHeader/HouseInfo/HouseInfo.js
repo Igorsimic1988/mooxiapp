@@ -17,7 +17,9 @@ function HouseInfo({ lead }) {
   const [isOpen, setIsOpen] = React.useState(false);
     const {
       selectedOriginStopId,
-      setSelectedOriginStopId
+      setSelectedOriginStopId,
+      selectedDestinationStopId,
+      setSelectedDestinationStopId
     } = useUiState();
 
   // 1) combine stops
@@ -66,8 +68,10 @@ function HouseInfo({ lead }) {
   const isSingleStop = (combinedStops.length === 1);
 
   // Current stop
-  const stopIndexInList = combinedStops.findIndex(stop => stop.id === selectedOriginStopId);
+  const selectedStopId = selectedOriginStopId || selectedDestinationStopId;
+  const stopIndexInList = combinedStops.findIndex(stop => stop.id === selectedStopId);
   const currentStop = combinedStops[stopIndexInList] || combinedStops[0];
+  
 
 
 const label = getStopLabel(currentStop, combinedStops);
@@ -84,8 +88,14 @@ const label = getStopLabel(currentStop, combinedStops);
   };
 
   // When user picks a new stop in the dropdown
-  const handleSelectStop = (stopId) => {
-    setSelectedOriginStopId(stopId);
+  const handleSelectStop = (stop) => {
+    if (stop.stopType === 'origin') {
+      setSelectedOriginStopId(stop.id);
+      setSelectedDestinationStopId(null); 
+    } else {
+      setSelectedDestinationStopId(stop.id);
+      setSelectedOriginStopId(null);
+    }
     setIsOpen(false);
   };
 
@@ -111,15 +121,18 @@ const label = getStopLabel(currentStop, combinedStops);
           <ul className={styles.customDropdown}>
             {combinedStops.map((stop) => {
               
-                const label = getStopLabel(stop, combinedStops)
+              const label = getStopLabel(stop, combinedStops)
               const itemTypeOfPlace = stop.typeOfPlace?.trim() || 'No Place Set';
               const displayText = `${itemTypeOfPlace} - ${label}`;
-              const isSelected = stop.id === selectedOriginStopId;
+              const isSelected =
+              (stop.stopType === 'origin' && stop.id === selectedOriginStopId) ||
+              (stop.stopType === 'destination' && stop.id === selectedDestinationStopId);
+
 
               return (
                 <li
                   key={stop.id}
-                  onClick={() => handleSelectStop(stop.id)}
+                  onClick={() => handleSelectStop(stop)}
                   className={`${styles.dropdownItem} ${isSelected ? styles.selectedOption : ''}`}
                 >
                   {displayText}

@@ -229,7 +229,6 @@ function InventoryDesktop({
   
     return arr.map((inst) => ({
       id: inst.id,
-      originId: inst.originId,
       furnitureItemId: inst.furnitureItemId,
       name: inst.name || '',
       imageName: inst.imageName || '',

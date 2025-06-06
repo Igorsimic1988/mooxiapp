@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import styles from './ServicesPopup.module.css';
 
 // Icons
@@ -9,62 +9,8 @@ import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 
 import Icon from '../../../../../Icon';
 import { useUiState } from '../../UiStateContext';
+import { whatsMovingOriginOptions, packingOriginOptions, unpackingDestinationOptions, blanketsOriginOptions, blanketsDestinationOptions, typeOfServiceChoices, allowedDestinationFields, allowedOriginFields } from './ServicesPopupConstants';
 
-// Example data for drop-downs
-const whatsMovingOriginOptions = ['Mixed', 'Boxes Only', 'Furniture Only'];
-const packingOriginOptions = [
-  'No Packing',
-  'Partial Packing',
-  'Full Packing',
-  'Custom Packing ( tagged )',
-];
-
-const unpackingDestinationOptions = [
-  'No Unpacking',
-  'Full Unpacking',
-  'Custom Unpacking ( tagged )',
-];
-
-const blanketsOriginOptions = [
-  'Needed',
-  'Blankets not needed',
-  'Paper Blankets',
-  'Custom ( tagged )',
-];
-const blanketsDestinationOptions = [
-  'Remove Blankets',
-  'Leave Blankets On',
-  'Custom ( tagged )',
-];
-
-// Additional services
-const typeOfServiceChoices = [
-  { id: 1, name: 'Moving' },
-  { id: 2, name: 'Move items within premises' },
-  { id: 3, name: 'Junk removal' },
-  { id: 4, name: 'Help with packing (Pack & Leave Service)' },
-  { id: 5, name: 'Help with Loading' },
-  { id: 6, name: 'Help with Unloading' },
-];
-
-const allowedOriginFields = [
-  'whatsMoving',
-  'packingOption',
-  'blanketsOption',
-  'itemsToBeTakenApart',
-  'hoistItems',
-  'craneNeeded',
-  'additionalServices',
-];
-
-const allowedDestinationFields = [
-  'unpackingOption',
-  'blanketsOption',
-  'itemsToBeAssembled',
-  'hoistItems',
-  'craneNeeded',
-  'additionalServices',
-];
 
 
 function ServicesPopup({
@@ -79,24 +25,20 @@ function ServicesPopup({
   const popupContentRef = useRef(null);
 
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
-    const [originEdits, setOriginEdits] = useState({});
-    const [destinationEdits, setDestinationEdits] = useState({});
+    const [localStops, setLocalStops] = useState([]);
+    const [localStop, setLocalStop] = useState({});
     const {
         selectedOriginStopId,
         setSelectedOriginStopId,
         selectedDestinationStopId,
         setSelectedDestinationStopId,
     } = useUiState();
-    const currentStops =
-    selectedPlace === 'origin' ? originStops : destinationStops;
+    const currentStops = useMemo(() => (
+      selectedPlace === 'origin' ? originStops : destinationStops
+    ), [selectedPlace, originStops, destinationStops]);
   
   const selectedStopId =
     selectedPlace === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
-    const originalStop = currentStops.find((s) => s.id === selectedStopId) || {};
-  const edits = selectedPlace === 'origin'
-    ? originEdits[selectedStopId] || {}
-    : destinationEdits[selectedStopId] || {};
-  const localStop = { ...originalStop, ...edits };
   
 
 
@@ -150,28 +92,35 @@ function ServicesPopup({
       }
     }, [selectedPlace, originStops, destinationStops, lead.addStorage, lead.storageItems]);
 
+    useEffect(() => {
+      const selected = currentStops.find((s) => s.id === selectedStopId);
+      if (!selected) return;
+    
+      const existsInLocal = localStops.find((s) => s.id === selected.id);
+      if (!existsInLocal) {
+        setLocalStops((prev) => [...prev, { ...selected, stopType: selectedPlace }]);
+        setLocalStop({ ...selected, stopType: selectedPlace });
+      } else {
+        setLocalStop({ ...existsInLocal });
+      }
+    }, [selectedStopId, selectedPlace, currentStops, localStops]);
+    
 
-  function setStopField(fieldName, newValue) {
-    if (!selectedStopId) return;
-  
-    if (selectedPlace === 'origin') {
-      setOriginEdits((prev) => ({
-        ...prev,
-        [selectedStopId]: {
-          ...prev[selectedStopId],
-          [fieldName]: newValue,
-        },
-      }));
-    } else {
-      setDestinationEdits((prev) => ({
-        ...prev,
-        [selectedStopId]: {
-          ...prev[selectedStopId],
-          [fieldName]: newValue,
-        },
-      }));
+
+    function setStopField(fieldName, newValue) {
+      if (!selectedStopId || localStop[fieldName] === newValue) return;
+      const updatedStop = {
+        ...localStop,
+        [fieldName]: newValue,
+      };
+      setLocalStop(updatedStop);
+    
+      setLocalStops((prev) =>
+        prev.map((stop) =>
+          stop.id === selectedStopId ? updatedStop : stop
+        )
+      );
     }
-  }
   
   function filterAllowedFields(obj, allowedKeys) {
     return Object.fromEntries(
@@ -182,26 +131,18 @@ function ServicesPopup({
 
 
   function handleSave() {
-    // 1. Sacuvaj sve izmene za origin stopove
-    Object.entries(originEdits).forEach(([stopId, stopData]) => {
-      const filtered = filterAllowedFields(stopData, allowedOriginFields);
-      if (Object.keys(filtered).length > 0) {
-        onOriginUpdated(stopId, filtered);
+    localStops.forEach((stop) => {
+      const filteredData = filterAllowedFields(
+        stop,
+        stop.stopType === 'origin' ? allowedOriginFields : allowedDestinationFields
+      );
+  
+      if (stop.stopType === 'origin') {
+        onOriginUpdated(stop.id, filteredData);
+      } else {
+        onDestinationUpdated(stop.id, filteredData);
       }
     });
-  
-    // 2. Sacuvaj sve izmene za destination stopove
-    Object.entries(destinationEdits).forEach(([stopId, stopData]) => {
-      const filtered = filterAllowedFields(stopData, allowedDestinationFields);
-      if (Object.keys(filtered).length > 0) {
-        onDestinationUpdated(stopId, filtered);
-      }
-    });
-  
-    setOriginEdits({});
-    setDestinationEdits({});
-  
-    // 4. Zatvori popup
     setIsServicesPopupVisible(false);
   }
   

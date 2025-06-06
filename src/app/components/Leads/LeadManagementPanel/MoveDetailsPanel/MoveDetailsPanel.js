@@ -84,36 +84,55 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
 
   const updateOriginMutation = useMutation({
-    mutationFn: ({id, data }) =>updateOrigin({id, data, token}),
-    onSuccess:(updatedOrigin) => {
+    mutationFn: ({ id, data }) => updateOrigin({ id, data, token }),
+    onSuccess: (updatedOrigin) => {
       console.log("Updated origin:", updatedOrigin);
+        setOriginStops((prev) =>
+        prev.map((s) =>
+          s.id === updatedOrigin.id ? { ...s, ...updatedOrigin } : s
+        )
+      );
+        queryClient.setQueryData(['origins'], (prev) =>
+        Array.isArray(prev)
+          ? prev.map((s) =>
+              s.id === updatedOrigin.id ? { ...s, ...updatedOrigin } : s
+            )
+          : prev
+      );
+  
+      queryClient.invalidateQueries(['origins']);
+      queryClient.invalidateQueries(['leads']);
     },
     onError: (err) => {
-      console.log(err)
-    }
+      console.log(err);
+    },
   });
+  
 
   const handleOriginUpdated = (id, updates) => {
     console.log("UPDATE Origin → id:", id); 
-    updateOriginMutation.mutate({ id, data: updates }, {
-      onSuccess: (updatedOrigin) =>{
-        console.log('UPDATED ORIGIN ', updatedOrigin);
-        setOriginStops((prev) =>
-          prev.map((s) =>
-            s.id === updatedOrigin.id ? { ...s, ...updatedOrigin } : s
-          )
-        );
-        queryClient.invalidateQueries(['origins']);
-        queryClient.invalidateQueries(['leads']);
-
-      }
-    });
+    updateOriginMutation.mutate({ id, data: updates });
   };
 
   const updateDestinationMutation = useMutation({
       mutationFn: ({id, data}) =>updateDestination({id, data, token}),
     onSuccess:(updatedDestination) => {
       console.log("Updated destination:", updatedDestination);
+      setDestinationStops((prev) =>
+        prev.map((s) =>
+          s.id === updatedDestination.id ? { ...s, ...updatedDestination } : s
+        )
+      );
+        queryClient.setQueryData(['destinations'], (prev) =>
+        Array.isArray(prev)
+          ? prev.map((s) =>
+              s.id === updatedDestination.id ? { ...s, ...updatedDestination } : s
+            )
+          : prev
+      );
+  
+      queryClient.invalidateQueries(['destinations']);
+      queryClient.invalidateQueries(['leads']);
     },
     onError: (err) => {
       console.log(err)
@@ -122,20 +141,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
 
   const handleDestinationUpdated = (id, updates) => {
     updateDestinationMutation.mutate(
-      { id, data: updates },
-      {
-        onSuccess: (updatedDestination) => {
-          console.log('UPDATED DESTINATION ', updatedDestination);
-          setDestinationStops((prev) =>
-            prev.map((s) =>
-              s.id === updatedDestination.id ? { ...s, ...updatedDestination } : s
-            )
-          );
-          queryClient.invalidateQueries(['destinations']);
-          queryClient.invalidateQueries(['leads']);
-
-        }
-      }
+      { id, data: updates }
     );
   };
 

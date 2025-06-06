@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import styles from './PlacePopup.module.css';
 
 // Icons
@@ -9,221 +9,7 @@ import Icon from '../../../../../Icon';
 // Reuse the MainAndStopOffs component
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 import { useUiState } from '../../UiStateContext';
-
-/**
- * A map from "typeOfPlace" => possible "moveSize" arrays.
- */
-const moveSizeOptionsMap = {
-  'House': [
-    'One Item',
-    'Just a Few Items',
-    '2 Bedroom',
-    '3 Bedroom',
-    '4 Bedroom',
-    '5 Bedroom',
-    '6 Bedroom',
-    '7 Bedroom',
-    '8 Bedroom',
-    '9+ Bedroom',
-  ],
-  'Town House': [
-    'One Item',
-    'Just a Few Items',
-    '2 Bedroom',
-    '3 Bedroom',
-    '4 Bedroom',
-    '5 Bedroom',
-    '6 Bedroom',
-    '7 Bedroom',
-    '8 Bedroom',
-    '9+ Bedroom',
-  ],
-  'Apartment': [
-    'One Item',
-    'Just a Few Items',
-    '2 Bedroom',
-    '3 Bedroom',
-    '4 Bedroom',
-    '5 Bedroom',
-    '6 Bedroom',
-    '7 Bedroom',
-    '8 Bedroom',
-    '9+ Bedroom',
-  ],
-  'Outdoor Storage': [
-    'One Item',
-    'Just a Few Items',
-    '5X5',
-    '5X10',
-    '5X15',
-    '10X10',
-    '10X15',
-    '10X20',
-    '10X25',
-    '10X30',
-    '20X30',
-    '30X30',
-  ],
-  'Indoor Storage': [
-    'One Item',
-    'Just a Few Items',
-    '5X5',
-    '5X10',
-    '5X15',
-    '10X10',
-    '10X15',
-    '10X20',
-    '10X25',
-    '10X30',
-    '20X30',
-    '30X30',
-  ],
-  'Office': [
-    'One Item',
-    'Just a Few Items',
-    '1-5 People',
-    '6-10 People',
-    '11-20 People',
-    '21-50 People',
-    '51-100 People',
-    '101-200 People',
-    '201+ People',
-  ],
-  'Store': [
-    'One Item',
-    'Just a Few Items',
-    'Small ( limited inventory )',
-    'Medium ( moderate inventory )',
-    'Large ( extensive inventory )',
-    'Extra Large ( multiple departments )',
-  ],
-  'Religious Institution': [
-    'One Item',
-    'Just a Few Items',
-    'Small ( basic furniture, minimal equipment )',
-    'Medium ( more furniture, some equipment )',
-    'Large ( multiple rooms, artifacts )',
-    'Extra Large ( large-scale, specialized equipment )',
-  ],
-  'Government Institution': [
-    'One Item',
-    'Just a Few Items',
-    'Small ( limited items )',
-    'Medium ( more furniture, some specialized )',
-    'Large ( multiple departments, extensive equipment )',
-    'Extra Large ( large-scale, advanced equipment )',
-  ],
-  'Pod': [
-    'One Item',
-    'Just a Few Items',
-    'Small ( up to 7 ft )',
-    'Medium ( up to 12 ft )',
-    'Large ( over 13 ft )',
-  ],
-  'Truck': [
-    'One Item',
-    'Just a Few Items',
-    'Small ( up to 15 ft )',
-    'Medium ( up to 22 ft )',
-    'Large ( up to 32 ft )',
-    'Extra Large ( up to 72 ft )',
-  ],
-  'Pickup Truck': [
-    'One Item',
-    'Just a Few Items',
-    'Small Bed (5 ft)',
-    'Standard Bed (6.5 ft)',
-    'Long Bed (8 ft)',
-  ],
-  'Trailer': [
-    'One Item',
-    'Just a Few Items',
-    'Small ( up to 15 ft )',
-    'Medium ( up to 22 ft )',
-    'Large ( up to 32 ft )',
-    'Extra Large ( up to 53 ft )',
-  ],
-  'Container': [
-    'One Item',
-    'Just a Few Items',
-    'Small ( up to 15 ft )',
-    'Medium ( up to 22 ft )',
-    'Large ( up to 40 ft )',
-  ],
-  'Van': [
-    'One Item',
-    'Just a Few Items',
-    'Cargo Van',
-    'Mini Van',
-  ],
-};
-
-/**
- * A list of possible "typeOfPlace".
- */
-const typeOfPlaceOptions = [
-  'House',
-  'Town House',
-  'Apartment',
-  'Outdoor Storage',
-  'Indoor Storage',
-  'Office',
-  'Store',
-  'Religious Institution',
-  'Government Institution',
-  'Pod',
-  'Truck',
-  'Pickup Truck',
-  'Trailer',
-  'Container',
-  'Van',
-];
-
-/** Which "typeOfPlace" are eligible for "How Many Stories" */
-const storiesEligibleTypes = new Set([
-  'House',
-  'Town House',
-  'Apartment',
-  'Office',
-  'Store',
-  'Religious Institution',
-  'Government Institution',
-]);
-
-const howManyStoriesOptions = [
-  'Single Story',
-  'Two Story',
-  'Three Story',
-  'Four Stories',
-  '5+ Stories',
-];
-
-/** Which "typeOfPlace" are eligible for "Furnishing Style" beyond minimal. */
-const furnishingEligibleTypes = new Set([
-  'House',
-  'Town House',
-  'Apartment',
-  'Office',
-  'Store',
-  'Religious Institution',
-  'Government Institution',
-]);
-
-const allowedOriginFields = [
-  'typeOfPlace',
-  'moveSize',
-  'howManyStories',
-  'furnishingStyle',
-  'features',
-  'needsCOI',
-];
-
-const allowedDestinationFields = [
-  'typeOfPlace',
-  'howManyStories',
-  'features',
-  'needsCOI',
-];
+import { moveSizeOptionsMap, typeOfPlaceOptions, storiesEligibleTypes, howManyStoriesOptions, furnishingEligibleTypes, allowedOriginFields, allowedDestinationFields } from './PlacePopupConstants';
 
 
 function PlacePopup({
@@ -238,6 +24,7 @@ function PlacePopup({
   const popupContentRef = useRef(null);
 
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
+  const [localStops, setLocalStops] = useState([]);
   const [localStop, setLocalStop] = useState({});
   const {
       selectedOriginStopId,
@@ -282,8 +69,10 @@ function PlacePopup({
     }
   }, [selectedPlace, originStops, destinationStops, lead.addStorage, lead.storageItems]);
 
-  const currentStops =
-    selectedPlace === 'origin' ? originStops : destinationStops;
+  const currentStops = useMemo(() => (
+    selectedPlace === 'origin' ? originStops : destinationStops
+  ), [selectedPlace, originStops, destinationStops]);
+  
   const selectedStopId =
     selectedPlace === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
 
@@ -294,21 +83,35 @@ function PlacePopup({
       setSelectedDestinationStopId(id);
     }
   }
-      useEffect(() => {
-        if (!selectedStopId) return;
-      
-        const found = currentStops.find((s) => s.id === selectedStopId);
-        if (found) {
-          setLocalStop({...found});
-        }
-      }, [selectedStopId, currentStops, selectedPlace]);
+  useEffect(() => {
+    const selected = currentStops.find((s) => s.id === selectedStopId);
+    if (!selected) return;
+  
+    const existsInLocal = localStops.find((s) => s.id === selected.id);
+    if (!existsInLocal) {
+      setLocalStops((prev) => [...prev, { ...selected, stopType: selectedPlace }]);
+      setLocalStop({ ...selected, stopType: selectedPlace });
+    } else {
+      setLocalStop({ ...existsInLocal });
+    }
+  }, [selectedStopId, selectedPlace, currentStops, localStops]);
+  
+  
+  
 
   function setStopField(fieldName, newValue) {
-    if (!selectedStopId) return;
-      setLocalStop((prev) => ({
-      ...prev,
+    if (!selectedStopId || localStop[fieldName] === newValue) return;
+    const updatedStop = {
+      ...localStop,
       [fieldName]: newValue,
-  }));
+    };
+    setLocalStop(updatedStop);
+  
+    setLocalStops((prev) =>
+      prev.map((stop) =>
+        stop.id === selectedStopId ? updatedStop : stop
+      )
+    );
   }
 
   const moveSizeOptions = moveSizeOptionsMap[localStop.typeOfPlace] || [];
@@ -408,21 +211,22 @@ function PlacePopup({
   }
   
   function handleSave() {
-    if (!localStop?.id) return;
-
-    const filteredData = filterAllowedFields(
-      localStop,
-      selectedPlace === 'origin' ? allowedOriginFields : allowedDestinationFields
-    );
-    
-    if (selectedPlace === 'origin') {
-      onOriginUpdated(localStop.id, filteredData);
-    } else {
-      onDestinationUpdated(localStop.id, filteredData);
-    }
+    localStops.forEach((stop) => {
+      const filteredData = filterAllowedFields(
+        stop,
+        stop.stopType === 'origin' ? allowedOriginFields : allowedDestinationFields
+      );
+  
+      if (stop.stopType === 'origin') {
+        onOriginUpdated(stop.id, filteredData);
+      } else {
+        onDestinationUpdated(stop.id, filteredData);
+      }
+    });
   
     setIsPlacePopupVisible(false);
   }
+  
 
   function DropdownButton({ label, value, onClick, disabled }) {
     const displayValue = value || 'Select';

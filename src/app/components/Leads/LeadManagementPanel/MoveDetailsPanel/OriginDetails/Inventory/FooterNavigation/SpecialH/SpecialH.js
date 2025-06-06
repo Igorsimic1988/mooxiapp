@@ -11,88 +11,8 @@ import { generateGroupingKey } from '../../utils/generateGroupingKey';
 import CustomSelect from './CustomSelect/CustomSelect';
 import { optionsData } from '../../../../../../../../data/constants/optionsData';
 import rooms from '../../../../../../../../data/constants/AllRoomsList';
+import { labelToDropTag, EXCLUSIVE_LOCATION_TAGS, BASE_INCOMPATIBLE_TAGS, REQUIRED_TAGS } from '../../utils/tagsRules';
 
-/** 
- * Incompatible + required tags
- */
-const incompatibleTags = {
-  cp_packed_by_movers: ['pbo_packed_by_customer'],
-  pbo_packed_by_customer: [
-    'cp_packed_by_movers',
-    'crating',
-    'unpacking',
-    'pack_and_leave_behind',
-  ],
-  paper_blanket_wrapped: ['purchased_blankets'],
-  purchased_blankets: ['paper_blanket_wrapped'],
-  pack_and_leave_behind: ['pbo_packed_by_customer'],
-};
-
-const requiredTags = {
-  crating: ['cp_packed_by_movers'],
-};
-
-/**
- * These location tags are exclusive with one another:
- * only ONE from this set can be present on the item at a time.
- */
-const EXCLUSIVE_LOCATION_TAGS = [
-  'moving_within_premises',
-  'help_with_loading',
-  'disposal',
-  'help_with_unloading',
-  'main_drop_off',
-  '2_drop',
-  '3_drop',
-  '4_drop',
-  '5_drop',
-  '6_drop',
-  '7_drop',
-  '8_drop',
-  '9_drop',
-  'post_storage_main_drop',
-  'post_storage_2_drop',
-  'post_storage_3_drop',
-  'post_storage_4_drop',
-  'post_storage_5_drop',
-  'post_storage_6_drop',
-  'post_storage_7_drop',
-  'post_storage_8_drop',
-  'post_storage_9_drop',
-];
-
-/**
- * Convert lead’s "label" => the “value” used in optionsData
- * e.g. "Main Drop off" => "main_drop_off"
- *      "Drop off 2" => "2_drop"
- *      "Post Storage Drop off 3" => "post_storage_3_drop"
- */
-function labelToDropTag(labelString) {
-  const trimmed = labelString.trim().toLowerCase();
-
-  // "Main Drop off"
-  if (trimmed === 'main drop off') {
-    return 'main_drop_off';
-  }
-  // "Drop off X"
-  const dropXMatch = trimmed.match(/^drop off\s+(\d+)$/);
-  if (dropXMatch) {
-    return `${dropXMatch[1]}_drop`;
-  }
-
-  // "Post Storage Main Drop off"
-  if (trimmed === 'post storage main drop off') {
-    return 'post_storage_main_drop';
-  }
-  // "Post Storage Drop off X"
-  const psDropXMatch = trimmed.match(/^post storage drop off\s+(\d+)$/);
-  if (psDropXMatch) {
-    return `post_storage_${psDropXMatch[1]}_drop`;
-  }
-
-  // fallback => simple slug
-  return trimmed.replace(/\s+/g, '_').replace(/[^\w_]/g, '');
-}
 
 function SpecialH({
   lead, 
@@ -246,10 +166,10 @@ function SpecialH({
           (t) => t === 'excluded' || t === 'pack_and_leave_behind'
         );
       } else {
-        const incomp = incompatibleTags[currentTag] || [];
+        const incomp = BASE_INCOMPATIBLE_TAGS[currentTag] || [];
         newTags = newTags.filter((t) => !incomp.includes(t));
   
-        const reqs = requiredTags[currentTag] || [];
+        const reqs = REQUIRED_TAGS[currentTag] || [];
         reqs.forEach((reqT) => {
           if (!newTags.includes(reqT)) {
             newTags.push(reqT);

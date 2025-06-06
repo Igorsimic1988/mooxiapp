@@ -46,28 +46,6 @@ const INCOMPATIBLE_TAGS = {
   ...LOCATION_EXCLUSIVES,
 };
 
-/**
- * Convert lead’s "label" => dropPoint value
- */
-function labelToDropTag(labelString) {
-  const trimmed = labelString.trim().toLowerCase();
-  if (trimmed === 'main drop off') {
-    return 'main_drop_off';
-  }
-  const dropXMatch = trimmed.match(/^drop off\s+(\d+)$/);
-  if (dropXMatch) {
-    return `${dropXMatch[1]}_drop`;
-  }
-  if (trimmed === 'post storage main drop off') {
-    return 'post_storage_main_drop';
-  }
-  const psDropXMatch = trimmed.match(/^post storage drop off\s+(\d+)$/);
-  if (psDropXMatch) {
-    return `post_storage_${psDropXMatch[1]}_drop`;
-  }
-  return trimmed.replace(/\s+/g, '_').replace(/[^\w_]/g, '');
-}
-
 /** 
  * ==============================================
  * REACT-SELECT INLINE STYLES

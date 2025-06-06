@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import styles from './AccessPopup.module.css';
 
 import Icon from '../../.././../../Icon';
@@ -8,76 +8,8 @@ import Icon from '../../.././../../Icon';
 import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 import SimpleToggle from '../../../../SimpleToggle/SimpleToggle';
 import { useUiState } from '../../UiStateContext';
-
-/** Dropdown options */
-const biggestTruckAccessOptions = [
-  'Semi-trailer',
-  'Large 20-26 feet',
-  'Medium 14-17 feet',
-  'Small 9-12 feet',
-];
-
-const parkingAccessOptions = [
-  'Private Parking',
-  'Curb Side Parking',
-  'Curb Side Across Street',
-  'Loading Dock Parking',
-  'Back Alley',
-];
-
-const distanceDoorTruckOptions = [
-  'A few feet',
-  '20 - 75 ft',
-  '76 - 150 ft',
-  '151- 225 ft',
-  '226 ft - 300 ft',
-  '301 - 450 ft',
-  '451 - 600 ft',
-  '600 ft +',
-];
-
-const howManyStepsOptions = [
-  'No Steps',
-  '1-10 steps',
-  '11-20 steps',
-  '21-30 steps',
-  '31- 40 steps',
-  '41+ steps',
-];
-
-const terrainOptions = [
-  'Flat',
-  'Moderate Downhill/ Uphill',
-  'Steep Uphill/ Downhill',
-];
-
-const elevatorFloorsOptions = [
-  '1–5 floors',
-  '6–10 floors',
-  '11–20 floors',
-  '21+ floors',
-];
-
-const elevatorSizeOptions = [
-  'Small (Up to 4 People)',
-  'Medium (5-8 People)',
-  'Large (9+ People)',
-];
-
-const allowedOriginFields = [
-  'biggestTruckAccess',
-  'shuttleTruckRequired',
-  'parkingAccess',
-  'distanceDoorTruck',
-  'howManySteps',
-  'terrainDoorTruck',
-  'elevatorAtStop',
-  'elevatorExclusive',
-  'elevatorFloors',
-  'elevatorSize',
-];
-
-const allowedDestinationFields = [...allowedOriginFields]; 
+import { biggestTruckAccessOptions, parkingAccessOptions, distanceDoorTruckOptions, howManyStepsOptions, terrainOptions, elevatorFloorsOptions, elevatorSizeOptions, allowedDestinationFields, allowedOriginFields } from './AccessPopupConstants'
+ 
 
 function AccessPopup({
   lead,
@@ -91,16 +23,14 @@ function AccessPopup({
   const popupContentRef = useRef(null);
   // 'origin' or 'destination'
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
-  const [localStop, setLocalStop] = useState({});
-  const {
+  const [localStops, setLocalStops] = useState([]);
+  const [localStop, setLocalStop] = useState({});  const {
     selectedOriginStopId,
     setSelectedOriginStopId,
     selectedDestinationStopId,
     setSelectedDestinationStopId,
   } = useUiState();
-  
-  console.log(selectedDestinationStopId, ' destination')
-  console.log(selectedOriginStopId, ' origin')
+
 
 
   // Close if clicked outside
@@ -126,8 +56,9 @@ function AccessPopup({
   // *** Auto-select first post if "destination" + "All items" hides normal stops ***
 
   // Decide which array + index
-  const currentStops =
-    selectedPlace === 'origin' ? originStops : destinationStops;
+  const currentStops = useMemo(() => (
+    selectedPlace === 'origin' ? originStops : destinationStops
+  ), [selectedPlace, originStops, destinationStops]);
 
   const selectedStopId =
     selectedPlace === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
@@ -140,17 +71,18 @@ function AccessPopup({
     }
   }
   useEffect(() => {
-    if (!selectedStopId) return;
+    const selected = currentStops.find((s) => s.id === selectedStopId);
+    if (!selected) return;
   
-    const found = currentStops.find((s) => s.id === selectedStopId);
-    if (found) {
-      setLocalStop({...found});
+    const existsInLocal = localStops.find((s) => s.id === selected.id);
+    if (!existsInLocal) {
+      setLocalStops((prev) => [...prev, { ...selected, stopType: selectedPlace }]);
+      setLocalStop({ ...selected, stopType: selectedPlace });
+    } else {
+      setLocalStop({ ...existsInLocal });
     }
-  }, [selectedStopId, currentStops, selectedPlace]);
+  }, [selectedStopId, selectedPlace, currentStops, localStops]);
   
-
-  // cc23 postStor je u active ali je stop normal c3d4
-  // 18b7 je origin
 
   useEffect(() => {
     if (selectedPlace === 'origin' && originStops.length > 0) {
@@ -175,11 +107,18 @@ function AccessPopup({
   
 
   function setStopField(fieldName, newValue) {
-    if (!selectedStopId) return;
-    setLocalStop((prev) => ({
-      ...prev,
+    if (!selectedStopId || localStop[fieldName] === newValue) return;
+    const updatedStop = {
+      ...localStop,
       [fieldName]: newValue,
-  }));
+    };
+    setLocalStop(updatedStop);
+  
+    setLocalStops((prev) =>
+      prev.map((stop) =>
+        stop.id === selectedStopId ? updatedStop : stop
+      )
+    );
   }
   function filterAllowedFields(obj, allowedKeys) {
     return Object.fromEntries(
@@ -191,18 +130,18 @@ function AccessPopup({
 
   // Save => update lead
   function handleSave() {
-    if (!localStop?.id) return;
-
-    const filteredData = filterAllowedFields(
-      localStop,
-      selectedPlace === 'origin' ? allowedOriginFields : allowedDestinationFields
-    );
-    
-    if (selectedPlace === 'origin') {
-      onOriginUpdated(localStop.id, filteredData);
-    } else {
-      onDestinationUpdated(localStop.id, filteredData);
-    }
+    localStops.forEach((stop) => {
+      const filteredData = filterAllowedFields(
+        stop,
+        stop.stopType === 'origin' ? allowedOriginFields : allowedDestinationFields
+      );
+  
+      if (stop.stopType === 'origin') {
+        onOriginUpdated(stop.id, filteredData);
+      } else {
+        onDestinationUpdated(stop.id, filteredData);
+      }
+    });
     
   
     setIsAccessPopupVisible(false);
@@ -284,10 +223,6 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
                 checked={selectedPlace === 'origin'}
                 onChange={() => {
                   setSelectedPlace('origin');
-                  const originToUse = originStops.find(s => s.id === selectedOriginStopId);
-                  if (originToUse) {
-                    setLocalStop({...originToUse});
-                  }
                 }}
               />
               <span className={styles.radioText}>Origin</span>
@@ -300,10 +235,6 @@ console.log('active origin stops:', originStops.filter(s => s.isActive !== false
                 checked={selectedPlace === 'destination'}
                 onChange={() => {
                   setSelectedPlace('destination');
-                  const destToUse = destinationStops.find(s => s.id === selectedDestinationStopId);
-                  if (destToUse) {
-                    setLocalStop({ ...destToUse }); 
-                  }
                 }}
               />
               <span className={styles.radioText}>Destination</span>

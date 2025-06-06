@@ -852,7 +852,7 @@ function OriginDetails({
           onOriginUpdated={onOriginUpdated}
           onDestinationUpdated={onDestinationUpdated}
           setIsPlacePopupVisible={setIsPlacePopupOpen}
-          originStops={originStops}
+          originStops={visibleOriginStops}
           destinationStops={destinationStops}
           defaultTab="origin"
           defaultStopId={selectedOriginStopId}
@@ -864,7 +864,7 @@ function OriginDetails({
           onOriginUpdated={onOriginUpdated}
           onDestinationUpdated={onDestinationUpdated}
           setIsAccessPopupVisible={setIsAccessPopupOpen}
-          originStops={originStops}
+          originStops={visibleOriginStops}
           destinationStops={destinationStops}
           defaultTab="origin"
           defaultStopId={selectedOriginStopId}
@@ -876,7 +876,7 @@ function OriginDetails({
           onOriginUpdated={onOriginUpdated}
           onDestinationUpdated={onDestinationUpdated}
           setIsServicesPopupVisible={setIsServicesPopupOpen}
-          originStops={originStops}
+          originStops={visibleOriginStops}
           destinationStops={destinationStops}
           defaultTab="origin"
           defaultStopId={selectedOriginStopId}

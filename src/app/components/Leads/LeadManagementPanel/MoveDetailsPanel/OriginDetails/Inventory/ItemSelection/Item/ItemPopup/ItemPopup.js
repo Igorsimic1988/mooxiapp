@@ -9,6 +9,8 @@ import Select, { components as RSComponents } from 'react-select';
 import packingOptions from '../../../../../../../../../data/constants/packingOptions';
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
 import Icon from 'src/app/components/Icon';
+import { labelToDropTag, EXCLUSIVE_LOCATION_TAGS, BASE_INCOMPATIBLE_TAGS, REQUIRED_TAGS, buildExclusiveIncompat } from '../../../utils/tagsRules';
+
 
 
 /** 
@@ -37,72 +39,11 @@ const MultiValue = (props) => {
   );
 };
 
-/** 
- * ==============================================
- * CONSTANTS OUTSIDE THE COMPONENT
- * ==============================================
- */
-
-/**
- * Build location tags that must be mutually exclusive.
- */
-const EXCLUSIVE_LOCATION_TAGS = [
-  'disposal',
-  'item_for_company_storage',
-  'help_with_unloading',
-  'hoisting_destination',
-  'crane_destination',
-  'main_drop_off',
-  '2_drop',
-  '3_drop',
-  '4_drop',
-  '5_drop',
-  '6_drop',
-  '7_drop',
-  '8_drop',
-  '9_drop',
-  'post_storage_main_drop',
-  'post_storage_2_drop',
-  'post_storage_3_drop',
-  'post_storage_4_drop',
-  'post_storage_5_drop',
-  'post_storage_6_drop',
-  'post_storage_7_drop',
-  'post_storage_8_drop',
-  'post_storage_9_drop',
-];
-
-function buildExclusiveIncompat(tagsArr) {
-  const output = {};
-  for (const tag of tagsArr) {
-    output[tag] = tagsArr.filter((t) => t !== tag);
-  }
-  return output;
-}
 const LOCATION_EXCLUSIVES = buildExclusiveIncompat(EXCLUSIVE_LOCATION_TAGS);
 
-/** 
- * Incompatible + required tags
- */
 const INCOMPATIBLE_TAGS = {
-  // Existing item-based pairs:
-  cp_packed_by_movers: ['pbo_packed_by_customer'],
-  pbo_packed_by_customer: [
-    'cp_packed_by_movers',
-    'crating',
-    'unpacking',
-    'pack_and_leave_behind',
-  ],
-  paper_blanket_wrapped: ['purchased_blankets'],
-  purchased_blankets: ['paper_blanket_wrapped'],
-  pack_and_leave_behind: ['pbo_packed_by_customer'],
-
-  // All the location tags that are mutually exclusive:
+  ...BASE_INCOMPATIBLE_TAGS,
   ...LOCATION_EXCLUSIVES,
-};
-
-const REQUIRED_TAGS = {
-  crating: ['cp_packed_by_movers'],
 };
 
 /**

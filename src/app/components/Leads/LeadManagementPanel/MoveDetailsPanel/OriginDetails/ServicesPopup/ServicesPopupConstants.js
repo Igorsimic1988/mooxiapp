@@ -42,6 +42,7 @@ export const allowedOriginFields = [
   'hoistItems',
   'craneNeeded',
   'additionalServices',
+  'autoBoxEnabled',
 ];
 
 export const allowedDestinationFields = [

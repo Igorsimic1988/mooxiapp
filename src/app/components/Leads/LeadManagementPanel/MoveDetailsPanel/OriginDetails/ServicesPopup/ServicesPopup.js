@@ -291,6 +291,9 @@ function ServicesPopup({
                             className={`${styles.option} ${isSelected ? styles.selected : ''}`}
                             onClick={() => {
                               setStopField('whatsMoving', option);
+                              if (option === 'Boxes Only' || option === 'Furniture Only') {
+                                setStopField('autoBoxEnabled', false);
+                              }
                               setShowWhatsMovingDropdown(false);
                             }}
                           >

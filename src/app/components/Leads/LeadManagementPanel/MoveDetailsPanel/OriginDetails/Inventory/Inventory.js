@@ -22,6 +22,7 @@ import { getInventoryByOriginId, syncInventory, getInventoryByDestinationId } fr
 import { useUiState } from "../../UiStateContext";
 import { useInventoryContext } from "../../InventoryContext";
 import { generateAutoBoxes } from './utils/generateAutoBoxes';
+import { addDefaultTags } from './utils/addDefaultTags';
 // The “default displayed” rooms as numeric IDs
 
 function Inventory({
@@ -85,7 +86,6 @@ function Inventory({
   const { itemsByRoom, displayedRooms, inventoryItems } = currentStopData;
   const isToggled = currentStopData.autoBoxEnabled ?? true;
   const setIsToggled = (newValue) => {
-    console.log(newValue, ' new')
     setInventoryByStop((prev) => {
       const stopData = prev[stopId] || {
         itemsByRoom: {},
@@ -106,7 +106,6 @@ function Inventory({
       };
     });
   };
-  console.log(isToggled, '  is')
   
 
 
@@ -426,11 +425,12 @@ useEffect(() => {
     const furnitureItemId = hasFurnitureId
       ? Number(clickedItem.furnitureItemId)
       : Number(clickedItem.id);
+    const tags = addDefaultTags(clickedItem, roomId);
   
     const groupingKey = generateGroupingKey({
       furnitureItemId,
       roomId,
-      tags: clickedItem.tags || [],
+      tags,
       notes: clickedItem.notes || '',
       cuft: clickedItem.cuft || '',
       lbs: clickedItem.lbs || '',
@@ -467,7 +467,6 @@ useEffect(() => {
         Array.isArray(clickedItem.packingNeeds) && clickedItem.packingNeeds.length > 0
         ? [...clickedItem.packingNeeds]
         : [];
-          console.log(defaultPacking)
 
       const newItemInstance = {
         roomId,
@@ -476,7 +475,7 @@ useEffect(() => {
         imageName: clickedItem.imageName,
         letters: [...(clickedItem.letters || [])],
         search: clickedItem.search,
-        tags: [...(clickedItem.tags || [])],
+        tags,
         notes: clickedItem.notes || '',
         cuft: clickedItem.cuft || '',
         lbs: clickedItem.lbs || '',
@@ -490,7 +489,6 @@ useEffect(() => {
         groupingKey,
         count: 1,
       };
-      console.log(newItemInstance.packingNeeds, '  aa')
   
       if (existingItem) {
         const updatedItem = {

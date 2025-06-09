@@ -425,7 +425,7 @@ useEffect(() => {
     const furnitureItemId = hasFurnitureId
       ? Number(clickedItem.furnitureItemId)
       : Number(clickedItem.id);
-    const tags = addDefaultTags(clickedItem, roomId);
+    const tags = addDefaultTags(clickedItem, roomId, lead);
   
     const groupingKey = generateGroupingKey({
       furnitureItemId,

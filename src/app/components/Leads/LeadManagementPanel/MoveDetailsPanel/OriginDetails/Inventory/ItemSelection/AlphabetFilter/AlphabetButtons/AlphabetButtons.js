@@ -23,109 +23,75 @@ function AlphabetButtons({
   onSubButtonClick,
 }) {
   const scrollContainerRef = useRef(null);
-  const isDragging = useRef(false);
-  const isMoved = useRef(false);
-  const startX = useRef(0);
-  const startY = useRef(0);
-  const scrollLeft = useRef(0);
-  const scrollTop = useRef(0);
-
-  const dragThreshold = 5; // Number of pixels to consider as drag
-
-  // Initialize isDesktop safely for Next.js
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    // Only run on client
     if (typeof window !== 'undefined') {
       const handleResize = () => {
         setIsDesktop(window.innerWidth >= 1024);
       };
-
-      // Set initial value on mount
       handleResize();
-
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }
   }, []);
 
-  // Letter selection logic
+  // Simple letter click handler
   const handleLetterClick = (letter) => {
-    if (isMoved.current) return; // Prevent click if dragged
+    console.log('Letter clicked:', letter, 'Currently selected:', selectedLetter);
+    
     if (selectedLetter === letter) {
-      onLetterSelect(null); // Deselect letter if clicked again
+      console.log('Deselecting letter:', letter);
+      onLetterSelect(null);
     } else {
-      onLetterSelect(letter); // Select letter
+      console.log('Selecting letter:', letter);
+      onLetterSelect(letter);
     }
   };
 
-  // Sub-button selection logic
+  // Simple sub-button click handler
   const handleSubButtonClickInternal = (subButton, letter) => {
-    if (isMoved.current) return; // Prevent click if dragged
     onSubButtonClick(letter, subButton);
   };
 
-  // Mouse event handlers for scrolling
-  const handleMouseDown = (e) => {
-    isDragging.current = true;
-    isMoved.current = false;
-    if (isDesktop) {
-      startY.current = e.pageY - scrollContainerRef.current.offsetTop;
-      scrollTop.current = scrollContainerRef.current.scrollTop;
-    } else {
-      startX.current = e.pageX - scrollContainerRef.current.offsetLeft;
-      scrollLeft.current = scrollContainerRef.current.scrollLeft;
-    }
-  };
+  // Only handle scrolling on the container, not individual buttons
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  const handleMouseLeave = () => {
-    isDragging.current = false;
-  };
+    let scrollTimeout;
 
-  const handleMouseUp = () => {
-    isDragging.current = false;
-  };
+    const handleScroll = () => {
+      isScrolling = true;
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+      }, 150);
+    };
 
-  const handleMouseMove = (e) => {
-    if (!isDragging.current) return;
-    e.preventDefault();
-    if (isDesktop) {
-      const y = e.pageY - scrollContainerRef.current.offsetTop;
-      const moveY = y - startY.current;
-      const walkY = moveY * 1; // Adjust scrolling speed as needed
-      scrollContainerRef.current.scrollTop = scrollTop.current - walkY;
-
-      // Check if movement exceeds drag threshold
-      if (!isMoved.current && Math.abs(moveY) > dragThreshold) {
-        isMoved.current = true;
-      }
-    } else {
-      const x = e.pageX - scrollContainerRef.current.offsetLeft;
-      const moveX = x - startX.current;
-      const walkX = moveX * 1; // Adjust scrolling speed as needed
-      scrollContainerRef.current.scrollLeft = scrollLeft.current - walkX;
-
-      // Check if movement exceeds drag threshold
-      if (!isMoved.current && Math.abs(moveX) > dragThreshold) {
-        isMoved.current = true;
-      }
-    }
-  };
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, []);
 
   return (
     <div
       className={styles.alphabetButtons}
       ref={scrollContainerRef}
-      onMouseDown={handleMouseDown}
-      onMouseLeave={handleMouseLeave}
-      onMouseUp={handleMouseUp}
-      onMouseMove={handleMouseMove}
+      style={{ 
+        overflowX: isDesktop ? 'hidden' : 'auto',
+        overflowY: isDesktop ? 'auto' : 'hidden'
+      }}
     >
       {ALPHABETS.map((letter) => {
         const isMainActive =
           selectedLetter === letter &&
           (!selectedSubButton || selectedSubButton.letter !== letter);
+
+        console.log(`Letter ${letter}: isMainActive=${isMainActive}, selectedLetter=${selectedLetter}`);
 
         return (
           <React.Fragment key={letter}>
@@ -133,7 +99,15 @@ function AlphabetButtons({
               className={`${styles.alphabetButton} ${
                 isMainActive ? styles.active : ''
               }`}
-              onClick={() => handleLetterClick(letter)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleLetterClick(letter);
+              }}
+              style={{
+                backgroundColor: isMainActive ? '#71879C' : '#ffffff',
+                color: isMainActive ? 'white' : '#90A4B7'
+              }}
               aria-haspopup="true"
               aria-expanded={
                 selectedLetter === letter && LETTERS_WITH_SUBBUTTONS[letter]
@@ -159,7 +133,15 @@ function AlphabetButtons({
                     className={`${styles.subButton} ${
                       isSubButtonActive ? styles.activeSubButton : ''
                     }`}
-                    onClick={() => handleSubButtonClickInternal(subButton, letter)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSubButtonClickInternal(subButton, letter);
+                    }}
+                    style={{
+                      backgroundColor: isSubButtonActive ? '#71879C' : '#ffffff',
+                      color: isSubButtonActive ? 'white' : '#90A4B7'
+                    }}
                   >
                     {subButton}
                   </button>

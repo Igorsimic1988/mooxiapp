@@ -1,11 +1,11 @@
 import { generateGroupingKey } from "./generateGroupingKey";
 
-
-// 📦 Generiši nove autoAdded kutije bazirano na totalnoj težini
+// 📦 Generate new autoAdded boxes based on weight increase only
 export function generateAutoBoxes({
   inventoryItems,
   allItems,
   prevTotalLbs,
+  processedThresholds = [],
 }) {
   if (!inventoryItems) return null;
 
@@ -24,23 +24,59 @@ export function generateAutoBoxes({
     "Box Book ",
   ];
 
+  // Calculate total weight (excluding boxes)
+  // Since items are individual, just sum their weights
   inventoryItems.forEach((itm) => {
     if (itm.roomId === excludedRoomId) return;
     if (!excludedNames.includes(itm.name?.trim())) {
       const lbsVal = parseFloat(itm.lbs || itm.furnitureItem?.lbs);
-      const count = itm.count || 1;
       if (!isNaN(lbsVal)) {
-        totalLbs += lbsVal * count;
+        totalLbs += lbsVal; // No multiplication by count needed
       }
     }
   });
-  console.log (prevTotalLbs, totalLbs, ' iz generate')
 
+  console.log(prevTotalLbs, totalLbs, ' iz generate');
+
+  // If weight hasn't changed, no need to do anything
   if (prevTotalLbs === totalLbs) return null;
 
+  // Calculate which 200lb thresholds we've crossed
+  const currentThreshold = Math.floor(totalLbs / 200);
+  const prevThreshold = Math.floor((prevTotalLbs || 0) / 200);
+
+  // Clone the processed thresholds array
+  const newProcessedThresholds = [...processedThresholds];
+
+  // If weight decreased or no new threshold crossed, just return the updated state
+  if (currentThreshold <= prevThreshold) {
+    const currentBoxes = inventoryItems.filter((itm) => itm.roomId === 13);
+    const manualBoxes = currentBoxes.filter((itm) => !itm.autoAdded);
+    const autoBoxes = currentBoxes.filter((itm) => itm.autoAdded);
+    
+    return {
+      updatedRoom13: [...autoBoxes, ...manualBoxes],
+      autoBoxes: autoBoxes,
+      totalLbs,
+      newProcessedThresholds,
+      removedBoxIds: [],
+    };
+  }
+
+  // We have new thresholds to process
   const boxesPer200lbs = 3;
-  const nUnits = Math.ceil(totalLbs / 200);
-  const totalBoxes = nUnits * boxesPer200lbs;
+  const newThresholds = [];
+  
+  // Identify which thresholds are new
+  for (let i = prevThreshold + 1; i <= currentThreshold; i++) {
+    if (!newProcessedThresholds.includes(i)) {
+      newThresholds.push(i);
+      newProcessedThresholds.push(i);
+    }
+  }
+
+  // Calculate boxes only for NEW thresholds
+  const newBoxesCount = newThresholds.length * boxesPer200lbs;
 
   const distribution = [
     { percent: 0.10, name: "Box Dishpack" },
@@ -52,79 +88,69 @@ export function generateAutoBoxes({
 
   const boxesToAdd = distribution.map((dist) => ({
     name: dist.name,
-    count: Math.round(totalBoxes * dist.percent),
+    count: Math.round(newBoxesCount * dist.percent),
   }));
 
+  // Get existing boxes
   const currentBoxes = inventoryItems.filter((itm) => itm.roomId === 13);
-  const autoAdded = currentBoxes.filter((itm) => itm.autoAdded);
+  const manualBoxes = currentBoxes.filter((itm) => !itm.autoAdded);
+  const existingAutoBoxes = currentBoxes.filter((itm) => itm.autoAdded);
 
-  const usedGroupingKeys = [];
-  const updatedRoom13 = [];
-  const autoBoxes = [];
+  const newAutoBoxes = [];
 
+  // Add individual box items
   boxesToAdd.forEach((bx) => {
+    if (bx.count === 0) return;
+    
     const itemData = allItems.find((it) => it.name.trim() === bx.name.trim());
-    if (!itemData || bx.count === 0) return;
-
-    const groupingKey = generateGroupingKey({
-      furnitureItemId: itemData.id,
-      roomId: 13,
-      autoAdded: true,
-    });
-    usedGroupingKeys.push(groupingKey);
+    if (!itemData) return;
 
     const packing = Array.isArray(itemData.packingNeeds) ? itemData.packingNeeds : [];
 
+    // Create individual box items
+    for (let i = 0; i < bx.count; i++) {
+      const groupingKey = generateGroupingKey({
+        furnitureItemId: itemData.id,
+        roomId: 13,
+        tags: [...itemData.tags],
+        notes: "",
+        cuft: itemData.cuft || "",
+        lbs: itemData.lbs || "",
+        packingNeeds: packing,
+        uploadedImages: [],
+        cameraImages: [],
+      });
 
-    const existing = autoAdded.find((itm) => itm.groupingKey === groupingKey);
-
-    const payload = {
-      furnitureItemId: itemData.id,
-      roomId: 13,
-      name: itemData.name,
-      imageName: itemData.imageName,
-      letters: [...itemData.letters],
-      search: itemData.search,
-      tags: [...itemData.tags],
-      notes: "",
-      cuft: itemData.cuft || "",
-      lbs: itemData.lbs || "",
-      packingNeeds: packing,
-      uploadedImages: [],
-      cameraImages: [],
-      autoAdded: true,
-      groupingKey,
-      count: bx.count,
-    };
-
-    if (existing) {
-      if (existing.count !== bx.count) {
-        const updatedItem = { ...existing, ...payload, count: bx.count };
-        updatedRoom13.push(updatedItem);
-        autoBoxes.push(updatedItem);
-      } else {
-        updatedRoom13.push(existing);
-        autoBoxes.push(existing);
-      }
-    } else {
-      updatedRoom13.push(payload);
-      autoBoxes.push(payload);
+      const newBox = {
+        furnitureItemId: itemData.id,
+        roomId: 13,
+        name: itemData.name,
+        imageName: itemData.imageName,
+        letters: [...itemData.letters],
+        search: itemData.search,
+        tags: [...itemData.tags],
+        notes: "",
+        cuft: itemData.cuft || "",
+        lbs: itemData.lbs || "",
+        packingNeeds: packing,
+        uploadedImages: [],
+        cameraImages: [],
+        autoAdded: true,
+        groupingKey,
+        count: 1, // Always 1 for individual items
+      };
+      newAutoBoxes.push(newBox);
     }
   });
 
-  const unusedAutoBoxes = autoAdded.filter(
-    (itm) => !usedGroupingKeys.includes(itm.groupingKey)
-  );
-
-  const finalRoom13 = [
-    ...updatedRoom13,
-    ...currentBoxes.filter((itm) => !itm.autoAdded), // Zadrži ručno dodate
-  ];
+  const allAutoBoxes = [...existingAutoBoxes, ...newAutoBoxes];
+  const finalRoom13 = [...allAutoBoxes, ...manualBoxes];
 
   return {
     updatedRoom13: finalRoom13,
-    autoBoxes,
+    autoBoxes: allAutoBoxes,
     totalLbs,
-    removedBoxIds: unusedAutoBoxes.map((itm) => itm.groupingKey),
+    newProcessedThresholds,
+    removedBoxIds: [],
   };
 }

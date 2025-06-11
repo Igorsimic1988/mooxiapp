@@ -6,12 +6,11 @@ import styles from './ItemPopup.module.css';
 
 import { optionsData } from '../../../../../../../../../data/constants/optionsData';
 import Select, { components as RSComponents } from 'react-select';
+import { v4 as uuidv4 } from 'uuid';
 import packingOptions from '../../../../../../../../../data/constants/packingOptions';
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
 import Icon from 'src/app/components/Icon';
 import { labelToDropTag, EXCLUSIVE_LOCATION_TAGS, BASE_INCOMPATIBLE_TAGS, REQUIRED_TAGS, buildExclusiveIncompat } from '../../../utils/tagsRules';
-
-
 
 /** 
  * ==============================================
@@ -28,7 +27,7 @@ const CustomInput = (props) => {
 };
 
 /** 
- * A custom MultiValue display to show packing counts, e.g. “Tape (3)”.
+ * A custom MultiValue display to show packing counts, e.g. "Tape (3)".
  */
 const MultiValue = (props) => {
   const { data } = props;
@@ -50,8 +49,6 @@ const INCOMPATIBLE_TAGS = {
  * ==============================================
  * REACT-SELECT INLINE STYLES
  * ==============================================
- * We'll define everything in this object so that
- * we don’t rely on .mySelect__ classes in CSS.
  */
 const customSelectStyles = {
   control: (provided, state) => ({
@@ -74,7 +71,7 @@ const customSelectStyles = {
   menuList: (provided) => ({
     ...provided,
     padding: '7px 0 0 0',
-    overflowX: 'hidden', // Prevent horizontal scrollbar
+    overflowX: 'hidden',
   }),
   multiValue: (provided) => ({
     ...provided,
@@ -123,9 +120,6 @@ const customSelectStyles = {
   }),
 };
 
-
-
-
 /**
  * ITEM POPUP COMPONENT
  */
@@ -151,7 +145,7 @@ function ItemPopup({
   // Basic fields
   const [cuft, setCuft] = useState('');
   const [lbs, setLbs] = useState('');
-  const [itemCount, setItemCount] = useState(1);
+  const [itemCount, setItemCount] = useState(1); // Always start at 1 for individual items
   const [notes, setNotes] = useState('');
 
   // Animation states
@@ -184,16 +178,15 @@ function ItemPopup({
 
   // For "packingNeeds" multi-select
   const selectedPackingNeeds = Array.isArray(packingNeeds)
-  ? packingNeeds.map((entry) => {
-      const foundOpt = packingOptions.find((o) => o.value === entry.type);
-      return {
-        value: entry.type,
-        name: foundOpt ? foundOpt.name : entry.type,
-        count: entry.quantity,
-      };
-    })
-  : [];
-
+    ? packingNeeds.map((entry) => {
+        const foundOpt = packingOptions.find((o) => o.value === entry.type);
+        return {
+          value: entry.type,
+          name: foundOpt ? foundOpt.name : entry.type,
+          count: entry.quantity,
+        };
+      })
+    : [];
 
   // Dynamically filter dropPoints
   const allDropPoints = optionsData.locationTags.dropPoints;
@@ -204,7 +197,7 @@ function ItemPopup({
     'hoisting_destination',
     'crane_destination',
   ];
-  const activeStops = lead?.destinationStops?.filter((s) => s.isActive && isVisible) || [];
+  const activeStops = lead?.destinationStops?.filter((s) => s.isActive) || [];
   const hasMultipleActiveStops = activeStops.length >= 2;
   const activeStopValues = new Set();
 
@@ -235,10 +228,6 @@ function ItemPopup({
     loadPointsOptions,
     dropPointsOptions,
   ]);
-
-
-  
-  
 
   // Initialize data on mount or if item changes
   useEffect(() => {
@@ -310,7 +299,7 @@ function ItemPopup({
       setDropPointsOptions([]);
     }
 
-    // packingNeedsCounts
+    // packingNeeds
     if (Array.isArray(currentItemInstance?.packingNeeds)) {
       setPackingNeeds(currentItemInstance.packingNeeds);
     } else if (item.packingNeeds && item.packingNeeds.length > 0) {
@@ -318,13 +307,11 @@ function ItemPopup({
     } else {
       setPackingNeeds([]);
     }
-    
 
     // Basic fields
     setCuft(currentItemInstance?.cuft || item.cuft || '');
     setLbs(currentItemInstance?.lbs || item.lbs || '');
-    setItemCount(currentItemInstance?.count || 1);
-    
+    setItemCount(1); // Always 1 for individual items in popup
     setNotes(currentItemInstance?.notes || '');
 
     // Link
@@ -433,60 +420,84 @@ function ItemPopup({
       setPackingNeeds([]);
     }
   };
-  
-  // Sync state fields kad se currentItemInstance promeni
-useEffect(() => {
-  if (!currentItemInstance) return;
 
-  setCuft(currentItemInstance.cuft || '');
-  setLbs(currentItemInstance.lbs || '');
-  setNotes(currentItemInstance.notes || '');
-  setItemCount(currentItemInstance.count || 1);
-  setUploadedImages(currentItemInstance.uploadedImages || []);
-  setCameraImages(currentItemInstance.cameraImages || []);
-  setLink(currentItemInstance.link || '');
-  setPackingNeeds(Array.isArray(currentItemInstance.packingNeeds) ? currentItemInstance.packingNeeds : []);
-}, [currentItemInstance]);
+  // Sync state fields when currentItemInstance changes
+  useEffect(() => {
+    if (!currentItemInstance) return;
 
+    setCuft(currentItemInstance.cuft || '');
+    setLbs(currentItemInstance.lbs || '');
+    setNotes(currentItemInstance.notes || '');
+    setItemCount(1); // Always 1 for individual items
+    setUploadedImages(currentItemInstance.uploadedImages || []);
+    setCameraImages(currentItemInstance.cameraImages || []);
+    setLink(currentItemInstance.link || '');
+    setPackingNeeds(Array.isArray(currentItemInstance.packingNeeds) ? currentItemInstance.packingNeeds : []);
+  }, [currentItemInstance]);
+
+  // Save item - Handle individual items
   const handleSaveItem = (overrides = {}) => {
+    // If the user saved at zero, remove this item
+    if (itemCount === 0) {
+      if (handleDeleteItem && itemInstance) {
+        handleDeleteItem(itemInstance, false); // Remove just this one item
+      }
+      onClose();
+      return;
+    }
+
     const selectedTags = getAllSelectedTags();
-  
     const newInstance = {
-      furnitureItemId: item.furnitureItemId,
+      id: currentItemInstance?.id || uuidv4(),
+      furnitureItemId: item.furnitureItemId || item.id,
+      itemId: item.id || item.furnitureItemId, // For backwards compatibility
       roomId: currentItemInstance?.roomId,
+      item: { ...item }, // Keep the full item data
       name: item.name || '',
-      imageName: item.imageName || '',
+      imageName: item.imageName || item.src || '',
       letters: item.letters || [],
-      search: item.search || false,
+      search: item.search ?? true,
       tags: selectedTags,
       notes,
-      cuft: cuft !== '' ? parseInt(cuft, 10) : null,
-      lbs: lbs !== '' ? parseInt(lbs, 10) : null,
+      cuft: cuft !== '' ? cuft : (item.cuft || ''),
+      lbs: lbs !== '' ? lbs : (item.lbs || ''),
       packingNeeds,
-      count: itemCount,
-      link: overrides.link !== undefined ? overrides.link : link,
-      uploadedImages:
-        overrides.uploadedImages !== undefined ? overrides.uploadedImages : uploadedImages,
-      cameraImages:
-        overrides.cameraImages !== undefined ? overrides.cameraImages : cameraImages,
+      packingNeedsCounts: {}, // Keep empty for compatibility
+      link: overrides.link ?? link,
+      uploadedImages: overrides.uploadedImages ?? uploadedImages,
+      cameraImages: overrides.cameraImages ?? cameraImages,
+      autoAdded: currentItemInstance?.autoAdded || false,
     };
     newInstance.groupingKey = generateGroupingKey(newInstance);
-    if (currentItemInstance?.groupingKey) {
-      if (itemCount === 0) {
-        handleDeleteItem(currentItemInstance);
-      } else {
-        onUpdateItem(newInstance, currentItemInstance);
+
+    // Handle count changes for individual items
+    if (currentItemInstance) {
+      // Update the current item
+      onUpdateItem(newInstance, currentItemInstance);
+      
+      // If count increased, add more individual items
+      if (itemCount > 1) {
+        for (let i = 1; i < itemCount; i++) {
+          onAddItem({
+            ...newInstance,
+            id: uuidv4(), // New ID for each additional item
+          });
+        }
       }
     } else {
-      if (itemCount > 0) {
-        onAddItem(newInstance);
+      // Adding new items
+      for (let i = 0; i < itemCount; i++) {
+        onAddItem({
+          ...newInstance,
+          id: uuidv4(), // New ID for each item
+        });
       }
     }
-      setCurrentItemInstance({ ...newInstance });
-      setItemCount(newInstance.count);
+
+    // Update the current instance state but keep count at 1
+    setCurrentItemInstance({ ...newInstance });
+    setItemCount(1); // Reset to 1 since we've handled the multiple items
   };
-
-
 
   // itemCount plus/minus
   const handleIncrement = () => setItemCount((p) => p + 1);
@@ -528,11 +539,12 @@ useEffect(() => {
       if (onStartFresh && currentItemInstance) {
         const resetInstance = await onStartFresh(currentItemInstance);
         if (resetInstance) {
-        setCurrentItemInstance(resetInstance);
+          setCurrentItemInstance(resetInstance);
         }
       }
     }, 300);
   };
+
   useEffect(() => {
     let timer;
     if (isSlidingOut) {
@@ -543,6 +555,7 @@ useEffect(() => {
     }
     return () => clearTimeout(timer);
   }, [isSlidingOut]);
+
   useEffect(() => {
     let timer;
     if (isSlidingIn) {
@@ -551,7 +564,7 @@ useEffect(() => {
     return () => clearTimeout(timer);
   }, [isSlidingIn]);
 
-  // Camera / upload / link
+  // Camera / upload / link handlers
   const handleCameraRollClick = () => {
     if (cameraImages.length === 0) {
       cameraInputRef.current?.click();
@@ -560,6 +573,7 @@ useEffect(() => {
       setIsPreviewVisible(true);
     }
   };
+
   const handleCameraRoll = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -583,6 +597,7 @@ useEffect(() => {
       setIsPreviewVisible(true);
     }
   };
+
   const handleUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -605,20 +620,24 @@ useEffect(() => {
       setIsEditingLink(true);
     }
   };
+
   const handleViewLink = () => {
     window.open(link, '_blank');
     setIsLinkOptionsVisible(false);
   };
+
   const handleClearLink = () => {
     const blank = '';
     setLink(blank);
     setIsLinkOptionsVisible(false);
     handleSaveItem({ link: blank });
   };
+
   const handleReplaceLink = () => {
     setIsLinkOptionsVisible(false);
     setIsEditingLink(true);
   };
+
   const handleLinkInputChange = (e) => setLinkInput(e.target.value);
 
   const validateURL = (url) => {
@@ -632,6 +651,7 @@ useEffect(() => {
     );
     return !!pattern.test(url);
   };
+
   const handleSaveLink = () => {
     if (validateURL(linkInput)) {
       const newLink = linkInput;
@@ -644,6 +664,7 @@ useEffect(() => {
       alert('Please enter a valid URL.');
     }
   };
+
   const handleCancelEditLink = () => {
     setLinkInput('');
     setIsEditingLink(false);
@@ -707,12 +728,12 @@ useEffect(() => {
       handleSaveItem({ cameraImages: newCam });
     }
   };
+
   useEffect(() => {
     if (isPreviewVisible && deleteImageButtonRef.current) {
       deleteImageButtonRef.current.focus();
     }
   }, [isPreviewVisible]);
-
 
   return (
     <div className={styles.popup} onClick={onClose}>
@@ -741,7 +762,7 @@ useEffect(() => {
             <div className={styles.furnitureOutline}>
               <div className={styles.furnitureWrapper}>
                 <Image
-                  src={item.imageName}
+                  src={item.imageName || item.src}
                   alt={item.name}
                   width={72}
                   height={72}
@@ -1015,8 +1036,6 @@ useEffect(() => {
                 isMulti
                 isClearable={false}
                 className={styles.selectInput}
-                // We do NOT rely on module .mySelect__... in CSS
-                // Instead we handle everything with inline styles
                 name="packing"
                 options={filteredPackingOptions}
                 placeholder="Packing"

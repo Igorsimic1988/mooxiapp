@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import styles from './InventoryDesktop.module.css';
+import { v4 as uuidv4 } from 'uuid';
 
 // Child components
+
 import BackButton from './BackButton/BackButton';
 import ToggleSwitch from '../ItemSelection/BcalculatorMyitems/ToogleSwitch/ToogleSwitch';
 import RoomList from '../RoomList/RoomList';
@@ -25,14 +27,13 @@ import { useQuery } from '@tanstack/react-query';
 
 import Icon from 'src/app/components/Icon';
 
-// Data + Utils
-
 /**
  * InventoryDesktop
  *
- * Props:
+ * Props for individual items approach:
  *  - stopIndex, setStopIndex
  *  - roomItemSelections: { [roomId]: arrayOfItemInstances }
+ *  - setRoomItemSelections: (fnOrObj) => void  (for MyInventory/SpecialH)
  *  - displayedRooms: array of {id, name}
  *  - handleToggleRoom: function(roomId) => toggles displayedRooms in parent's inventory
  *  - isToggled, setIsToggled
@@ -45,18 +46,18 @@ import Icon from 'src/app/components/Icon';
  *  - setSearchQuery
  *  - onCloseDesktopInventory
  *  - lead (for HouseInfo)
- *  - handleItemSelection, handleUpdateItem, handleAddItem, handleStartFresh
+ *  - handleItemSelection, handleUpdateItem, handleAddItem, handleStartFresh, handleDeleteItem
  *  - isDeleteActive, setIsDeleteActive
  */
-
-
 function InventoryDesktop({
   // Multi-stop
   stopIndex,
   setStopIndex,
 
-  // Items for this stop
-  itemsByRoom,
+  // Items for this stop (individual items approach)
+  roomItemSelections,
+  setRoomItemSelections,
+
   // Currently displayed rooms => array of { id, name }
   displayedRooms,
 
@@ -96,11 +97,13 @@ function InventoryDesktop({
   isDeleteActive,
   setIsDeleteActive,
 }) {
+  // Fetch furniture items from backend
   const { data: allItems = [] } = useQuery({
     queryKey: ['furnitureItems', lead?.brandId],
     queryFn: () => getAllFurnitureItems({ brandId: lead?.brandId }),
     enabled: !!lead?.brandId,
   });
+
   // Show/hide item popup
   const [isItemPopupVisible, setIsItemPopupVisible] = useState(false);
   const [currentItemData, setCurrentItemData] = useState(null);
@@ -181,12 +184,13 @@ function InventoryDesktop({
     }
   };
 
-  // Count how many times each item appears in "Items" panel
-  const allItemsByRoom = Object.values(itemsByRoom[selectedRoom?.id] || []).flat();
-  const itemCounts = allItemsByRoom.reduce(
+  // Count how many times each item appears in "Items" panel (for individual items)
+  const itemCounts = (roomItemSelections[selectedRoom?.id] || []).reduce(
     (acc, inst) => {
-      const key = inst.furnitureItemId.toString();
-      acc[key] = (acc[key] || 0)  + (inst.count);
+      const key = (inst.furnitureItemId || inst.itemId)?.toString();
+      if (key) {
+        acc[key] = (acc[key] || 0) + 1;
+      }
       return acc;
     },
     {}
@@ -217,53 +221,107 @@ function InventoryDesktop({
     if (selectedLetter) {
       return allItems.filter((itm) => itm.letters.includes(selectedLetter));
     }
-
     // else => items in the current room
     return allItems.filter((itm) => itm.rooms.includes(Number(selectedRoom.id)));
   };
 
-  // FIXED: Improved getGroupedItems function to ensure all properties exist
+  // Group individual items by their properties for "My Items" display
   const getGroupedItems = () => {
     if (!selectedRoom) return [];
-    const arr = itemsByRoom[selectedRoom.id] || [];
-  
-    return arr.map((inst) => ({
-      id: inst.id,
-      furnitureItemId: inst.furnitureItemId,
-      name: inst.name || '',
-      imageName: inst.imageName || '',
-      letters: inst.letters || [],
-      search: inst.search || false,
-      tags: inst.tags || [],
-      cuft: inst.cuft || 0,
-      lbs: inst.lbs || 0,
-      roomId: inst.roomId,
-      displayedRooms: inst.displayedRooms || [],
-      packingNeeds: inst.packingNeeds || [],
-      link: inst.link || '',
-      notes: inst.notes || '',
-      uploadedImages: inst.uploadedImages || [],
-      cameraImages: inst.cameraImages || [],
-      groupingKey: inst.groupingKey || '',
-      autoAdded: inst.autoAdded || false,
-      count: inst.count, 
-    }));
-  };
-  
-  
-  
-
-  // ADDED: New handleItemClick function for My Items panel
-  const handleItemClick = (itemData, action) => {
-    handleItemSelection(itemData,action)
-  };
-
-  // ADDED: Wrapper function for standard items panel
-  const handleRegularItemClick = (itemData, action) => {
-    // This mirrors the logic in the mobile version's handleItemSelection function
-    const doAction = action || (isDeleteActive ? 'decrease' : 'increase');
+    const arr = roomItemSelections[selectedRoom.id] || [];
+    const grouped = {};
     
-    // Forward to the parent's handleItemSelection with the correct action
+    for (const inst of arr) {
+      // Generate or use existing groupingKey
+      const gKey = inst.groupingKey || '';
+      
+      if (!grouped[gKey]) {
+        // Create a new grouped item with all necessary properties
+        grouped[gKey] = {
+          ...inst,
+          count: 1,
+          // Ensure compatibility with both old and new data formats
+          id: inst.id,
+          furnitureItemId: inst.furnitureItemId || inst.itemId,
+          itemId: inst.itemId || inst.furnitureItemId,
+          item: inst.item || {
+            id: inst.furnitureItemId || inst.itemId,
+            name: inst.name || inst.item?.name || '',
+            imageName: inst.imageName || inst.item?.imageName || inst.item?.src || '',
+            src: inst.item?.src || inst.imageName || '',
+          },
+          name: inst.name || inst.item?.name || '',
+          imageName: inst.imageName || inst.item?.imageName || inst.item?.src || '',
+          // Ensure these arrays exist to avoid null reference errors
+          tags: inst.tags || [],
+          uploadedImages: inst.uploadedImages || [],
+          cameraImages: inst.cameraImages || [],
+          // Ensure this object exists
+          packingNeedsCounts: inst.packingNeedsCounts || {},
+          packingNeeds: inst.packingNeeds || [],
+        };
+      } else {
+        grouped[gKey].count += 1;
+      }
+    }
+    
+    return Object.values(grouped);
+  };
+
+  // Handle item click for "My Items" panel (grouped items)
+  const handleItemClick = (itemData, action) => {
+    if (!selectedRoom) return;
+    
+    if (action === 'decrease') {
+      // Remove an item with the specific groupingKey
+      if (itemData.groupingKey) {
+        const items = [...(roomItemSelections[selectedRoom.id] || [])];
+        const idx = items.findIndex(item => item.groupingKey === itemData.groupingKey);
+        
+        if (idx !== -1) {
+          items.splice(idx, 1);
+          setRoomItemSelections({
+            ...roomItemSelections,
+            [selectedRoom.id]: items
+          });
+        }
+      }
+    } else { // 'increase'
+      // Add a new instance of this item with the same properties
+      if (itemData.groupingKey) {
+        const newItemInstance = {
+          id: uuidv4(),
+          furnitureItemId: itemData.furnitureItemId || itemData.itemId,
+          itemId: itemData.itemId || itemData.furnitureItemId,
+          item: { ...itemData.item },
+          name: itemData.name || itemData.item?.name || '',
+          imageName: itemData.imageName || itemData.item?.imageName || '',
+          tags: [...(itemData.tags || [])],
+          notes: itemData.notes || '',
+          cuft: itemData.cuft || '',
+          lbs: itemData.lbs || '',
+          packingNeedsCounts: { ...(itemData.packingNeedsCounts || {}) },
+          packingNeeds: [...(itemData.packingNeeds || [])],
+          link: itemData.link || '',
+          uploadedImages: [...(itemData.uploadedImages || [])],
+          cameraImages: [...(itemData.cameraImages || [])],
+          groupingKey: itemData.groupingKey
+        };
+        
+        const items = [...(roomItemSelections[selectedRoom.id] || [])];
+        items.push(newItemInstance);
+        
+        setRoomItemSelections({
+          ...roomItemSelections,
+          [selectedRoom.id]: items
+        });
+      }
+    }
+  };
+
+  // Wrapper function for standard items panel
+  const handleRegularItemClick = (itemData, action) => {
+    const doAction = action || (isDeleteActive ? 'decrease' : 'increase');
     handleItemSelection(itemData, doAction);
   };
 
@@ -293,15 +351,16 @@ function InventoryDesktop({
     setCurrentItemInstance(itemInstance);
     setIsItemPopupVisible(true);
   };
+
   const handleCloseItemPopup = () => {
     setIsItemPopupVisible(false);
     setCurrentItemData(null);
     setCurrentItemInstance(null);
   };
+
   const currentRoomInstances = useMemo(() => {
-    return itemsByRoom[selectedRoom?.id] || [];
-  }, [itemsByRoom, selectedRoom]);
-  
+    return roomItemSelections[selectedRoom?.id] || [];
+  }, [roomItemSelections, selectedRoom]);
 
   return (
     <div
@@ -328,7 +387,7 @@ function InventoryDesktop({
 
       <div className={styles.topRowCol3}>
         <FurnitureCounter
-          itemsByRoom={itemsByRoom}
+          roomItemSelections={roomItemSelections}
           displayedRooms={displayedRooms}
         />
       </div>
@@ -345,7 +404,7 @@ function InventoryDesktop({
         <div className={styles.roomListContainer}>
           <RoomList
             onRoomSelect={handleRoomSelect}
-            itemsByRoom={itemsByRoom}
+            itemsByRoom={roomItemSelections}
             displayedRooms={displayedRooms}
             selectedRoom={selectedRoom}
           />
@@ -380,7 +439,8 @@ function InventoryDesktop({
             <ItemList
               items={getFilteredItems()}
               itemClickCounts={itemCounts}
-              onItemClick={handleRegularItemClick} // CHANGED: Use wrapper for regular items
+              itemInstances={currentRoomInstances}
+              onItemClick={handleRegularItemClick}
               isMyItemsActive={false}
               isDeleteActive={isDeleteActive}
               onUpdateItem={handleUpdateItem}
@@ -405,24 +465,11 @@ function InventoryDesktop({
           <div
             className={`${styles.itemListPlaceholder} ${styles.myItemsListPlaceholder}`}
           >
-            {/* Debug check for items */}
-            {selectedRoom && (() => {
-              const myItems = getGroupedItems();
-              console.log("🧪 MyItems groupedItems:", myItems);
-
-              
-              // Check for any items with missing properties
-              myItems.forEach(item => {
-                if (!item.imageName || !item.name) {
-                  console.error('Invalid item in My Items:', item);
-                }
-              });
-              return null;
-            })()}
-            
             <ItemList
               items={getGroupedItems()}
-              onItemClick={handleItemClick} // CHANGED: Use the new function
+              itemClickCounts={{}}
+              itemInstances={currentRoomInstances}
+              onItemClick={handleItemClick}
               isMyItemsActive={true}
               isDeleteActive={isDeleteActive}
               onUpdateItem={handleUpdateItem}
@@ -437,11 +484,9 @@ function InventoryDesktop({
 
       {/* ===== Bottom Row ===== */}
       <div className={styles.bottomRowCol1}>
-        {/* We pass numeric IDs => highlight in AddRoomPopup */}
         <AddRoomButton
-          rooms={rooms}  // full master list
-          displayedRooms={displayedRoomIds}  // array of numeric IDs
-          // The parent's function that toggles rooms in inventoryByStop:
+          rooms={rooms}
+          displayedRooms={displayedRoomIds}
           onToggleRoom={handleToggleRoom} 
         />
       </div>
@@ -476,16 +521,14 @@ function InventoryDesktop({
       </div>
 
       {/* ====== ItemPopup (edit item) ====== */}
-      {isItemPopupVisible && selectedRoom && (
+      {isItemPopupVisible && (
         <ItemPopup
           item={currentItemData}
-          selectedRoom={selectedRoom}
           onClose={handleCloseItemPopup}
           onUpdateItem={handleUpdateItem}
           onAddItem={handleAddItem}
-          ItemInstances={currentRoomInstances}
-          handleDeleteItem={handleDeleteItem}
           itemInstance={currentItemInstance}
+          handleDeleteItem={handleDeleteItem}
           onStartFresh={handleStartFresh}
           lead={lead}
         />
@@ -495,8 +538,9 @@ function InventoryDesktop({
       {isMyInventoryVisible && (
         <MyInventory
           setIsMyInventoryVisible={setIsMyInventoryVisible}
-          itemsByRoom={itemsByRoom}
-          displayedRooms={displayedRoomIds} // numeric IDs
+          roomItemSelections={roomItemSelections}
+          setRoomItemSelections={setRoomItemSelections}
+          displayedRooms={displayedRoomIds}
           lead={lead}
         />
       )}
@@ -505,8 +549,9 @@ function InventoryDesktop({
       {isSpecialHVisible && (
         <SpecialH
           setIsSpecialHVisible={setIsSpecialHVisible}
-          itemsByRoom={itemsByRoom}
-          displayedRooms={displayedRoomIds} // numeric IDs
+          roomItemSelections={roomItemSelections}
+          setRoomItemSelections={setRoomItemSelections}
+          displayedRooms={displayedRoomIds}
           lead={lead}
           handleUpdateItem={handleUpdateItem}
         />

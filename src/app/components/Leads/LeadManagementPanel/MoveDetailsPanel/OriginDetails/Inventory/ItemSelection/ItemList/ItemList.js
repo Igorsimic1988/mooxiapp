@@ -6,8 +6,8 @@ import Item from '../Item/Item';
 
 function ItemList({
   items,
-  itemInstances = [],
-  itemClickCounts,
+  itemClickCounts,  // Object with counts for regular furniture items
+  itemInstances = [], // Array of individual item instances
   onItemClick,
   isMyItemsActive,
   isDeleteActive,
@@ -25,13 +25,13 @@ function ItemList({
   const scrollContainerRef = useRef(null);
   const isDragging = useRef(false);
   const isMoved = useRef(false);
-  const dragThreshold = 5; // Pixels to consider as drag
+  const dragThreshold = 5;
   const startY = useRef(0);
   const scrollTop = useRef(0);
 
   const handleMouseDown = (e) => {
     if (!isDesktop) return;
-    if (e.type === 'touchstart' || e.pointerType === 'touch') return; // Ignore touch events
+    if (e.type === 'touchstart' || e.pointerType === 'touch') return;
 
     isDragging.current = true;
     isMoved.current = false;
@@ -43,7 +43,7 @@ function ItemList({
     if (!isDesktop || !isDragging.current) return;
     if (e.type === 'touchmove' || e.pointerType === 'touch') return;
 
-    e.preventDefault(); // Be cautious with preventDefault()
+    e.preventDefault();
     const y = e.pageY - scrollContainerRef.current.getBoundingClientRect().top;
     const walk = (y - startY.current) * 1;
     scrollContainerRef.current.scrollTop = scrollTop.current - walk;
@@ -84,21 +84,17 @@ function ItemList({
     if (touchStartXRef.current === null || touchEndXRef.current === null) return;
 
     const deltaX = touchEndXRef.current - touchStartXRef.current;
-
-    const minSwipeDistance = 50; // Adjust as needed
+    const minSwipeDistance = 50;
 
     if (Math.abs(deltaX) > minSwipeDistance) {
       if (deltaX < 0) {
-        // Swiped left
         if (!isMyItemsActive) {
           setIsMyItemsActive(true);
         }
       } else {
-        // Swiped right
         if (isMyItemsActive) {
           setIsMyItemsActive(false);
         } else {
-          // Swiped right when isMyItemsActive is false, go back to Inventory.js
           onBackToRooms();
         }
       }
@@ -123,30 +119,32 @@ function ItemList({
       {Array.isArray(items) && items.length > 0 ? (
         <ul className={styles.itemList}>
           {items.map((itemData) => {
-            const key = isMyItemsActive && itemData.groupingKey
-            ? itemData.groupingKey
-            : itemData.id?.toString();
-            const item = itemData;
-            const matchingInstances = itemInstances.filter(
-              (inst) => inst.furnitureItemId === itemData.id
-            );
-            const count = isMyItemsActive
-            ? itemData.count
-            : isDesktop
-            ? itemClickCounts?.[key] || 0
-            : matchingInstances.reduce((sum, inst) => sum + (inst.count || 0), 0);
+            let key, item, count, itemInstance;
 
-          
-            const itemInstance = isMyItemsActive
-              ? itemData
-              : matchingInstances[0]; 
+            if (isMyItemsActive) {
+              // For "My Items", items are already grouped with counts
+              key = itemData.groupingKey || itemData.id;
+              item = itemData.item || itemData;
+              count = itemData.count || 1;
+              itemInstance = itemData;
+            } else {
+              // For regular furniture items
+              const itemIdStr = itemData.id?.toString();
+              key = itemIdStr;
+              item = itemData;
+              count = itemClickCounts[itemIdStr] || 0;
+              // Find an instance of this furniture item if it exists
+              itemInstance = itemInstances.find(inst => 
+                (inst.furnitureItemId || inst.itemId)?.toString() === itemIdStr
+              ) || null;
+            }
 
             return (
               <Item
                 key={key}
                 item={item}
                 clickCount={count}
-                onItemClick={(action) => onItemClick(itemData, action)} // FIXED: Passing itemData first, then action
+                onItemClick={(action) => onItemClick(itemData, action)}
                 isMyItemsActive={isMyItemsActive}
                 isDeleteActive={isDeleteActive}
                 onUpdateItem={onUpdateItem}

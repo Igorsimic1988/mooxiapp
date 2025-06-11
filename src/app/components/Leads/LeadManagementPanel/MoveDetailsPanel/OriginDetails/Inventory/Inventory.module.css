@@ -18,9 +18,21 @@
 .mainContent {
   /* This expands to fill vertical space between header & footer */
   flex: 1;
-  overflow-y: auto; /* scroll main content */
   background-color: #F2F5F8; /* optional */
   padding: 10px 10px 86px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* When viewing room list - allow scrolling */
+.roomList {
+  overflow-y: auto;
+}
+
+/* When inside a room - disable scrolling on main, let ItemSelection handle it */
+.inRoom {
+  overflow: hidden;
+  padding-bottom: 0; /* Remove bottom padding when in room */
 }
 
 .footerNavigation {

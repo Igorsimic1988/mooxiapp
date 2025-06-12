@@ -446,60 +446,58 @@ function ItemPopup({
   };
 
   // Save item - Handle grouped items properly
-  const handleSaveItem = (overrides = {}) => {
-    if (!selectedRoom || !setRoomItemSelections) return;
+const handleSaveItem = (overrides = {}) => {
+  if (!selectedRoom || !setRoomItemSelections) return;
 
-    const selectedTags = getAllSelectedTags();
-    const updatedInstance = {
-      ...currentItemInstance,
-      furnitureItemId: item.furnitureItemId || item.id,
-      itemId: item.id || item.furnitureItemId,
-      item: { ...item },
-      name: item.name || '',
-      imageName: item.imageName || item.src || '',
-      letters: item.letters || [],
-      search: item.search ?? true,
-      tags: selectedTags,
-      notes,
-      cuft: cuft !== '' ? cuft : (item.cuft || ''),
-      lbs: lbs !== '' ? lbs : (item.lbs || ''),
-      packingNeeds,
-      packingNeedsCounts: {}, // Keep empty for compatibility
-      link: overrides.link ?? link,
-      uploadedImages: overrides.uploadedImages ?? uploadedImages,
-      cameraImages: overrides.cameraImages ?? cameraImages,
-    };
+  const selectedTags = getAllSelectedTags();
+  const updatedInstance = {
+    ...currentItemInstance,
+    furnitureItemId: item.furnitureItemId || item.id,
+    itemId: item.id || item.furnitureItemId,
+    item: { ...item },
+    name: item.name || '',
+    imageName: item.imageName || item.src || '',
+    letters: item.letters || [],
+    search: item.search ?? true,
+    tags: selectedTags,
+    notes,
+    cuft: cuft !== '' ? cuft : (item.cuft || ''),
+    lbs: lbs !== '' ? lbs : (item.lbs || ''),
+    packingNeeds,
+    packingNeedsCounts: {}, // Keep empty for compatibility
+    link: overrides.link ?? link,
+    uploadedImages: overrides.uploadedImages ?? uploadedImages,
+    cameraImages: overrides.cameraImages ?? cameraImages,
+  };
+  
+  // Generate new grouping key
+  const newGroupingKey = generateGroupingKey(updatedInstance);
+  updatedInstance.groupingKey = newGroupingKey;
+
+  // Use the same logic for both new and existing items
+  setRoomItemSelections((prev) => {
+    const items = [...(prev[selectedRoom.id] || [])];
     
-    // Generate new grouping key
-    const newGroupingKey = generateGroupingKey(updatedInstance);
-    updatedInstance.groupingKey = newGroupingKey;
-
-    // Check if this is a new item that hasn't been saved yet
-    if (currentItemInstance?.isNew && onAddItem) {
-      // This is a new item - add it for the first time
-      if (itemCount > 0) {
-        // Remove the isNew flag
-        delete updatedInstance.isNew;
-        
-        // Add the specified number of items
-        for (let i = 0; i < itemCount; i++) {
-          onAddItem({
-            ...updatedInstance,
-            id: uuidv4(),
-            groupingKey: newGroupingKey
-          });
-        }
+    // Check if this is a new item (has isNew flag)
+    if (currentItemInstance?.isNew) {
+      // It's a new item - just add the requested count
+      if (itemCount === 0) {
+        // Don't add anything if count is 0
+        return prev;
       }
-      // Update the current instance state
-      setCurrentItemInstance({...updatedInstance, isNew: false});
-      return;
-    }
-
-    // Handle existing items (normal save logic)
-    setRoomItemSelections((prev) => {
-      const items = [...(prev[selectedRoom.id] || [])];
       
-      // Find all items with the same original groupingKey
+      // Add new items
+      for (let i = 0; i < itemCount; i++) {
+        items.push({
+          ...updatedInstance,
+          id: uuidv4(),
+          groupingKey: newGroupingKey,
+          // Remove the isNew flag
+          isNew: undefined
+        });
+      }
+    } else {
+      // Existing item - find and update the group
       const originalGroupingKey = currentItemInstance?.groupingKey;
       const groupItems = items.filter(itm => itm.groupingKey === originalGroupingKey);
       const otherItems = items.filter(itm => itm.groupingKey !== originalGroupingKey);
@@ -541,15 +539,22 @@ function ItemPopup({
         finalGroupItems = finalGroupItems.slice(0, itemCount);
       }
       
+      // Return the updated items array
       return {
         ...prev,
         [selectedRoom.id]: [...otherItems, ...finalGroupItems]
       };
-    });
+    }
+    
+    return {
+      ...prev,
+      [selectedRoom.id]: items
+    };
+  });
 
-    // Update the current instance state
-    setCurrentItemInstance(updatedInstance);
-  };
+  // Update the current instance state (remove isNew flag)
+  setCurrentItemInstance({...updatedInstance, isNew: false});
+};
 
   // itemCount plus/minus
   const handleIncrement = () => setItemCount((p) => p + 1);

@@ -118,45 +118,44 @@ function ItemList({
     >
       {Array.isArray(items) && items.length > 0 ? (
         <ul className={styles.itemList}>
-          {items.map((itemData) => {
-            let key, item, count, itemInstance;
+         {items.map((itemData) => {
+  let key, item, count, itemInstance;
 
-            if (isMyItemsActive) {
-              // For "My Items", items are already grouped with counts
-              key = itemData.groupingKey || itemData.id;
-              item = itemData.item || itemData;
-              count = itemData.count || 1;
-              itemInstance = itemData;
-            } else {
-              // For regular furniture items
-              const itemIdStr = itemData.id?.toString();
-              key = itemIdStr;
-              item = itemData;
-              count = itemClickCounts[itemIdStr] || 0;
-              // Find an instance of this furniture item if it exists
-              itemInstance = itemInstances.find(inst => 
-                (inst.furnitureItemId || inst.itemId)?.toString() === itemIdStr
-              ) || null;
-            }
+  if (isMyItemsActive) {
+    // For grouped items, use the groupingKey as the React key
+    key = itemData.groupingKey || itemData.id;
+    item = itemData.item || itemData;
+    count = itemData.count || 1;
+    itemInstance = itemData;
+  } else {
+    // For regular furniture items, use the furniture item ID
+    const itemIdStr = itemData.id?.toString();
+    key = itemIdStr;
+    item = itemData;
+    count = itemClickCounts[itemIdStr] || 0;
+    itemInstance = itemInstances.find(inst => 
+      (inst.furnitureItemId || inst.itemId)?.toString() === itemIdStr
+    ) || null;
+  }
 
-            return (
-              <Item
-                key={key}
-                item={item}
-                clickCount={count}
-                onItemClick={(action) => onItemClick(itemData, action)}
-                isMyItemsActive={isMyItemsActive}
-                isDeleteActive={isDeleteActive}
-                onUpdateItem={onUpdateItem}
-                onAddItem={onAddItem}
-                itemInstance={itemInstance}
-                onStartFresh={onStartFresh}
-                isDesktop={isDesktop}
-                isMoved={isMoved.current}
-                onOpenPopup={onOpenPopup}
-              />
-            );
-          })}
+  return (
+    <Item
+      key={key}
+      item={item}
+      clickCount={count}
+      onItemClick={(action) => onItemClick(itemData, action)}
+      isMyItemsActive={isMyItemsActive}
+      isDeleteActive={isDeleteActive}
+      onUpdateItem={onUpdateItem}
+      onAddItem={onAddItem}
+      itemInstance={itemInstance}
+      onStartFresh={onStartFresh}
+      isDesktop={isDesktop}
+      isMoved={isMoved.current}
+      onOpenPopup={onOpenPopup}
+    />
+  );
+})}
         </ul>
       ) : (
         <p className={styles.noItems}>Start adding items to your room.</p>

@@ -126,12 +126,15 @@ const customSelectStyles = {
 function ItemPopup({
   item,
   onClose,
-  onUpdateItem,
-  onAddItem,
+ 
   itemInstance,
-  handleDeleteItem,
-  onStartFresh,
+
   lead,
+  selectedRoom,
+  roomItemSelections,
+  setRoomItemSelections,
+  onAddItem,
+  onOpenPopup,
 }) {
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
   const [isSaving, setIsSaving] = useState(false);
@@ -145,12 +148,8 @@ function ItemPopup({
   // Basic fields
   const [cuft, setCuft] = useState('');
   const [lbs, setLbs] = useState('');
-  const [itemCount, setItemCount] = useState(1); // Always start at 1 for individual items
+  const [itemCount, setItemCount] = useState(1);
   const [notes, setNotes] = useState('');
-
-  // Animation states
-  const [isSlidingOut, setIsSlidingOut] = useState(false);
-  const [isSlidingIn, setIsSlidingIn] = useState(false);
 
   // Packing materials
   const [packingNeeds, setPackingNeeds] = useState([]);
@@ -228,6 +227,24 @@ function ItemPopup({
     loadPointsOptions,
     dropPointsOptions,
   ]);
+
+  // Get count of items with same groupingKey
+  const getGroupCount = useCallback(() => {
+    if (!currentItemInstance || !selectedRoom || !roomItemSelections) return 1;
+    const items = roomItemSelections[selectedRoom.id] || [];
+    return items.filter(itm => itm.groupingKey === currentItemInstance.groupingKey).length;
+  }, [currentItemInstance, selectedRoom, roomItemSelections]);
+
+  // Handle close - discard new items that weren't saved
+  const handleClose = () => {
+    // If this is a new item that hasn't been saved, just close without adding
+    if (currentItemInstance?.isNew) {
+      onClose();
+      return;
+    }
+    // Otherwise, normal close
+    onClose();
+  };
 
   // Initialize data on mount or if item changes
   useEffect(() => {
@@ -311,7 +328,14 @@ function ItemPopup({
     // Basic fields
     setCuft(currentItemInstance?.cuft || item.cuft || '');
     setLbs(currentItemInstance?.lbs || item.lbs || '');
-    setItemCount(1); // Always 1 for individual items in popup
+    
+    // Set itemCount - for new items always start with 1, otherwise use group count
+    if (currentItemInstance?.isNew) {
+      setItemCount(1);
+    } else {
+      setItemCount(getGroupCount());
+    }
+    
     setNotes(currentItemInstance?.notes || '');
 
     // Link
@@ -320,7 +344,7 @@ function ItemPopup({
     // Images
     setUploadedImages(currentItemInstance?.uploadedImages || []);
     setCameraImages(currentItemInstance?.cameraImages || []);
-  }, [currentItemInstance, item]);
+  }, [currentItemInstance, item, getGroupCount]);
 
   // Input handlers
   const handleCuftChange = (e) => setCuft(e.target.value);
@@ -421,38 +445,16 @@ function ItemPopup({
     }
   };
 
-  // Sync state fields when currentItemInstance changes
-  useEffect(() => {
-    if (!currentItemInstance) return;
-
-    setCuft(currentItemInstance.cuft || '');
-    setLbs(currentItemInstance.lbs || '');
-    setNotes(currentItemInstance.notes || '');
-    setItemCount(1); // Always 1 for individual items
-    setUploadedImages(currentItemInstance.uploadedImages || []);
-    setCameraImages(currentItemInstance.cameraImages || []);
-    setLink(currentItemInstance.link || '');
-    setPackingNeeds(Array.isArray(currentItemInstance.packingNeeds) ? currentItemInstance.packingNeeds : []);
-  }, [currentItemInstance]);
-
-  // Save item - Handle individual items
+  // Save item - Handle grouped items properly
   const handleSaveItem = (overrides = {}) => {
-    // If the user saved at zero, remove this item
-    if (itemCount === 0) {
-      if (handleDeleteItem && itemInstance) {
-        handleDeleteItem(itemInstance, false); // Remove just this one item
-      }
-      onClose();
-      return;
-    }
+    if (!selectedRoom || !setRoomItemSelections) return;
 
     const selectedTags = getAllSelectedTags();
-    const newInstance = {
-      id: currentItemInstance?.id || uuidv4(),
+    const updatedInstance = {
+      ...currentItemInstance,
       furnitureItemId: item.furnitureItemId || item.id,
-      itemId: item.id || item.furnitureItemId, // For backwards compatibility
-      roomId: currentItemInstance?.roomId,
-      item: { ...item }, // Keep the full item data
+      itemId: item.id || item.furnitureItemId,
+      item: { ...item },
       name: item.name || '',
       imageName: item.imageName || item.src || '',
       letters: item.letters || [],
@@ -466,37 +468,87 @@ function ItemPopup({
       link: overrides.link ?? link,
       uploadedImages: overrides.uploadedImages ?? uploadedImages,
       cameraImages: overrides.cameraImages ?? cameraImages,
-      autoAdded: currentItemInstance?.autoAdded || false,
     };
-    newInstance.groupingKey = generateGroupingKey(newInstance);
+    
+    // Generate new grouping key
+    const newGroupingKey = generateGroupingKey(updatedInstance);
+    updatedInstance.groupingKey = newGroupingKey;
 
-    // Handle count changes for individual items
-    if (currentItemInstance) {
-      // Update the current item
-      onUpdateItem(newInstance, currentItemInstance);
-      
-      // If count increased, add more individual items
-      if (itemCount > 1) {
-        for (let i = 1; i < itemCount; i++) {
+    // Check if this is a new item that hasn't been saved yet
+    if (currentItemInstance?.isNew && onAddItem) {
+      // This is a new item - add it for the first time
+      if (itemCount > 0) {
+        // Remove the isNew flag
+        delete updatedInstance.isNew;
+        
+        // Add the specified number of items
+        for (let i = 0; i < itemCount; i++) {
           onAddItem({
-            ...newInstance,
-            id: uuidv4(), // New ID for each additional item
+            ...updatedInstance,
+            id: uuidv4(),
+            groupingKey: newGroupingKey
           });
         }
       }
-    } else {
-      // Adding new items
-      for (let i = 0; i < itemCount; i++) {
-        onAddItem({
-          ...newInstance,
-          id: uuidv4(), // New ID for each item
-        });
-      }
+      // Update the current instance state
+      setCurrentItemInstance({...updatedInstance, isNew: false});
+      return;
     }
 
-    // Update the current instance state but keep count at 1
-    setCurrentItemInstance({ ...newInstance });
-    setItemCount(1); // Reset to 1 since we've handled the multiple items
+    // Handle existing items (normal save logic)
+    setRoomItemSelections((prev) => {
+      const items = [...(prev[selectedRoom.id] || [])];
+      
+      // Find all items with the same original groupingKey
+      const originalGroupingKey = currentItemInstance?.groupingKey;
+      const groupItems = items.filter(itm => itm.groupingKey === originalGroupingKey);
+      const otherItems = items.filter(itm => itm.groupingKey !== originalGroupingKey);
+      
+      // If count is 0, remove all items in the group
+      if (itemCount === 0) {
+        return {
+          ...prev,
+          [selectedRoom.id]: otherItems
+        };
+      }
+      
+      // Update all items in the group with new properties
+      const updatedGroupItems = groupItems.map((itm) => ({
+        ...itm,
+        ...updatedInstance,
+        id: itm.id, // Preserve original IDs
+        autoAdded: itm.autoAdded || false, // Preserve autoAdded flag
+        sortKey: itm.sortKey, // Preserve sortKey for auto-added items
+        groupingKey: newGroupingKey
+      }));
+      
+      // Adjust count by adding or removing items
+      const currentCount = groupItems.length;
+      let finalGroupItems = [...updatedGroupItems];
+      
+      if (itemCount > currentCount) {
+        // Add new items
+        const itemsToAdd = itemCount - currentCount;
+        for (let i = 0; i < itemsToAdd; i++) {
+          finalGroupItems.push({
+            ...updatedInstance,
+            id: uuidv4(),
+            groupingKey: newGroupingKey
+          });
+        }
+      } else if (itemCount < currentCount) {
+        // Remove items (from the end)
+        finalGroupItems = finalGroupItems.slice(0, itemCount);
+      }
+      
+      return {
+        ...prev,
+        [selectedRoom.id]: [...otherItems, ...finalGroupItems]
+      };
+    });
+
+    // Update the current instance state
+    setCurrentItemInstance(updatedInstance);
   };
 
   // itemCount plus/minus
@@ -532,37 +584,49 @@ function ItemPopup({
   const filteredLoadPointsOptions = filterOptions(optionsData.locationTags.loadPoints, allSelectedTags);
   const dynamicFilteredDropPoints = filterOptions(dynamicDropPoints, allSelectedTags);
 
-  // "Start Fresh"
+  // "Start Fresh as New Item"
   const handleStartFreshClick = () => {
-    setIsSlidingOut(true);
-    setTimeout(async () => {
-      if (onStartFresh && currentItemInstance) {
-        const resetInstance = await onStartFresh(currentItemInstance);
-        if (resetInstance) {
-          setCurrentItemInstance(resetInstance);
-        }
-      }
-    }, 300);
+    if (!item || !onOpenPopup) return;
+    
+    // Get the base furniture item
+    const furnitureId = item.id?.toString() || currentItemInstance?.furnitureItemId;
+    
+    // Create default packing needs
+    let defaultPacking = {};
+    if (item.packingNeeds?.length) {
+      item.packingNeeds.forEach((pack) => {
+        defaultPacking[pack.type] = pack.quantity;
+      });
+    }
+    
+    // Create a brand new item instance with default values (not saved yet)
+    const freshItemInstance = {
+      id: uuidv4(),
+      furnitureItemId: furnitureId,
+      item: { ...item },
+      tags: [...(item.tags || [])],
+      notes: "",
+      cuft: item.cuft || "",
+      lbs: item.lbs || "",
+      packingNeedsCounts: defaultPacking,
+      packingNeeds: item.packingNeeds || [],
+      link: "",
+      uploadedImages: [],
+      cameraImages: [],
+      isNew: true, // Flag to indicate this is a new unsaved item
+    };
+    
+    // Generate grouping key for the new instance
+    freshItemInstance.groupingKey = generateGroupingKey(freshItemInstance);
+    
+    // Close current popup
+    handleClose();
+    
+    // Open popup with the fresh instance (not saved yet)
+    setTimeout(() => {
+      onOpenPopup(item, freshItemInstance);
+    }, 100);
   };
-
-  useEffect(() => {
-    let timer;
-    if (isSlidingOut) {
-      timer = setTimeout(() => {
-        setIsSlidingOut(false);
-        setIsSlidingIn(true);
-      }, 300);
-    }
-    return () => clearTimeout(timer);
-  }, [isSlidingOut]);
-
-  useEffect(() => {
-    let timer;
-    if (isSlidingIn) {
-      timer = setTimeout(() => setIsSlidingIn(false), 300);
-    }
-    return () => clearTimeout(timer);
-  }, [isSlidingIn]);
 
   // Camera / upload / link handlers
   const handleCameraRollClick = () => {
@@ -736,11 +800,9 @@ function ItemPopup({
   }, [isPreviewVisible]);
 
   return (
-    <div className={styles.popup} onClick={onClose}>
+    <div className={styles.popup} onClick={handleClose}>
       <div
-        className={`${styles.popupContent} ${isSlidingOut ? styles.slideOut : ''} ${
-          isSlidingIn ? styles.slideIn : ''
-        }`}
+        className={styles.popupContent}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -749,7 +811,7 @@ function ItemPopup({
             <p>Item</p>
           </div>
           <div className={styles.closeButton}>
-            <button type="button" onClick={onClose} aria-label="Close">
+            <button type="button" onClick={handleClose} aria-label="Close">
               <Icon name="Close" className={styles.closeIcon} />
             </button>
           </div>
@@ -1143,17 +1205,20 @@ function ItemPopup({
         {/* Save & Start Fresh Buttons */}
         <div className={styles.saveButtonContainer}>
           <button
-            type="button"
-            className={`${styles.saveButton} ${isSaving ? styles.saving : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSaveItem();
-              setIsSaving(true);
-              setTimeout(() => setIsSaving(false), 300);
-            }}
-          >
-            Save
-          </button>
+  type="button"
+  className={`${styles.saveButton} ${isSaving ? styles.saving : ''}`}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleSaveItem();
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      handleClose();  // Always close after saving
+    }, 300);
+  }}
+>
+  Save
+</button>
           <button
             type="button"
             className={styles.newItemButton}

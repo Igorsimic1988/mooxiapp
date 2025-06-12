@@ -24,20 +24,143 @@ function AlphabetButtons({
 }) {
   const scrollContainerRef = useRef(null);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasDragged, setHasDragged] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const handleResize = () => {
-        setIsDesktop(window.innerWidth >= 1024);
+      const mediaQuery = window.matchMedia('(min-width: 1024px)');
+      
+      const handleMediaChange = (e) => {
+        setIsDesktop(e.matches);
       };
-      handleResize();
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
+      
+      // Set initial value
+      setIsDesktop(mediaQuery.matches);
+      
+      // Listen for changes
+      mediaQuery.addEventListener('change', handleMediaChange);
+      
+      return () => mediaQuery.removeEventListener('change', handleMediaChange);
     }
   }, []);
 
+  // Enable horizontal scrolling with mouse wheel
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer || isDesktop) return;
+
+    const handleWheel = (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        scrollContainer.scrollLeft += e.deltaY;
+      }
+    };
+
+    scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      scrollContainer.removeEventListener('wheel', handleWheel);
+    };
+  }, [isDesktop]);
+
+  // Mouse drag handlers
+  const handleMouseDown = (e) => {
+    if (isDesktop) return;
+    
+    const scrollContainer = scrollContainerRef.current;
+    setIsDragging(true);
+    setHasDragged(false);
+    setStartX(e.pageX - scrollContainer.offsetLeft);
+    setScrollLeft(scrollContainer.scrollLeft);
+    scrollContainer.style.cursor = 'grabbing';
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || isDesktop) return;
+    
+    e.preventDefault();
+    const scrollContainer = scrollContainerRef.current;
+    const x = e.pageX - scrollContainer.offsetLeft;
+    const walk = (x - startX) * 1.5; // Multiply by 1.5 for faster scrolling
+    
+    // Mark as dragged if moved more than 5 pixels
+    if (Math.abs(walk) > 5) {
+      setHasDragged(true);
+    }
+    
+    scrollContainer.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    if (isDesktop) return;
+    
+    setIsDragging(false);
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.style.cursor = 'grab';
+    }
+    
+    // Reset hasDragged after a short delay to prevent click events
+    setTimeout(() => {
+      setHasDragged(false);
+    }, 50);
+  };
+
+  const handleMouseLeave = () => {
+    if (isDesktop) return;
+    
+    setIsDragging(false);
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.style.cursor = 'grab';
+    }
+    
+    // Reset hasDragged
+    setTimeout(() => {
+      setHasDragged(false);
+    }, 50);
+  };
+
+  // Prevent text selection while dragging and handle global mouseup
+  useEffect(() => {
+    const handleSelectStart = (e) => {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        const scrollContainer = scrollContainerRef.current;
+        if (scrollContainer) {
+          scrollContainer.style.cursor = 'grab';
+        }
+        
+        // Reset hasDragged after a short delay
+        setTimeout(() => {
+          setHasDragged(false);
+        }, 50);
+      }
+    };
+
+    document.addEventListener('selectstart', handleSelectStart);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    
+    return () => {
+      document.removeEventListener('selectstart', handleSelectStart);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging]);
+
   // Simple letter click handler
   const handleLetterClick = (letter) => {
+    // Don't trigger click if we were dragging
+    if (hasDragged) return;
+    
     console.log('Letter clicked:', letter, 'Currently selected:', selectedLetter);
     
     if (selectedLetter === letter) {
@@ -51,47 +174,30 @@ function AlphabetButtons({
 
   // Simple sub-button click handler
   const handleSubButtonClickInternal = (subButton, letter) => {
+    // Don't trigger click if we were dragging
+    if (hasDragged) return;
+    
     onSubButtonClick(letter, subButton);
   };
 
-  // Only handle scrolling on the container, not individual buttons
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    let scrollTimeout;
-
-    const handleScroll = () => {
-      isScrolling = true;
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        isScrolling = false;
-      }, 150);
-    };
-
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, []);
-
   return (
     <div
-      className={styles.alphabetButtons}
+      className={`${styles.alphabetButtons} ${!isDesktop ? styles.draggable : ''}`}
       ref={scrollContainerRef}
       style={{ 
         overflowX: isDesktop ? 'hidden' : 'auto',
-        overflowY: isDesktop ? 'auto' : 'hidden'
+        overflowY: isDesktop ? 'auto' : 'hidden',
+        cursor: !isDesktop ? (isDragging ? 'grabbing' : 'grab') : 'auto'
       }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
     >
       {ALPHABETS.map((letter) => {
         const isMainActive =
           selectedLetter === letter &&
           (!selectedSubButton || selectedSubButton.letter !== letter);
-
-        console.log(`Letter ${letter}: isMainActive=${isMainActive}, selectedLetter=${selectedLetter}`);
 
         return (
           <React.Fragment key={letter}>

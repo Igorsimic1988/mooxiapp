@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import styles from "./Inventory.module.css";
+import Fuse from 'fuse.js';
 
 // Child components
 import RoomList from "./RoomList/RoomList";
@@ -25,49 +26,72 @@ import { useInventoryContext } from "../../InventoryContext";
 // Default room IDs
 const defaultRoomIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
+// Fuse.js configuration for fuzzy search
+const fuseOptions = {
+  keys: ['name', 'tags'],
+  threshold: 0.3,
+  includeScore: true,
+  minMatchCharLength: 2,
+  shouldSort: true,
+  findAllMatches: true,
+  ignoreLocation: true,
+};
+
 function Inventory({
   lead,
   onCloseInventory,
   inventoryRoom,
   setInventoryRoom,
 }) {
+
   // Fetch furniture items from backend
-  const { data: allItems = [] } = useQuery({
+  const { data: allItems = [], isLoading: itemsLoading } = useQuery({
     queryKey: ['furnitureItems', lead?.brandId],
     queryFn: () => getAllFurnitureItems({ brandId: lead?.brandId }),
     enabled: !!lead?.brandId,
   });
 
+  // Create Fuse instance with better memoization
+  const fuse = useMemo(() => {
+    if (!allItems || allItems.length === 0) return null;
+    
+    try {
+      return new Fuse(allItems, fuseOptions);
+    } catch (error) {
+      console.error('Error creating Fuse instance:', error);
+      return null;
+    }
+  }, [allItems]);
+
   const queryClient = useQueryClient();
 
   // Sync mutation for backend
   const syncAllInventoryDataMutation = useMutation({
-  mutationFn: ({stopId, stopType, displayedRooms, itemsByRoom}) => {
-    // Add the missing parameters
-    const inventoryItems = Object.values(itemsByRoom).flat();
-    const autoBoxEnabled = isToggled;
-    
-    return syncInventory({
-      stopId, 
-      stopType, 
-      displayedRooms, 
-      itemsByRoom,
-      inventoryItems,    // This was missing
-      autoBoxEnabled     // This was missing
-    });
-  },
-  onSuccess: (_data, variables) => {
-    const { stopType, stopId } = variables;
-    if (stopType === 'origin'){
-      queryClient.invalidateQueries(['inventoryByOrigin', stopId]);
-    } else {
-      queryClient.invalidateQueries(['inventoryByDestination', stopId]);
+    mutationFn: ({stopId, stopType, displayedRooms, itemsByRoom}) => {
+      const inventoryItems = Object.values(itemsByRoom).flat();
+      const autoBoxEnabled = isToggled;
+      
+      return syncInventory({
+        stopId, 
+        stopType, 
+        displayedRooms, 
+        itemsByRoom,
+        inventoryItems,
+        autoBoxEnabled
+      });
+    },
+    onSuccess: (_data, variables) => {
+      const { stopType, stopId } = variables;
+      if (stopType === 'origin'){
+        queryClient.invalidateQueries(['inventoryByOrigin', stopId]);
+      } else {
+        queryClient.invalidateQueries(['inventoryByDestination', stopId]);
+      }
+    },
+    onError: (err) => {
+      console.error("Sync error:", err);
     }
-  },
-  onError: (err) => {
-    console.error("Sync error:", err);
-  }
-});
+  });
 
   // Stop selection from context
   const { selectedOriginStopId, setSelectedOriginStopId, selectedDestinationStopId, setSelectedDestinationStopId } = useUiState();
@@ -90,6 +114,7 @@ function Inventory({
 
   // Inventory context
   const { inventoryByStop, setInventoryByStop } = useInventoryContext();
+
   const [hasLoadedInventory, setHasLoadedInventory] = useState(false);
   
   // Selected room
@@ -105,7 +130,7 @@ function Inventory({
 
   // UI toggles
   const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
-  const [isToggled, setIsToggled] = useState(true); // auto-box toggle
+  const [isToggled, setIsToggled] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
   const [isMyItemsActive, setIsMyItemsActive] = useState(false);
   const [isDeleteActive, setIsDeleteActive] = useState(false);
@@ -115,8 +140,13 @@ function Inventory({
 
   // Popup state
   const [popupData, setPopupData] = useState(null);
-  const handleOpenPopup = (item, itemInstance) => setPopupData({ item, itemInstance });
-  const handleClosePopup = () => setPopupData(null);
+  const handleOpenPopup = useCallback((item, itemInstance) => {
+    setPopupData({ item, itemInstance });
+  }, []);
+  
+  const handleClosePopup = useCallback(() => {
+    setPopupData(null);
+  }, []);
 
   // iOS Safari height fix
   useEffect(() => {
@@ -182,32 +212,43 @@ function Inventory({
   }, [inventoryData, selectedStopInfo, setInventoryByStop]);
 
   // Handle room selection
-  const handleRoomSelect = (room) => {
+  const handleRoomSelect = useCallback((room) => {
     if (setInventoryRoom) setInventoryRoom(room);
-  };
+  }, [setInventoryRoom]);
 
-  const handleBackToRooms = () => {
+  const handleBackToRooms = useCallback(() => {
     if (setInventoryRoom) setInventoryRoom(null);
     setSearchQuery("");
     setSelectedLetter(null);
     setSelectedSubButton({ letter: null, subButton: null });
-  };
+  }, [setInventoryRoom]);
 
-  // Search handlers
-  const handleSearch = (query) => {
-    setIsMyItemsActive(false);
+  // Optimized search handler with debouncing
+  const searchTimeoutRef = useRef(null);
+  const handleSearch = useCallback((query) => {
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Update search query immediately for UI responsiveness
     setSearchQuery(query);
-    setSelectedLetter(null);
-    setSelectedSubButton({ letter: null, subButton: null });
-  };
+    
+    // Debounce the actual search logic
+    searchTimeoutRef.current = setTimeout(() => {
+      setIsMyItemsActive(false);
+      setSelectedLetter(null);
+      setSelectedSubButton({ letter: null, subButton: null });
+    }, 100);
+  }, []);
 
-  const handleSearchClick = () => {
+  const handleSearchClick = useCallback(() => {
     setIsMyItemsActive(false);
     setSelectedLetter(null);
     setSelectedSubButton({ letter: null, subButton: null });
-  };
+  }, []);
 
-  const handleLetterSelect = (letter) => {
+  const handleLetterSelect = useCallback((letter) => {
     setIsMyItemsActive(false);
     if (selectedLetter === letter) {
       setSelectedLetter(null);
@@ -217,9 +258,9 @@ function Inventory({
       setSelectedSubButton({ letter: null, subButton: null });
       setSearchQuery("");
     }
-  };
+  }, [selectedLetter]);
 
-  const handleSubButtonSelect = (letter, subButton) => {
+  const handleSubButtonSelect = useCallback((letter, subButton) => {
     setIsMyItemsActive(false);
     if (
       selectedSubButton.letter === letter &&
@@ -232,10 +273,10 @@ function Inventory({
       setSelectedLetter(letter);
       setSearchQuery("");
     }
-  };
+  }, [selectedSubButton]);
 
   // Handle item selection (add/remove individual instances)
-  const handleItemSelection = (clickedItem, action) => {
+  const handleItemSelection = useCallback((clickedItem, action) => {
     if (!selectedRoom || !selectedStopInfo) return;
     const doAction = action || (isDeleteActive ? "decrease" : "increase");
 
@@ -247,12 +288,10 @@ function Inventory({
         // Remove one instance
         let idx = -1;
         if (isMyItemsActive) {
-          // Remove by groupingKey for "My Items"
           idx = items.findIndex(
             (itm) => itm.groupingKey === clickedItem.groupingKey
           );
         } else {
-          // Standard removal by furnitureItemId
           const itemIdToDelete = clickedItem.furnitureItemId?.toString() || clickedItem.id?.toString();
           idx = items.findIndex((itm) => itm.furnitureItemId === itemIdToDelete);
         }
@@ -312,10 +351,10 @@ function Inventory({
       };
       return { ...prev, [selectedStopInfo.id]: updatedStopData };
     });
-  };
+  }, [selectedRoom, selectedStopInfo, isDeleteActive, isMyItemsActive, getStopData, setInventoryByStop]);
 
-  // Handle start fresh (reset item)
-  const handleStartFresh = (newItemInstance) => {
+  // Other callbacks optimized similarly...
+  const handleStartFresh = useCallback((newItemInstance) => {
     if (!selectedRoom || !selectedStopInfo) return;
     
     const baseItem = allItems.find(
@@ -327,7 +366,6 @@ function Inventory({
       const stopData = getStopData(selectedStopInfo.id);
       const items = [...(stopData.itemsByRoom[selectedRoom.id] || [])];
       
-      // Find and update the instance
       const idx = items.findIndex((itm) => itm.id === newItemInstance.id);
       if (idx === -1) return prev;
 
@@ -361,11 +399,10 @@ function Inventory({
       };
       return { ...prev, [selectedStopInfo.id]: updatedStopData };
     });
-  };
+  }, [selectedRoom, selectedStopInfo, allItems, getStopData, setInventoryByStop]);
 
-  // Handle room toggle
-  const handleToggleRoom = (roomId) => {
-    if (roomId === 13 || !selectedStopInfo) return; // Keep "Boxes" always
+  const handleToggleRoom = useCallback((roomId) => {
+    if (roomId === 13 || !selectedStopInfo) return;
 
     setInventoryByStop((prev) => {
       const stopData = getStopData(selectedStopInfo.id);
@@ -388,18 +425,16 @@ function Inventory({
       };
       return { ...prev, [selectedStopInfo.id]: updatedStopData };
     });
-  };
+  }, [selectedStopInfo, getStopData, setInventoryByStop]);
 
-  // Get item count for current room
-  const getItemCountForCurrentRoom = () => {
+  const getItemCountForCurrentRoom = useCallback(() => {
     if (!selectedRoom || !selectedStopInfo) return 0;
     const stopData = getStopData(selectedStopInfo.id);
     const items = stopData.itemsByRoom[selectedRoom.id] || [];
     return items.length;
-  };
+  }, [selectedRoom, selectedStopInfo, getStopData]);
 
-  // Update item
-  const handleUpdateItem = (updatedItemInstance, originalItemInstance) => {
+  const handleUpdateItem = useCallback((updatedItemInstance, originalItemInstance) => {
     if (!selectedRoom || !selectedStopInfo) return;
     
     setInventoryByStop((prev) => {
@@ -425,10 +460,9 @@ function Inventory({
       };
       return { ...prev, [selectedStopInfo.id]: updatedStopData };
     });
-  };
+  }, [selectedRoom, selectedStopInfo, getStopData, setInventoryByStop]);
 
-  // Add new item
-  const handleAddItem = (newItemInstance) => {
+  const handleAddItem = useCallback((newItemInstance) => {
     if (!selectedRoom || !selectedStopInfo) return;
     
     setInventoryByStop((prev) => {
@@ -451,103 +485,101 @@ function Inventory({
       };
       return { ...prev, [selectedStopInfo.id]: updatedStopData };
     });
-  };
+  }, [selectedRoom, selectedStopInfo, getStopData, setInventoryByStop]);
 
-  // Auto-add boxes logic (simplified for individual items)
-useEffect(() => {
-  if (!isToggled || !selectedStopInfo || !hasLoadedInventory) return;
+  // Auto-add boxes logic
+  useEffect(() => {
+    if (!isToggled || !selectedStopInfo || !hasLoadedInventory) return;
 
-  const stopData = getStopData(selectedStopInfo.id);
-  const itemsByRoom = stopData.itemsByRoom || {};
+    const stopData = getStopData(selectedStopInfo.id);
+    const itemsByRoom = stopData.itemsByRoom || {};
 
-  // Calculate total weight
-  let totalLbs = 0;
-  const excludedRoomId = 13;
-  const excludedIds = ["529", "530", "531", "532", "533", "534", "535", "536", "537"];
+    let totalLbs = 0;
+    const excludedRoomId = 13;
+    const excludedIds = ["529", "530", "531", "532", "533", "534", "535", "536", "537"];
 
-  Object.keys(itemsByRoom).forEach((roomId) => {
-    if (Number(roomId) === excludedRoomId) return;
-    itemsByRoom[roomId].forEach((itm) => {
-      if (!excludedIds.includes(itm.furnitureItemId)) {
-        const lbsVal = parseFloat(itm.lbs || itm.item?.lbs || 0);
-        if (!isNaN(lbsVal)) {
-          totalLbs += lbsVal;
-        }
-      }
-    });
-  });
-
-  if (prevTotalLbsRef.current === totalLbs) return;
-  prevTotalLbsRef.current = totalLbs;
-
-  const boxesPer200lbs = 3;
-  const nUnits = Math.ceil(totalLbs / 200);
-  const totalBoxes = nUnits * boxesPer200lbs;
-
-  const distribution = [
-    { percent: 0.10, itemId: "533" },
-    { percent: 0.05, itemId: "529" },
-    { percent: 0.20, itemId: "534" },
-    { percent: 0.45, itemId: "535" },
-    { percent: 0.20, itemId: "536" },
-  ];
-  const boxesToAdd = distribution.map((dist) => ({
-    itemId: dist.itemId,
-    count: Math.round(totalBoxes * dist.percent),
-  }));
-
-  // Update boxes
-  setInventoryByStop((prev) => {
-    const updatedStopData = { ...getStopData(selectedStopInfo.id) };
-    const itemsByRoom2 = { ...updatedStopData.itemsByRoom };
-    const oldBoxes = itemsByRoom2["13"] || [];
-    const nonAuto = oldBoxes.filter((bx) => !bx.autoAdded);
-
-    const newBoxes = [];
-    boxesToAdd.forEach((bx) => {
-      for (let i = 0; i < bx.count; i++) {
-        const itemData = allItems.find((it) => it.id.toString() === bx.itemId);
-        if (itemData) {
-          let packing = {};
-          if (itemData.packingNeeds?.length) {
-            itemData.packingNeeds.forEach((p) => {
-              packing[p.type] = p.quantity;
-            });
+    Object.keys(itemsByRoom).forEach((roomId) => {
+      if (Number(roomId) === excludedRoomId) return;
+      itemsByRoom[roomId].forEach((itm) => {
+        if (!excludedIds.includes(itm.furnitureItemId)) {
+          const lbsVal = parseFloat(itm.lbs || itm.item?.lbs || 0);
+          if (!isNaN(lbsVal)) {
+            totalLbs += lbsVal;
           }
-          const newInst = {
-            id: uuidv4(),
-            furnitureItemId: bx.itemId,
-            item: { ...itemData },
-            tags: [...(itemData.tags || [])],
-            notes: "",
-            cuft: itemData.cuft || "",
-            lbs: itemData.lbs || "",
-            packingNeedsCounts: packing,
-            autoAdded: true,
-            groupingKey: "",
-          };
-          newInst.groupingKey = generateGroupingKey(newInst);
-          newBoxes.push(newInst);
         }
-      }
+      });
     });
 
-    itemsByRoom2["13"] = [...nonAuto, ...newBoxes];
-    
-    return {
-      ...prev,
-      [selectedStopInfo.id]: {
-        ...updatedStopData,
-        itemsByRoom: itemsByRoom2,
-      },
-    };
-  });
-}, [isToggled, selectedStopInfo, getStopData, allItems, hasLoadedInventory, setInventoryByStop]); 
+    if (prevTotalLbsRef.current === totalLbs) return;
+    prevTotalLbsRef.current = totalLbs;
+
+    const boxesPer200lbs = 3;
+    const nUnits = Math.ceil(totalLbs / 200);
+    const totalBoxes = nUnits * boxesPer200lbs;
+
+    const distribution = [
+      { percent: 0.10, itemId: "533" },
+      { percent: 0.05, itemId: "529" },
+      { percent: 0.20, itemId: "534" },
+      { percent: 0.45, itemId: "535" },
+      { percent: 0.20, itemId: "536" },
+    ];
+    const boxesToAdd = distribution.map((dist) => ({
+      itemId: dist.itemId,
+      count: Math.round(totalBoxes * dist.percent),
+    }));
+
+    setInventoryByStop((prev) => {
+      const updatedStopData = { ...getStopData(selectedStopInfo.id) };
+      const itemsByRoom2 = { ...updatedStopData.itemsByRoom };
+      const oldBoxes = itemsByRoom2["13"] || [];
+      const nonAuto = oldBoxes.filter((bx) => !bx.autoAdded);
+
+      const newBoxes = [];
+      boxesToAdd.forEach((bx) => {
+        for (let i = 0; i < bx.count; i++) {
+          const itemData = allItems.find((it) => it.id.toString() === bx.itemId);
+          if (itemData) {
+            let packing = {};
+            if (itemData.packingNeeds?.length) {
+              itemData.packingNeeds.forEach((p) => {
+                packing[p.type] = p.quantity;
+              });
+            }
+            const newInst = {
+              id: uuidv4(),
+              furnitureItemId: bx.itemId,
+              item: { ...itemData },
+              tags: [...(itemData.tags || [])],
+              notes: "",
+              cuft: itemData.cuft || "",
+              lbs: itemData.lbs || "",
+              packingNeedsCounts: packing,
+              autoAdded: true,
+              groupingKey: "",
+              sortKey: `auto-${bx.itemId}-${i}`,
+            };
+            newInst.groupingKey = generateGroupingKey(newInst);
+            newBoxes.push(newInst);
+          }
+        }
+      });
+
+      itemsByRoom2["13"] = [...nonAuto, ...newBoxes];
+      
+      return {
+        ...prev,
+        [selectedStopInfo.id]: {
+          ...updatedStopData,
+          itemsByRoom: itemsByRoom2,
+        },
+      };
+    });
+  }, [isToggled, selectedStopInfo, getStopData, allItems, hasLoadedInventory, setInventoryByStop]);
 
   // Close and sync
   const handleClose = async () => {
     try {
-      // Sync all stops
       const stopSyncs = Object.entries(inventoryByStop).map(([stopId, stopData]) => {
         const isOrigin = lead?.origins?.some((s) => String(s.id) === stopId);
         const stopType = isOrigin ? "origin" : "destination";
@@ -621,6 +653,8 @@ useEffect(() => {
         isDeleteActive={isDeleteActive}
         setIsDeleteActive={setIsDeleteActive}
         handleToggleRoom={handleToggleRoom}
+        allItems={allItems}
+        fuse={fuse}
       />
     );
   }
@@ -630,72 +664,82 @@ useEffect(() => {
     return <div>Please select a stop</div>;
   }
 
+  // Show loading state while items are being fetched
+  if (itemsLoading) {
+    return (
+      <div className={styles.inventoryContainer}>
+        <div className={styles.loadingState}>Loading inventory...</div>
+      </div>
+    );
+  }
+
   const stopData = getStopData(selectedStopInfo.id);
   const displayedRoomObjects = (stopData.displayedRooms || []).map((rId) => {
     const found = rooms.find((rm) => rm.id === rId);
     return found || { id: rId, name: `Room #${rId}` };
   });
 
- return (
-  <div className={styles.inventoryContainer}>
-    <header className={styles.header}>
-      {selectedRoom ? (
-        <SearchHeader
-          roomName={selectedRoom.name}
-          searchQuery={searchQuery}
-          onSearch={handleSearch}
-          onSearchClick={handleSearchClick}
-          onSearchFocus={handleSearchClick}
-        />
-      ) : (
-        <HouseHeader
-          rooms={rooms}
-          displayedRooms={stopData.displayedRooms}
-          onToggleRoom={handleToggleRoom}
-          lead={lead}
-          stopIndex={selectedStopInfo.id}
-          onStopIndexChange={selectedStopInfo.setId}
-        />
-      )}
-    </header>
+  return (
+    <div className={styles.inventoryContainer}>
+      <header className={styles.header}>
+        {selectedRoom ? (
+          <SearchHeader
+            roomName={selectedRoom.name}
+            searchQuery={searchQuery}
+            onSearch={handleSearch}
+            onSearchClick={handleSearchClick}
+            onSearchFocus={handleSearchClick}
+          />
+        ) : (
+          <HouseHeader
+            rooms={rooms}
+            displayedRooms={stopData.displayedRooms}
+            onToggleRoom={handleToggleRoom}
+            lead={lead}
+            stopIndex={selectedStopInfo.id}
+            onStopIndexChange={selectedStopInfo.setId}
+          />
+        )}
+      </header>
 
-    <main 
-      className={`${styles.mainContent} ${selectedRoom ? styles.inRoom : styles.roomList}`}
-    >
-      {selectedRoom ? (
-        <ItemSelection
-          allItems={allItems}
-          room={selectedRoom}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedLetter={selectedLetter}
-          selectedSubButton={selectedSubButton}
-          onLetterSelect={handleLetterSelect}
-          onSubButtonSelect={handleSubButtonSelect}
-          itemClickCounts={stopData.itemsByRoom[selectedRoom.id] || []}
-          itemInstances={stopData.itemsByRoom[selectedRoom.id] || []}
-          onItemClick={handleItemSelection}
-          itemCount={getItemCountForCurrentRoom()}
-          isMyItemsActive={isMyItemsActive}
-          setIsMyItemsActive={setIsMyItemsActive}
-          isDeleteActive={isDeleteActive}
-          onUpdateItem={handleUpdateItem}
-          onAddItem={handleAddItem}
-          isToggled={isToggled}
-          setIsToggled={setIsToggled}
-          onStartFresh={handleStartFresh}
-          onBackToRooms={handleBackToRooms}
-          onOpenPopup={handleOpenPopup}
-        />
-      ) : (
-        <RoomList
-          onRoomSelect={handleRoomSelect}
-          itemsByRoom={stopData.itemsByRoom}
-          displayedRooms={displayedRoomObjects}
-          selectedRoom={selectedRoom}
-        />
-      )}
-    </main>
+      <main 
+        className={`${styles.mainContent} ${selectedRoom ? styles.inRoom : styles.roomList}`}
+      >
+        {selectedRoom ? (
+          <ItemSelection
+            allItems={allItems}
+            room={selectedRoom}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedLetter={selectedLetter}
+            selectedSubButton={selectedSubButton}
+            onLetterSelect={handleLetterSelect}
+            onSubButtonSelect={handleSubButtonSelect}
+            itemClickCounts={stopData.itemsByRoom[selectedRoom.id] || []}
+            itemInstances={stopData.itemsByRoom[selectedRoom.id] || []}
+            onItemClick={handleItemSelection}
+            itemCount={getItemCountForCurrentRoom()}
+            isMyItemsActive={isMyItemsActive}
+            setIsMyItemsActive={setIsMyItemsActive}
+            isDeleteActive={isDeleteActive}
+            onUpdateItem={handleUpdateItem}
+            onAddItem={handleAddItem}
+            isToggled={isToggled}
+            setIsToggled={setIsToggled}
+            onStartFresh={handleStartFresh}
+            onBackToRooms={handleBackToRooms}
+            onOpenPopup={handleOpenPopup}
+            fuse={fuse}
+          />
+        ) : (
+          <RoomList
+            onRoomSelect={handleRoomSelect}
+            itemsByRoom={stopData.itemsByRoom}
+            displayedRooms={displayedRoomObjects}
+            selectedRoom={selectedRoom}
+          />
+        )}
+      </main>
 
       {popupData && (
         <ItemPopup
@@ -704,8 +748,27 @@ useEffect(() => {
           onClose={handleClosePopup}
           onUpdateItem={handleUpdateItem}
           onAddItem={handleAddItem}
+          handleDeleteItem={handleItemSelection}
           onStartFresh={handleStartFresh}
+          onOpenPopup={handleOpenPopup} 
           lead={lead}
+          selectedRoom={selectedRoom}
+          roomItemSelections={stopData.itemsByRoom}
+          setRoomItemSelections={(fnOrObj) => {
+            setInventoryByStop((prev) => {
+              const oldStopData = getStopData(selectedStopInfo.id);
+              const oldItems = oldStopData.itemsByRoom;
+              const newItems =
+                typeof fnOrObj === "function" ? fnOrObj(oldItems) : fnOrObj;
+              return {
+                ...prev,
+                [selectedStopInfo.id]: {
+                  ...oldStopData,
+                  itemsByRoom: newItems,
+                },
+              };
+            });
+          }}
         />
       )}
 

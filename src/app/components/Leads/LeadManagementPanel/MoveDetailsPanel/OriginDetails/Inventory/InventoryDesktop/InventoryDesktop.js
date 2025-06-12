@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styles from './InventoryDesktop.module.css';
 import { v4 as uuidv4 } from 'uuid';
+import { generateGroupingKey } from '../utils/generateGroupingKey';
+import Fuse from 'fuse.js';
 
 // Child components
 
@@ -27,6 +29,17 @@ import { useQuery } from '@tanstack/react-query';
 
 import Icon from 'src/app/components/Icon';
 
+// Fuse.js configuration for fuzzy search
+const fuseOptions = {
+  keys: ['name', 'tags'], // Search in name and tags
+  threshold: 0.3, // 0.0 requires perfect match, 1.0 matches everything
+  includeScore: true,
+  minMatchCharLength: 2,
+  shouldSort: true,
+  findAllMatches: true,
+  ignoreLocation: true, // Search anywhere in the string
+};
+
 /**
  * InventoryDesktop
  *
@@ -48,6 +61,7 @@ import Icon from 'src/app/components/Icon';
  *  - lead (for HouseInfo)
  *  - handleItemSelection, handleUpdateItem, handleAddItem, handleStartFresh, handleDeleteItem
  *  - isDeleteActive, setIsDeleteActive
+ *  - allItems, fuse (for fuzzy search)
  */
 function InventoryDesktop({
   // Multi-stop
@@ -96,13 +110,29 @@ function InventoryDesktop({
   // Delete toggle
   isDeleteActive,
   setIsDeleteActive,
+  
+  // Items and Fuse instance
+  allItems: propAllItems,
+  fuse: propFuse,
 }) {
-  // Fetch furniture items from backend
-  const { data: allItems = [] } = useQuery({
+  // Fetch furniture items from backend if not provided
+  const { data: fetchedAllItems = [] } = useQuery({
     queryKey: ['furnitureItems', lead?.brandId],
     queryFn: () => getAllFurnitureItems({ brandId: lead?.brandId }),
-    enabled: !!lead?.brandId,
+    enabled: !!lead?.brandId && !propAllItems,
   });
+  
+  // Use provided items or fetched items
+  const allItems = propAllItems || fetchedAllItems;
+
+  // Create Fuse instance if not provided
+  const fuse = useMemo(() => {
+    if (propFuse) return propFuse;
+    if (allItems.length > 0) {
+      return new Fuse(allItems, fuseOptions);
+    }
+    return null;
+  }, [propFuse, allItems]);
 
   // Show/hide item popup
   const [isItemPopupVisible, setIsItemPopupVisible] = useState(false);
@@ -199,18 +229,35 @@ function InventoryDesktop({
   // Middle panel => get filtered items
   const getFilteredItems = () => {
     if (!selectedRoom) return [];
+    
     // If search query
     if (searchQuery.trim() !== '') {
-      const filtered = allItems.filter((itm) => {
-        const match = itm.name.toLowerCase().includes(searchQuery.toLowerCase());
-        return match && itm.search !== false;
-      });
-      if (filtered.length === 0) {
-        const customItem = allItems.find((x) => x.name === 'Custom Item');
-        return customItem ? [customItem] : [];
+      if (fuse) {
+        // Use Fuse.js for fuzzy search
+        const results = fuse.search(searchQuery);
+        const filtered = results
+          .map(result => result.item)
+          .filter(item => item.search !== false);
+          
+        if (filtered.length === 0) {
+          const customItem = allItems.find((x) => x.name === 'Custom Item');
+          return customItem ? [customItem] : [];
+        }
+        return filtered;
+      } else {
+        // Fallback to simple search if Fuse is not available
+        const filtered = allItems.filter((itm) => {
+          const match = itm.name.toLowerCase().includes(searchQuery.toLowerCase());
+          return match && itm.search !== false;
+        });
+        if (filtered.length === 0) {
+          const customItem = allItems.find((x) => x.name === 'Custom Item');
+          return customItem ? [customItem] : [];
+        }
+        return filtered;
       }
-      return filtered;
     }
+    
     // If sub-letter
     if (selectedSubButton?.subButton) {
       return allItems.filter((itm) =>
@@ -226,47 +273,72 @@ function InventoryDesktop({
   };
 
   // Group individual items by their properties for "My Items" display
-  const getGroupedItems = () => {
-    if (!selectedRoom) return [];
-    const arr = roomItemSelections[selectedRoom.id] || [];
-    const grouped = {};
+  // Using useMemo to ensure stable grouping
+ const groupedItems = useMemo(() => {
+  if (!selectedRoom) return [];
+  const arr = roomItemSelections[selectedRoom.id] || [];
+  
+  // Use Map to maintain grouping
+  const grouped = new Map();
+  
+  arr.forEach((inst) => {
+    // Generate or use existing groupingKey
+    const gKey = inst.groupingKey || generateGroupingKey(inst);
     
-    for (const inst of arr) {
-      // Generate or use existing groupingKey
-      const gKey = inst.groupingKey || '';
+    if (!grouped.has(gKey)) {
+      // Get the stable itemId for sorting
+      const stableItemId = inst.furnitureItemId || inst.itemId || inst.item?.id;
       
-      if (!grouped[gKey]) {
-        // Create a new grouped item with all necessary properties
-        grouped[gKey] = {
-          ...inst,
-          count: 1,
-          // Ensure compatibility with both old and new data formats
-          id: inst.id,
-          furnitureItemId: inst.furnitureItemId || inst.itemId,
-          itemId: inst.itemId || inst.furnitureItemId,
-          item: inst.item || {
-            id: inst.furnitureItemId || inst.itemId,
-            name: inst.name || inst.item?.name || '',
-            imageName: inst.imageName || inst.item?.imageName || inst.item?.src || '',
-            src: inst.item?.src || inst.imageName || '',
-          },
+      // Create a new grouped item
+      grouped.set(gKey, {
+        ...inst,
+        count: 1,
+        groupingKey: gKey,
+        // Use the stable itemId for consistent sorting
+        sortKey: parseInt(stableItemId) || 0,
+        // Keep React key simple and stable
+        id: gKey,
+        furnitureItemId: inst.furnitureItemId || inst.itemId,
+        itemId: inst.itemId || inst.furnitureItemId,
+        item: inst.item || {
+          id: inst.furnitureItemId || inst.itemId,
           name: inst.name || inst.item?.name || '',
           imageName: inst.imageName || inst.item?.imageName || inst.item?.src || '',
-          // Ensure these arrays exist to avoid null reference errors
-          tags: inst.tags || [],
-          uploadedImages: inst.uploadedImages || [],
-          cameraImages: inst.cameraImages || [],
-          // Ensure this object exists
-          packingNeedsCounts: inst.packingNeedsCounts || {},
-          packingNeeds: inst.packingNeeds || [],
-        };
-      } else {
-        grouped[gKey].count += 1;
-      }
+          src: inst.item?.src || inst.imageName || '',
+        },
+        name: inst.name || inst.item?.name || '',
+        imageName: inst.imageName || inst.item?.imageName || inst.item?.src || '',
+        tags: [...(inst.tags || [])],
+        notes: inst.notes || '',
+        cuft: inst.cuft || '',
+        lbs: inst.lbs || '',
+        packingNeedsCounts: { ...(inst.packingNeedsCounts || {}) },
+        packingNeeds: inst.packingNeeds || [],
+        link: inst.link || '',
+        uploadedImages: [...(inst.uploadedImages || [])],
+        cameraImages: [...(inst.cameraImages || [])],
+      });
+    } else {
+      const group = grouped.get(gKey);
+      group.count += 1;
+    }
+  });
+  
+  // Convert to array and sort by stable itemId for consistent order
+  const result = Array.from(grouped.values()).sort((a, b) => {
+    // Primary sort: by itemId (stable furniture item number)
+    const idA = a.sortKey;
+    const idB = b.sortKey;
+    if (idA !== idB) {
+      return idA - idB;
     }
     
-    return Object.values(grouped);
-  };
+    // Secondary sort: by groupingKey for items with same ID but different properties
+    return a.groupingKey.localeCompare(b.groupingKey);
+  });
+  
+  return result;
+}, [selectedRoom, roomItemSelections]);
 
   // Handle item click for "My Items" panel (grouped items)
   const handleItemClick = (itemData, action) => {
@@ -447,6 +519,7 @@ function InventoryDesktop({
               onAddItem={handleAddItem}
               onStartFresh={handleStartFresh}
               isDesktop={true}
+              fuse={fuse}
             />
           </div>
         </div>
@@ -466,7 +539,7 @@ function InventoryDesktop({
             className={`${styles.itemListPlaceholder} ${styles.myItemsListPlaceholder}`}
           >
             <ItemList
-              items={getGroupedItems()}
+              items={groupedItems}
               itemClickCounts={{}}
               itemInstances={currentRoomInstances}
               onItemClick={handleItemClick}
@@ -521,18 +594,22 @@ function InventoryDesktop({
       </div>
 
       {/* ====== ItemPopup (edit item) ====== */}
-      {isItemPopupVisible && (
-        <ItemPopup
-          item={currentItemData}
-          onClose={handleCloseItemPopup}
-          onUpdateItem={handleUpdateItem}
-          onAddItem={handleAddItem}
-          itemInstance={currentItemInstance}
-          handleDeleteItem={handleDeleteItem}
-          onStartFresh={handleStartFresh}
-          lead={lead}
-        />
-      )}
+  {isItemPopupVisible && (
+  <ItemPopup
+    item={currentItemData}
+    itemInstance={currentItemInstance}
+    onClose={handleCloseItemPopup}
+    onUpdateItem={handleUpdateItem}
+    onAddItem={handleAddItem}
+    handleDeleteItem={handleDeleteItem}
+    onOpenPopup={handleOpenItemPopup}
+    onStartFresh={handleStartFresh}
+    lead={lead}
+    selectedRoom={selectedRoom}
+    roomItemSelections={roomItemSelections}
+    setRoomItemSelections={setRoomItemSelections}
+  />
+)}
 
       {/* ====== MyInventory Popup ====== */}
       {isMyInventoryVisible && (

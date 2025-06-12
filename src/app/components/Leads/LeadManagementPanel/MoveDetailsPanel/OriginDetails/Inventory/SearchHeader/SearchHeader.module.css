@@ -1,107 +1,139 @@
 /* Main wrapper for search header with curved bar */
 .searchHeaderWrapper {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    width: 100%; /* Ensure wrapper takes full width */
-  }
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%; /* Ensure wrapper takes full width */
+}
+
+/* Top bar with inward curve - only visible in mobile mode */
+.topBarContainer {
+  position: fixed;
+  top: 60px; /* Height of the HeaderDashboard component */
+  left: 0;
+  right: 0;
+  height: 20px;
+  z-index: 1000;
+}
+
+.topBarBack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 100%;
+  background-color: #3FA9F5;
+  /* Use a radial-gradient mask to create a proper inward curve */
+  -webkit-mask-image: radial-gradient(20px at calc(100% - 0px) 100%, transparent 0, transparent 20px, #000 20px);
+  mask-image: radial-gradient(20px at calc(100% - 0px) 100%, transparent 0, transparent 20px, #000 20px);
+}
+
+/* Search header container */
+.searchHeader {
+  width: 100%;
+}
+
+/* Adjust search container styling based on context */
+.searchContainer {
+  border-radius: 20px 0px 0px 0px;
+  border-bottom: 1px solid #D8DCE0;
+  background-color: #F2F5F8;
+  height: 70px;
+  position: relative; /* Added to make z-index work */
+  z-index: 2;
+  padding-left: 20px;
+  padding-right: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
   
-  /* Top bar with inward curve - only visible in mobile mode */
-  .topBarContainer {
-    position: fixed;
-    top: 60px; /* Height of the HeaderDashboard component */
-    left: 0;
-    right: 0;
-    height: 20px;
-    z-index: 1000;
-  }
+  /* Performance optimizations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Search input styling */
+.searchInput {
+  min-width: 100%;
+  height: 50px;
+  flex-shrink: 1;
+  border-radius: 12px;
+  padding-left: 20px;
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  border: none;
+  outline: none;
   
-  .topBarBack {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 20px;
-    height: 100%;
-    background-color: #3FA9F5;
-    /* Use a radial-gradient mask to create a proper inward curve */
-    -webkit-mask-image: radial-gradient(20px at calc(100% - 0px) 100%, transparent 0, transparent 20px, #000 20px);
-    mask-image: radial-gradient(20px at calc(100% - 0px) 100%, transparent 0, transparent 20px, #000 20px);
-  }
+  /* Performance optimizations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
   
-  /* Search header container */
-  .searchHeader {
-    width: 100%;
-  }
-  
-  /* Adjust search container styling based on context */
-  .searchContainer {
-    border-radius: 20px 0px 0px 0px;
-    border-bottom: 1px solid #D8DCE0;
-    background-color: #F2F5F8;
-    height: 70px;
-     /* Use with caution as it can cause overlapping */
-    position: relative; /* Added to make z-index work */
-    z-index: 2;
-    padding-left: 20px;
-    padding-right: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-  }
-  
-  /* Search input styling */
+  /* Smooth out input lag */
+  will-change: transform;
+}
+
+.searchIcon {
+  position: absolute;
+  right: 30px; /* Aligns icon within the container */
+  width: 24px; /* Adjust size as needed */
+  height: 24px;
+  filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg);
+  cursor: pointer; /* Indicates interactivity */
+  transition: fill 0.3s ease;
+}
+
+.activeIcon {
+  filter: invert(54%) sepia(77%) saturate(593%) hue-rotate(175deg) brightness(96%) contrast(99%);
+}
+
+.searchInput:focus {
+  box-shadow: 0 0 0 2px rgba(63, 169, 245, 0.5);
+  border-radius: 12px;
+}
+
+/* Mobile-specific optimizations */
+@media (hover: none) and (pointer: coarse) {
   .searchInput {
-    min-width: 100%;
-    height: 50px;
-    flex-shrink: 1;
-    border-radius: 12px;
-    padding-left: 20px;
-    color: #2F3236;
-    font-family: Satoshi, sans-serif;
-    font-size: 1rem;
-    font-style: normal;
-    font-weight: 500;
-    line-height: normal;
-    border: none;
-    outline: none;
+    /* Reduce visual effects on mobile */
+    transition: none;
   }
   
-  .searchIcon {
-    position: absolute;
-    right: 30px; /* Aligns icon within the container */
-    width: 24px; /* Adjust size as needed */
-    height: 24px;
-    filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg);
-    cursor: pointer; /* Indicates interactivity */
-    transition: fill 0.3s ease;
-  }
-  
-  .activeIcon {
-    filter: invert(54%) sepia(77%) saturate(593%) hue-rotate(175deg) brightness(96%) contrast(99%);
+  .searchContainer {
+    /* Reduce transitions on mobile */
+    transition: none;
   }
   
   .searchInput:focus {
+    /* Minimal focus styles for performance */
+    outline: none;
     box-shadow: 0 0 0 2px rgba(63, 169, 245, 0.5);
-    border-radius: 12px;
   }
-  
-  /* Desktop styles */
-  @media (min-width: 1024px) {
-    .searchContainer {
-      border-radius: 0px 0px 0px 0px;
-      border-bottom: 0px solid #D8DCE0;
-      margin-top: 0px; /* Remove negative margin in desktop */
-      padding-left: 0px;
-      padding-right: 0px;
-      width: 100%;
-    }
-  
-    .searchHeader {
-      width: 100%;
-    }
-  
-    .searchInput {
-      box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
-    }
+}
+
+/* Desktop styles */
+@media (min-width: 1024px) {
+  .searchContainer {
+    border-radius: 0px 0px 0px 0px;
+    border-bottom: 0px solid #D8DCE0;
+    margin-top: 0px; /* Remove negative margin in desktop */
+    padding-left: 0px;
+    padding-right: 0px;
+    width: 100%;
   }
+
+  .searchHeader {
+    width: 100%;
+  }
+
+  .searchInput {
+    box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+    font-size: 1rem; /* Keep original font size on desktop */
+  }
+}

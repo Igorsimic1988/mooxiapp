@@ -108,11 +108,26 @@ function OriginDetails({
   // Instead of local useState, we read isCollapsed from props:
   const {selectedOriginStopId, setSelectedOriginStopId, isOriginCollapsed, setIsOriginCollapsed} = useUiState();
   const toggleCollapse = () => setIsOriginCollapsed((prev) => !prev);
+  
+  // Enhanced selection logic with fallback
   useEffect(() => {
-    if (originStops.length > 0 && !selectedOriginStopId) {
-      setSelectedOriginStopId(originStops[0].id)
+    const visibleStops = originStops.filter(s => s.isVisible !== false && s.isActive !== false);
+    
+    // If we have visible stops
+    if (visibleStops.length > 0) {
+      // If nothing is selected, select the first visible stop (Main Address)
+      if (!selectedOriginStopId) {
+        setSelectedOriginStopId(visibleStops[0].id);
+      } else {
+        // Check if the currently selected stop is still visible and active
+        const currentlySelected = visibleStops.find(s => s.id === selectedOriginStopId);
+        if (!currentlySelected) {
+          // If not, fallback to the first visible stop (Main Address)
+          setSelectedOriginStopId(visibleStops[0].id);
+        }
+      }
     }
-  }, [originStops, selectedOriginStopId]);
+  }, [originStops, selectedOriginStopId, setSelectedOriginStopId]);
 
   // ---------- TIME RESTRICTIONS UI ----------
   const timeRestrictionOptions = ['Not allowed', 'Allowed'];
@@ -154,9 +169,14 @@ function OriginDetails({
   function handleDeactivateThisStop() {
     if (!currentStop?.id) return;
     
-    const originIndex = originStops.findIndex(s => s.id === currentStop.id);
+    // Filter for only visible stops
+    const visibleStops = originStops.filter(s => s.isVisible !== false);
+    const originIndex = visibleStops.findIndex(s => s.id === currentStop.id);
+    
+    // Can't remove the first stop (Main Address)
     if (originIndex === 0) return;
-    const nextStop = originStops[originIndex - 1];
+    
+    const nextStop = visibleStops[originIndex - 1];
     onOriginUpdated(currentStop.id, { isVisible: false, isActive: false});
     setOriginStops((prev) =>
       prev.map((s) =>
@@ -483,7 +503,7 @@ function OriginDetails({
 
   // Decide if "Deactivate" is visible => hide if "Main Address"
   const canDeactivate =
-  originStops.findIndex((s) => s.id === selectedOriginStopId) !== 0;
+  originStops.filter(s => s.isVisible !== false).findIndex((s) => s.id === selectedOriginStopId) !== 0;
   const visibleOriginStops = originStops.filter((s) => s.isVisible !== false);
 
   return (

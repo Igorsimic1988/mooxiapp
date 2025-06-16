@@ -629,6 +629,7 @@ function InventoryDesktop({
           roomItemSelections={roomItemSelections}
           setRoomItemSelections={setRoomItemSelections}
           displayedRooms={displayedRoomIds}
+          selectedRoom={selectedRoom}
           lead={lead}
           handleUpdateItem={handleUpdateItem}
         />

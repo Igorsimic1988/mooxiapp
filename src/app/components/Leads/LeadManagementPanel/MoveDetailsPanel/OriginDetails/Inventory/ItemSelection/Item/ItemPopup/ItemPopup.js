@@ -133,7 +133,6 @@ function ItemPopup({
   selectedRoom,
   roomItemSelections,
   setRoomItemSelections,
-  onAddItem,
   onOpenPopup,
 }) {
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);

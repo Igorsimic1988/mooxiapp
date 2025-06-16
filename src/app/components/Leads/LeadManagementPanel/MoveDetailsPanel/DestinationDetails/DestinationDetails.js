@@ -74,6 +74,37 @@ function DestinationDetails({
     }
   });
 
+  // Enhanced selection logic with fallback
+  useEffect(() => {
+    const visibleStops = destinationStops.filter(s => s.isVisible !== false && s.isActive !== false);
+    const visibleNormalStops = visibleStops.filter(s => !s.postStorage);
+    const visiblePostStorageStops = visibleStops.filter(s => s.postStorage);
+    
+    if (visibleStops.length > 0) {
+      // If nothing is selected
+      if (!selectedDestinationStopId) {
+        // If storage is toggled and we have post-storage stops, select the first one
+        if (isStorageToggled && visiblePostStorageStops.length > 0) {
+          setSelectedDestinationStopId(visiblePostStorageStops[0].id);
+        } else if (visibleNormalStops.length > 0) {
+          // Otherwise select the first normal stop (Main Drop off)
+          setSelectedDestinationStopId(visibleNormalStops[0].id);
+        }
+      } else {
+        // Check if the currently selected stop is still visible and active
+        const currentlySelected = visibleStops.find(s => s.id === selectedDestinationStopId);
+        if (!currentlySelected) {
+          // If not, fallback based on storage toggle
+          if (isStorageToggled && visiblePostStorageStops.length > 0) {
+            setSelectedDestinationStopId(visiblePostStorageStops[0].id);
+          } else if (visibleNormalStops.length > 0) {
+            setSelectedDestinationStopId(visibleNormalStops[0].id);
+          }
+        }
+      }
+    }
+  }, [destinationStops, selectedDestinationStopId, isStorageToggled, setSelectedDestinationStopId]);
+
 
 
 
@@ -168,20 +199,6 @@ const handleAddPostStorageStop = () => {
     }
   });
 };
-// useEffect(() => {
-//   if (lead.destinations && lead.destinations.length > 0) {
-//     setDestinationStops(lead.destinations);
-//   }
-// }, [lead.destinations]);
-useEffect(() => {
-  if (destinationStops.length > 0 && !selectedDestinationStopId) {
-    if (isStorageToggled){
-      setSelectedDestinationStopId(postStorageStops[0].id)
-    }else {
-      setSelectedDestinationStopId(normalStops[0].id);
-    }
-  }
-}, [destinationStops, selectedDestinationStopId]);
 
 
   // Toggle open/close
@@ -213,21 +230,25 @@ useEffect(() => {
 
     if (hideNormalStops) {
       updatedStops.forEach((stop, i) => {
-        if (stop.postStorage) {
-          if (stop.isActive !== true) {
-            updatedStops[i] = { ...stop, isActive: true };
-            changed = true;
-          }
-        } else {
-          if (stop.isActive !== false) {
-            updatedStops[i] = { ...stop, isActive: false };
-            changed = true;
+        // Only modify isActive if the stop is visible
+        if (stop.isVisible !== false) {
+          if (stop.postStorage) {
+            if (stop.isActive !== true) {
+              updatedStops[i] = { ...stop, isActive: true };
+              changed = true;
+            }
+          } else {
+            if (stop.isActive !== false) {
+              updatedStops[i] = { ...stop, isActive: false };
+              changed = true;
+            }
           }
         }
       });
     } else if (isStorageToggled) {
       updatedStops.forEach((stop, i) => {
-        if (!stop.isActive) {
+        // Only activate visible stops
+        if (stop.isVisible !== false && !stop.isActive) {
           updatedStops[i] = { ...stop, isActive: true };
           changed = true;
         }
@@ -235,15 +256,18 @@ useEffect(() => {
     } else {
       // storage off => normal => active, post => inactive
       updatedStops.forEach((stop, i) => {
-        if (stop.postStorage) {
-          if (stop.isActive !== false) {
-            updatedStops[i] = { ...stop, isActive: false };
-            changed = true;
-          }
-        } else {
-          if (!stop.isActive) {
-            updatedStops[i] = { ...stop, isActive: true };
-            changed = true;
+        // Only modify isActive if the stop is visible
+        if (stop.isVisible !== false) {
+          if (stop.postStorage) {
+            if (stop.isActive !== false) {
+              updatedStops[i] = { ...stop, isActive: false };
+              changed = true;
+            }
+          } else {
+            if (!stop.isActive) {
+              updatedStops[i] = { ...stop, isActive: true };
+              changed = true;
+            }
           }
         }
       });
@@ -262,7 +286,7 @@ useEffect(() => {
       setDestinationStops(updatedStops);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hideNormalStops, isStorageToggled, destinationStops]);
+  }, [hideNormalStops, isStorageToggled]);
   // const handleDestinationUpdated = (id, updates) => {
   //   setDestinationStops((prevStops) =>
   //     prevStops.map((stop) =>
@@ -336,16 +360,20 @@ useEffect(() => {
       return;
     }
     const isPostStorage = currentStop.postStorage;
-    const groupStops = isPostStorage ? postStorageStops : normalStops;
-    const groupIndex = groupStops.findIndex(s => s.id === currentStop.id);
+    
+    // Filter for only visible stops in the same group
+    const visibleGroupStops = destinationStops.filter(
+      s => s.postStorage === isPostStorage && s.isVisible !== false
+    );
+    
+    const groupIndex = visibleGroupStops.findIndex(s => s.id === currentStop.id);
+    
+    // Can't remove the first stop in its group
     if (groupIndex === 0) {
       return;
     }
-    onDestinationUpdated(currentStop.id, {
-      isVisible: false,
-      isActive: false,
-    });
-  
+    
+    // First update the state locally
     setDestinationStops((prev) =>
       prev.map((s) =>
         s.id === currentStop.id
@@ -353,8 +381,15 @@ useEffect(() => {
           : s
       )
     );
+    
+    // Then notify the parent component
+    onDestinationUpdated(currentStop.id, {
+      isVisible: false,
+      isActive: false,
+    });
   
-    const nextStopInGroup = groupStops[groupIndex - 1];
+    // Select the previous visible stop in the same group
+    const nextStopInGroup = visibleGroupStops[groupIndex - 1];
     if (nextStopInGroup?.id) {
       setSelectedDestinationStopId(nextStopInGroup.id);
     }
@@ -491,8 +526,8 @@ useEffect(() => {
  
   const isFirstStopInGroup =
   currentStop?.postStorage
-    ? postStorageStops.findIndex(s => s.id === currentStop.id) === 0
-    : normalStops.findIndex(s => s.id === currentStop.id) === 0;
+    ? destinationStops.filter(s => s.postStorage && s.isVisible !== false).findIndex(s => s.id === currentStop.id) === 0
+    : destinationStops.filter(s => !s.postStorage && s.isVisible !== false).findIndex(s => s.id === currentStop.id) === 0;
 
   const isDeactivateVisible  = !isFirstStopInGroup; 
   const visibleDestinationStops = destinationStops.filter((s) => s.isVisible !== false);

@@ -115,6 +115,10 @@ function Inventory({
   // Inventory context
   const { inventoryByStop, setInventoryByStop } = useInventoryContext();
 
+  useEffect(() => {
+  console.log('inventoryByStop:', inventoryByStop);
+}, [inventoryByStop]);
+
   const [hasLoadedInventory, setHasLoadedInventory] = useState(false);
   
   // Selected room

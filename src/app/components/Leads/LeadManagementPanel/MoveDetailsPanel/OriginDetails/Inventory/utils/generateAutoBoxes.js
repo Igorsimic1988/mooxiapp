@@ -1,4 +1,5 @@
 import { generateGroupingKey } from "./generateGroupingKey";
+import { addDefaultTags } from "./addDefaultTags";
 
 
 // 📦 Generiši nove autoAdded kutije bazirano na totalnoj težini
@@ -6,6 +7,8 @@ export function generateAutoBoxes({
   inventoryItems,
   allItems,
   prevTotalLbs,
+  stopId,
+  lead,
 }) {
   if (!inventoryItems) return null;
 
@@ -34,7 +37,6 @@ export function generateAutoBoxes({
       }
     }
   });
-  console.log (prevTotalLbs, totalLbs, ' iz generate')
 
   if (prevTotalLbs === totalLbs) return null;
 
@@ -73,10 +75,10 @@ export function generateAutoBoxes({
     });
     usedGroupingKeys.push(groupingKey);
 
-    const packing = Array.isArray(itemData.packingNeeds) ? itemData.packingNeeds : [];
 
 
     const existing = autoAdded.find((itm) => itm.groupingKey === groupingKey);
+    const { tags, packingNeeds } = addDefaultTags(itemData, 13, lead, stopId);
 
     const payload = {
       furnitureItemId: itemData.id,
@@ -85,11 +87,11 @@ export function generateAutoBoxes({
       imageName: itemData.imageName,
       letters: [...itemData.letters],
       search: itemData.search,
-      tags: [...itemData.tags],
+      tags,
       notes: "",
       cuft: itemData.cuft || "",
       lbs: itemData.lbs || "",
-      packingNeeds: packing,
+      packingNeeds,
       uploadedImages: [],
       cameraImages: [],
       autoAdded: true,

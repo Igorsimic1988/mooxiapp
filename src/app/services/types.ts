@@ -177,6 +177,7 @@ export type LeadInput = {
   };
 
   export type InventoryItemInput = {
+    id?:string;
     furnitureItemId: number;
     roomId?: number;
     name?: string;
@@ -195,6 +196,7 @@ export type LeadInput = {
     autoAdded?: boolean;
     count?: number;
   };
+
   
 
   

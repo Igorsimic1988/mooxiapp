@@ -10,7 +10,9 @@ import MainAndStopOffs from '../MainAndStopOffs/MainAndStopOffs';
 import Icon from '../../../../../Icon';
 import { useUiState } from '../../UiStateContext';
 import { whatsMovingOriginOptions, packingOriginOptions, unpackingDestinationOptions, blanketsOriginOptions, blanketsDestinationOptions, typeOfServiceChoices, allowedDestinationFields, allowedOriginFields } from './ServicesPopupConstants';
-
+import { useUpdateInventoryTags } from 'src/app/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/utils/changeCurrentTags'
+import { addDefaultTags } from '../Inventory/utils/addDefaultTags';
+import { generateGroupingKey } from '../Inventory/utils/generateGroupingKey';
 
 
 function ServicesPopup({
@@ -39,6 +41,7 @@ function ServicesPopup({
   
   const selectedStopId =
     selectedPlace === 'origin' ? selectedOriginStopId : selectedDestinationStopId;
+    const { mutate: updateInventoryTagsMutation } = useUpdateInventoryTags();
   
 
 
@@ -131,18 +134,47 @@ function ServicesPopup({
 
 
   function handleSave() {
+
     localStops.forEach((stop) => {
       const filteredData = filterAllowedFields(
         stop,
         stop.stopType === 'origin' ? allowedOriginFields : allowedDestinationFields
       );
-  
+
       if (stop.stopType === 'origin') {
         onOriginUpdated(stop.id, filteredData);
       } else {
         onDestinationUpdated(stop.id, filteredData);
       }
+      const items =
+      stop.stopType === 'origin'
+        ? lead.origins.find((o) => o.id === stop.id)?.inventoryItems || []
+        : lead.destinations.find((d) => d.id === stop.id)?.inventoryItems || [];
+
+    const updatedInventoryItems = items.map((item) => {
+      const { tags, packingNeeds } = addDefaultTags(item, item.roomId, lead, stop);
+      const updatedGroupingKey = generateGroupingKey({ ...item, tags, packingNeeds, });
+
+      return {
+        ...item,
+        id: item.id,
+        furnitureItemId: item.furnitureItemId,
+        roomId: item.roomId,
+        tags,
+        packingNeeds,
+        groupingKey: updatedGroupingKey,
+      };
+
     });
+    if (updatedInventoryItems.length > 0) {
+      updateInventoryTagsMutation({
+        stopId: stop.id,
+        stopType: stop.stopType,
+        updatedInventoryItems,
+      });
+    }
+  });
+  
     setIsServicesPopupVisible(false);
   }
   

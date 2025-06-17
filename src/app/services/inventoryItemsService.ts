@@ -62,3 +62,21 @@ export const getInventoryByOriginId = async ({originId}: {originId: string;}) =>
         autoBoxEnabled: data.autoBoxEnabled,
       };
     };
+
+    export const updateInventoryTags = async ({ stopId, stopType, updatedInventoryItems }: { stopId: string;  stopType: 'origin' | 'destination'; updatedInventoryItems: Partial<InventoryItemInput>[]; }) => {
+      const res = await fetch('/api/inventoryItem/updateTags', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({stopId, stopType,updatedInventoryItems}),
+      });
+    
+      const response = await res.json();
+    
+      if (!res.ok) {
+        throw new Error(response.error || 'Failed to sync inventory data');
+      }
+    
+      return response; 
+    };

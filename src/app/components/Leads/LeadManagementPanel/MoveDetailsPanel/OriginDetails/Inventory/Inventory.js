@@ -75,8 +75,14 @@ function Inventory({
       return null;
     }
   }, [selectedOriginStopId, selectedDestinationStopId, setSelectedOriginStopId, setSelectedDestinationStopId]);
+
+
   const { inventoryByStop, setInventoryByStop } = useInventoryContext();
   const stopId = selectedStopInfo?.id;
+  const realStop = selectedStopInfo.type === 'origin'
+  ? lead.origins.find((s) => s.id === selectedStopInfo.id)
+  : lead.destinations.find((s) => s.id === selectedStopInfo.id);
+
   const currentStopData = inventoryByStop?.[stopId] || {
     itemsByRoom: {},
     displayedRooms: [],
@@ -132,7 +138,13 @@ function Inventory({
 
   // Item popup data
   const [popupData, setPopupData] = useState(null);
-  const handleOpenPopup = (item, itemInstance) => setPopupData({ item, itemInstance });
+  const handleOpenPopup = (item, itemInstance) => { 
+    setPopupData({
+      item,
+      itemInstance, 
+    });
+  };
+  
   const handleClosePopup = () => setPopupData(null);
 
   // ==================== FIX FOR iOS SAFARI HEIGHT (like in Leads.js) ====================
@@ -147,13 +159,15 @@ function Inventory({
     setAppHeight();
     return () => window.removeEventListener("resize", setAppHeight);
   }, []);
-  const refreshAutoBoxes = (updatedInventory) => {
+  const refreshAutoBoxes = (updatedInventory, currentStopId) => {
     if (!Array.isArray(updatedInventory) || !stopId) return;
   
     const result = generateAutoBoxes({
       inventoryItems: updatedInventory,
       allItems,
       prevTotalLbs: prevTotalLbsRef.current,
+      stopId: currentStopId,
+      lead,
     });
   
     if (!result) return;
@@ -189,7 +203,7 @@ function Inventory({
   };
   
 
-  const applyInventoryUpdates = ({ roomId, updatedRoomItems, updatedInventoryItems, refreshBoxes = false }) => {
+  const applyInventoryUpdates = ({ roomId, updatedRoomItems, updatedInventoryItems, refreshBoxes = false, stopId }) => {
     if (!Array.isArray(updatedInventoryItems)) return;
     setInventoryByStop(prev => {
       const stopData = prev[stopId] || {
@@ -216,7 +230,7 @@ function Inventory({
       };
     });
     if (refreshBoxes && isToggled) {
-      refreshAutoBoxes(updatedInventoryItems);
+      refreshAutoBoxes(updatedInventoryItems, stopId);
     }
   };
   
@@ -240,20 +254,25 @@ const { data: inventoryData } = useQuery({
   queryFn: inventoryQueryFn,
   enabled: !!selectedStopInfo.id,
 });
-
 useEffect(() => {
   if (inventoryData && selectedStopInfo?.id) {
+
     setInventoryByStop((prev) => ({
       ...prev,
       [selectedStopInfo.id]: {
         itemsByRoom: inventoryData.itemsByRoom || {},
         displayedRooms: inventoryData.displayedRooms || [],
         inventoryItems: inventoryData.inventoryItems || [],
-        autoBoxEnabled: inventoryData.autoBoxEnabled !== undefined ? inventoryData.autoBoxEnabled : true,
-      }
+        autoBoxEnabled:
+          inventoryData.autoBoxEnabled !== undefined
+            ? inventoryData.autoBoxEnabled
+            : true,
+      },
     }));
   }
 }, [inventoryData, selectedStopInfo]);
+
+
 
 
 
@@ -283,11 +302,11 @@ useEffect(() => {
     const baseItem = allItems.find(
       (f) => f.id === newItemInstance.furnitureItemId
     );
-    const defaultPacking =
-      Array.isArray(baseItem.packingNeeds) && baseItem.packingNeeds.length > 0
-      ? [...baseItem.packingNeeds]
-      : [];
-  
+    // const defaultPacking =
+    //   Array.isArray(baseItem.packingNeeds) && baseItem.packingNeeds.length > 0
+    //   ? [...baseItem.packingNeeds]
+    //   : [];
+      const { tags, packingNeeds } = addDefaultTags(baseItem, roomId, lead, realStop);
     const resetItem = {
       roomId,
       furnitureItemId: newItemInstance.furnitureItemId,
@@ -295,11 +314,11 @@ useEffect(() => {
       imageName: baseItem.imageName,
       letters: baseItem.letters,
       search: baseItem.search,
-      tags: baseItem.tags || [],
+      tags,
       notes: "",
       cuft: baseItem.cuft,
       lbs: baseItem.lbs,
-      packingNeeds: defaultPacking,
+      packingNeeds,
       uploadedImages: [],
       cameraImages: [],
       autoAdded: false,
@@ -342,6 +361,7 @@ useEffect(() => {
       updatedRoomItems: finalRoomItems,
       updatedInventoryItems: finalInventoryItems,
       refreshBoxes: true, 
+      stopId
     });
 
     return { ...mergedItem }; 
@@ -358,6 +378,7 @@ useEffect(() => {
     updatedRoomItems,
     updatedInventoryItems,
     refreshBoxes: true, 
+    stopId
   });
 
   return { ...resetItem };
@@ -425,7 +446,7 @@ useEffect(() => {
     const furnitureItemId = hasFurnitureId
       ? Number(clickedItem.furnitureItemId)
       : Number(clickedItem.id);
-    const tags = addDefaultTags(clickedItem, roomId, lead);
+      const { tags, packingNeeds } = addDefaultTags(clickedItem,roomId, lead, realStop);
   
     const groupingKey = generateGroupingKey({
       furnitureItemId,
@@ -434,7 +455,7 @@ useEffect(() => {
       notes: clickedItem.notes || '',
       cuft: clickedItem.cuft || '',
       lbs: clickedItem.lbs || '',
-      packingNeeds: clickedItem.packingNeeds || [],
+      packingNeeds,
       link: clickedItem.link || '',
       uploadedImages: clickedItem.uploadedImages || [],
       cameraImages: clickedItem.cameraImages || [],
@@ -463,10 +484,10 @@ useEffect(() => {
         updatedInventoryItems = inventoryItems.filter((itm) => itm.groupingKey !== groupingKey);
       }
     } else {
-      const defaultPacking =
-        Array.isArray(clickedItem.packingNeeds) && clickedItem.packingNeeds.length > 0
-        ? [...clickedItem.packingNeeds]
-        : [];
+      // const defaultPacking =
+      //   Array.isArray(clickedItem.packingNeeds) && clickedItem.packingNeeds.length > 0
+      //   ? [...clickedItem.packingNeeds]
+      //   : [];
 
       const newItemInstance = {
         roomId,
@@ -479,9 +500,7 @@ useEffect(() => {
         notes: clickedItem.notes || '',
         cuft: clickedItem.cuft || '',
         lbs: clickedItem.lbs || '',
-        packingNeeds: isMyItemsActive
-        ? { ...clickedItem.packingNeeds }
-        : defaultPacking,        
+        packingNeeds,        
         link: clickedItem.link || '',
         autoAdded: clickedItem.autoAdded || false,
         uploadedImages: [...(clickedItem.uploadedImages || [])],
@@ -514,6 +533,7 @@ useEffect(() => {
       updatedRoomItems,
       updatedInventoryItems,
       refreshBoxes: true, 
+      stopId
     });
   };
   
@@ -604,7 +624,7 @@ if (duplicate) {
     itm.groupingKey === originalKey ? updatedItem : itm
   );
 }
-applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshBoxes: true});
+applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshBoxes: true, stopId});
 
 
 };
@@ -632,9 +652,9 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
       updatedRoomItems = currentItems.filter(itm => itm.groupingKey !== itemToDelete.groupingKey);
       updatedInventory = inventoryItems.filter(itm => itm.groupingKey !== itemToDelete.groupingKey);
     }
-    applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventory, refreshBoxes: false   });
+    applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventory, refreshBoxes: false, stopId });
     setTimeout(() => {
-      refreshAutoBoxes(updatedInventory);
+      refreshAutoBoxes(updatedInventory, stopId);
     }, 0);
   };
   const handleAddItem = (newItemInstance) => {
@@ -675,7 +695,7 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
     } else {
       updatedInventoryItems = [...inventoryItems, itemData];
     }
-    applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems, refreshBoxes: true });
+    applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems, refreshBoxes: true, stopId });
     
     
   }; 
@@ -712,9 +732,9 @@ applyInventoryUpdates({ roomId, updatedRoomItems, updatedInventoryItems,refreshB
     }
   }, [itemsByRoom, selectedRoom]);
 
-  const currentRoomInstances = useMemo(() => {
-    return itemsByRoom[selectedRoom?.id] || [];
-  }, [itemsByRoom, selectedRoom])
+  const currentRoomInstances = itemsByRoom[selectedRoom?.id] || [];
+
+
 
   
   

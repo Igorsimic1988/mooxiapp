@@ -46,6 +46,7 @@ export const EXCLUSIVE_LOCATION_TAGS = [
   
   export const REQUIRED_TAGS = {
     crating: ['cp_packed_by_movers'],
+    purchased_blankets: ['cp_packed_by_movers'],
   };
   
   export function labelToDropTag(labelString) {

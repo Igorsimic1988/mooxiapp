@@ -22,6 +22,7 @@ import SpecialH from '../FooterNavigation/SpecialH/SpecialH';
 import DeleteButton from '../FooterNavigation/DeleteButton/DeleteButton';
 import { getAllFurnitureItems } from 'src/app/services/furnitureService';
 import { useQuery } from '@tanstack/react-query';
+import { useInventoryContext } from '../../../InventoryContext';
 
 import Icon from 'src/app/components/Icon';
 
@@ -122,6 +123,9 @@ function InventoryDesktop({
 
   // Convert displayedRooms = [{id, name}] => numeric array [id, ...] for MyInventory & SpecialH
   const displayedRoomIds = displayedRooms.map((r) => r.id);
+
+  const { inventoryByStop, setInventoryByStop } = useInventoryContext();
+  
 
   // Expand/collapse
   const handleExpandCollapse = () => {
@@ -408,7 +412,6 @@ function InventoryDesktop({
             {/* Debug check for items */}
             {selectedRoom && (() => {
               const myItems = getGroupedItems();
-              console.log("🧪 MyItems groupedItems:", myItems);
 
               
               // Check for any items with missing properties

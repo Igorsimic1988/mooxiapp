@@ -480,3 +480,29 @@
   line-height: normal;
   padding: 0;
 }
+
+/* Add these styles to your existing OriginDetails.module.css */
+
+.inventorySection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inventorySummary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 0;
+  color: #2f3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.inventorySummary > div {
+  margin: 0;
+  padding: 0;
+}

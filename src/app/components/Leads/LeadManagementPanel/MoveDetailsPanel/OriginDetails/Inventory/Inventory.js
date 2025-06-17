@@ -297,7 +297,7 @@ function Inventory({
           );
         } else {
           const itemIdToDelete = clickedItem.furnitureItemId?.toString() || clickedItem.id?.toString();
-          idx = items.findIndex((itm) => itm.furnitureItemId === itemIdToDelete);
+          idx = items.findIndex((itm) => itm.furnitureItemId?.toString() === itemIdToDelete);
         }
         if (idx !== -1) items.splice(idx, 1);
       } else {

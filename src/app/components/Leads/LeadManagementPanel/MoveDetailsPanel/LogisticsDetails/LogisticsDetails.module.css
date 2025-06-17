@@ -129,11 +129,6 @@
   margin-left: 8px;
 }
 
-.rateTypeWrapper {
-  position: relative;
-  width: 100%;
-}
-
 /* Dropdown menu - STANDARDIZED */
 .rateTypeDropdown {
   position: absolute;

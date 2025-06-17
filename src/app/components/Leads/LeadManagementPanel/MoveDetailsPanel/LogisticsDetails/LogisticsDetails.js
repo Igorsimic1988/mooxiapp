@@ -9,9 +9,6 @@ import PackingDay from './PackingDay/PackingDay';
 import { useForm } from 'react-hook-form';
 import { useUiState } from '../UiStateContext';
 
-// Rate Type Options (used for the "Moving" section)
-const RATE_TYPE_OPTIONS = ['Hourly Rate', 'Volume Based', 'Weight Based'];
-
 // Generate quarter-hour increments ("1.00 h", "1.15 h", ..., up to 24h)
 function generateQuarterHourOptions() {
   const result = [];
@@ -67,21 +64,6 @@ function parseQuarterHours(str) {
   return hour + decimalPart / 60;
 }
 
-/**
- * Format a date string into "Mmm dd yyyy" (e.g. "Apr 04 2025").
- */
-function formatDate(date) {
-  if (!date) return '';
-  const dateObj = new Date(date);
-  if (isNaN(dateObj)) return '';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun',
-                  'Jul','Aug','Sep','Oct','Nov','Dec'];
-  const month = months[dateObj.getMonth()];
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  const year = dateObj.getFullYear();
-  return `${month} ${day} ${year}`;
-}
-
 // On focus => select all text in the input
 function handleFocusSelectAll(e) {
   e.target.select();
@@ -91,16 +73,16 @@ function LogisticsDetails({
   lead,
   onLeadUpdated,
 }) {
+  // Read rateType from lead prop instead of having it in the form
+  const rateType = lead?.rateType || 'Hourly Rate';
+  
   const { watch, register, setValue } = useForm({
     defaultValues:{
       activeDay: lead?.activeDay ?? 'moving',
       hasPackingDay: Boolean(lead?.hasPackingDay),
-      rateType: lead?.rateType ?? 'Hourly Rate',
       numTrucks: lead?.numTrucks ?? 1,
       numMovers: lead?.numMovers ?? 2,
       hourlyRate:lead?.hourlyRate ?? 180,
-      volume:lead?.volume ?? 1000,
-      weight:lead?.weight ?? 7000,
       pricePerCuft:lead?.pricePerCuft ?? 4.50,
       pricePerLbs:lead?.pricePerLbs ?? 0.74,
       travelTime: lead?.travelTime ?? '1.00 h',
@@ -108,7 +90,6 @@ function LogisticsDetails({
       minimumCuft: lead?.minimumCuft ?? 0.00,
       minimumLbs: lead?.minimumLbs ?? 0,
       pickupWindow: lead?.pickupWindow ?? '1 day',
-      earliestDeliveryDate: lead?.earliestDeliveryDate ?? '',
       deliveryWindow: lead?.deliveryWindow ?? '7 days',
       minHours: lead?.minHours ?? '1.00 h',
       maxHours: lead?.maxHours ?? '2.00 h',
@@ -123,11 +104,9 @@ function LogisticsDetails({
   const {
     activeDay,
     hasPackingDay,
-    rateType,
     travelTime,
     movingMin,
     pickupWindow,
-    earliestDeliveryDate,
     deliveryWindow,
     minHours,
     maxHours,
@@ -148,18 +127,12 @@ function LogisticsDetails({
   }, []);
 
   // -------------------- MOVING fields --------------------
-  const [showRateTypeDropdown, setShowRateTypeDropdown] = useState(false);
-  const rateTypeDropdownRef = useRef(null);
-
   // Travel time
   const [showTravelTimeDropdown, setShowTravelTimeDropdown] = useState(false);
 
   // Work time minimum (for Hourly)
   const [showMovingMinDropdown, setShowMovingMinDropdown] = useState(false);
   const [showPickupWindowDropdown, setShowPickupWindowDropdown] = useState(false);
-
-  const [showEarliestDeliveryCalendar, setShowEarliestDeliveryCalendar] = useState(false);
-  const earliestCalRef = useRef(null);
 
   const [showDeliveryWindowDropdown, setShowDeliveryWindowDropdown] = useState(false);
 
@@ -232,42 +205,9 @@ function LogisticsDetails({
     }
   }
 
-  // -------------- pickup/delivery => earliestDelivery calendar --------------
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [daysInMonth, setDaysInMonth] = useState([]);
-  useEffect(() => {
-    const y = calendarMonth.getFullYear();
-    const m = calendarMonth.getMonth();
-    const totalDays = new Date(y, m + 1, 0).getDate();
-    const arr = [];
-    for (let i = 1; i <= totalDays; i++) arr.push(i);
-    setDaysInMonth(arr);
-  }, [calendarMonth]);
-
-  function handlePrevMonth() {
-    setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
-  }
-  function handleNextMonth() {
-    setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-  }
-  function handleSelectEarliestDate(dateObj) {
-    const dateStr = dateObj.toDateString();
-    setValue('earliestDeliveryDate', dateStr);
-    setShowEarliestDeliveryCalendar(false);
-    handleUpdateLeadField('earliestDeliveryDate', dateStr);
-  }
-
   // -------------- close any open dropdowns if user clicks outside --------------
   useEffect(() => {
     function handleClickOutside(e) {
-      // Rate type dropdown
-      if (
-        showRateTypeDropdown &&
-        rateTypeDropdownRef.current &&
-        !rateTypeDropdownRef.current.contains(e.target)
-      ) {
-        setShowRateTypeDropdown(false);
-      }
       // Travel Time => MOVING
       if (showTravelTimeDropdown && !e.target.closest('#travelTimeDropdown')) {
         setShowTravelTimeDropdown(false);
@@ -279,14 +219,6 @@ function LogisticsDetails({
       // pickupWindow
       if (showPickupWindowDropdown && !e.target.closest('#pickupWindowDropdown')) {
         setShowPickupWindowDropdown(false);
-      }
-      // earliestDeliveryDate calendar
-      if (
-        showEarliestDeliveryCalendar &&
-        earliestCalRef.current &&
-        !earliestCalRef.current.contains(e.target)
-      ) {
-        setShowEarliestDeliveryCalendar(false);
       }
       // deliveryWindow
       if (showDeliveryWindowDropdown && !e.target.closest('#deliveryWindowDropdown')) {
@@ -319,11 +251,9 @@ function LogisticsDetails({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [
-    showRateTypeDropdown,
     showTravelTimeDropdown,
     showMovingMinDropdown,
     showPickupWindowDropdown,
-    showEarliestDeliveryCalendar,
     showDeliveryWindowDropdown,
     showMinHoursDropdown,
     showMaxHoursDropdown,
@@ -376,44 +306,6 @@ function LogisticsDetails({
               ref={movingSectionRef}
               style={{ display: showMovingSection ? 'block' : 'none' }}
             >
-              {/* Rate Type dropdown */}
-              <div className={styles.row}>
-                <div className={styles.rateTypeWrapper} ref={rateTypeDropdownRef}>
-                  <button
-                    type="button"
-                    className={`${styles.logisticsButton} ${showRateTypeDropdown ? styles.activeInput : ''}`}
-                    onClick={() => setShowRateTypeDropdown((p) => !p)}
-                  >
-                    <div className={styles.dropdownLabel}>
-                      <span className={styles.dropdownPrefix}>Rate Type:</span>
-                      <span className={styles.dropdownSelected}>{rateType}</span>
-                    </div>
-                    <Icon name="UnfoldMore" className={styles.dropdownIcon} />
-                  </button>
-
-                  {showRateTypeDropdown && (
-                    <ul className={styles.rateTypeDropdown}>
-                      {RATE_TYPE_OPTIONS.map((opt) => {
-                        const isSelected = opt === rateType;
-                        return (
-                          <li
-                            key={opt}
-                            className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
-                            onClick={() => {
-                              setValue('rateType', opt);
-                              setShowRateTypeDropdown(false);
-                              handleUpdateLeadField('rateType', opt);
-                            }}
-                          >
-                            {opt}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </div>
-              </div>
-
               {/* Number of Trucks / Movers / Hourly Rate */}
               <div className={styles.row}>
                 <div className={styles.logisticsInputContainer}>
@@ -470,80 +362,46 @@ function LogisticsDetails({
                 )}
               </div>
 
-              {/* volume/weight row */}
-              {(isHourly || isVolume || isWeight) && (
+              {/* Price per Cuft (Volume Based) or Price per lbs (Weight Based) */}
+              {isVolume && (
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
-                      Volume (cu ft):
+                      Price per Cuft ($):
                       <input
                         className={styles.logisticsInput}
-                        {...register('volume', {
+                        {...register('pricePerCuft', {
                           onChange: (e) => {
-                            const val = parseInt(e.target.value.replace(/\D+/g, ''), 10) || 0;
-                            setValue('volume', val);
-                            handleUpdateLeadField('volume', val);
+                            const val = parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0;
+                            setValue('pricePerCuft', val);
+                            handleUpdateLeadField('pricePerCuft', val);
                           }
                         })}
                         onFocus={handleFocusSelectAll}
                       />
                     </label>
                   </div>
+                </div>
+              )}
 
+              {isWeight && (
+                <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
-                      Weight (lbs):
+                      Price per lbs ($):
                       <input
                         className={styles.logisticsInput}
-                        {...register('weight', {
+                        {...register('pricePerLbs', {
                           onChange: (e) => {
-                            const val = parseInt(e.target.value.replace(/\D+/g, ''), 10) || 0;
-                            setValue('weight', val);
-                            handleUpdateLeadField('weight', val);
+                            const val = parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0;
+                            setValue('pricePerLbs', val);
+                            handleUpdateLeadField('pricePerLbs', val);
                           }
                         })}
                         onFocus={handleFocusSelectAll}
                       />
                     </label>
                   </div>
-
-                  {isVolume && (
-                    <div className={styles.logisticsInputContainer}>
-                      <label className={styles.inputLabel}>
-                        Price per Cuft ($):
-                        <input
-                          className={styles.logisticsInput}
-                          {...register('pricePerCuft', {
-                            onChange: (e) => {
-                              const val = parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0;
-                              setValue('pricePerCuft', val);
-                              handleUpdateLeadField('pricePerCuft', val);
-                            }
-                          })}
-                          onFocus={handleFocusSelectAll}
-                        />
-                      </label>
-                    </div>
-                  )}
-
-                  {isWeight && (
-                    <div className={styles.logisticsInputContainer}>
-                      <label className={styles.inputLabel}>
-                        Price per lbs ($):
-                        <input
-                          className={styles.logisticsInput}
-                          {...register('pricePerLbs', {
-                            onChange: (e) => {
-                              const val = parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0;
-                              setValue('pricePerLbs', val);
-                              handleUpdateLeadField('pricePerLbs', val);
-                            }
-                          })}
-                          onFocus={handleFocusSelectAll}
-                        />
-                      </label>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -685,7 +543,7 @@ function LogisticsDetails({
                 </div>
               )}
 
-              {/* Pickup window / Earliest Delivery / Delivery Window (for Volume/Weight) */}
+              {/* Pickup window / Delivery Window (for Volume/Weight) */}
               {(isVolume || isWeight) && (
                 <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
                   <div
@@ -723,80 +581,6 @@ function LogisticsDetails({
                           );
                         })}
                       </ul>
-                    )}
-                  </div>
-
-                  {/* Earliest Delivery Calendar */}
-                  <div
-                    className={`${styles.logisticsButton} ${showEarliestDeliveryCalendar ? styles.activeInput : ''}`}
-                    style={{ position: 'relative' }}
-                    onClick={(evt) => {
-                      evt.stopPropagation();
-                      setShowEarliestDeliveryCalendar((p) => !p);
-                    }}
-                  >
-                    <div className={styles.dropdownLabel}>
-                      <span className={styles.dropdownPrefix}>Earliest Del.:</span>
-                      <span className={styles.dropdownSelected}>
-                        {earliestDeliveryDate ? formatDate(earliestDeliveryDate) : 'Select'}
-                      </span>
-                    </div>
-                    <div className={styles.calendarRightIconWrapper}>
-                      <Icon name="Calendar" className={styles.calendarIcon} />
-                    </div>
-
-                    {showEarliestDeliveryCalendar && (
-                      <div
-                        className={styles.calendarPopup}
-                        ref={earliestCalRef}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className={styles.calendarHeader}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePrevMonth();
-                            }}
-                          >
-                            Prev
-                          </button>
-                          <span>
-                            {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
-                            {calendarMonth.getFullYear()}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleNextMonth();
-                            }}
-                          >
-                            Next
-                          </button>
-                        </div>
-                        <div className={styles.calendarGrid}>
-                          {daysInMonth.map((day) => {
-                            const dateObj = new Date(
-                              calendarMonth.getFullYear(),
-                              calendarMonth.getMonth(),
-                              day
-                            );
-                            const isSelected =
-                              earliestDeliveryDate &&
-                              new Date(earliestDeliveryDate).toDateString() ===
-                                dateObj.toDateString();
-                            return (
-                              <button
-                                key={day}
-                                type="button"
-                                className={`${styles.calendarDay} ${isSelected ? styles.selectedDay : ''}`}
-                                onClick={() => handleSelectEarliestDate(dateObj)}
-                              >
-                                {day}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
                     )}
                   </div>
 

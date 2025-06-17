@@ -15,6 +15,7 @@ import ServicesPopup from './ServicesPopup/ServicesPopup';
 // Reusable row of stops
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
 import { useUiState } from '../UiStateContext';
+import { useInventoryContext } from '../InventoryContext';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createOrigin } from 'src/app/services/originsService';
 import { useAccessToken } from "src/app/lib/useAccessToken";
@@ -104,6 +105,79 @@ function OriginDetails({
     });
   }
   // ---------- ORIGIN STOPS ----------
+  const { inventoryByStop } = useInventoryContext();
+  
+  // Calculate totals across all stops
+  const inventoryTotals = React.useMemo(() => {
+    let totalFurniture = 0;
+    let totalBoxes = 0;
+    let totalCuft = 0;
+    let totalLbs = 0;
+    
+    // Box items identified by name and ID
+    const boxItemNames = [
+      'Plastic Tote Large',
+      'Plastic Tote Medium',
+      'Plastic Tote Small',
+      'Plastic Tote Flat',
+      'Box Wardrobe 12cuft',
+      'Box Wardrobe Short',
+      'Box Lamp Large',
+      'Box Extra Large 6 cuft',
+      'Box Dishpack',
+      'Box Large 4,5 cuft',
+      'Box Medium 3 cuft',
+      'Box Small 1,5 cuft',
+      'Box Book ',
+      'Box File Large',
+      'Box File Small',
+      'Box Mirror Picture Large',
+      'Box Mirror Picture Small',
+      'Box TV 60 - 75 inch',
+      'Box TV 50 - 60 inch',
+      'Box TV 32 - 49 inch',
+      'Box TV 14 - 32 inch',
+      'Box TV Large',
+      'Box TV Medium',
+      'Box TV Small',
+    ];
+    
+    const boxItemIds = [
+      '127', '128', '129', '130', '131', '438',
+      ...Array.from({ length: 20 }, (_, i) => (529 + i).toString()),
+    ];
+    
+    // Calculate across all stops
+    Object.values(inventoryByStop).forEach((stopData) => {
+      const itemsByRoom = stopData.itemsByRoom || {};
+      
+      Object.values(itemsByRoom).forEach((items) => {
+        items.forEach((itemInstance) => {
+          const cuftVal = parseFloat(itemInstance.cuft) || 0;
+          const lbsVal = parseFloat(itemInstance.lbs) || 0;
+          
+          totalCuft += cuftVal;
+          totalLbs += lbsVal;
+          
+          const itemName = itemInstance.name || itemInstance.item?.name || '';
+          const itemId = (itemInstance.furnitureItemId || itemInstance.itemId || '').toString();
+          
+          if (boxItemNames.includes(itemName) || boxItemIds.includes(itemId)) {
+            totalBoxes += 1;
+          } else {
+            totalFurniture += 1;
+          }
+        });
+      });
+    });
+    
+    return {
+      totalFurniture,
+      totalBoxes,
+      totalCuft: Math.round(totalCuft),
+      totalLbs: Math.round(totalLbs),
+    };
+  }, [inventoryByStop]);
 
   // Instead of local useState, we read isCollapsed from props:
   const {selectedOriginStopId, setSelectedOriginStopId, isOriginCollapsed, setIsOriginCollapsed} = useUiState();
@@ -860,6 +934,12 @@ function OriginDetails({
                 <span className={styles.inventoryButtonText}>Inventory</span>
                 <Icon name="MyInventory" className={styles.myInventoryIcon} />
               </button>
+            </div>
+            <div className={styles.inventorySummary}>
+              <div>Volume (cu ft): {inventoryTotals.totalCuft}</div>
+              <div>Weight (lbs): {inventoryTotals.totalLbs}</div>
+              <div>Total furniture: {inventoryTotals.totalFurniture}</div>
+              <div>Total boxes: {inventoryTotals.totalBoxes}</div>
             </div>
           </div>
         </>

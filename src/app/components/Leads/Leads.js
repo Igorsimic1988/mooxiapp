@@ -1,7 +1,7 @@
 "use client"; 
 // If you're using Next.js 13 app router, you often need "use client" at the top
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import styles from "./Leads.module.css";
 
 import HeaderDashboard from "./HeaderDashboard/HeaderDashboard";
@@ -355,6 +355,7 @@ function Leads() {
   // Inventory full-screen
   const [showInventoryFullScreen, setShowInventoryFullScreen] = useState(false);
   const [inventoryRoom, setInventoryRoom] = useState(null);
+  const [inventoryScrollPosition, setInventoryScrollPosition] = useState(0);
 
   // Lead Form (New or Edit)
   const [showLeadForm, setShowLeadForm] = useState(false);
@@ -362,6 +363,7 @@ function Leads() {
   // Keep track of scroll position in leads list
   const leadsListRef = useRef(null);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const mainContainerRef = useRef(null);
 
   // Filter popup
   const [showFilterPopup, setShowFilterPopup] = useState(false);
@@ -438,6 +440,39 @@ function Leads() {
       setCurrentPage(1);
     }
   }, [filterStateString, currentPage]);
+
+  // Restore scroll position after inventory closes - using useLayoutEffect for instant restoration
+  useLayoutEffect(() => {
+    if (!showInventoryFullScreen && inventoryScrollPosition > 0) {
+      // Immediately restore scroll before browser paints
+      const markedElement = document.querySelector('[data-scroll-restore="true"]');
+      if (markedElement) {
+        markedElement.scrollTop = inventoryScrollPosition;
+        markedElement.removeAttribute('data-scroll-restore');
+      } else if (mainContainerRef.current) {
+        // Try main container
+        mainContainerRef.current.scrollTop = inventoryScrollPosition;
+        
+        // If main container doesn't scroll, try its children
+        if (mainContainerRef.current.scrollTop === 0) {
+          const scrollableElements = mainContainerRef.current.querySelectorAll('*');
+          for (let el of scrollableElements) {
+            const styles = window.getComputedStyle(el);
+            if (styles.overflow === 'auto' || styles.overflow === 'scroll' || 
+                styles.overflowY === 'auto' || styles.overflowY === 'scroll') {
+              el.scrollTop = inventoryScrollPosition;
+              if (el.scrollTop > 0) break;
+            }
+          }
+        }
+      } else if (leadsListRef.current) {
+        leadsListRef.current.scrollTop = inventoryScrollPosition;
+      }
+      
+      // Reset scroll position
+      setInventoryScrollPosition(0);
+    }
+  }, [showInventoryFullScreen, inventoryScrollPosition]);
 
   // Sort leads newest-first
   const sortedLeads = [...leads].sort(
@@ -538,6 +573,8 @@ function Leads() {
 
   const handleBack = () => {
     setSelectedLead(null);
+    // Clear inventory scroll position to avoid conflicts
+    setInventoryScrollPosition(0);
     // restore scroll after short delay
     setTimeout(() => {
       if (leadsListRef.current) {
@@ -657,12 +694,51 @@ function Leads() {
 
   // Inventory
   const openInventoryFullScreen = () => {
+    // Save current scroll position before opening inventory
+    let savedPosition = 0;
+    
+    if (selectedLead) {
+      // We're in LeadManagementPanel view
+      // Try to find the scrolling element - it might be the main container or a child
+      if (mainContainerRef.current) {
+        // Check main container
+        savedPosition = mainContainerRef.current.scrollTop;
+        
+        // If main container doesn't scroll, check for scrolling children
+        if (savedPosition === 0) {
+          const scrollableElements = mainContainerRef.current.querySelectorAll('*');
+          for (let el of scrollableElements) {
+            if (el.scrollTop > 0) {
+              savedPosition = el.scrollTop;
+              // Store reference to the scrolling element for restoration
+              el.setAttribute('data-scroll-restore', 'true');
+              break;
+            }
+          }
+        }
+      }
+      
+      // Also save window scroll as fallback
+      if (savedPosition === 0) {
+        savedPosition = window.pageYOffset || document.documentElement.scrollTop;
+      }
+    } else if (leadsListRef.current) {
+      // We're in leads list view
+      savedPosition = leadsListRef.current.scrollTop;
+    } else {
+      // Fallback to general scroll position
+      savedPosition = scrollPosition;
+    }
+    
+    setInventoryScrollPosition(savedPosition);
     setShowInventoryFullScreen(true);
-    handleLeadRefetch(); // osveži lead sa servera
+    handleLeadRefetch();
   };
+  
   const closeInventoryFullScreen = () => {
     setShowInventoryFullScreen(false);
-    handleLeadRefetch(); // osveži lead sa servera
+    handleLeadRefetch();
+    // Scroll restoration handled by useLayoutEffect
   };
 
   // Count how many filters are active
@@ -690,7 +766,7 @@ function Leads() {
   // If showing the Inventory
   if (showInventoryFullScreen) {
     return (
-      <div className={styles.container}>
+      <div className={styles.container} ref={mainContainerRef}>
         <HeaderDashboard
           isLeadSelected={!!selectedLead}
           onBack={handleBack}
@@ -713,7 +789,7 @@ function Leads() {
 
   // Normal leads screen
   return (
-    <div className={styles.container}>
+    <div className={styles.container} ref={mainContainerRef}>
       <HeaderDashboard
         isLeadSelected={!!selectedLead}
         onBack={handleBack}

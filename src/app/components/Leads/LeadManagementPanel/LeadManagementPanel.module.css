@@ -716,8 +716,8 @@
   gap: 10px;
 }
 
-/* Invite Button (HIDDEN via CSS) */
-.inviteButton {
+/* Rate Type Button (Previously Invite Customer Button) */
+.rateTypeButton {
   width: 100%;
   height: 50px;
   border: none;
@@ -728,12 +728,11 @@
   cursor: pointer;
   padding: 0 20px;
   justify-content: space-between;
-}
-.hiddenButton {
-  display: none !important;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
 
-.inviteText {
+.rateTypeText {
   color: #59B779;
   font-family: Satoshi, sans-serif;
   font-size: 15px;
@@ -741,7 +740,7 @@
   line-height: normal;
 }
 
-.inviteIconContainer {
+.rateTypeIconContainer {
   width: 30px;
   height: 30px;
   border-radius: 10px;
@@ -750,6 +749,50 @@
   align-items: center;
   justify-content: center;
 }
+
+.calculatorIcon {
+  width: 16px;
+  height: 16px;
+  color: #FFF;
+}
+
+/* Rate Type Dropdown */
+.rateTypeDropdown {
+  position: absolute;
+  top: 55px;
+  left: 0;
+  width: 100%;
+  background: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 0;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 3100;
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+  list-style: none;
+}
+
+.rateTypeOption {
+  padding: 7px 10px;
+  cursor: pointer;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  color: #000;
+  margin: 0 10px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.rateTypeOption:hover {
+  border-radius: 8px;
+  background: #F2F5F8;
+}
+
+/* Remove the hidden button class - no longer needed */
 
 .userIcon {
   width: 16px;

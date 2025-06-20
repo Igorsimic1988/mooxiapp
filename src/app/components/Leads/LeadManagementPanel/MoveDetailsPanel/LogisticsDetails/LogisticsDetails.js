@@ -72,12 +72,24 @@ function handleFocusSelectAll(e) {
 function LogisticsDetails({
   lead,
   onLeadUpdated,
+  isStorageEnabled,
 }) {
   // Read rateType from lead prop instead of having it in the form
   const rateType = lead?.rateType || 'Hourly Rate';
   
+  // Are we "Hourly", "Volume", or "Weight"?
+  const isHourly = rateType === 'Hourly Rate';
+  const isVolume = rateType === 'Volume Based';
+  const isWeight = rateType === 'Weight Based';
+  
+  // Show tabs only when storage is enabled AND it's Hourly Rate
+  const showTabs = isStorageEnabled && isHourly;
+  
+  const [activeTab, setActiveTab] = useState('moveOut');
+  
   const { watch, register, setValue } = useForm({
     defaultValues:{
+      // Regular fields (used when storage is OFF and for Move Out when storage is ON)
       activeDay: lead?.activeDay ?? 'moving',
       hasPackingDay: Boolean(lead?.hasPackingDay),
       numTrucks: lead?.numTrucks ?? 1,
@@ -99,22 +111,45 @@ function LogisticsDetails({
       packingMinimum: lead?.packingMinimum ?? '2h',
       packingMinHours: lead?.packingMinHours ?? '1.00 h',
       packingMaxHours: lead?.packingMaxHours ?? '2.00 h',
+      
+      // Move In fields (only used when storage is enabled)
+      moveInNumTrucks: lead?.moveInNumTrucks ?? 1,
+      moveInNumMovers: lead?.moveInNumMovers ?? 2,
+      moveInHourlyRate: lead?.moveInHourlyRate ?? 180,
+      moveInPricePerCuft: lead?.moveInPricePerCuft ?? 4.50,
+      moveInPricePerLbs: lead?.moveInPricePerLbs ?? 0.74,
+      moveInTravelTime: lead?.moveInTravelTime ?? '1.00 h',
+      moveInMovingMin: lead?.moveInMovingMin ?? '3h',
+      moveInMinimumCuft: lead?.moveInMinimumCuft ?? 0.00,
+      moveInMinimumLbs: lead?.moveInMinimumLbs ?? 0,
+      moveInPickupWindow: lead?.moveInPickupWindow ?? '1 day',
+      moveInDeliveryWindow: lead?.moveInDeliveryWindow ?? '7 days',
+      moveInMinHours: lead?.moveInMinHours ?? '1.00 h',
+      moveInMaxHours: lead?.moveInMaxHours ?? '2.00 h',
     }
   });
-  const {
-    activeDay,
-    hasPackingDay,
-    travelTime,
-    movingMin,
-    pickupWindow,
-    deliveryWindow,
-    minHours,
-    maxHours,
-    packingTravelTime,
-    packingMinimum,
-    packingMinHours,
-    packingMaxHours
-  } = watch();
+  
+  // Get values based on tab
+  const getFieldValue = (fieldName) => {
+    if (showTabs && activeTab === 'moveIn') {
+      return watch(`moveIn${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`);
+    }
+    return watch(fieldName);
+  };
+  
+  const activeDay = watch('activeDay');
+  const hasPackingDay = watch('hasPackingDay');
+  const travelTime = getFieldValue('travelTime');
+  const movingMin = getFieldValue('movingMin');
+  const pickupWindow = getFieldValue('pickupWindow');
+  const deliveryWindow = getFieldValue('deliveryWindow');
+  const minHours = getFieldValue('minHours');
+  const maxHours = getFieldValue('maxHours');
+  const packingTravelTime = watch('packingTravelTime');
+  const packingMinimum = watch('packingMinimum');
+  const packingMinHours = watch('packingMinHours');
+  const packingMaxHours = watch('packingMaxHours');
+
   const {isLogisticsCollapsed, setIsLogisticsCollapsed} = useUiState();
   const toggleCollapse = () => setIsLogisticsCollapsed((prev) => !prev);
   const movingSectionRef = useRef(null);
@@ -146,13 +181,14 @@ function LogisticsDetails({
   const [showPackingMaxHoursDropdown, setShowPackingMaxHoursDropdown] = useState(false);
   const [showPackingDetails, setShowPackingDetails] = useState(false);
 
-  // Are we "Hourly", "Volume", or "Weight"?
-  const isHourly = rateType === 'Hourly Rate';
-  const isVolume = rateType === 'Volume Based';
-  const isWeight = rateType === 'Weight Based';
-
   // Helper to tell the parent that a field changed
   function handleUpdateLeadField(fieldName, value) {
+    // Add prefix only for Move In tab when tabs are shown
+    if (showTabs && activeTab === 'moveIn' && 
+        !fieldName.includes('packing') && !fieldName.includes('activeDay') && !fieldName.includes('hasPackingDay')) {
+      fieldName = `moveIn${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}`;
+    }
+    
     if (onLeadUpdated) {
       onLeadUpdated(lead.id, {
         [fieldName]: value,
@@ -162,25 +198,30 @@ function LogisticsDetails({
 
   // min/max hours for "Work time"
   function handleSelectMinHours(label) {
-    setValue('minHours', label);
-    handleUpdateLeadField('minHours', label);
+    const fieldName = showTabs && activeTab === 'moveIn' ? 'moveInMinHours' : 'minHours';
+    const maxFieldName = showTabs && activeTab === 'moveIn' ? 'moveInMaxHours' : 'maxHours';
+    setValue(fieldName, label);
+    handleUpdateLeadField(fieldName, label);
     // clamp
     const minVal = parseQuarterHours(label);
-    const maxVal = parseQuarterHours(maxHours);
+    const maxVal = parseQuarterHours(getFieldValue('maxHours'));
     if (maxVal < minVal) {
-      setValue('maxHours', label);
-      handleUpdateLeadField('maxHours', label);
+      setValue(maxFieldName, label);
+      handleUpdateLeadField(maxFieldName, label);
     }
   }
+  
   function handleSelectMaxHours(label) {
-    setValue('maxHours', label);
-    handleUpdateLeadField('maxHours', label);
+    const fieldName = showTabs && activeTab === 'moveIn' ? 'moveInMaxHours' : 'maxHours';
+    const minFieldName = showTabs && activeTab === 'moveIn' ? 'moveInMinHours' : 'minHours';
+    setValue(fieldName, label);
+    handleUpdateLeadField(fieldName, label);
     // clamp
     const newMax = parseQuarterHours(label);
-    const oldMin = parseQuarterHours(minHours);
+    const oldMin = parseQuarterHours(getFieldValue('minHours'));
     if (newMax < oldMin) {
-      setValue('minHours', label);
-      handleUpdateLeadField('minHours', label);
+      setValue(minFieldName, label);
+      handleUpdateLeadField(minFieldName, label);
     }
   }
 
@@ -283,28 +324,52 @@ function LogisticsDetails({
           // If we know the moving section height, keep minHeight so it doesn't jump
           style={{ minHeight: movingHeight ? `${movingHeight}px` : 'auto' }}
         >
-          {/* "Add Packing Day" or "Packing/Moving Day" toggle */}
-          <div className={styles.packingDayWrapper}>
-            <PackingDay
-              lead={lead}
-              onDaySelected={(day) => {
-                // Just update local state
-                setValue('activeDay', day);
-              }}
-              onLeadUpdated={(id, data) => {
-                if (data.hasPackingDay !== undefined) {
-                  setValue('hasPackingDay', data.hasPackingDay);
-                }
-                onLeadUpdated(id, data);
-              }}
-            />
-          </div>
+          {/* Show tabs only when storage is enabled AND it's Hourly Rate */}
+          {showTabs && (
+            <div className={styles.sectionsRow}>
+              <div
+                className={`${styles.sectionItem} ${activeTab === 'moveOut' ? styles.selected : ''}`}
+                onClick={() => setActiveTab('moveOut')}
+              >
+                <span className={`${styles.sectionText} ${activeTab === 'moveOut' ? styles.textActive : ''}`}>
+                  Move Out
+                </span>
+              </div>
+              <div
+                className={`${styles.sectionItem} ${activeTab === 'moveIn' ? styles.selected : ''}`}
+                onClick={() => setActiveTab('moveIn')}
+              >
+                <span className={`${styles.sectionText} ${activeTab === 'moveIn' ? styles.textActive : ''}`}>
+                  Move In
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* "Add Packing Day" or "Packing/Moving Day" toggle - ONLY show for Move Out or when storage is off */}
+          {(!showTabs || activeTab === 'moveOut') && (
+            <div className={styles.packingDayWrapper}>
+              <PackingDay
+                lead={lead}
+                onDaySelected={(day) => {
+                  // Just update local state
+                  setValue('activeDay', day);
+                }}
+                onLeadUpdated={(id, data) => {
+                  if (data.hasPackingDay !== undefined) {
+                    setValue('hasPackingDay', data.hasPackingDay);
+                  }
+                  onLeadUpdated(id, data);
+                }}
+              />
+            </div>
+          )}
 
           <div className={styles.extraInputsContainer}>
             {/* ============ MOVING SECTION ============ */}
             <div
               ref={movingSectionRef}
-              style={{ display: showMovingSection ? 'block' : 'none' }}
+              style={{ display: (showMovingSection && (!showTabs || activeTab === 'moveOut')) || (showTabs && activeTab === 'moveIn') ? 'block' : 'none' }}
             >
               {/* Number of Trucks / Movers / Hourly Rate */}
               <div className={styles.row}>
@@ -313,10 +378,11 @@ function LogisticsDetails({
                     Number of Trucks:
                     <input
                       className={styles.logisticsInput}
-                      {...register('numTrucks', {
+                      {...register(showTabs && activeTab === 'moveIn' ? 'moveInNumTrucks' : 'numTrucks', {
                         onChange: (e) => {
                           const val = parseInt(e.target.value.replace(/\D+/g, ''), 10) || 0;
-                          setValue('numTrucks', val);
+                          const fieldName = showTabs && activeTab === 'moveIn' ? 'moveInNumTrucks' : 'numTrucks';
+                          setValue(fieldName, val);
                           handleUpdateLeadField('numTrucks', val);
                         }
                       })}
@@ -330,10 +396,11 @@ function LogisticsDetails({
                     Number of Movers:
                     <input
                       className={styles.logisticsInput}
-                      {...register('numMovers', {
+                      {...register(showTabs && activeTab === 'moveIn' ? 'moveInNumMovers' : 'numMovers', {
                         onChange: (e) => {
                           const val = parseInt(e.target.value.replace(/\D+/g, ''), 10) || 0;
-                          setValue('numMovers', val);
+                          const fieldName = showTabs && activeTab === 'moveIn' ? 'moveInNumMovers' : 'numMovers';
+                          setValue(fieldName, val);
                           handleUpdateLeadField('numMovers', val);
                         }
                       })}
@@ -348,10 +415,11 @@ function LogisticsDetails({
                       Hourly Rate ($):
                       <input
                         className={styles.logisticsInput}
-                        {...register('hourlyRate', {
+                        {...register(showTabs && activeTab === 'moveIn' ? 'moveInHourlyRate' : 'hourlyRate', {
                           onChange: (e) => {
                             const val = parseInt(e.target.value.replace(/[^0-9.]/g, ''), 10) || 0;
-                            setValue('hourlyRate', val);
+                            const fieldName = showTabs && activeTab === 'moveIn' ? 'moveInHourlyRate' : 'hourlyRate';
+                            setValue(fieldName, val);
                             handleUpdateLeadField('hourlyRate', val);
                           }
                         })}
@@ -363,17 +431,19 @@ function LogisticsDetails({
               </div>
 
               {/* Price per Cuft (Volume Based) or Price per lbs (Weight Based) */}
-              {isVolume && (
+              {/* Only show these in Move Out tab or when tabs are not shown */}
+              {(!showTabs || activeTab === 'moveOut') && isVolume && (
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
                       Price per Cuft ($):
                       <input
                         className={styles.logisticsInput}
-                        {...register('pricePerCuft', {
+                        {...register(isStorageEnabled && activeTab === 'moveIn' ? 'moveInPricePerCuft' : 'pricePerCuft', {
                           onChange: (e) => {
                             const val = parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0;
-                            setValue('pricePerCuft', val);
+                            const fieldName = isStorageEnabled && activeTab === 'moveIn' ? 'moveInPricePerCuft' : 'pricePerCuft';
+                            setValue(fieldName, val);
                             handleUpdateLeadField('pricePerCuft', val);
                           }
                         })}
@@ -384,17 +454,18 @@ function LogisticsDetails({
                 </div>
               )}
 
-              {isWeight && (
+              {(!showTabs || activeTab === 'moveOut') && isWeight && (
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
                       Price per lbs ($):
                       <input
                         className={styles.logisticsInput}
-                        {...register('pricePerLbs', {
+                        {...register(isStorageEnabled && activeTab === 'moveIn' ? 'moveInPricePerLbs' : 'pricePerLbs', {
                           onChange: (e) => {
                             const val = parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0;
-                            setValue('pricePerLbs', val);
+                            const fieldName = isStorageEnabled && activeTab === 'moveIn' ? 'moveInPricePerLbs' : 'pricePerLbs';
+                            setValue(fieldName, val);
                             handleUpdateLeadField('pricePerLbs', val);
                           }
                         })}
@@ -433,7 +504,8 @@ function LogisticsDetails({
                               className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(evt) => {
                                 evt.stopPropagation();
-                                setValue('travelTime', opt);
+                                const fieldName = showTabs && activeTab === 'moveIn' ? 'moveInTravelTime' : 'travelTime';
+                                setValue(fieldName, opt);
                                 setShowTravelTimeDropdown(false);
                                 handleUpdateLeadField('travelTime', opt);
                               }}
@@ -476,7 +548,8 @@ function LogisticsDetails({
                               className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(evt) => {
                                 evt.stopPropagation();
-                                setValue('movingMin', opt);
+                                const fieldName = showTabs && activeTab === 'moveIn' ? 'moveInMovingMin' : 'movingMin';
+                                setValue(fieldName, opt);
                                 setShowMovingMinDropdown(false);
                                 handleUpdateLeadField('movingMin', opt);
                               }}
@@ -492,14 +565,15 @@ function LogisticsDetails({
               )}
 
               {/* Minimum cuft / lbs if Volume or Weight */}
-              {isVolume && (
+              {/* Only show these in Move Out tab or when tabs are not shown */}
+              {(!showTabs || activeTab === 'moveOut') && isVolume && (
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
                       Minimum Cuft:
                       <input
                         className={styles.logisticsInput}
-                        {...register('minimumCuft', {
+                        {...register(isStorageEnabled && activeTab === 'moveIn' ? 'moveInMinimumCuft' : 'minimumCuft', {
                           onChange: (e) => {
                             let val = e.target.value.replace(/[^0-9.]/g, '');
                             const parts = val.split('.');
@@ -510,7 +584,8 @@ function LogisticsDetails({
                             }
                             if (!val) val = '0.00';
                             let cleanValue = parseFloat(val);
-                            setValue('minimumCuft', cleanValue);
+                            const fieldName = isStorageEnabled && activeTab === 'moveIn' ? 'moveInMinimumCuft' : 'minimumCuft';
+                            setValue(fieldName, cleanValue);
                             handleUpdateLeadField('minimumCuft', val);
                           }
                         })}
@@ -520,19 +595,20 @@ function LogisticsDetails({
                   </div>
                 </div>
               )}
-              {isWeight && (
+              {(!showTabs || activeTab === 'moveOut') && isWeight && (
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>
                     <label className={styles.inputLabel}>
                       Minimum Lbs:
                       <input
                         className={styles.logisticsInput}
-                        {...register('minimumLbs', {
+                        {...register(isStorageEnabled && activeTab === 'moveIn' ? 'moveInMinimumLbs' : 'minimumLbs', {
                           onChange: (e) => {
                             let val = e.target.value.replace(/\D+/g, '');
                             if (!val) val = '0';
                             let cleanValue = parseInt(val, 10);
-                            setValue('minimumLbs', cleanValue);
+                            const fieldName = isStorageEnabled && activeTab === 'moveIn' ? 'moveInMinimumLbs' : 'minimumLbs';
+                            setValue(fieldName, cleanValue);
                             handleUpdateLeadField('minimumLbs', val);
                           }
                         })}
@@ -544,7 +620,8 @@ function LogisticsDetails({
               )}
 
               {/* Pickup window / Delivery Window (for Volume/Weight) */}
-              {(isVolume || isWeight) && (
+              {/* Only show these in Move Out tab or when tabs are not shown */}
+              {(!showTabs || activeTab === 'moveOut') && (isVolume || isWeight) && (
                 <div className={styles.row} style={{ flexDirection: 'column', gap: '10px' }}>
                   <div
                     className={`${styles.logisticsButton} ${showPickupWindowDropdown ? styles.activeInput : ''}`}
@@ -571,7 +648,8 @@ function LogisticsDetails({
                               className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setValue('pickupWindow', opt);
+                                const fieldName = isStorageEnabled && activeTab === 'moveIn' ? 'moveInPickupWindow' : 'pickupWindow';
+                                setValue(fieldName, opt);
                                 setShowPickupWindowDropdown(false);
                                 handleUpdateLeadField('pickupWindow', opt);
                               }}
@@ -609,7 +687,8 @@ function LogisticsDetails({
                               className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setValue('deliveryWindow', opt);
+                                const fieldName = isStorageEnabled && activeTab === 'moveIn' ? 'moveInDeliveryWindow' : 'deliveryWindow';
+                                setValue(fieldName, opt);
                                 setShowDeliveryWindowDropdown(false);
                                 handleUpdateLeadField('deliveryWindow', opt);
                               }}
@@ -729,8 +808,8 @@ function LogisticsDetails({
               )}
             </div>
 
-            {/* ============ PACKING SECTION ============ */}
-            {showPackingSection && (
+            {/* ============ PACKING SECTION (only for Move Out) ============ */}
+            {showPackingSection && (!showTabs || activeTab === 'moveOut') && (
               <div style={{ marginTop: '20px' }}>
                 <div className={styles.row}>
                   <div className={styles.logisticsInputContainer}>

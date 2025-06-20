@@ -589,54 +589,90 @@ function Leads() {
   };
 
   // CRUD: Update existing lead
-  const handleLeadUpdated = (id, updates) => {
-    // Console log so you can follow all changes
-    console.log("UPDATE LEAD → id:", id); // <--- OVO DODAJ
-    updateLeadMutation.mutate({ id, data: updates, token }, {
-      onSuccess: (updatedLead) =>{
-        setSelectedLead((prev) => prev && prev.id === updatedLead.id ? updatedLead : prev
-      )
+const handleLeadUpdated = (id, updates) => {
+  // Console log so you can follow all changes
+  console.log("UPDATE LEAD → id:", id, "updates:", updates);
+  
+  updateLeadMutation.mutate({ id, data: updates, token }, {
+    onSuccess: (updatedLead) => {
+      console.log("Lead updated successfully:", updatedLead);
+      
+      // Update the selected lead immediately with the updates
+      // This ensures the UI reflects changes right away
+      setSelectedLead((prev) => {
+        if (prev && (prev.id === id || prev.lead_id === id)) {
+          return {
+            ...prev,
+            ...updates, // Apply the updates immediately
+            ...updatedLead, // Then apply any additional data from the server
+          };
+        }
+        return prev;
+      });
+      
+      // Also update the leads in the query cache
+      queryClient.setQueryData(['leads', token], (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map(lead => {
+          if (lead.id === id || lead.lead_id === id) {
+            return {
+              ...lead,
+              ...updates,
+              ...updatedLead,
+            };
+          }
+          return lead;
+        });
+      });
+      
+      // Then refetch to ensure consistency
       refetch();
+      
+      // Handle events for status changes
       const prev = selectedLead;
-      if (updates.leadStatus && updates.leadStatus !== selectedLead.leadStatus) {
-        createEventMutation.mutate({
-          type: "LEAD_STATUS_CHANGED",
-          data: {
-            leadId: updatedLead.id,
-            field: "leadStatus",
-            oldValue: prev.leadStatus || null,
-            newValue: updates.leadStatus || null,
-          },
-          token,
-        });
+      if (prev) {
+        if (updates.leadStatus && updates.leadStatus !== prev.leadStatus) {
+          createEventMutation.mutate({
+            type: "LEAD_STATUS_CHANGED",
+            data: {
+              leadId: updatedLead.id,
+              field: "leadStatus",
+              oldValue: prev.leadStatus || null,
+              newValue: updates.leadStatus || null,
+            },
+            token,
+          });
+        }
+        
+        if (updates.leadActivity && updates.leadActivity !== prev.leadActivity) {
+          createEventMutation.mutate({
+            type: "LEAD_ACTIVITY_CHANGED",
+            data: {
+              leadId: updatedLead.id,
+              field: "leadActivity",
+              oldValue: prev.leadActivity || null,
+              newValue: updates.leadActivity || null,
+            },
+            token,
+          });
+        }
+        
+        if (updates.nextAction && updates.nextAction !== prev.nextAction) {
+          createEventMutation.mutate({
+            type: "NEXT_ACTION_CHANGED",
+            data: {
+              leadId: updatedLead.id,
+              field: "nextAction",
+              oldValue: prev.nextAction || null,
+              newValue: updates.nextAction || null,
+            },
+            token,
+          });
+        }
       }
-      
-      if (updates.leadActivity && updates.leadActivity !== selectedLead.leadActivity) {
-        createEventMutation.mutate({
-          type: "LEAD_ACTIVITY_CHANGED",
-          data: {
-            leadId: updatedLead.id,
-            field: "leadActivity",
-            oldValue: prev.leadActivity || null,
-            newValue: updates.leadActivity || null,
-          },
-          token,
-        });
-      }
-      
-      if (updates.nextAction && updates.nextAction !== selectedLead.nextAction) {
-        createEventMutation.mutate({
-          type: "NEXT_ACTION_CHANGED",
-          data: {
-            leadId: updatedLead.id,
-            field: "nextAction",
-            oldValue: prev.nextAction || null,
-            newValue: updates.nextAction || null,
-          },
-          token,
-        });
-      }
-      
+    },
+    onError: (err) => {
+      console.error("Failed to update lead:", err);
     }
   });
 };

@@ -44,6 +44,44 @@
   padding: 10px 0;
 }
 
+/* ----- TABS (Move Out / Move In) - SAME AS LogisticsDetails ----- */
+.sectionsRow {
+  display: flex;
+  justify-content: start;
+  gap: 30px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 385px) {
+  .sectionsRow {
+    gap: 15px;
+  }
+}
+
+.sectionItem {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  height: 50px;
+  border-bottom: 3px solid transparent;
+}
+
+.selected {
+  border-bottom: 3px solid #3FA9F5;
+}
+
+.sectionText {
+  margin-left: 5px;
+  color: #90A4B7;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.textActive {
+  color: #2F3236;
+}
+
 /* Invoice row on top */
 .invoiceWrapper {
   margin-bottom: 20px;
@@ -414,4 +452,15 @@
 /* Add standardized focus style */
 .invoiceValueInput:focus {
   border-bottom: 1px solid var(--Blue, #3FA9F5);
+}
+
+/* Style for read-only invoice fields */
+.invoiceValueInput[readonly] {
+  cursor: default;
+  color: #6E7882;
+}
+
+.readOnlyField {
+  pointer-events: none;
+  opacity: 0.8;
 }

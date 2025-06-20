@@ -848,11 +848,13 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       <LogisticsDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
+        isStorageEnabled={addStorage}
       />
 
       <EstimateDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
+         isStorageEnabled={addStorage}
       />
     </div>
   );

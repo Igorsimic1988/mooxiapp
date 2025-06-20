@@ -94,6 +94,7 @@ import UnfoldMore from './unfoldmore.svg';
 import Unpacking from './unpacking.svg';
 import Upload from './upload.svg';
 import User from './user.svg';
+import Terminal from './terminal.svg'
 
 const icons = {
     Drop2,
@@ -192,6 +193,7 @@ const icons = {
     Unpacking,
     Upload,
     User,
+    Terminal,
 };
 
 export default icons;

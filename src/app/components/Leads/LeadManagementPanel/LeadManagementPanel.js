@@ -819,10 +819,10 @@ function LeadManagementPanel({
               style={{ backgroundColor: currentRateType.iconBg }}
             >
               <Icon
-                name="User"
-                className={styles.calculatorIcon}
-                width={18}
-                height={18}
+                name="Terminal"
+                className={styles.terminalIcon}
+                width={28}
+                height={28}
                 color="#FFF"
               />
             </div>

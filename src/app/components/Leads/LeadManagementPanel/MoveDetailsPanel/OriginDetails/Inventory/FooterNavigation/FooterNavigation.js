@@ -6,7 +6,7 @@ import SpecialH from './SpecialH/SpecialH';
 import MyInventory from './MyInventory/MyInventory';
 
 import Icon from '../../../../../../Icon'
-import DeleteButton from './DeleteButton/DeleteButton'; // Import the new component
+import DeleteButton from './DeleteButton/DeleteButton';
 
 function FooterNavigation({
   inRoom,
@@ -15,11 +15,13 @@ function FooterNavigation({
   setIsDeleteActive,
   isSpecialHVisible,
   setIsSpecialHVisible,
-  itemsByRoom,
+  roomItemSelections,     // For individual items approach
+  setRoomItemSelections,  // For individual items approach
   selectedRoom,
   displayedRooms,
   onCloseInventory,
   lead,
+  handleUpdateItem        // Keep this for SpecialH
 }) {
 
   const [isMyInventoryVisible, setIsMyInventoryVisible] = useState(false);
@@ -87,10 +89,12 @@ function FooterNavigation({
       {isSpecialHVisible && (
         <SpecialH 
           setIsSpecialHVisible={setIsSpecialHVisible} 
-          itemsByRoom={itemsByRoom}
+          roomItemSelections={roomItemSelections}
+          setRoomItemSelections={setRoomItemSelections}
           selectedRoom={selectedRoom}
           displayedRooms={displayedRooms}
           lead={lead}
+          handleUpdateItem={handleUpdateItem}
         />
       )}
 
@@ -98,7 +102,8 @@ function FooterNavigation({
       {isMyInventoryVisible && (
         <MyInventory
           setIsMyInventoryVisible={setIsMyInventoryVisible}
-          itemsByRoom={itemsByRoom}
+          roomItemSelections={roomItemSelections}
+          setRoomItemSelections={setRoomItemSelections}
           selectedRoom={selectedRoom}
           displayedRooms={displayedRooms}
           lead={lead}

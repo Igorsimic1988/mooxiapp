@@ -94,6 +94,28 @@ const statusOptions = [
   },
 ];
 
+// Rate Type options for the new button
+const rateTypeOptions = [
+  {
+    label: 'Hourly Rate Quote',
+    value: 'Hourly Rate',
+    color: '#59B779',
+    iconBg: '#59B779'
+  },
+  {
+    label: 'Volume Based Quote',
+    value: 'Volume Based',
+    color: '#3FA9F5',
+    iconBg: '#3FA9F5'
+  },
+  {
+    label: 'Weight Based Quote',
+    value: 'Weight Based',
+    color: '#FAA61A',
+    iconBg: '#FAA61A'
+  }
+];
+
 // Which activities belong to which status
 function getActivityOptions(status) {
   switch (status) {
@@ -133,7 +155,7 @@ function generateTimeSlots() {
 const timeSlots = generateTimeSlots();
 
 const inventoryDropdownOptions = [
-  { label: 'Detailed Inventory Quote', textColor: '#3FA9F5', iconBg: '#3FA9F5' },
+  { label: 'Detailed Inventory', textColor: '#3FA9F5', iconBg: '#3FA9F5' },
   { label: 'Quick Estimate',           textColor: '#faa612', iconBg: '#faa612' },
   { label: 'I Know My Shipment Size',  textColor: '#616161', iconBg: '#90a4b7' },
 ];
@@ -172,7 +194,8 @@ function LeadManagementPanel({
       estimator: lead.estimator || '',
       surveyDate: lead.surveyDate || '',
       surveyTime: lead.surveyTime || '',
-      inventoryOption: lead.inventoryOption || 'Detailed Inventory Quote',
+      inventoryOption: lead.inventoryOption || 'Detailed Inventory',
+      rateType: lead.rateType || 'Hourly Rate', // Add rateType to form defaults
     },
   });
   const token = useAccessToken();
@@ -183,6 +206,7 @@ function LeadManagementPanel({
   const selectedDate = watch('surveyDate');
   const selectedTime = watch('surveyTime');
   const inventoryOption = watch('inventoryOption');
+  const rateType = watch('rateType');
 
   const [hideNextActionAfterSurvey, setHideNextActionAfterSurvey] = useState(false);
   const [animateNextAction, setAnimateNextAction] = useState(false);
@@ -195,10 +219,12 @@ function LeadManagementPanel({
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [daysInMonth, setDaysInMonth] = useState([]);
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+  const [showRateTypeDropdown, setShowRateTypeDropdown] = useState(false);
 
   const inventoryRef = useRef(null);
   const statusContainerRef = useRef(null);
   const activityContainerRef = useRef(null);
+  const rateTypeRef = useRef(null);
 
     const { data: users = [], } = useQuery({
       queryKey: ['users', token],
@@ -231,10 +257,13 @@ function LeadManagementPanel({
       if (showInventoryDropdown && inventoryRef.current && !inventoryRef.current.contains(e.target)) {
         setShowInventoryDropdown(false);
       }
+      if (showRateTypeDropdown && rateTypeRef.current && !rateTypeRef.current.contains(e.target)) {
+        setShowRateTypeDropdown(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showStatusDropdown, showActivityDropdown, showInventoryDropdown]);
+  }, [showStatusDropdown, showActivityDropdown, showInventoryDropdown, showRateTypeDropdown]);
 
   // Actually call updateLead => get updated lead => call parent onLeadUpdated
   async function doUpdateLead(updatedFields = {}) {
@@ -470,8 +499,20 @@ function LeadManagementPanel({
     });
   };
 
+  // RATE TYPE
+  const handleSelectRateType = async (opt) => {
+    if (opt.value === rateType) return;
+    setValue('rateType', opt.value);
+    setShowRateTypeDropdown(false);
+
+    await doUpdateLead({
+      rateType: opt.value,
+    });
+  };
+
   const currentStatusObj = statusOptions.find((opt) => opt.label === leadStatus);
   const statusColor = currentStatusObj ? currentStatusObj.color : '#59B779';
+  const currentRateType = rateTypeOptions.find((opt) => opt.value === rateType) || rateTypeOptions[0];
 
   // We hide Next Action if it's a hidden status or "Completed" was set
   const hideNextAction =
@@ -757,12 +798,54 @@ function LeadManagementPanel({
         <div className={styles.previousRequestsLabel}>Previous Requests:</div>
 
         <div className={styles.requestsButtonsContainer}>
-          <button className={`${styles.inviteButton} ${styles.hiddenButton}`}>
-            <span className={styles.inviteText}>Invite Customer</span>
-            <div className={styles.inviteIconContainer}>
-              <Icon name="User" className={styles.userIcon} />
+          {/* Rate Type Button (Previously Invite Customer) */}
+          <div
+            className={styles.rateTypeButton}
+            style={{ position: 'relative' }}
+            ref={rateTypeRef}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowRateTypeDropdown(!showRateTypeDropdown);
+            }}
+          >
+            <span
+              className={styles.rateTypeText}
+              style={{ color: currentRateType.color }}
+            >
+              {currentRateType.label}
+            </span>
+            <div
+              className={styles.rateTypeIconContainer}
+              style={{ backgroundColor: currentRateType.iconBg }}
+            >
+              <Icon
+                name="Terminal"
+                className={styles.terminalIcon}
+                width={28}
+                height={28}
+                color="#FFF"
+              />
             </div>
-          </button>
+
+            {showRateTypeDropdown && (
+              <ul className={styles.rateTypeDropdown}>
+                {rateTypeOptions.map((opt) => {
+                  const isSelected = opt.value === rateType;
+                  return (
+                    <li
+                      key={opt.value}
+                      className={`${styles.rateTypeOption} ${
+                        isSelected ? styles.selectedOption : ''
+                      }`}
+                      onClick={() => handleSelectRateType(opt)}
+                    >
+                      {opt.label}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
 
           {/* Inventory Option */}
           <div

@@ -8,9 +8,11 @@ export const optionsData = {
           { value: 'crating', label: 'Crating' },
           { value: 'blanket_wrapped', label: 'Blanket wrapped' },
           { value: 'paper_blanket_wrapped', label: 'Paper blanket wrapped' },
-          { value: 'purchased_blankets', label: 'Purchased blankets' },
+          { value: 'purchased_blankets', label: 'Sold blankets' },
           { value: 'pack_and_leave_behind', label: 'Pack and leave behind' },
-          { value: 'keep_blanket_on', label: 'Keep blanket on' },
+          { value: 'swap_blanket_for_shrink_wrap', label: 'Swap Blanket for Shrink Wrap' },
+          { value: 'customer_provided_box', label: 'Customer Provided Box' },
+          { value: 'sold_box_no_labor', label: 'Sold Box (no labor)' },
           { value: 'unpacking', label: 'Unpacking' },
           { value: 'inspect_and_repack', label: 'Inspect and repack' },
         ],
@@ -62,4 +64,3 @@ export const optionsData = {
         ],
     },
   };
-  

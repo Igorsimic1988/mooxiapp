@@ -3,18 +3,19 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import styles from './RoomList.module.css';
 import Icon from 'src/app/components/Icon';
+
 /**
  * RoomList
  *
  * Props:
  *  - onRoomSelect(room): function to select a room object
- *  - roomItemSelections: { [roomId]: arrayOfItemInstances }
+ *  - itemsByRoom: { [roomId]: arrayOfItemInstances } - each item is individual, no count
  *  - displayedRooms: array of room objects (e.g. [{ id, name }, ...])
  *  - selectedRoom: the currently selected room object
  */
 function RoomList({
   onRoomSelect,
-  itemsByRoom = {},
+  itemsByRoom = {},  // Keep the new prop name for consistency
   displayedRooms = [],
   selectedRoom
 }) {
@@ -83,7 +84,8 @@ function RoomList({
         const roomId = room.id ?? `fallback-${index}`;
         const itemInstances = itemsByRoom[roomId] || [];
         const isActive = selectedRoom && selectedRoom.id === room.id;
-        const selectedItemCount = itemInstances.reduce((sum, item) => sum + (item.count || 1), 0);
+        // For individual items, just use array length
+        const selectedItemCount = itemInstances.length;
 
         const roomName = room.name || `Room #${roomId}`;
 
@@ -145,11 +147,11 @@ function RoomList({
           <div className={styles.rightSection}>
             {itemsByRoom[boxesRoom.id]?.length > 0 && (
               <div className={styles.itemCount}>
-                <p>{itemsByRoom[boxesRoom.id].reduce((sum, item) => sum + (item.count || 1), 0)}</p>
+                <p>{itemsByRoom[boxesRoom.id].length}</p>
               </div>
             )}
             <div className={styles.moreIcon}>
-            <Icon name="More" />
+              <Icon name="More" />
             </div>
           </div>
         </button>

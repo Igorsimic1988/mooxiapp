@@ -1,29 +1,30 @@
 .itemSelectionContainer {
-    display: flex;
-    flex-direction: column;
-    height: 100vh; /* Full viewport height */
-    height: 100dvh;
-  }
-  
-  .mainContent {
-    flex: 1; /* Take the remaining space after header and footer */
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  
-  .scrollableItemList {
-    flex: 1; /* Take the available space */
-    overflow-y: auto; /* Make the item list scrollable */
-  }
+  display: flex;
+  flex-direction: column;
+  /* Remove the fixed heights - let it take space from parent flex container */
+  height: 100%; /* Use 100% instead of 100vh/100dvh */
+  overflow: hidden; /* Prevent this container from scrolling */
+}
 
-  .scrollableItemList::-webkit-scrollbar {
-    display: none;
-  }
-  
-  /* Hide scrollbar for IE, Edge, and Firefox */
-  .scrollableItemList {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-  
+.mainContent {
+  flex: 1; /* Take the remaining space after header and footer */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Don't scroll at this level */
+}
+
+.scrollableItemList {
+  flex: 1; /* Take the available space */
+  overflow-y: auto; /* Make the item list scrollable */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.scrollableItemList::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+.scrollableItemList {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

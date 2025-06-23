@@ -16,12 +16,12 @@ export const blanketsOriginOptions = [
   'Needed',
   'Blankets not needed',
   'Paper Blankets',
+  'Swap Blanket for Shrink Wrap',
   'Custom ( tagged )',
 ];
 export const blanketsDestinationOptions = [
   'Remove Blankets',
   'Leave Blankets On',
-  'Custom ( tagged )',
 ];
 
 // Additional services

@@ -6,12 +6,11 @@ import styles from './ItemPopup.module.css';
 
 import { optionsData } from '../../../../../../../../../data/constants/optionsData';
 import Select, { components as RSComponents } from 'react-select';
+import { v4 as uuidv4 } from 'uuid';
 import packingOptions from '../../../../../../../../../data/constants/packingOptions';
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
 import Icon from 'src/app/components/Icon';
 import { labelToDropTag, EXCLUSIVE_LOCATION_TAGS, BASE_INCOMPATIBLE_TAGS, REQUIRED_TAGS, buildExclusiveIncompat } from '../../../utils/tagsRules';
-
-
 
 /** 
  * ==============================================
@@ -28,7 +27,7 @@ const CustomInput = (props) => {
 };
 
 /** 
- * A custom MultiValue display to show packing counts, e.g. “Tape (3)”.
+ * A custom MultiValue display to show packing counts, e.g. "Tape (3)".
  */
 const MultiValue = (props) => {
   const { data } = props;
@@ -50,8 +49,6 @@ const INCOMPATIBLE_TAGS = {
  * ==============================================
  * REACT-SELECT INLINE STYLES
  * ==============================================
- * We'll define everything in this object so that
- * we don’t rely on .mySelect__ classes in CSS.
  */
 const customSelectStyles = {
   control: (provided, state) => ({
@@ -74,7 +71,7 @@ const customSelectStyles = {
   menuList: (provided) => ({
     ...provided,
     padding: '7px 0 0 0',
-    overflowX: 'hidden', // Prevent horizontal scrollbar
+    overflowX: 'hidden',
   }),
   multiValue: (provided) => ({
     ...provided,
@@ -123,21 +120,20 @@ const customSelectStyles = {
   }),
 };
 
-
-
-
 /**
  * ITEM POPUP COMPONENT
  */
 function ItemPopup({
   item,
   onClose,
-  onUpdateItem,
-  onAddItem,
+ 
   itemInstance,
-  handleDeleteItem,
-  onStartFresh,
+
   lead,
+  selectedRoom,
+  roomItemSelections,
+  setRoomItemSelections,
+  onOpenPopup,
 }) {
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
   const [isSaving, setIsSaving] = useState(false);
@@ -153,10 +149,6 @@ function ItemPopup({
   const [lbs, setLbs] = useState('');
   const [itemCount, setItemCount] = useState(1);
   const [notes, setNotes] = useState('');
-
-  // Animation states
-  const [isSlidingOut, setIsSlidingOut] = useState(false);
-  const [isSlidingIn, setIsSlidingIn] = useState(false);
 
   // Packing materials
   const [packingNeeds, setPackingNeeds] = useState([]);
@@ -184,16 +176,15 @@ function ItemPopup({
 
   // For "packingNeeds" multi-select
   const selectedPackingNeeds = Array.isArray(packingNeeds)
-  ? packingNeeds.map((entry) => {
-      const foundOpt = packingOptions.find((o) => o.value === entry.type);
-      return {
-        value: entry.type,
-        name: foundOpt ? foundOpt.name : entry.type,
-        count: entry.quantity,
-      };
-    })
-  : [];
-
+    ? packingNeeds.map((entry) => {
+        const foundOpt = packingOptions.find((o) => o.value === entry.type);
+        return {
+          value: entry.type,
+          name: foundOpt ? foundOpt.name : entry.type,
+          count: entry.quantity,
+        };
+      })
+    : [];
 
   // Dynamically filter dropPoints
   const allDropPoints = optionsData.locationTags.dropPoints;
@@ -204,7 +195,7 @@ function ItemPopup({
     'hoisting_destination',
     'crane_destination',
   ];
-  const activeStops = lead?.destinationStops?.filter((s) => s.isActive && isVisible) || [];
+  const activeStops = lead?.destinationStops?.filter((s) => s.isActive) || [];
   const hasMultipleActiveStops = activeStops.length >= 2;
   const activeStopValues = new Set();
 
@@ -236,9 +227,23 @@ function ItemPopup({
     dropPointsOptions,
   ]);
 
+  // Get count of items with same groupingKey
+  const getGroupCount = useCallback(() => {
+    if (!currentItemInstance || !selectedRoom || !roomItemSelections) return 1;
+    const items = roomItemSelections[selectedRoom.id] || [];
+    return items.filter(itm => itm.groupingKey === currentItemInstance.groupingKey).length;
+  }, [currentItemInstance, selectedRoom, roomItemSelections]);
 
-  
-  
+  // Handle close - discard new items that weren't saved
+  const handleClose = () => {
+    // If this is a new item that hasn't been saved, just close without adding
+    if (currentItemInstance?.isNew) {
+      onClose();
+      return;
+    }
+    // Otherwise, normal close
+    onClose();
+  };
 
   // Initialize data on mount or if item changes
   useEffect(() => {
@@ -310,7 +315,7 @@ function ItemPopup({
       setDropPointsOptions([]);
     }
 
-    // packingNeedsCounts
+    // packingNeeds
     if (Array.isArray(currentItemInstance?.packingNeeds)) {
       setPackingNeeds(currentItemInstance.packingNeeds);
     } else if (item.packingNeeds && item.packingNeeds.length > 0) {
@@ -318,12 +323,17 @@ function ItemPopup({
     } else {
       setPackingNeeds([]);
     }
-    
 
     // Basic fields
     setCuft(currentItemInstance?.cuft || item.cuft || '');
     setLbs(currentItemInstance?.lbs || item.lbs || '');
-    setItemCount(currentItemInstance?.count || 1);
+    
+    // Set itemCount - for new items always start with 1, otherwise use group count
+    if (currentItemInstance?.isNew) {
+      setItemCount(1);
+    } else {
+      setItemCount(getGroupCount());
+    }
     
     setNotes(currentItemInstance?.notes || '');
 
@@ -333,7 +343,7 @@ function ItemPopup({
     // Images
     setUploadedImages(currentItemInstance?.uploadedImages || []);
     setCameraImages(currentItemInstance?.cameraImages || []);
-  }, [currentItemInstance, item]);
+  }, [currentItemInstance, item, getGroupCount]);
 
   // Input handlers
   const handleCuftChange = (e) => setCuft(e.target.value);
@@ -433,60 +443,117 @@ function ItemPopup({
       setPackingNeeds([]);
     }
   };
-  
-  // Sync state fields kad se currentItemInstance promeni
-useEffect(() => {
-  if (!currentItemInstance) return;
 
-  setCuft(currentItemInstance.cuft || '');
-  setLbs(currentItemInstance.lbs || '');
-  setNotes(currentItemInstance.notes || '');
-  setItemCount(currentItemInstance.count || 1);
-  setUploadedImages(currentItemInstance.uploadedImages || []);
-  setCameraImages(currentItemInstance.cameraImages || []);
-  setLink(currentItemInstance.link || '');
-  setPackingNeeds(Array.isArray(currentItemInstance.packingNeeds) ? currentItemInstance.packingNeeds : []);
-}, [currentItemInstance]);
+  // Save item - Handle grouped items properly
+const handleSaveItem = (overrides = {}) => {
+  if (!selectedRoom || !setRoomItemSelections) return;
 
-  const handleSaveItem = (overrides = {}) => {
-    const selectedTags = getAllSelectedTags();
+  const selectedTags = getAllSelectedTags();
+  const updatedInstance = {
+    ...currentItemInstance,
+    furnitureItemId: item.furnitureItemId || item.id,
+    itemId: item.id || item.furnitureItemId,
+    item: { ...item },
+    name: item.name || '',
+    imageName: item.imageName || item.src || '',
+    letters: item.letters || [],
+    search: item.search ?? true,
+    tags: selectedTags,
+    notes,
+    cuft: cuft !== '' ? cuft : (item.cuft || ''),
+    lbs: lbs !== '' ? lbs : (item.lbs || ''),
+    packingNeeds,
+    packingNeedsCounts: {}, // Keep empty for compatibility
+    link: overrides.link ?? link,
+    uploadedImages: overrides.uploadedImages ?? uploadedImages,
+    cameraImages: overrides.cameraImages ?? cameraImages,
+  };
   
-    const newInstance = {
-      furnitureItemId: item.furnitureItemId,
-      roomId: currentItemInstance?.roomId,
-      name: item.name || '',
-      imageName: item.imageName || '',
-      letters: item.letters || [],
-      search: item.search || false,
-      tags: selectedTags,
-      notes,
-      cuft: cuft !== '' ? parseInt(cuft, 10) : null,
-      lbs: lbs !== '' ? parseInt(lbs, 10) : null,
-      packingNeeds,
-      count: itemCount,
-      link: overrides.link !== undefined ? overrides.link : link,
-      uploadedImages:
-        overrides.uploadedImages !== undefined ? overrides.uploadedImages : uploadedImages,
-      cameraImages:
-        overrides.cameraImages !== undefined ? overrides.cameraImages : cameraImages,
-    };
-    newInstance.groupingKey = generateGroupingKey(newInstance);
-    if (currentItemInstance?.groupingKey) {
+  // Generate new grouping key
+  const newGroupingKey = generateGroupingKey(updatedInstance);
+  updatedInstance.groupingKey = newGroupingKey;
+
+  // Use the same logic for both new and existing items
+  setRoomItemSelections((prev) => {
+    const items = [...(prev[selectedRoom.id] || [])];
+    
+    // Check if this is a new item (has isNew flag)
+    if (currentItemInstance?.isNew) {
+      // It's a new item - just add the requested count
       if (itemCount === 0) {
-        handleDeleteItem(currentItemInstance);
-      } else {
-        onUpdateItem(newInstance, currentItemInstance);
+        // Don't add anything if count is 0
+        return prev;
+      }
+      
+      // Add new items
+      for (let i = 0; i < itemCount; i++) {
+        items.push({
+          ...updatedInstance,
+          id: uuidv4(),
+          groupingKey: newGroupingKey,
+          // Remove the isNew flag
+          isNew: undefined
+        });
       }
     } else {
-      if (itemCount > 0) {
-        onAddItem(newInstance);
+      // Existing item - find and update the group
+      const originalGroupingKey = currentItemInstance?.groupingKey;
+      const groupItems = items.filter(itm => itm.groupingKey === originalGroupingKey);
+      const otherItems = items.filter(itm => itm.groupingKey !== originalGroupingKey);
+      
+      // If count is 0, remove all items in the group
+      if (itemCount === 0) {
+        return {
+          ...prev,
+          [selectedRoom.id]: otherItems
+        };
       }
+      
+      // Update all items in the group with new properties
+      const updatedGroupItems = groupItems.map((itm) => ({
+        ...itm,
+        ...updatedInstance,
+        id: itm.id, // Preserve original IDs
+        autoAdded: itm.autoAdded || false, // Preserve autoAdded flag
+        sortKey: itm.sortKey, // Preserve sortKey for auto-added items
+        groupingKey: newGroupingKey
+      }));
+      
+      // Adjust count by adding or removing items
+      const currentCount = groupItems.length;
+      let finalGroupItems = [...updatedGroupItems];
+      
+      if (itemCount > currentCount) {
+        // Add new items
+        const itemsToAdd = itemCount - currentCount;
+        for (let i = 0; i < itemsToAdd; i++) {
+          finalGroupItems.push({
+            ...updatedInstance,
+            id: uuidv4(),
+            groupingKey: newGroupingKey
+          });
+        }
+      } else if (itemCount < currentCount) {
+        // Remove items (from the end)
+        finalGroupItems = finalGroupItems.slice(0, itemCount);
+      }
+      
+      // Return the updated items array
+      return {
+        ...prev,
+        [selectedRoom.id]: [...otherItems, ...finalGroupItems]
+      };
     }
-      setCurrentItemInstance({ ...newInstance });
-      setItemCount(newInstance.count);
-  };
+    
+    return {
+      ...prev,
+      [selectedRoom.id]: items
+    };
+  });
 
-
+  // Update the current instance state (remove isNew flag)
+  setCurrentItemInstance({...updatedInstance, isNew: false});
+};
 
   // itemCount plus/minus
   const handleIncrement = () => setItemCount((p) => p + 1);
@@ -521,37 +588,51 @@ useEffect(() => {
   const filteredLoadPointsOptions = filterOptions(optionsData.locationTags.loadPoints, allSelectedTags);
   const dynamicFilteredDropPoints = filterOptions(dynamicDropPoints, allSelectedTags);
 
-  // "Start Fresh"
+  // "Start Fresh as New Item"
   const handleStartFreshClick = () => {
-    setIsSlidingOut(true);
-    setTimeout(async () => {
-      if (onStartFresh && currentItemInstance) {
-        const resetInstance = await onStartFresh(currentItemInstance);
-        if (resetInstance) {
-        setCurrentItemInstance(resetInstance);
-        }
-      }
-    }, 300);
+    if (!item || !onOpenPopup) return;
+    
+    // Get the base furniture item
+    const furnitureId = item.id?.toString() || currentItemInstance?.furnitureItemId;
+    
+    // Create default packing needs
+    let defaultPacking = {};
+    if (item.packingNeeds?.length) {
+      item.packingNeeds.forEach((pack) => {
+        defaultPacking[pack.type] = pack.quantity;
+      });
+    }
+    
+    // Create a brand new item instance with default values (not saved yet)
+    const freshItemInstance = {
+      id: uuidv4(),
+      furnitureItemId: furnitureId,
+      item: { ...item },
+      tags: [...(item.tags || [])],
+      notes: "",
+      cuft: item.cuft || "",
+      lbs: item.lbs || "",
+      packingNeedsCounts: defaultPacking,
+      packingNeeds: item.packingNeeds || [],
+      link: "",
+      uploadedImages: [],
+      cameraImages: [],
+      isNew: true, // Flag to indicate this is a new unsaved item
+    };
+    
+    // Generate grouping key for the new instance
+    freshItemInstance.groupingKey = generateGroupingKey(freshItemInstance);
+    
+    // Close current popup
+    handleClose();
+    
+    // Open popup with the fresh instance (not saved yet)
+    setTimeout(() => {
+      onOpenPopup(item, freshItemInstance);
+    }, 100);
   };
-  useEffect(() => {
-    let timer;
-    if (isSlidingOut) {
-      timer = setTimeout(() => {
-        setIsSlidingOut(false);
-        setIsSlidingIn(true);
-      }, 300);
-    }
-    return () => clearTimeout(timer);
-  }, [isSlidingOut]);
-  useEffect(() => {
-    let timer;
-    if (isSlidingIn) {
-      timer = setTimeout(() => setIsSlidingIn(false), 300);
-    }
-    return () => clearTimeout(timer);
-  }, [isSlidingIn]);
 
-  // Camera / upload / link
+  // Camera / upload / link handlers
   const handleCameraRollClick = () => {
     if (cameraImages.length === 0) {
       cameraInputRef.current?.click();
@@ -560,6 +641,7 @@ useEffect(() => {
       setIsPreviewVisible(true);
     }
   };
+
   const handleCameraRoll = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -583,6 +665,7 @@ useEffect(() => {
       setIsPreviewVisible(true);
     }
   };
+
   const handleUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -605,20 +688,24 @@ useEffect(() => {
       setIsEditingLink(true);
     }
   };
+
   const handleViewLink = () => {
     window.open(link, '_blank');
     setIsLinkOptionsVisible(false);
   };
+
   const handleClearLink = () => {
     const blank = '';
     setLink(blank);
     setIsLinkOptionsVisible(false);
     handleSaveItem({ link: blank });
   };
+
   const handleReplaceLink = () => {
     setIsLinkOptionsVisible(false);
     setIsEditingLink(true);
   };
+
   const handleLinkInputChange = (e) => setLinkInput(e.target.value);
 
   const validateURL = (url) => {
@@ -632,6 +719,7 @@ useEffect(() => {
     );
     return !!pattern.test(url);
   };
+
   const handleSaveLink = () => {
     if (validateURL(linkInput)) {
       const newLink = linkInput;
@@ -644,6 +732,7 @@ useEffect(() => {
       alert('Please enter a valid URL.');
     }
   };
+
   const handleCancelEditLink = () => {
     setLinkInput('');
     setIsEditingLink(false);
@@ -707,19 +796,17 @@ useEffect(() => {
       handleSaveItem({ cameraImages: newCam });
     }
   };
+
   useEffect(() => {
     if (isPreviewVisible && deleteImageButtonRef.current) {
       deleteImageButtonRef.current.focus();
     }
   }, [isPreviewVisible]);
 
-
   return (
-    <div className={styles.popup} onClick={onClose}>
+    <div className={styles.popup} onClick={handleClose}>
       <div
-        className={`${styles.popupContent} ${isSlidingOut ? styles.slideOut : ''} ${
-          isSlidingIn ? styles.slideIn : ''
-        }`}
+        className={styles.popupContent}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -728,7 +815,7 @@ useEffect(() => {
             <p>Item</p>
           </div>
           <div className={styles.closeButton}>
-            <button type="button" onClick={onClose} aria-label="Close">
+            <button type="button" onClick={handleClose} aria-label="Close">
               <Icon name="Close" className={styles.closeIcon} />
             </button>
           </div>
@@ -741,7 +828,7 @@ useEffect(() => {
             <div className={styles.furnitureOutline}>
               <div className={styles.furnitureWrapper}>
                 <Image
-                  src={item.imageName}
+                  src={item.imageName || item.src}
                   alt={item.name}
                   width={72}
                   height={72}
@@ -1015,8 +1102,6 @@ useEffect(() => {
                 isMulti
                 isClearable={false}
                 className={styles.selectInput}
-                // We do NOT rely on module .mySelect__... in CSS
-                // Instead we handle everything with inline styles
                 name="packing"
                 options={filteredPackingOptions}
                 placeholder="Packing"
@@ -1124,17 +1209,20 @@ useEffect(() => {
         {/* Save & Start Fresh Buttons */}
         <div className={styles.saveButtonContainer}>
           <button
-            type="button"
-            className={`${styles.saveButton} ${isSaving ? styles.saving : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSaveItem();
-              setIsSaving(true);
-              setTimeout(() => setIsSaving(false), 300);
-            }}
-          >
-            Save
-          </button>
+  type="button"
+  className={`${styles.saveButton} ${isSaving ? styles.saving : ''}`}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleSaveItem();
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      handleClose();  // Always close after saving
+    }, 300);
+  }}
+>
+  Save
+</button>
           <button
             type="button"
             className={styles.newItemButton}

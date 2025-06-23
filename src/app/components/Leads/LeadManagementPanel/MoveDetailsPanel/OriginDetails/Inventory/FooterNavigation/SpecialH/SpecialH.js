@@ -3,43 +3,70 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import styles from "./SpecialH.module.css";
 import ItemCard from './ItemCard/ItemCard';
-
-import Icon from 'src/app/components/Icon'
-
-
+import Icon from 'src/app/components/Icon';
 import { generateGroupingKey } from '../../utils/generateGroupingKey';
 import CustomSelect from './CustomSelect/CustomSelect';
 import { optionsData } from '../../../../../../../../data/constants/optionsData';
 import rooms from '../../../../../../../../data/constants/AllRoomsList';
 import { labelToDropTag, EXCLUSIVE_LOCATION_TAGS, BASE_INCOMPATIBLE_TAGS, REQUIRED_TAGS } from '../../utils/tagsRules';
 
+// If these aren't exported from tagsRules, define them here
+const incompatibleTags = BASE_INCOMPATIBLE_TAGS || {
+  cp_packed_by_movers: ['pbo_packed_by_customer'],
+  pbo_packed_by_customer: [
+    'cp_packed_by_movers',
+    'crating',
+    'unpacking',
+    'pack_and_leave_behind',
+  ],
+  paper_blanket_wrapped: ['purchased_blankets'],
+  purchased_blankets: ['paper_blanket_wrapped'],
+  pack_and_leave_behind: ['pbo_packed_by_customer'],
+};
+
+const requiredTags = REQUIRED_TAGS || {
+  crating: ['cp_packed_by_movers'],
+};
 
 function SpecialH({
-  lead, 
+  lead,
   setIsSpecialHVisible,
-  itemsByRoom = {},
-  handleUpdateItem,
+  roomItemSelections = {},  // Individual items approach
+  setRoomItemSelections,    // Individual items approach
   displayedRooms = [],
+  selectedRoom,
+  
 }) {
+  // Close handler
   const handleClose = useCallback(() => {
     setIsSpecialHVisible(false);
   }, [setIsSpecialHVisible]);
 
+  // Ref for popup content
   const popupContentRef = useRef(null);
 
-  // Main radio: "itemTags" or "locationTags"
+  // Scroll current room into view when popup opens
+  useEffect(() => {
+    if (popupContentRef.current && selectedRoom) {
+      const el = popupContentRef.current.querySelector(`[data-room-id="${selectedRoom.id}"]`);
+      if (el) {
+        el.scrollIntoView({ block: 'start', behavior: 'auto' });
+      }
+    }
+  }, [selectedRoom]);
+
+  // Main tag selection state
   const [selectedOption, setSelectedOption] = useState("itemTags");
-  // Sub-radio: "packing"/"extraAttention" (for itemTags) or "loadPoints"/"dropPoints" (for locationTags)
   const [selectedSubOption, setSelectedSubOption] = useState("packing");
   const [currentTag, setCurrentTag] = useState('');
 
-  // Radiobutton for main selection
+  // Main radio options
   const mainOptions = [
     { value: 'itemTags', label: 'Item Tags' },
     { value: 'locationTags', label: 'Location Tags' },
   ];
 
-  // Sub-option resets
+  // Reset sub-option when main changes
   useEffect(() => {
     if (selectedOption === 'itemTags') {
       setSelectedSubOption('packing');
@@ -48,10 +75,8 @@ function SpecialH({
     }
   }, [selectedOption]);
 
-  /** 
-   *  We do the dynamic dropPoints logic based on lead data
-   */
-  const allDropPoints = optionsData.locationTags.dropPoints; 
+  // Build dynamic dropPoints list based on lead stops
+  const allDropPoints = optionsData.locationTags.dropPoints;
   const baseAlwaysVisible = [
     'disposal',
     'item_for_company_storage',
@@ -59,41 +84,33 @@ function SpecialH({
     'hoisting_destination',
     'crane_destination',
   ];
-  const destinationStops = lead?.destinations || [];
 
-  const postStorageStops = destinationStops.filter((s) => s.postStorage);
-  const normalStops = destinationStops.filter((s) => !s.postStorage);
-
-  const activeStops = destinationStops.filter((s) => s.isActive && s.isVisible);
+  const destinationStops = lead?.destinations || lead?.destinationStops || [];
+  const postStorageStops = destinationStops.filter(s => s.postStorage);
+  const normalStops = destinationStops.filter(s => !s.postStorage);
+  const activeStops = destinationStops.filter(s => s.isActive && (s.isVisible ?? true));
   const hasMultipleActiveStops = activeStops.length >= 2;
-
   const activeStopValues = new Set();
+
   if (hasMultipleActiveStops) {
-    activeStops.forEach((stop) => {
+    activeStops.forEach(stop => {
       const group = stop.postStorage ? postStorageStops : normalStops;
-  const indexInGroup = group.indexOf(stop);
-  const isFirst = indexInGroup === 0;
-
-  const label = stop.postStorage
-    ? isFirst
-      ? "Post Storage Main Drop off"
-      : `Post Storage Drop off ${indexInGroup + 1}`
-    : isFirst
-      ? "Main Drop off"
-      : `Drop off ${indexInGroup + 1}`;
-
-  const tag = labelToDropTag(label);
-  activeStopValues.add(tag);
+      const idx = group.indexOf(stop);
+      const isFirst = idx === 0;
+      const label = stop.postStorage
+        ? (isFirst ? "Post Storage Main Drop off" : `Post Storage Drop off ${idx + 1}`)
+        : (isFirst ? "Main Drop off" : `Drop off ${idx + 1}`);
+      activeStopValues.add(labelToDropTag(label));
     });
   }
-  // Filter the dropPoints
+
   const fullyFilteredDropPoints = allDropPoints.filter(dp => {
     if (baseAlwaysVisible.includes(dp.value)) return true;
     if (hasMultipleActiveStops && activeStopValues.has(dp.value)) return true;
     return false;
   });
 
-  // figure out final dropdown options
+  // Determine which tag options to show
   const furtherOptions = useMemo(() => {
     if (selectedOption === 'itemTags') {
       if (selectedSubOption === 'packing') {
@@ -114,7 +131,7 @@ function SpecialH({
     return [];
   }, [selectedOption, selectedSubOption, fullyFilteredDropPoints]);
 
-  // If the array changes, ensure currentTag is still valid
+  // Ensure currentTag remains valid
   useEffect(() => {
     if (furtherOptions.length > 0) {
       const stillValid = furtherOptions.some(opt => opt.value === currentTag);
@@ -126,83 +143,98 @@ function SpecialH({
     }
   }, [furtherOptions, currentTag]);
 
+  // Tag select handler
   const handleTagSelect = (tagValue) => {
     setCurrentTag(tagValue);
   };
 
-  /** 
-   *  When user clicks an item => toggle the `currentTag`.
-   *  Also remove any other tags from the EXCLUSIVE_LOCATION_TAGS set if we are adding a new one.
-   */
-
-  const handleItemClick = (roomId, itemGroupingKey) => {
+  // Handle item click - toggle tag on individual item instance
+  const handleItemClick = (roomId, itemId) => {
     if (!currentTag) {
       alert("Please select a tag from the dropdown before assigning.");
       return;
     }
-  
-    const itemsInRoom = itemsByRoom[roomId] || [];
-    const originalInstance = itemsInRoom.find(inst => inst.groupingKey === itemGroupingKey);
-    if (!originalInstance) return;
-  
-    let newTags = Array.isArray(originalInstance.tags) ? [...originalInstance.tags] : [];
-    const alreadyHas = newTags.includes(currentTag);
-  
-    if (alreadyHas) {
-      newTags = newTags.filter((t) => t !== currentTag);
-    } else {
-      newTags.push(currentTag);
-  
-      // EXCLUSIVE TAGS LOGIC
-      if (EXCLUSIVE_LOCATION_TAGS.includes(currentTag)) {
-        newTags = newTags.filter(t =>
-          t === currentTag || !EXCLUSIVE_LOCATION_TAGS.includes(t)
-        );
-      }
-  
-      // "excluded" logic
-      if (currentTag === 'excluded') {
-        newTags = newTags.filter(
-          (t) => t === 'excluded' || t === 'pack_and_leave_behind'
-        );
-      } else {
-        const incomp = BASE_INCOMPATIBLE_TAGS[currentTag] || [];
-        newTags = newTags.filter((t) => !incomp.includes(t));
-  
-        const reqs = REQUIRED_TAGS[currentTag] || [];
-        reqs.forEach((reqT) => {
-          if (!newTags.includes(reqT)) {
-            newTags.push(reqT);
+
+    setRoomItemSelections((prev) => {
+      const copy = { ...prev };
+      const itemsInRoom = Array.isArray(copy[roomId]) ? [...copy[roomId]] : [];
+      const newItems = itemsInRoom.map((inst) => {
+        if (inst.id === itemId) {
+          let newTags = Array.isArray(inst.tags) ? [...inst.tags] : [];
+          const alreadyHas = newTags.includes(currentTag);
+
+          if (alreadyHas) {
+            // Remove it
+            newTags = newTags.filter((t) => t !== currentTag);
+          } else {
+            // Add the new tag
+            newTags.push(currentTag);
+
+            // ========== EXCLUSIVE TAGS LOGIC ==========
+            if (EXCLUSIVE_LOCATION_TAGS.includes(currentTag)) {
+              // remove all other exclusive ones from newTags
+              newTags = newTags.filter(t => {
+                if (t === currentTag) return true; // keep the newly added one
+                // remove if it's in EXCLUSIVE_LOCATION_TAGS
+                if (EXCLUSIVE_LOCATION_TAGS.includes(t)) return false;
+                return true;
+              });
+            }
+            // ==========================================
+
+            // If "excluded" => remove all except 'excluded' or 'pack_and_leave_behind'
+            if (currentTag === 'excluded') {
+              newTags = newTags.filter(
+                (t) => t === 'excluded' || t === 'pack_and_leave_behind'
+              );
+            } else {
+              // remove incompatible
+              const incomp = incompatibleTags[currentTag] || [];
+              newTags = newTags.filter((t) => !incomp.includes(t));
+
+              // add required
+              const reqs = requiredTags[currentTag] || [];
+              reqs.forEach((reqT) => {
+                if (!newTags.includes(reqT)) {
+                  newTags.push(reqT);
+                }
+              });
+
+              // e.g. if user picks 'item_for_company_storage'
+              // and there's a protective tag => add keep_blanket_on
+              if (currentTag === 'item_for_company_storage') {
+                const protectiveTags = [
+                  'blanket_wrapped',
+                  'paper_blanket_wrapped',
+                  'purchased_blankets',
+                ];
+                const hasProtective = newTags.some((t) =>
+                  protectiveTags.includes(t)
+                );
+                if (hasProtective && !newTags.includes('keep_blanket_on')) {
+                  newTags.push('keep_blanket_on');
+                }
+              }
+            }
           }
-        });
-  
-        if (currentTag === 'item_for_company_storage') {
-          const protectiveTags = [
-            'blanket_wrapped',
-            'paper_blanket_wrapped',
-            'purchased_blankets',
-          ];
-          const hasProtective = newTags.some((t) => protectiveTags.includes(t));
-          if (hasProtective && !newTags.includes('keep_blanket_on')) {
-            newTags.push('keep_blanket_on');
-          }
+
+          // Rebuild instance with new tags
+          const updated = {
+            ...inst,
+            tags: newTags,
+          };
+          updated.groupingKey = generateGroupingKey(updated);
+          return updated;
         }
-      }
-    }
-  
-    const updatedInstance = {
-      ...originalInstance,
-      tags: newTags,
-      groupingKey: generateGroupingKey({
-        ...originalInstance,
-        tags: newTags,
-      }),
-    };
-  
-    handleUpdateItem(updatedInstance, originalInstance);
+        return inst;
+      });
+
+      copy[roomId] = newItems;
+      return copy;
+    });
   };
 
-  // Close popup if outside click
+  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -224,12 +256,12 @@ function SpecialH({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
-            <Icon name="SpecialHPopupIcon" className={styles.icon}/>
+            <Icon name="SpecialHPopupIcon" className={styles.icon} />
             <p>Special Handling</p>
           </div>
           <div className={styles.closeButton}>
             <button onClick={handleClose} aria-label="Close">
-              <Icon name="Close" width={20} height={20} className={styles.closeIcon}/>
+              <Icon name="Close" width={20} height={20} className={styles.closeIcon} />
             </button>
           </div>
         </div>
@@ -321,13 +353,13 @@ function SpecialH({
 
         {/* List items for each displayed room */}
         <div className={styles.roomLists}>
-          {Object.keys(itemsByRoom)
+          {Object.keys(roomItemSelections)
             .filter((roomId) => {
               const numericId = parseInt(roomId, 10);
               return (
                 displayedRooms.includes(numericId) &&
-                Array.isArray(itemsByRoom[roomId]) &&
-                itemsByRoom[roomId].length > 0
+                Array.isArray(roomItemSelections[roomId]) &&
+                roomItemSelections[roomId].length > 0
               );
             })
             .sort((a, b) => {
@@ -342,22 +374,25 @@ function SpecialH({
                 rooms.find((r) => r.id === numericId) ||
                 { id: numericId, name: `Room #${roomId}` };
 
-              const itemArray = itemsByRoom[roomId] || [];
+              const itemArray = roomItemSelections[roomId] || [];
               return (
-                <div key={`room-${roomId}`} className={styles.room}>
+                <div key={`room-${roomId}`} data-room-id={numericId} className={styles.room}>
                   <div className={styles.roomNameWrapper}>
                     <h3 className={styles.roomName}>{roomObj.name}</h3>
                   </div>
                   <ul className={styles.itemList}>
                     {itemArray.map((inst) => (
                       <ItemCard
-                        key={inst.groupingKey}
-                        item={inst}
+                        key={inst.id}
+                        id={inst.id}
+                        item={inst.item || inst}
+                        name={inst.name || inst.item?.name}
+                        imageName={inst.imageName || inst.item?.imageName}
                         tags={inst.tags}
                         isSelected={
-                          !!currentTag && inst.tags.includes(currentTag)
+                          !!currentTag && inst.tags?.includes(currentTag)
                         }
-                        onItemClick={() => handleItemClick(roomId, inst.groupingKey)}
+                        onItemClick={() => handleItemClick(roomId, inst.id)}
                       />
                     ))}
                   </ul>

@@ -44,6 +44,44 @@
   padding: 10px 0;
 }
 
+/* ----- TABS (Move Out / Move In) - SAME AS MoveDetailsPanel ----- */
+.sectionsRow {
+  display: flex;
+  justify-content: start;
+  gap: 30px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 385px) {
+  .sectionsRow {
+    gap: 15px;
+  }
+}
+
+.sectionItem {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  height: 50px;
+  border-bottom: 3px solid transparent;
+}
+
+.selected {
+  border-bottom: 3px solid #3FA9F5;
+}
+
+.sectionText {
+  margin-left: 5px;
+  color: #90A4B7;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.textActive {
+  color: #2F3236;
+}
+
 /* PackingDay row on top */
 .packingDayWrapper {
   margin-bottom: 20px;
@@ -127,11 +165,6 @@
   height: 20px;
   color: #2F3236;
   margin-left: 8px;
-}
-
-.rateTypeWrapper {
-  position: relative;
-  width: 100%;
 }
 
 /* Dropdown menu - STANDARDIZED */

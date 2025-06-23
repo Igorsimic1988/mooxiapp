@@ -29,7 +29,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <link rel="icon" href="%PUBLIC_URL%/favicon.png" />
+        <link rel="icon" href="/public/favicon.png" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#3FA9F5" />
         
@@ -38,9 +38,9 @@ export default function RootLayout({
           content="Mooxy | Pioneering the Future of Moving."
         />
         
-        <link rel="apple-touch-icon" href="%PUBLIC_URL%/iPhone.png" />
+        <link rel="apple-touch-icon" href="/public/iPhone.png" />
         
-        <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+        <link rel="manifest" href="/public/manifest.json" />
         
         <title>Mooxy | Pioneering the Future of Moving.</title>
 

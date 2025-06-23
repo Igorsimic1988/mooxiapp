@@ -4,9 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import styles from "./MyInventory.module.css";
 import rooms from '../../../../../../../../data/constants/AllRoomsList';
 import { optionsData } from '../../../../../../../../data/constants/optionsData';
-
 import Icon from 'src/app/components/Icon';
-
 
 /**
  * Convert "Drop off 2" => "2_drop", "Post Storage Drop off 3" => "post_storage_3_drop"
@@ -42,7 +40,9 @@ const tagIcons = {
   paper_blanket_wrapped: 'PaperBlanketWrapped',
   purchased_blankets: 'PurchasedBlankets',
   pack_and_leave_behind: 'PackAndLeaveBehind',
-  keep_blanket_on: 'KeepBlanketOn',
+  swap_blanket_for_shrink_wrap: 'SwapBlanketForShrinkWrap',
+  customer_provided_box: 'CustomerProvidedBox',
+  sold_box_no_labor: 'SoldBoxNoLabor',
   unpacking: 'Unpacking',
   inspect_and_repack: 'InspectAndRepack',
   bulky: 'Bulky',
@@ -122,7 +122,7 @@ function isNumericDropBeyond3(tagValue) {
 function MyInventory({
   lead,
   setIsMyInventoryVisible,
-  itemsByRoom = {},
+  roomItemSelections = {},  // Individual items approach
   displayedRooms = []
 }) {
   const handleClose = useCallback(() => {
@@ -148,32 +148,35 @@ function MyInventory({
   }, [handleClose]);
 
   // Build a set of "active" drop points from lead
-  const destinationStops = lead?.destinations?.filter(s => s.isActive && s.isVisible) || [];
-  const postStorageStops = destinationStops.filter((s) => s.postStorage);
-  const normalStops = destinationStops.filter((s) => !s.postStorage);
-  const labeledActiveStops = destinationStops
-  .map((stop) => {
-    const isPost = stop.postStorage;
-    const group = isPost ? postStorageStops : normalStops;
-    const position = group.indexOf(stop);
-    const isFirst = position === 0;
+  // Support both destinationStops (old) and destinations (new)
+  const destinationStops = lead?.destinations || lead?.destinationStops || [];
+  const activeStops = destinationStops.filter(s => s.isActive && (s.isVisible ?? true));
+  
+  const postStorageStops = activeStops.filter((s) => s.postStorage);
+  const normalStops = activeStops.filter((s) => !s.postStorage);
+  
+  const labeledActiveStops = activeStops
+    .map((stop) => {
+      const isPost = stop.postStorage;
+      const group = isPost ? postStorageStops : normalStops;
+      const position = group.indexOf(stop);
+      const isFirst = position === 0;
 
-    const label = isPost
-      ? isFirst
-        ? "Post Storage Main Drop off"
-        : `Post Storage Drop off ${position + 1}`
-      : isFirst
-        ? "Main Drop off"
-        : `Drop off ${position + 1}`;
+      const label = isPost
+        ? isFirst
+          ? "Post Storage Main Drop off"
+          : `Post Storage Drop off ${position + 1}`
+        : isFirst
+          ? "Main Drop off"
+          : `Drop off ${position + 1}`;
 
-
-    return { ...stop, label };
-  })
-  .filter((s) => s.isActive);
+      return { ...stop, label };
+    })
+    .filter((s) => s.isActive);
+    
   const activeDropPointsSet = new Set(
     labeledActiveStops.map((s) => labelToDropTag(s.label))
   );
-  
 
   // Combine all base tags from optionsData
   const allBaseTags = [
@@ -184,9 +187,6 @@ function MyInventory({
   ];
 
   // For DESCRIPTIVE SYMBOLS
-  // Hide numeric drop points beyond 3 (like 4_drop, 5_drop, post_storage_9_drop).
-  // But keep the five special location tags even if they appear in dropPoints.
-  // They are not numeric stops.
   const fiveSpecialValues = [
     'disposal',
     'item_for_company_storage',
@@ -202,7 +202,7 @@ function MyInventory({
       IconComponent: tagIcons[tag.value],
     }))
     .filter(({ value }) => {
-      // If it’s one of the five special => keep
+      // If it's one of the five special => keep
       if (fiveSpecialValues.includes(value)) return true;
 
       // If it's a numeric drop beyond 3 => hide
@@ -218,15 +218,15 @@ function MyInventory({
     let grandTotalLbs = 0;
     let grandTotalCuft = 0;
 
-    const validRoomIds = Object.keys(itemsByRoom)
+    const validRoomIds = Object.keys(roomItemSelections)
       .filter((roomId) => {
         const numId = parseInt(roomId, 10);
         if (!displayedRooms.includes(numId)) return false;
-        const arr = itemsByRoom[roomId];
+        const arr = roomItemSelections[roomId];
         return Array.isArray(arr) && arr.length > 0;
       })
       .sort((a, b) => {
-        // Put "13" last (some special logic?), otherwise sort numerically
+        // Put "13" last (boxes room), otherwise sort numerically
         if (a === '13') return 1;
         if (b === '13') return -1;
         return parseInt(a) - parseInt(b);
@@ -234,27 +234,30 @@ function MyInventory({
 
     const roomsWithItems = validRoomIds.map((roomId) => {
       const numId = parseInt(roomId, 10);
-      const roomArr = itemsByRoom[roomId];
+      const roomArr = roomItemSelections[roomId];
       const roomObj = rooms.find(r => r.id === numId) || {
         id: numId,
         name: `Room #${roomId}`,
       };
 
-      // group by groupingKey
+      // Group individual items by groupingKey for display
       const grouped = {};
       for (const inst of roomArr) {
         const gk = inst.groupingKey || 'no-group';
         if (!grouped[gk]) {
           grouped[gk] = {
-            furnitureItemId: inst.furnitureItemId,
-            name: inst.name || '(Unnamed)',
+            // Support both field names for compatibility
+            furnitureItemId: inst.furnitureItemId || inst.itemId,
+            itemId: inst.itemId || inst.furnitureItemId,
+            name: inst.name || inst.item?.name || '(Unnamed)',
+            itemName: inst.item?.name || inst.name || '(Unnamed)', // For backward compatibility
             tags: Array.isArray(inst.tags) ? [...inst.tags] : [],
             cuft: parseFloat(inst.cuft) || 0,
             lbs: parseFloat(inst.lbs) || 0,
-            count: 1,
+            count: 1,  // Start at 1 for each individual item
           };
         } else {
-          grouped[gk].count += 1;
+          grouped[gk].count += 1;  // Increment for display
         }
       }
 
@@ -283,7 +286,7 @@ function MyInventory({
       grandTotalLbs,
       grandTotalCuft,
     };
-  }, [itemsByRoom, displayedRooms]);
+  }, [roomItemSelections, displayedRooms]);
 
   const {
     roomsWithItems,
@@ -355,7 +358,6 @@ function MyInventory({
                       <div className={styles.itemsTable}>
                         {room.groupedItems.map((itm, idxItem) => {
                           // Filter numeric drop tags that are not in active stops
-                          // (except the 5 special tags).
                           const filteredTags = itm.tags.filter(tVal => {
                             const isDrop = optionsData.locationTags.dropPoints.some(
                               (dp) => dp.value === tVal
@@ -363,13 +365,7 @@ function MyInventory({
                             // If it's a numeric stop (like "4_drop") and not active => hide
                             // But if it's one of the 5 special => keep
                             if (isDrop) {
-                              if (
-                                tVal === 'disposal' ||
-                                tVal === 'item_for_company_storage' ||
-                                tVal === 'help_with_unloading' ||
-                                tVal === 'hoisting_destination' ||
-                                tVal === 'crane_destination'
-                              ) {
+                              if (fiveSpecialValues.includes(tVal)) {
                                 return true; // Always keep
                               }
                               // else only keep if active
@@ -385,7 +381,7 @@ function MyInventory({
                             >
                               <div className={styles.descriptionCell}>
                                 <div className={styles.descriptionContent}>
-                                  <span>{itm.name}</span>
+                                  <span>{itm.name || itm.itemName}</span>
                                 </div>
                               </div>
                               <div className={styles.qtyCell}>{itm.count}</div>

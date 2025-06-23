@@ -328,11 +328,17 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const handleToggleStorage = (value) => {
     setValue('addStorage', value);
 
-    // If toggling storage OFF => also clear the delivery date visually
+    // If toggling storage OFF => only clear delivery date if NOT Weight/Volume Based
     if (!value) {
-      setValue('deliveryDate', '')
-      handleAddStorageWithInventoryUpdated(lead.id, false, '')
-
+      const isWeightOrVolumeBased = lead?.rateType === 'Weight Based' || lead?.rateType === 'Volume Based';
+      
+      if (!isWeightOrVolumeBased) {
+        setValue('deliveryDate', '')
+        handleAddStorageWithInventoryUpdated(lead.id, false, '')
+      } else {
+        // Keep delivery date for Weight/Volume Based
+        handleAddStorageWithInventoryUpdated(lead.id, false, '')
+      }
     } else {
       handleAddStorageWithInventoryUpdated(lead.id, true, storageItems)
       // If toggling storage ON => keep current or set default
@@ -620,89 +626,96 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       <div className={styles.spacing30}></div>
 
       {/* ---------- DELIVERY DATE ---------- */}
-      {/* Disable this entire container if storage is NOT toggled */}
-      <div
-        className={`${styles.inputContainer} ${showDeliveryCalendar ? styles.activeInput : ''} ${
-          !addStorage ? styles.disabledContainer : ''
-        }`}
-        style={{ position: 'relative' }}
-      >
-        <button
-          type="button"
-          className={styles.dateButton}
-          onClick={() => {
-            if (!addStorage) return;
-            setShowDeliveryCalendar((prev) => !prev);
-            setShowMoveCalendar(false);
-          }}
-          disabled={!addStorage}
-        >
-          <span className={styles.oneLineEllipsis}>
-            <span className={styles.dateLabelPrefix}>Delivery Date:</span>
-            <span className={deliveryDate ? styles.dateSelected : styles.datePlaceholder}>
-              {deliveryDate || ''}
-            </span>
-          </span>
-          <div className={styles.calendarRightIconWrapper}>
-            <Icon name="Calendar" className={styles.calendarIcon} />
-          </div>
-        </button>
-
-        {showDeliveryCalendar && (
-          <div className={styles.calendarPopup} ref={deliveryCalendarRef}>
-            <div className={styles.calendarHeader}>
-              <button onClick={goPrevMonth}>Prev</button>
-              <span>
-                {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
-                {calendarMonth.getFullYear()}
+      {/* Always visible, but disabled unless Weight/Volume Based Quote OR Add Storage is ON */}
+      {(() => {
+        const isWeightOrVolumeBased = lead?.rateType === 'Weight Based' || lead?.rateType === 'Volume Based';
+        const isEnabled = isWeightOrVolumeBased || addStorage;
+        
+        return (
+          <div
+            className={`${styles.inputContainer} ${showDeliveryCalendar ? styles.activeInput : ''} ${
+              !isEnabled ? styles.disabledContainer : ''
+            }`}
+            style={{ position: 'relative' }}
+          >
+            <button
+              type="button"
+              className={styles.dateButton}
+              onClick={() => {
+                if (!isEnabled) return;
+                setShowDeliveryCalendar((prev) => !prev);
+                setShowMoveCalendar(false);
+              }}
+              disabled={!isEnabled}
+            >
+              <span className={styles.oneLineEllipsis}>
+                <span className={styles.dateLabelPrefix}>Delivery Date:</span>
+                <span className={deliveryDate ? styles.dateSelected : styles.datePlaceholder}>
+                  {deliveryDate || ''}
+                </span>
               </span>
-              <button onClick={goNextMonth}>Next</button>
-            </div>
-            <div className={styles.calendarGrid}>
-              {daysInMonth.map((day) => {
-                const dayDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+              <div className={styles.calendarRightIconWrapper}>
+                <Icon name="Calendar" className={styles.calendarIcon} />
+              </div>
+            </button>
 
-                let earliestDelivery = new Date(today.getTime());
-                if (moveDate) {
-                  const moveDateObj = new Date(moveDate);
-                  moveDateObj.setHours(0, 0, 0, 0);
-                  if (!isNaN(moveDateObj)) {
-                    earliestDelivery = moveDateObj;
-                  }
-                }
+            {showDeliveryCalendar && (
+              <div className={styles.calendarPopup} ref={deliveryCalendarRef}>
+                <div className={styles.calendarHeader}>
+                  <button onClick={goPrevMonth}>Prev</button>
+                  <span>
+                    {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
+                    {calendarMonth.getFullYear()}
+                  </span>
+                  <button onClick={goNextMonth}>Next</button>
+                </div>
+                <div className={styles.calendarGrid}>
+                  {daysInMonth.map((day) => {
+                    const dayDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
 
-                const disabled = dayDate < earliestDelivery;
-
-                const isSelected =
-                  selectedDeliveryDateObj &&
-                  dayDate.toDateString() === selectedDeliveryDateObj.toDateString();
-
-                return (
-                  <button
-                    key={day}
-                    type="button"
-                    className={`${styles.calendarDay} ${
-                      isSelected ? styles.selectedDay : ''
-                    }`}
-                    style={{
-                      opacity: disabled ? 0.4 : 1,
-                      cursor: disabled ? 'not-allowed' : 'pointer',
-                    }}
-                    onClick={() => {
-                      if (!disabled) {
-                        handleSelectDeliveryDate(dayDate);
-                        setShowDeliveryCalendar(false);
+                    let earliestDelivery = new Date(today.getTime());
+                    if (moveDate) {
+                      const moveDateObj = new Date(moveDate);
+                      moveDateObj.setHours(0, 0, 0, 0);
+                      if (!isNaN(moveDateObj)) {
+                        earliestDelivery = moveDateObj;
                       }
-                    }}
-                  >
-                    {day}
-                  </button>
-                );
-              })}
-            </div>
+                    }
+
+                    const disabled = dayDate < earliestDelivery;
+
+                    const isSelected =
+                      selectedDeliveryDateObj &&
+                      dayDate.toDateString() === selectedDeliveryDateObj.toDateString();
+
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        className={`${styles.calendarDay} ${
+                          isSelected ? styles.selectedDay : ''
+                        }`}
+                        style={{
+                          opacity: disabled ? 0.4 : 1,
+                          cursor: disabled ? 'not-allowed' : 'pointer',
+                        }}
+                        onClick={() => {
+                          if (!disabled) {
+                            handleSelectDeliveryDate(dayDate);
+                            setShowDeliveryCalendar(false);
+                          }
+                        }}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        );
+      })()}
 
       {/* ---------- ETA REQUEST (DROPDOWN) ---------- */}
       <div

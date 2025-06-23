@@ -68,3 +68,42 @@
   border: 2px solid white;
   border-radius: 60px;
 }
+
+/* Pulse animation keyframes */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Pulse animation with subtle shadow effect */
+@keyframes pulseWithShadow {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(89, 183, 121, 0.7);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 8px rgba(89, 183, 121, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(89, 183, 121, 0);
+  }
+}
+
+/* Apply pulse animation to the itemCount container */
+.pulse {
+  animation: pulse 0.6s ease-in-out !important;
+}
+
+/* Apply pulse with shadow to the inner circle */
+.pulse > p:first-child {
+  animation: pulseWithShadow 0.6s ease-in-out !important;
+}

@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import styles from './FurnitureCounter.module.css';
 
-// The IDs of items that should be counted as "Boxes"
+// Box items identified by name (better for backend integration)
 const boxItemNames = [
   'Plastic Tote Large',
   'Plastic Tote Medium',
@@ -31,18 +31,24 @@ const boxItemNames = [
   'Box TV Small',
 ];
 
+// Legacy box IDs for backward compatibility
+const boxItemIds = [
+  '127', '128', '129', '130', '131', '438',
+  ...Array.from({ length: 20 }, (_, i) => (529 + i).toString()), // '529'..'548'
+];
+
 /**
  * FurnitureCounter
  *
  * Displays total furniture, boxes, lbs, and cuft
  *
  * Props:
- *  - roomItemSelections: { [roomId]: arrayOfItemInstances }
+ *  - roomItemSelections: { [roomId]: arrayOfItemInstances } - each item is individual
  *  - displayedRooms: can be either:
  *       A) array of objects like [ { id: 1, name: '...'}, ... ]
  *       B) array of numeric IDs (or strings) like [1,2,13] 
  */
-function FurnitureCounter({ itemsByRoom, displayedRooms }) {
+function FurnitureCounter({ roomItemSelections, displayedRooms }) {
   const { totalFurniture, totalBoxes, totalCuft, totalLbs } = useMemo(() => {
     let totalItems = 0;
     let totalBoxes = 0;
@@ -50,9 +56,8 @@ function FurnitureCounter({ itemsByRoom, displayedRooms }) {
     let totalLbs = 0;
 
     // For each roomId in the roomItemSelections object:
-    Object.keys(itemsByRoom).forEach((roomId) => {
+    Object.keys(roomItemSelections).forEach((roomId) => {
       // Check if that "roomId" is included in displayedRooms:
-      // displayedRooms might be objects OR might be raw IDs:
       const isDisplayed = displayedRooms.some((entry) => {
         if (entry === null || entry === undefined) {
           return false;
@@ -73,18 +78,22 @@ function FurnitureCounter({ itemsByRoom, displayedRooms }) {
       }
 
       // Otherwise => count up items
-      const items = itemsByRoom[roomId] || [];
+      const items = roomItemSelections[roomId] || [];
       items.forEach((itemInstance) => {
-        const count = parseInt(itemInstance.count) || 1;
+        // For individual items, each instance counts as 1
         const cuftVal = parseFloat(itemInstance.cuft) || 0;
         const lbsVal = parseFloat(itemInstance.lbs) || 0;
 
-        totalItems += count;
-        totalCuft += cuftVal * count;
-        totalLbs += lbsVal * count;
+        totalItems += 1;
+        totalCuft += cuftVal;
+        totalLbs += lbsVal;
 
-        if (boxItemNames.includes(itemInstance.name)) {
-          totalBoxes += count;
+        // Check if it's a box by name (preferred) or by ID (legacy)
+        const itemName = itemInstance.name || itemInstance.item?.name || '';
+        const itemId = (itemInstance.furnitureItemId || itemInstance.itemId || '').toString();
+        
+        if (boxItemNames.includes(itemName) || boxItemIds.includes(itemId)) {
+          totalBoxes += 1;
         }
       });
     });
@@ -98,7 +107,7 @@ function FurnitureCounter({ itemsByRoom, displayedRooms }) {
       totalCuft,
       totalLbs,
     };
-  }, [itemsByRoom, displayedRooms]);
+  }, [roomItemSelections, displayedRooms]);
 
   return (
     <div className={styles.counterContainer}>

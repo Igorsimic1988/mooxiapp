@@ -1,10 +1,23 @@
 "use client";
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import styles from './ItemSelection.module.css';
 import ItemList from './ItemList/ItemList';
 import BcalculatorMyitems from './BcalculatorMyitems/BcalculatorMyitems';
 import AlphabetFilter from './AlphabetFilter/AlphabetFilter';
+import { generateGroupingKey } from '../utils/generateGroupingKey';
+import Fuse from 'fuse.js';
+
+// Fuse.js configuration for fuzzy search
+const fuseOptions = {
+  keys: ['name', 'tags'],
+  threshold: 0.3,
+  includeScore: true,
+  minMatchCharLength: 2,
+  shouldSort: true,
+  findAllMatches: true,
+  ignoreLocation: true,
+};
 
 function ItemSelection({
   allItems,
@@ -28,76 +41,162 @@ function ItemSelection({
   onStartFresh,
   onBackToRooms,
   onOpenPopup,
+  fuse: propFuse,
 }) {
-  const handleToggle = () => {
+  // Create Fuse instance if not provided
+  const fuse = useMemo(() => {
+    if (propFuse) return propFuse;
+    if (allItems && allItems.length > 0) {
+      try {
+        return new Fuse(allItems, fuseOptions);
+      } catch (error) {
+        console.error('Error creating Fuse instance:', error);
+        return null;
+      }
+    }
+    return null;
+  }, [propFuse, allItems]);
+
+  const handleToggle = useCallback(() => {
     setIsToggled((prev) => !prev);
-  };
-  
+  }, [setIsToggled]);
+
   // Handle "My Items" button click to toggle its active state
-  const handleMyItemsClick = () => {
+  const handleMyItemsClick = useCallback(() => {
     const newMyItemsState = !isMyItemsActive;
 
     // If activating "My Items", reset other filter states
     if (newMyItemsState) {
-      setSearchQuery(''); // Clear search query
-      onLetterSelect(null); // Reset selected letter
-      onSubButtonSelect(null, null); // Reset selected sub-button
+      setSearchQuery('');
+      onLetterSelect(null);
+      onSubButtonSelect(null, null);
     }
 
-    // Toggle "My Items" state after resetting filters
     setIsMyItemsActive(newMyItemsState);
-  };
+  }, [isMyItemsActive, setSearchQuery, onLetterSelect, onSubButtonSelect, setIsMyItemsActive]);
 
-  const handleLetterSelection = (letter) => {
+  const handleLetterSelection = useCallback((letter) => {
     if (isMyItemsActive) {
-      setIsMyItemsActive(false); // Deactivate "My Items" button
+      setIsMyItemsActive(false);
     }
     onLetterSelect(letter);
-  };
+  }, [isMyItemsActive, setIsMyItemsActive, onLetterSelect]);
 
-  const handleSubButtonSelection = (letter, subButton) => {
+  const handleSubButtonSelection = useCallback((letter, subButton) => {
     if (isMyItemsActive) {
-      setIsMyItemsActive(false); // Deactivate "My Items" button
+      setIsMyItemsActive(false);
     }
     onSubButtonSelect(letter, subButton);
-  };
+  }, [isMyItemsActive, setIsMyItemsActive, onSubButtonSelect]);
 
-  
+  // Compute itemCounts for individual instances
+  const itemCounts = useMemo(() => {
+    return itemInstances.reduce((counts, instance) => {
+      const key = (instance.furnitureItemId || instance.itemId || instance.id).toString();
+      counts[key] = (counts[key] || 0) + 1;
+      return counts;
+    }, {});
+  }, [itemInstances]);
+
   // Group items by current properties when isMyItemsActive is true
-
-  // Filter items based on "My Items" button state
-  let filteredItems = isMyItemsActive
-  ? itemInstances
-  : allItems.filter((item) => {
-      const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-
-      if (searchQuery.trim() !== '') {
-        // Search through all items but exclude items where search is 'N'
-        return matchesQuery && item.search !== false;
+  const groupedItems = useMemo(() => {
+    if (!isMyItemsActive) return [];
+    
+    const groups = new Map();
+    
+    itemInstances.forEach((instance) => {
+      const key = generateGroupingKey(instance);
+      
+      if (!groups.has(key)) {
+        const stableItemId = instance.furnitureItemId || instance.itemId || instance.item?.id;
+        
+        groups.set(key, {
+          id: key,
+          groupingKey: key,
+          furnitureItemId: instance.furnitureItemId,
+          itemId: instance.itemId || instance.furnitureItemId,
+          item: instance.item,
+          name: instance.name || instance.item?.name,
+          imageName: instance.imageName || instance.item?.imageName,
+          tags: [...(instance.tags || [])],
+          notes: instance.notes || '',
+          cuft: instance.cuft || '',
+          lbs: instance.lbs || '',
+          packingNeedsCounts: { ...(instance.packingNeedsCounts || {}) },
+          packingNeeds: instance.packingNeeds || [],
+          link: instance.link || '',
+          uploadedImages: [...(instance.uploadedImages || [])],
+          cameraImages: [...(instance.cameraImages || [])],
+          count: 1,
+          sortKey: parseInt(stableItemId) || 0,
+        });
+      } else {
+        const group = groups.get(key);
+        group.count += 1;
       }
-
-      if (selectedSubButton.subButton) {
-        // Show items that have the selected sub-button, regardless of room
-        return item.letters.includes(selectedSubButton.subButton);
-      }
-
-      if (selectedLetter) {
-        // Show items that have the selected letter, regardless of room
-        return item.letters.includes(selectedLetter);
-      }
-
-      // No search query, letter, or sub-button selected
-      // Display default items for the current room
-      return item.rooms.includes(room.id);
     });
+    
+    return Array.from(groups.values()).sort((a, b) => {
+      const idA = a.sortKey;
+      const idB = b.sortKey;
+      if (idA !== idB) {
+        return idA - idB;
+      }
+      return a.groupingKey.localeCompare(b.groupingKey);
+    });
+  }, [isMyItemsActive, itemInstances]);
 
-// Include "Custom Item" when no other items match the search
-if (!isMyItemsActive && filteredItems.length === 0 && searchQuery.trim() !== '') {
-  const customItem = allItems.find((item) => item.name === 'Custom Item');
-  if (customItem) {
-    filteredItems = [customItem]; // Reassign filteredItems
-  }
-}
+  // Optimized filtering with better error handling
+  const filteredItems = useMemo(() => {
+    if (isMyItemsActive) {
+      return groupedItems;
+    }
+
+    let filtered = [];
+
+    if (searchQuery.trim() !== '') {
+      // Use Fuse.js for fuzzy search if available
+      if (fuse) {
+        try {
+          const results = fuse.search(searchQuery);
+          filtered = results
+            .map(result => result.item)
+            .filter(item => item.search !== false);
+        } catch (error) {
+          console.error('Error during Fuse search:', error);
+          // Fallback to simple search
+          filtered = allItems.filter((item) => {
+            const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesQuery && item.search !== false;
+          });
+        }
+      } else {
+        // Fallback to simple search
+        filtered = allItems.filter((item) => {
+          const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+          return matchesQuery && item.search !== false;
+        });
+      }
+    } else if (selectedSubButton.subButton) {
+      filtered = allItems.filter((item) => item.letters.includes(selectedSubButton.subButton));
+    } else if (selectedLetter) {
+      filtered = allItems.filter((item) => item.letters.includes(selectedLetter));
+    } else {
+      // Display default items for the current room
+      filtered = allItems.filter((item) => item.rooms.includes(room.id));
+    }
+
+    // Include "Custom Item" when no other items match the search
+    if (filtered.length === 0 && searchQuery.trim() !== '') {
+      const customItem = allItems.find((item) => item.name === 'Custom Item');
+      if (customItem) {
+        filtered = [customItem];
+      }
+    }
+
+    return filtered;
+  }, [isMyItemsActive, groupedItems, searchQuery, selectedSubButton, selectedLetter, room, allItems, fuse]);
+
   return (
     <div className={styles.itemSelectionContainer}>
       <BcalculatorMyitems
@@ -122,6 +221,7 @@ if (!isMyItemsActive && filteredItems.length === 0 && searchQuery.trim() !== '')
         <div className={styles.scrollableItemList}>
           <ItemList
             items={filteredItems}
+            itemClickCounts={itemCounts}
             itemInstances={itemInstances}
             onItemClick={onItemClick}
             isMyItemsActive={isMyItemsActive}

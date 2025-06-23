@@ -23,104 +23,176 @@ function AlphabetButtons({
   onSubButtonClick,
 }) {
   const scrollContainerRef = useRef(null);
-  const isDragging = useRef(false);
-  const isMoved = useRef(false);
-  const startX = useRef(0);
-  const startY = useRef(0);
-  const scrollLeft = useRef(0);
-  const scrollTop = useRef(0);
-
-  const dragThreshold = 5; // Number of pixels to consider as drag
-
-  // Initialize isDesktop safely for Next.js
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasDragged, setHasDragged] = useState(false);
 
   useEffect(() => {
-    // Only run on client
     if (typeof window !== 'undefined') {
-      const handleResize = () => {
-        setIsDesktop(window.innerWidth >= 1024);
+      const mediaQuery = window.matchMedia('(min-width: 1024px)');
+      
+      const handleMediaChange = (e) => {
+        setIsDesktop(e.matches);
       };
-
-      // Set initial value on mount
-      handleResize();
-
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
+      
+      // Set initial value
+      setIsDesktop(mediaQuery.matches);
+      
+      // Listen for changes
+      mediaQuery.addEventListener('change', handleMediaChange);
+      
+      return () => mediaQuery.removeEventListener('change', handleMediaChange);
     }
   }, []);
 
-  // Letter selection logic
-  const handleLetterClick = (letter) => {
-    if (isMoved.current) return; // Prevent click if dragged
-    if (selectedLetter === letter) {
-      onLetterSelect(null); // Deselect letter if clicked again
-    } else {
-      onLetterSelect(letter); // Select letter
-    }
-  };
+  // Enable horizontal scrolling with mouse wheel
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer || isDesktop) return;
 
-  // Sub-button selection logic
-  const handleSubButtonClickInternal = (subButton, letter) => {
-    if (isMoved.current) return; // Prevent click if dragged
-    onSubButtonClick(letter, subButton);
-  };
+    const handleWheel = (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        scrollContainer.scrollLeft += e.deltaY;
+      }
+    };
 
-  // Mouse event handlers for scrolling
+    scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      scrollContainer.removeEventListener('wheel', handleWheel);
+    };
+  }, [isDesktop]);
+
+  // Mouse drag handlers
   const handleMouseDown = (e) => {
-    isDragging.current = true;
-    isMoved.current = false;
-    if (isDesktop) {
-      startY.current = e.pageY - scrollContainerRef.current.offsetTop;
-      scrollTop.current = scrollContainerRef.current.scrollTop;
-    } else {
-      startX.current = e.pageX - scrollContainerRef.current.offsetLeft;
-      scrollLeft.current = scrollContainerRef.current.scrollLeft;
-    }
-  };
-
-  const handleMouseLeave = () => {
-    isDragging.current = false;
-  };
-
-  const handleMouseUp = () => {
-    isDragging.current = false;
+    if (isDesktop) return;
+    
+    const scrollContainer = scrollContainerRef.current;
+    setIsDragging(true);
+    setHasDragged(false);
+    setStartX(e.pageX - scrollContainer.offsetLeft);
+    setScrollLeft(scrollContainer.scrollLeft);
+    scrollContainer.style.cursor = 'grabbing';
   };
 
   const handleMouseMove = (e) => {
-    if (!isDragging.current) return;
+    if (!isDragging || isDesktop) return;
+    
     e.preventDefault();
-    if (isDesktop) {
-      const y = e.pageY - scrollContainerRef.current.offsetTop;
-      const moveY = y - startY.current;
-      const walkY = moveY * 1; // Adjust scrolling speed as needed
-      scrollContainerRef.current.scrollTop = scrollTop.current - walkY;
-
-      // Check if movement exceeds drag threshold
-      if (!isMoved.current && Math.abs(moveY) > dragThreshold) {
-        isMoved.current = true;
-      }
-    } else {
-      const x = e.pageX - scrollContainerRef.current.offsetLeft;
-      const moveX = x - startX.current;
-      const walkX = moveX * 1; // Adjust scrolling speed as needed
-      scrollContainerRef.current.scrollLeft = scrollLeft.current - walkX;
-
-      // Check if movement exceeds drag threshold
-      if (!isMoved.current && Math.abs(moveX) > dragThreshold) {
-        isMoved.current = true;
-      }
+    const scrollContainer = scrollContainerRef.current;
+    const x = e.pageX - scrollContainer.offsetLeft;
+    const walk = (x - startX) * 1.5; // Multiply by 1.5 for faster scrolling
+    
+    // Mark as dragged if moved more than 5 pixels
+    if (Math.abs(walk) > 5) {
+      setHasDragged(true);
     }
+    
+    scrollContainer.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    if (isDesktop) return;
+    
+    setIsDragging(false);
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.style.cursor = 'grab';
+    }
+    
+    // Reset hasDragged after a short delay to prevent click events
+    setTimeout(() => {
+      setHasDragged(false);
+    }, 50);
+  };
+
+  const handleMouseLeave = () => {
+    if (isDesktop) return;
+    
+    setIsDragging(false);
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.style.cursor = 'grab';
+    }
+    
+    // Reset hasDragged
+    setTimeout(() => {
+      setHasDragged(false);
+    }, 50);
+  };
+
+  // Prevent text selection while dragging and handle global mouseup
+  useEffect(() => {
+    const handleSelectStart = (e) => {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        const scrollContainer = scrollContainerRef.current;
+        if (scrollContainer) {
+          scrollContainer.style.cursor = 'grab';
+        }
+        
+        // Reset hasDragged after a short delay
+        setTimeout(() => {
+          setHasDragged(false);
+        }, 50);
+      }
+    };
+
+    document.addEventListener('selectstart', handleSelectStart);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    
+    return () => {
+      document.removeEventListener('selectstart', handleSelectStart);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging]);
+
+  // Simple letter click handler
+  const handleLetterClick = (letter) => {
+    // Don't trigger click if we were dragging
+    if (hasDragged) return;
+    
+    console.log('Letter clicked:', letter, 'Currently selected:', selectedLetter);
+    
+    if (selectedLetter === letter) {
+      console.log('Deselecting letter:', letter);
+      onLetterSelect(null);
+    } else {
+      console.log('Selecting letter:', letter);
+      onLetterSelect(letter);
+    }
+  };
+
+  // Simple sub-button click handler
+  const handleSubButtonClickInternal = (subButton, letter) => {
+    // Don't trigger click if we were dragging
+    if (hasDragged) return;
+    
+    onSubButtonClick(letter, subButton);
   };
 
   return (
     <div
-      className={styles.alphabetButtons}
+      className={`${styles.alphabetButtons} ${!isDesktop ? styles.draggable : ''}`}
       ref={scrollContainerRef}
+      style={{ 
+        overflowX: isDesktop ? 'hidden' : 'auto',
+        overflowY: isDesktop ? 'auto' : 'hidden',
+        cursor: !isDesktop ? (isDragging ? 'grabbing' : 'grab') : 'auto'
+      }}
       onMouseDown={handleMouseDown}
-      onMouseLeave={handleMouseLeave}
-      onMouseUp={handleMouseUp}
       onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
     >
       {ALPHABETS.map((letter) => {
         const isMainActive =
@@ -133,7 +205,15 @@ function AlphabetButtons({
               className={`${styles.alphabetButton} ${
                 isMainActive ? styles.active : ''
               }`}
-              onClick={() => handleLetterClick(letter)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleLetterClick(letter);
+              }}
+              style={{
+                backgroundColor: isMainActive ? '#71879C' : '#ffffff',
+                color: isMainActive ? 'white' : '#90A4B7'
+              }}
               aria-haspopup="true"
               aria-expanded={
                 selectedLetter === letter && LETTERS_WITH_SUBBUTTONS[letter]
@@ -159,7 +239,15 @@ function AlphabetButtons({
                     className={`${styles.subButton} ${
                       isSubButtonActive ? styles.activeSubButton : ''
                     }`}
-                    onClick={() => handleSubButtonClickInternal(subButton, letter)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleSubButtonClickInternal(subButton, letter);
+                    }}
+                    style={{
+                      backgroundColor: isSubButtonActive ? '#71879C' : '#ffffff',
+                      color: isSubButtonActive ? 'white' : '#90A4B7'
+                    }}
                   >
                     {subButton}
                   </button>

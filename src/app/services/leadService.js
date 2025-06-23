@@ -17,6 +17,7 @@ function pushStatusRecord(lead) {
     changed_at: new Date().toISOString(),
   });
 }
+
 /**
  * Migrate flat fields into nested structure
  * Used for backwards compatibility with existing leads
@@ -76,7 +77,6 @@ function migrateToNestedStructure(lead) {
   
   return lead;
 }
-
 
 /**
  * createLead => create a new Lead object.
@@ -189,6 +189,7 @@ export async function createLead(leadData) {
     storage_items: leadData.storage_items ?? '',
     time_promised: leadData.time_promised ?? false,
     arrival_time: leadData.arrival_time ?? '',
+    rateType: leadData.rateType || 'Hourly Rate',
 
     originStops,
 
@@ -199,6 +200,57 @@ export async function createLead(leadData) {
     // ---------- Invoice/Estimate fields ----------
     hasInvoice: leadData.hasInvoice ?? false,
     activeOption: leadData.activeOption ?? 'estimate', // default to lowercase 'estimate'
+
+    // ---------- Move Out Estimate fields ----------
+    typeOfQuote: leadData.typeOfQuote || 'Flat Rate',
+    estimateQuote: leadData.estimateQuote || 585,
+    estimateFuelSurcharge: leadData.estimateFuelSurcharge || 0,
+    estimateValuation: leadData.estimateValuation || 0,
+    estimatePacking: leadData.estimatePacking || 0,
+    estimateAdditionalServices: leadData.estimateAdditionalServices || 0,
+    estimateDiscount: leadData.estimateDiscount || 0,
+    estimateGrandTotal: leadData.estimateGrandTotal || 585,
+    estimateDeposit: leadData.estimateDeposit || 50,
+    estimatePayment: leadData.estimatePayment || 0,
+    estimateBalanceDue: leadData.estimateBalanceDue || 585,
+    
+    // ---------- Move Out Invoice fields ----------
+    invoiceQuote: leadData.invoiceQuote || null,
+    invoiceFuelSurcharge: leadData.invoiceFuelSurcharge || null,
+    invoiceValuation: leadData.invoiceValuation || null,
+    invoicePacking: leadData.invoicePacking || null,
+    invoiceAdditionalServices: leadData.invoiceAdditionalServices || null,
+    invoiceDiscount: leadData.invoiceDiscount || null,
+    invoiceGrandTotal: leadData.invoiceGrandTotal || null,
+    invoiceDeposit: leadData.invoiceDeposit || null,
+    invoicePayment: leadData.invoicePayment || null,
+    invoiceBalanceDue: leadData.invoiceBalanceDue || null,
+
+    // ---------- Move In Estimate fields ----------
+    moveInTypeOfQuote: leadData.moveInTypeOfQuote || 'Flat Rate',
+    moveInEstimateQuote: leadData.moveInEstimateQuote || 585,
+    moveInEstimateFuelSurcharge: leadData.moveInEstimateFuelSurcharge || 0,
+    moveInEstimateValuation: leadData.moveInEstimateValuation || 0,
+    moveInEstimatePacking: leadData.moveInEstimatePacking || 0,
+    moveInEstimateAdditionalServices: leadData.moveInEstimateAdditionalServices || 0,
+    moveInEstimateDiscount: leadData.moveInEstimateDiscount || 0,
+    moveInEstimateGrandTotal: leadData.moveInEstimateGrandTotal || 585,
+    moveInEstimateDeposit: leadData.moveInEstimateDeposit || 50,
+    moveInEstimatePayment: leadData.moveInEstimatePayment || 0,
+    moveInEstimateBalanceDue: leadData.moveInEstimateBalanceDue || 585,
+
+    // ---------- Move In Invoice fields ----------
+    moveInHasInvoice: leadData.moveInHasInvoice ?? false,
+    moveInInvoiceQuote: leadData.moveInInvoiceQuote || null,
+    moveInInvoiceFuelSurcharge: leadData.moveInInvoiceFuelSurcharge || null,
+    moveInInvoiceValuation: leadData.moveInInvoiceValuation || null,
+    moveInInvoicePacking: leadData.moveInInvoicePacking || null,
+    moveInInvoiceAdditionalServices: leadData.moveInInvoiceAdditionalServices || null,
+    moveInInvoiceDiscount: leadData.moveInInvoiceDiscount || null,
+    moveInInvoiceGrandTotal: leadData.moveInInvoiceGrandTotal || null,
+    moveInInvoiceDeposit: leadData.moveInInvoiceDeposit || null,
+    moveInInvoicePayment: leadData.moveInInvoicePayment || null,
+    moveInInvoiceBalanceDue: leadData.moveInInvoiceBalanceDue || null,
 
     // ---------- NESTED OBJECTS ----------
     movingDay,
@@ -251,6 +303,7 @@ export async function updateLead(leadId, updates) {
   existingLead.storage_items = updates.storage_items ?? existingLead.storage_items;
   existingLead.time_promised = updates.time_promised ?? existingLead.time_promised;
   existingLead.arrival_time = updates.arrival_time ?? existingLead.arrival_time;
+  existingLead.rateType = updates.rateType ?? existingLead.rateType;
 
   // ---------- Day selection fields ----------
   existingLead.hasPackingDay = (typeof updates.hasPackingDay !== 'undefined')
@@ -263,6 +316,59 @@ export async function updateLead(leadId, updates) {
     ? updates.hasInvoice
     : existingLead.hasInvoice;
   existingLead.activeOption = updates.activeOption ?? existingLead.activeOption;
+
+  // ---------- Move Out Estimate fields ----------
+  existingLead.typeOfQuote = updates.typeOfQuote ?? existingLead.typeOfQuote;
+  existingLead.estimateQuote = updates.estimateQuote ?? existingLead.estimateQuote;
+  existingLead.estimateFuelSurcharge = updates.estimateFuelSurcharge ?? existingLead.estimateFuelSurcharge;
+  existingLead.estimateValuation = updates.estimateValuation ?? existingLead.estimateValuation;
+  existingLead.estimatePacking = updates.estimatePacking ?? existingLead.estimatePacking;
+  existingLead.estimateAdditionalServices = updates.estimateAdditionalServices ?? existingLead.estimateAdditionalServices;
+  existingLead.estimateDiscount = updates.estimateDiscount ?? existingLead.estimateDiscount;
+  existingLead.estimateGrandTotal = updates.estimateGrandTotal ?? existingLead.estimateGrandTotal;
+  existingLead.estimateDeposit = updates.estimateDeposit ?? existingLead.estimateDeposit;
+  existingLead.estimatePayment = updates.estimatePayment ?? existingLead.estimatePayment;
+  existingLead.estimateBalanceDue = updates.estimateBalanceDue ?? existingLead.estimateBalanceDue;
+
+  // ---------- Move Out Invoice fields ----------
+  existingLead.invoiceQuote = updates.invoiceQuote ?? existingLead.invoiceQuote;
+  existingLead.invoiceFuelSurcharge = updates.invoiceFuelSurcharge ?? existingLead.invoiceFuelSurcharge;
+  existingLead.invoiceValuation = updates.invoiceValuation ?? existingLead.invoiceValuation;
+  existingLead.invoicePacking = updates.invoicePacking ?? existingLead.invoicePacking;
+  existingLead.invoiceAdditionalServices = updates.invoiceAdditionalServices ?? existingLead.invoiceAdditionalServices;
+  existingLead.invoiceDiscount = updates.invoiceDiscount ?? existingLead.invoiceDiscount;
+  existingLead.invoiceGrandTotal = updates.invoiceGrandTotal ?? existingLead.invoiceGrandTotal;
+  existingLead.invoiceDeposit = updates.invoiceDeposit ?? existingLead.invoiceDeposit;
+  existingLead.invoicePayment = updates.invoicePayment ?? existingLead.invoicePayment;
+  existingLead.invoiceBalanceDue = updates.invoiceBalanceDue ?? existingLead.invoiceBalanceDue;
+
+  // ---------- Move In Estimate fields ----------
+  existingLead.moveInTypeOfQuote = updates.moveInTypeOfQuote ?? existingLead.moveInTypeOfQuote;
+  existingLead.moveInEstimateQuote = updates.moveInEstimateQuote ?? existingLead.moveInEstimateQuote;
+  existingLead.moveInEstimateFuelSurcharge = updates.moveInEstimateFuelSurcharge ?? existingLead.moveInEstimateFuelSurcharge;
+  existingLead.moveInEstimateValuation = updates.moveInEstimateValuation ?? existingLead.moveInEstimateValuation;
+  existingLead.moveInEstimatePacking = updates.moveInEstimatePacking ?? existingLead.moveInEstimatePacking;
+  existingLead.moveInEstimateAdditionalServices = updates.moveInEstimateAdditionalServices ?? existingLead.moveInEstimateAdditionalServices;
+  existingLead.moveInEstimateDiscount = updates.moveInEstimateDiscount ?? existingLead.moveInEstimateDiscount;
+  existingLead.moveInEstimateGrandTotal = updates.moveInEstimateGrandTotal ?? existingLead.moveInEstimateGrandTotal;
+  existingLead.moveInEstimateDeposit = updates.moveInEstimateDeposit ?? existingLead.moveInEstimateDeposit;
+  existingLead.moveInEstimatePayment = updates.moveInEstimatePayment ?? existingLead.moveInEstimatePayment;
+  existingLead.moveInEstimateBalanceDue = updates.moveInEstimateBalanceDue ?? existingLead.moveInEstimateBalanceDue;
+
+  // ---------- Move In Invoice fields ----------
+  existingLead.moveInHasInvoice = (typeof updates.moveInHasInvoice !== 'undefined')
+    ? updates.moveInHasInvoice
+    : existingLead.moveInHasInvoice;
+  existingLead.moveInInvoiceQuote = updates.moveInInvoiceQuote ?? existingLead.moveInInvoiceQuote;
+  existingLead.moveInInvoiceFuelSurcharge = updates.moveInInvoiceFuelSurcharge ?? existingLead.moveInInvoiceFuelSurcharge;
+  existingLead.moveInInvoiceValuation = updates.moveInInvoiceValuation ?? existingLead.moveInInvoiceValuation;
+  existingLead.moveInInvoicePacking = updates.moveInInvoicePacking ?? existingLead.moveInInvoicePacking;
+  existingLead.moveInInvoiceAdditionalServices = updates.moveInInvoiceAdditionalServices ?? existingLead.moveInInvoiceAdditionalServices;
+  existingLead.moveInInvoiceDiscount = updates.moveInInvoiceDiscount ?? existingLead.moveInInvoiceDiscount;
+  existingLead.moveInInvoiceGrandTotal = updates.moveInInvoiceGrandTotal ?? existingLead.moveInInvoiceGrandTotal;
+  existingLead.moveInInvoiceDeposit = updates.moveInInvoiceDeposit ?? existingLead.moveInInvoiceDeposit;
+  existingLead.moveInInvoicePayment = updates.moveInInvoicePayment ?? existingLead.moveInInvoicePayment;
+  existingLead.moveInInvoiceBalanceDue = updates.moveInInvoiceBalanceDue ?? existingLead.moveInInvoiceBalanceDue;
 
   // ---------- NESTED OBJECTS ----------
   if (updates.movingDay) {

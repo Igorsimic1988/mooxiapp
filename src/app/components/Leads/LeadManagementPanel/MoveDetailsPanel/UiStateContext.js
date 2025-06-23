@@ -9,9 +9,9 @@ export const UiStateProvider = ({ children }) => {
   const [isLogisticsCollapsed, setIsLogisticsCollapsed] = useState(true);
   const [isEstimateCollapsed, setIsEstimateCollapsed] = useState(true);
   const [activeOption, setActiveOption] = useState('estimate'); 
+  const [moveInActiveOption, setMoveInActiveOption] = useState('estimate'); // New state for Move In tab
   const [selectedOriginStopId, setSelectedOriginStopId] = useState(null); 
   const [selectedDestinationStopId, setSelectedDestinationStopId] = useState(null); 
-
 
   return (
     <UiStateContext.Provider
@@ -26,6 +26,8 @@ export const UiStateProvider = ({ children }) => {
         setIsEstimateCollapsed,
         activeOption,
         setActiveOption,
+        moveInActiveOption,              // Add this
+        setMoveInActiveOption,           // Add this
         selectedOriginStopId,            
         setSelectedOriginStopId,
         selectedDestinationStopId,

@@ -5,14 +5,24 @@ import Image from 'next/image';
 import styles from './ItemCard.module.css';
 import Icon from '../../../../../../../../Icon';
 
-function ItemCard({ item, onItemClick, isSelected }) {
+function ItemCard({ 
+  item, 
+  name,      // Direct prop for compatibility
+  imageName, // Direct prop for compatibility
+  onItemClick, 
+  isSelected 
+}) {
+  // Support both direct props and nested item structure
+  const displayName = name || item?.name || 'Item';
+  const imageSource = imageName || item?.imageName || item?.src || '/placeholder-image.png';
+
   return (
     <li className={styles.item}>
       <button
         className={`${styles.cardButton} ${isSelected ? styles.selected : ''}`}
         onClick={onItemClick}
         aria-pressed={isSelected}
-        aria-label={`Select ${item.name}`}
+        aria-label={`Select ${displayName}`}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             onItemClick();
@@ -23,28 +33,28 @@ function ItemCard({ item, onItemClick, isSelected }) {
         {isSelected && (
           <div className={styles.checkmarkBadge}>
             <Icon 
-      name="CheckSmallAlt" 
-      width={24}
-      height={24}
-      color="#fff"
-    />
+              name="CheckSmallAlt" 
+              width={24}
+              height={24}
+              color="#fff"
+            />
           </div>
         )}
         
         {/* Item Image */}
         <div className={styles.imageWrapper}>
-        <Image 
-  src={item.imageName} 
-  alt={item.name} 
-  className={styles.itemImage}
-  width={100}  // Adjust based on your design requirements
-  height={100} // Adjust based on your design requirements
-/>
+          <Image 
+            src={imageSource} 
+            alt={displayName} 
+            className={styles.itemImage}
+            width={100}  // Adjust based on your design requirements
+            height={100} // Adjust based on your design requirements
+          />
         </div>
         
         {/* Item Name */}
         <div className={styles.itemName}>
-          {item.name}
+          {displayName}
         </div>
 
         {/* Optionally, display tags */}

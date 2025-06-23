@@ -53,7 +53,6 @@ import InProgress from './inProgress.svg';
 import InspectAndRepack from './inspect_and_repack.svg';
 import ItemForCompanyStorage from './item_for_company_storage.svg';
 import ItemInCloset from './item_in_closet.svg';
-import KeepBlanketOn from './keep_blanket_on.svg';
 import KitFurnitureAssembly from './kit_furniture_assembly.svg';
 import Location from './location.svg';
 import MainDropOff from './main_drop_off.svg';
@@ -86,12 +85,16 @@ import Quoted from './quoted.svg';
 import Search from './search.svg';
 import Services1 from './services1.svg';
 import SpecialH from './specialh.svg';
+import SwapBlanketForShrinkWrap from './swap_blanket_for_shrink_wrap.svg';
+import SoldBoxNoLabor from './sold_box_no_labor.svg';
+import CustomerProvidedBox from './customer_provided_box.svg';
 import Transfer from './transfer.svg';
 import TruckCouch from './truckcouch.svg';
 import UnfoldMore from './unfoldmore.svg';
 import Unpacking from './unpacking.svg';
 import Upload from './upload.svg';
 import User from './user.svg';
+import Terminal from './terminal.svg'
 
 const icons = {
     Drop2,
@@ -149,7 +152,6 @@ const icons = {
     InspectAndRepack,
     ItemForCompanyStorage,
     ItemInCloset,
-    KeepBlanketOn,
     KitFurnitureAssembly,
     Location,
     MainDropOff,
@@ -182,12 +184,16 @@ const icons = {
     Search,
     Services1,
     SpecialH,
+    SwapBlanketForShrinkWrap,
+    SoldBoxNoLabor,
+    CustomerProvidedBox,
     Transfer,
     TruckCouch,
     UnfoldMore,
     Unpacking,
     Upload,
     User,
+    Terminal,
 };
 
 export default icons;

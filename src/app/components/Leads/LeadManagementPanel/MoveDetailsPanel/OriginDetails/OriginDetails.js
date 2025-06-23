@@ -15,6 +15,7 @@ import ServicesPopup from './ServicesPopup/ServicesPopup';
 // Reusable row of stops
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
 import { useUiState } from '../UiStateContext';
+import { useInventoryContext } from '../InventoryContext';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createOrigin } from 'src/app/services/originsService';
 import { useAccessToken } from "src/app/lib/useAccessToken";
@@ -104,15 +105,59 @@ function OriginDetails({
     });
   }
   // ---------- ORIGIN STOPS ----------
+  const { inventoryByStop } = useInventoryContext();
+  
+  // Calculate totals across all stops
+  const inventoryTotals = React.useMemo(() => {
+ let totalCuft = 0;
+    let totalLbs = 0;
+    
+   
+    
+    // Calculate across all stops
+  Object.values(inventoryByStop).forEach((stopData) => {
+      const itemsByRoom = stopData.itemsByRoom || {};
+      
+      Object.values(itemsByRoom).forEach((items) => {
+        items.forEach((itemInstance) => {
+          const cuftVal = parseFloat(itemInstance.cuft) || 0;
+          const lbsVal = parseFloat(itemInstance.lbs) || 0;
+          
+          totalCuft += cuftVal;
+          totalLbs += lbsVal;
+        });
+      });
+    });
+    
+    return {
+      totalCuft: Math.round(totalCuft),
+      totalLbs: Math.round(totalLbs),
+    };
+  }, [inventoryByStop]);
 
   // Instead of local useState, we read isCollapsed from props:
   const {selectedOriginStopId, setSelectedOriginStopId, isOriginCollapsed, setIsOriginCollapsed} = useUiState();
   const toggleCollapse = () => setIsOriginCollapsed((prev) => !prev);
+  
+  // Enhanced selection logic with fallback
   useEffect(() => {
-    if (originStops.length > 0 && !selectedOriginStopId) {
-      setSelectedOriginStopId(originStops[0].id)
+    const visibleStops = originStops.filter(s => s.isVisible !== false && s.isActive !== false);
+    
+    // If we have visible stops
+    if (visibleStops.length > 0) {
+      // If nothing is selected, select the first visible stop (Main Address)
+      if (!selectedOriginStopId) {
+        setSelectedOriginStopId(visibleStops[0].id);
+      } else {
+        // Check if the currently selected stop is still visible and active
+        const currentlySelected = visibleStops.find(s => s.id === selectedOriginStopId);
+        if (!currentlySelected) {
+          // If not, fallback to the first visible stop (Main Address)
+          setSelectedOriginStopId(visibleStops[0].id);
+        }
+      }
     }
-  }, [originStops, selectedOriginStopId]);
+  }, [originStops, selectedOriginStopId, setSelectedOriginStopId]);
 
   // ---------- TIME RESTRICTIONS UI ----------
   const timeRestrictionOptions = ['Not allowed', 'Allowed'];
@@ -154,9 +199,14 @@ function OriginDetails({
   function handleDeactivateThisStop() {
     if (!currentStop?.id) return;
     
-    const originIndex = originStops.findIndex(s => s.id === currentStop.id);
+    // Filter for only visible stops
+    const visibleStops = originStops.filter(s => s.isVisible !== false);
+    const originIndex = visibleStops.findIndex(s => s.id === currentStop.id);
+    
+    // Can't remove the first stop (Main Address)
     if (originIndex === 0) return;
-    const nextStop = originStops[originIndex - 1];
+    
+    const nextStop = visibleStops[originIndex - 1];
     onOriginUpdated(currentStop.id, { isVisible: false, isActive: false});
     setOriginStops((prev) =>
       prev.map((s) =>
@@ -483,7 +533,7 @@ function OriginDetails({
 
   // Decide if "Deactivate" is visible => hide if "Main Address"
   const canDeactivate =
-  originStops.findIndex((s) => s.id === selectedOriginStopId) !== 0;
+  originStops.filter(s => s.isVisible !== false).findIndex((s) => s.id === selectedOriginStopId) !== 0;
   const visibleOriginStops = originStops.filter((s) => s.isVisible !== false);
 
   return (
@@ -840,6 +890,10 @@ function OriginDetails({
                 <span className={styles.inventoryButtonText}>Inventory</span>
                 <Icon name="MyInventory" className={styles.myInventoryIcon} />
               </button>
+            </div>
+            <div className={styles.inventorySummary}>
+              <div>Volume (cu ft): {inventoryTotals.totalCuft}</div>
+              <div>Weight (lbs): {inventoryTotals.totalLbs}</div>
             </div>
           </div>
         </>

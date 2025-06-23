@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './Invoice.module.css';
-import { useUiState } from '../../UiStateContext'; 
 
 /**
  * This component shows either:
@@ -10,13 +9,17 @@ import { useUiState } from '../../UiStateContext';
  * - Otherwise, two buttons: "Estimate" / "Invoice"
  * We also show a "Remove invoice" if `selectedOption==='invoice'`.
  */
-function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
+function Invoice({ 
+  lead, 
+  onOptionSelected, 
+  onLeadUpdated,
+  activeOption,  // Now passed as prop instead of using context
+}) {
   // We read the initial "hasInvoice" from lead
   const [hasInvoice, setHasInvoice] = useState(Boolean(lead?.hasInvoice));
-  const { activeOption, setActiveOption } = useUiState();
-
-  // If hasInvoice=true => which button is highlighted? default 'estimate'
-
+  
+  // Use the activeOption passed as prop
+  const selectedOption = activeOption || 'estimate';
 
   // Check if the invoice component should be visible (only if lead_status is "Booked")
   const isVisible = lead?.leadStatus === "Booked";
@@ -29,13 +32,18 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
   const handleCreateInvoice = () => {
     // Update local state
     setHasInvoice(true);
-    setActiveOption('invoice');
     
     // Update parent component and persist changes
     if (onLeadUpdated) {
-      onLeadUpdated(lead.id, {
-        hasInvoice: true,
-      });
+      // Use lead.id or lead.lead_id to handle both naming conventions
+      const leadId = lead.id || lead.lead_id;
+      if (leadId) {
+        onLeadUpdated(leadId, {
+          hasInvoice: true,
+        });
+      } else {
+        console.error('No lead ID found on lead object');
+      }
     }
     
     // Notify parent about selected option
@@ -45,9 +53,6 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
   };
 
   const handleSelectOption = (option) => {
-    // Update local state
-    setActiveOption(option);
-    
     // Notify parent about selected option
     if (onOptionSelected) {
       onOptionSelected(option);
@@ -57,13 +62,18 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
   const handleRemoveInvoice = () => {
     // Update local state
     setHasInvoice(false);
-    setActiveOption('estimate');
     
     // Update parent component and persist changes
     if (onLeadUpdated) {
-      onLeadUpdated(lead.id, {
-        hasInvoice: false,
-      });
+      // Use lead.id or lead.lead_id to handle both naming conventions
+      const leadId = lead.id || lead.lead_id;
+      if (leadId) {
+        onLeadUpdated(leadId, {
+          hasInvoice: false,
+        });
+      } else {
+        console.error('No lead ID found on lead object');
+      }
     }
     
     // Notify parent about selected option
@@ -83,26 +93,31 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
         {!hasInvoice ? (
           <>
             <span className={styles.createInvoiceText}>Create Invoice</span>
-            <button className={styles.plusButton} onClick={handleCreateInvoice}>
+            <button 
+              className={styles.plusButton} 
+              onClick={handleCreateInvoice}
+            >
               +
             </button>
           </>
         ) : (
           <>
             <button
-              className={`
-                ${styles.optionButton}
-                ${activeOption === 'estimate' ? styles.buttonSelected : styles.buttonUnselected}
-              `}
+              className={`${styles.optionButton} ${
+                selectedOption === 'estimate' 
+                  ? styles.buttonSelected 
+                  : styles.buttonUnselected
+              }`}
               onClick={() => handleSelectOption('estimate')}
             >
               Estimate
             </button>
             <button
-              className={`
-                ${styles.optionButton}
-                ${activeOption === 'invoice' ? styles.buttonSelected : styles.buttonUnselected}
-              `}
+              className={`${styles.optionButton} ${
+                selectedOption === 'invoice' 
+                  ? styles.buttonSelected 
+                  : styles.buttonUnselected
+              }`}
               onClick={() => handleSelectOption('invoice')}
             >
               Invoice
@@ -111,10 +126,9 @@ function Invoice({ lead, onOptionSelected, onLeadUpdated }) {
         )}
       </div>
 
-      {hasInvoice && activeOption === 'invoice' && (
-        <button
-          type="button"
-          className={styles.removeInvoiceLink}
+      {hasInvoice && selectedOption === 'invoice' && (
+        <button 
+          className={styles.removeInvoiceLink} 
           onClick={handleRemoveInvoice}
         >
           Remove invoice

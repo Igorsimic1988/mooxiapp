@@ -1,10 +1,13 @@
 import { generateGroupingKey } from "./generateGroupingKey";
+import { addDefaultTags } from "./addDefaultTags";
 
 // 📦 Generate new autoAdded boxes based on weight increase only
 export function generateAutoBoxes({
   inventoryItems,
   allItems,
   prevTotalLbs,
+  stopId,
+  lead,
   processedThresholds = [],
 }) {
   if (!inventoryItems) return null;
@@ -104,19 +107,21 @@ export function generateAutoBoxes({
     
     const itemData = allItems.find((it) => it.name.trim() === bx.name.trim());
     if (!itemData) return;
+       const { tags, packingNeeds } = addDefaultTags(itemData, 13, lead, stopId);
 
-    const packing = Array.isArray(itemData.packingNeeds) ? itemData.packingNeeds : [];
+
+
 
     // Create individual box items
     for (let i = 0; i < bx.count; i++) {
       const groupingKey = generateGroupingKey({
         furnitureItemId: itemData.id,
         roomId: 13,
-        tags: [...itemData.tags],
+        tags,
         notes: "",
         cuft: itemData.cuft || "",
         lbs: itemData.lbs || "",
-        packingNeeds: packing,
+        packingNeeds,
         uploadedImages: [],
         cameraImages: [],
       });
@@ -128,11 +133,11 @@ export function generateAutoBoxes({
         imageName: itemData.imageName,
         letters: [...itemData.letters],
         search: itemData.search,
-        tags: [...itemData.tags],
+        tags,
         notes: "",
         cuft: itemData.cuft || "",
         lbs: itemData.lbs || "",
-        packingNeeds: packing,
+        packingNeeds,
         uploadedImages: [],
         cameraImages: [],
         autoAdded: true,
@@ -154,3 +159,5 @@ export function generateAutoBoxes({
     removedBoxIds: [],
   };
 }
+
+

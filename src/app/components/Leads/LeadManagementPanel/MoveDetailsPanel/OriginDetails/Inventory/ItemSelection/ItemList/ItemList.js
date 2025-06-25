@@ -124,7 +124,7 @@ function ItemList({
   if (isMyItemsActive) {
     // For grouped items, use the groupingKey as the React key
     key = itemData.groupingKey || itemData.id;
-    item = itemData.item || itemData;
+    item = itemData;
     count = itemData.count || 1;
     itemInstance = itemData;
   } else {
@@ -133,9 +133,10 @@ function ItemList({
     key = itemIdStr;
     item = itemData;
     count = itemClickCounts[itemIdStr] || 0;
-    itemInstance = itemInstances.find(inst => 
-      (inst.furnitureItemId || inst.itemId)?.toString() === itemIdStr
-    ) || null;
+    const matchingInstances = itemInstances.filter(
+      (inst) => inst.furnitureItemId === itemData.id
+    );
+    itemInstance = matchingInstances[0];
   }
 
   return (

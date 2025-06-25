@@ -269,9 +269,9 @@ model Origins {
   elevatorSize           String?
   whatsMoving            String?
   packingOption          String?
-  itemsToBeTakenApart    Boolean?
-  hoistItems             Boolean?
-  craneNeeded            Boolean?
+  itemsToBeTakenApart    Boolean? @default(false)
+  hoistItems             Boolean? @default(false)
+  craneNeeded            Boolean? @default(false)
   blanketsOption         String?
   additionalServices     String[]
   timeRestriction        Boolean?
@@ -314,9 +314,9 @@ model Destinations {
   elevatorSize           String?
   whatsMoving            String?
   unpackingOption          String?
-  itemsToBeAssembled    Boolean?
-  hoistItems             Boolean?
-  craneNeeded            Boolean?
+  itemsToBeAssembled    Boolean? @default(false)
+  hoistItems             Boolean? @default(false)
+  craneNeeded            Boolean? @default(false)
   blanketsOption         String?
   additionalServices     String[]
   postStorage            Boolean?

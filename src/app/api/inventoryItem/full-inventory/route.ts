@@ -15,6 +15,11 @@ export async function POST(req: Request) {
     }
 
     if (stopType === 'origin') {
+      const originExists = await prisma.origins.findUnique({ where: { id: stopId } });
+      if (!originExists) {
+        return NextResponse.json({ error: "Origin stop not found" }, { status: 404 });
+      }
+    
       await prisma.origins.update({
         where: { id: stopId },
         data: {
@@ -24,6 +29,10 @@ export async function POST(req: Request) {
         },
       });
     } else {
+      const destinationExists = await prisma.destinations.findUnique({ where: { id: stopId } });
+      if (!destinationExists) {
+        return NextResponse.json({ error: "Destination stop not found" }, { status: 404 });
+      }
       await prisma.destinations.update({
         where: { id: stopId },
         data: {
@@ -36,6 +45,7 @@ export async function POST(req: Request) {
 
     for (const item of inventoryItems) {
       const { id, furnitureItemId, destinationId, originId, ...rest } = item;
+      
 
       const relationField = stopType === 'origin' ? 'origins' : 'destinations';
 
@@ -49,23 +59,20 @@ export async function POST(req: Request) {
         },
       };
 
-      if (id) {
-        const updateData = {
+      await prisma.inventoryItem.upsert({
+        where: { id },
+        update: {
           ...baseData,
           [stopType === 'origin' ? 'destinations' : 'origins']: {
             disconnect: true,
           },
-        };
-
-        await prisma.inventoryItem.update({
-          where: { id },
-          data: updateData,
-        });
-      } else {
-        await prisma.inventoryItem.create({
-          data: baseData,
-        });
-      }
+        },
+        create: {
+          id,
+          ...baseData,
+        },
+      });
+      
     }
   
 

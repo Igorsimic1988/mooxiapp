@@ -375,7 +375,6 @@ function SpecialH({
                 { id: numericId, name: `Room #${roomId}` };
 
               const itemArray = roomItemSelections[roomId] || [];
-              console.log(itemArray, ' aa')
               return (
                 <div key={`room-${roomId}`} data-room-id={numericId} className={styles.room}>
                   <div className={styles.roomNameWrapper}>

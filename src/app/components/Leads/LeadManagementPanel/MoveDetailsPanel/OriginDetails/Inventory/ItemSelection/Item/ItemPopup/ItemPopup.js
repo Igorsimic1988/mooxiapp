@@ -11,7 +11,9 @@ import packingOptions from '../../../../../../../../../data/constants/packingOpt
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
 import Icon from 'src/app/components/Icon';
 import { labelToDropTag, EXCLUSIVE_LOCATION_TAGS, BASE_INCOMPATIBLE_TAGS, REQUIRED_TAGS, buildExclusiveIncompat } from '../../../utils/tagsRules';
-
+import { getAllFurnitureItems } from 'src/app/services/furnitureService';
+import { useQuery } from '@tanstack/react-query';
+import { addDefaultTags } from '../../../utils/addDefaultTags';
 /** 
  * ==============================================
  * HELPER COMPONENTS
@@ -134,7 +136,14 @@ function ItemPopup({
   roomItemSelections,
   setRoomItemSelections,
   onOpenPopup,
+  selectedStopInfo,
 }) {
+
+  const { data: allItems = [] } = useQuery({
+    queryKey: ['furnitureItems', lead?.brandId],
+    queryFn: () => getAllFurnitureItems({ brandId: lead?.brandId }),
+    enabled: !!lead?.brandId,
+  });
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -610,7 +619,13 @@ const handleSaveItem = (overrides = {}) => {
     if (!item || !onOpenPopup) return;
     
     // Get the base furniture item
-    const furnitureId = item.id?.toString() || currentItemInstance?.furnitureItemId;
+    // Pretpostavka: negde imaš listu svih furnitureItem-a
+    const furnitureItem = allItems.find(fi => fi.id === item.furnitureItemId);
+    if (!furnitureItem) {
+      console.warn("❗ Furniture item not found!");
+      return;
+    }
+
     
     // Create default packing needs
     //let defaultPacking = {};
@@ -621,14 +636,20 @@ const handleSaveItem = (overrides = {}) => {
     // }
     
     // Create a brand new item instance with default values (not saved yet)
+    const { tags, packingNeeds } = addDefaultTags(
+      furnitureItem,
+      selectedRoom?.id,
+      lead,
+      selectedStopInfo // ✅ sad imaš pun kontekst
+    );
     const freshItemInstance = {
       id: uuidv4(),
-      furnitureItemId: furnitureId,
-      tags: [...(item.tags || [])],
+      furnitureItemId: furnitureItem.id,
+      tags,
       notes: "",
-      cuft: item.cuft || "",
-      lbs: item.lbs || "",
-      packingNeeds: Array.isArray(item.packingNeeds) ? [...item.packingNeeds] : [],
+      cuft: furnitureItem.cuft || "",
+      lbs: furnitureItem.lbs || "",
+      packingNeeds,
       link: "",
       uploadedImages: [],
       cameraImages: [],

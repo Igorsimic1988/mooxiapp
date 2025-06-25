@@ -511,7 +511,6 @@ function InventoryDesktop({
               isDeleteActive={isDeleteActive}
               onUpdateItem={handleUpdateItem}
               onAddItem={handleAddItem}
-              onStartFresh={handleStartFresh}
               isDesktop={true}
               fuse={fuse}
             />
@@ -543,7 +542,6 @@ function InventoryDesktop({
               isDeleteActive={isDeleteActive}
               onUpdateItem={handleUpdateItem}
               onAddItem={handleAddItem}
-              onStartFresh={handleStartFresh}
               isDesktop={true}
               onOpenPopup={handleOpenItemPopup}
             />
@@ -599,7 +597,6 @@ function InventoryDesktop({
     onAddItem={handleAddItem}
     handleDeleteItem={handleDeleteItem}
     onOpenPopup={handleOpenItemPopup}
-    onStartFresh={handleStartFresh}
     lead={lead}
     selectedRoom={selectedRoom}
     roomItemSelections={roomItemSelections}

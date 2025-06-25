@@ -89,8 +89,8 @@ function FurnitureCounter({ roomItemSelections, displayedRooms }) {
         totalLbs += lbsVal;
 
         // Check if it's a box by name (preferred) or by ID (legacy)
-        const itemName = itemInstance.name || itemInstance.item?.name || '';
-        const itemId = (itemInstance.furnitureItemId || itemInstance.itemId || '').toString();
+        const itemName = itemInstance.name || '';
+        const itemId = (itemInstance.furnitureItemId || '').toString();
         
         if (boxItemNames.includes(itemName) || boxItemIds.includes(itemId)) {
           totalBoxes += 1;

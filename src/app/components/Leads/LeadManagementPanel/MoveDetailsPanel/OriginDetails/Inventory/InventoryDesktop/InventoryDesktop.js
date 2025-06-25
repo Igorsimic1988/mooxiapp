@@ -221,7 +221,7 @@ function InventoryDesktop({
   // Count how many times each item appears in "Items" panel (for individual items)
   const itemCounts = (roomItemSelections[selectedRoom?.id] || []).reduce(
     (acc, inst) => {
-      const key = (inst.furnitureItemId || inst.itemId)?.toString();
+      const key = (inst.furnitureItemId)?.toString();
       if (key) {
         acc[key] = (acc[key] || 0) + 1;
       }
@@ -291,7 +291,7 @@ function InventoryDesktop({
     
     if (!grouped.has(gKey)) {
       // Get the stable itemId for sorting
-      const stableItemId = inst.furnitureItemId || inst.itemId || inst.item?.id;
+      const stableItemId = inst.furnitureItemId ;
       
       // Create a new grouped item
       grouped.set(gKey, {
@@ -302,22 +302,14 @@ function InventoryDesktop({
         sortKey: parseInt(stableItemId) || 0,
         // Keep React key simple and stable
         id: gKey,
-        furnitureItemId: inst.furnitureItemId || inst.itemId,
-        itemId: inst.itemId || inst.furnitureItemId,
-        item: inst.item || {
-          id: inst.furnitureItemId || inst.itemId,
-          name: inst.name || inst.item?.name || '',
-          imageName: inst.imageName || inst.item?.imageName || inst.item?.src || '',
-          src: inst.item?.src || inst.imageName || '',
-        },
-        name: inst.name || inst.item?.name || '',
-        imageName: inst.imageName || inst.item?.imageName || inst.item?.src || '',
+        furnitureItemId: inst.furnitureItemId,
+        name: inst.name  || '',
+        imageName: inst.imageName || '',
         tags: [...(inst.tags || [])],
         notes: inst.notes || '',
         cuft: inst.cuft || '',
         lbs: inst.lbs || '',
-        packingNeedsCounts: { ...(inst.packingNeedsCounts || {}) },
-        packingNeeds: inst.packingNeeds || [],
+        packingNeeds: { ...(inst.packingNeeds || {}) },
         link: inst.link || '',
         uploadedImages: [...(inst.uploadedImages || [])],
         cameraImages: [...(inst.cameraImages || [])],
@@ -367,16 +359,14 @@ function InventoryDesktop({
       if (itemData.groupingKey) {
         const newItemInstance = {
           id: uuidv4(),
-          furnitureItemId: itemData.furnitureItemId || itemData.itemId,
-          itemId: itemData.itemId || itemData.furnitureItemId,
-          item: { ...itemData.item },
-          name: itemData.name || itemData.item?.name || '',
-          imageName: itemData.imageName || itemData.item?.imageName || '',
+          furnitureItemId: itemData.furnitureItemId,
+          name: itemData.name || '',
+          imageName: itemData.imageName  || '',
           tags: [...(itemData.tags || [])],
           notes: itemData.notes || '',
           cuft: itemData.cuft || '',
           lbs: itemData.lbs || '',
-          packingNeedsCounts: { ...(itemData.packingNeedsCounts || {}) },
+          packingNeeds: { ...(itemData.packingNeeds || {}) },
           packingNeeds: [...(itemData.packingNeeds || [])],
           link: itemData.link || '',
           uploadedImages: [...(itemData.uploadedImages || [])],
@@ -542,19 +532,6 @@ function InventoryDesktop({
           <div
             className={`${styles.itemListPlaceholder} ${styles.myItemsListPlaceholder}`}
           >
-            {/* Debug check for items */}
-            {selectedRoom && (() => {
-              const myItems = getGroupedItems();
-
-              
-              // Check for any items with missing properties
-              myItems.forEach(item => {
-                if (!item.imageName || !item.name) {
-                  console.error('Invalid item in My Items:', item);
-                }
-              });
-              return null;
-            })()}
             
 
             <ItemList

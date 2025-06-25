@@ -149,7 +149,7 @@ function MyInventory({
 
   // Build a set of "active" drop points from lead
   // Support both destinationStops (old) and destinations (new)
-  const destinationStops = lead?.destinations || lead?.destinationStops || [];
+  const destinationStops = lead?.destinations || [];
   const activeStops = destinationStops.filter(s => s.isActive && (s.isVisible ?? true));
   
   const postStorageStops = activeStops.filter((s) => s.postStorage);
@@ -247,10 +247,8 @@ function MyInventory({
         if (!grouped[gk]) {
           grouped[gk] = {
             // Support both field names for compatibility
-            furnitureItemId: inst.furnitureItemId || inst.itemId,
-            itemId: inst.itemId || inst.furnitureItemId,
-            name: inst.name || inst.item?.name || '(Unnamed)',
-            itemName: inst.item?.name || inst.name || '(Unnamed)', // For backward compatibility
+            furnitureItemId: inst.furnitureItemId,
+            name: inst.name|| '(Unnamed)',
             tags: Array.isArray(inst.tags) ? [...inst.tags] : [],
             cuft: parseFloat(inst.cuft) || 0,
             lbs: parseFloat(inst.lbs) || 0,
@@ -381,7 +379,7 @@ function MyInventory({
                             >
                               <div className={styles.descriptionCell}>
                                 <div className={styles.descriptionContent}>
-                                  <span>{itm.name || itm.itemName}</span>
+                                  <span>{itm.name}</span>
                                 </div>
                               </div>
                               <div className={styles.qtyCell}>{itm.count}</div>

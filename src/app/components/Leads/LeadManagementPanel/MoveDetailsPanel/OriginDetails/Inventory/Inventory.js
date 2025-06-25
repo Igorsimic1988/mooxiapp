@@ -22,6 +22,7 @@ import { getAllFurnitureItems } from "src/app/services/furnitureService";
 import { getInventoryByOriginId, syncInventory, getInventoryByDestinationId } from "src/app/services/inventoryItemsService";
 import { useUiState } from "../../UiStateContext";
 import { useInventoryContext } from "../../InventoryContext";
+import { addDefaultTags } from "./utils/addDefaultTags";
 
 // Default room IDs
 const defaultRoomIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
@@ -316,6 +317,10 @@ useEffect(() => {
   // Handle item selection (add/remove individual instances)
   const handleItemSelection = useCallback((clickedItem, action) => {
     if (!selectedRoom || !selectedStopInfo) return;
+    const hasFurnitureId = !!clickedItem.furnitureItemId;
+    const furnitureItemId = hasFurnitureId
+      ? Number(clickedItem.furnitureItemId)
+      : Number(clickedItem.id);
     const doAction = action || (isDeleteActive ? "decrease" : "increase");
   
    
@@ -328,36 +333,41 @@ useEffect(() => {
         // Remove one instance
         let idx = -1;
         if (isMyItemsActive) {
+          console.log('aaa')
           idx = items.findIndex(
             (itm) => itm.groupingKey === clickedItem.groupingKey
           );
         } else {
           const itemIdToDelete = clickedItem.furnitureItemId?.toString() || clickedItem.id?.toString();
+          console.log(itemIdToDelete, ' dele')
           idx = items.findIndex((itm) => itm.furnitureItemId?.toString() === itemIdToDelete);
         }
         if (idx !== -1) items.splice(idx, 1);
       } else {
         // Add new instance
         let newItemInstance;
+        const { tags, packingNeeds } = addDefaultTags(clickedItem, selectedRoom.id, lead, selectedStopInfo);
         if (isMyItemsActive) {
-          // Clone existing instance
           newItemInstance = {
             id: uuidv4(),
-            furnitureItemId: clickedItem.furnitureItemId,
-            item: { ...clickedItem.item },
-            tags: [...(clickedItem.tags || [])],
+            furnitureItemId,
+            tags,
             notes: clickedItem.notes || "",
             cuft: clickedItem.cuft || "",
             lbs: clickedItem.lbs || "",
-            packingNeedsCounts: { ...(clickedItem.packingNeedsCounts || {}) },
+            packingNeeds,
             link: clickedItem.link || "",
             uploadedImages: [...(clickedItem.uploadedImages || [])],
             cameraImages: [...(clickedItem.cameraImages || [])],
             groupingKey: clickedItem.groupingKey,
+            name: clickedItem.name || "", 
+            imageName: clickedItem.imageName || "", 
+            letters: [...(clickedItem.letters || [])], 
+            search: clickedItem.search ,
           };
         } else {
           // Create new from furniture item
-          const furnitureId = clickedItem.id?.toString();
+          //const furnitureId = clickedItem.id?.toString();
           let defaultPacking = {};
           if (clickedItem.packingNeeds?.length) {
             clickedItem.packingNeeds.forEach((pack) => {
@@ -366,16 +376,19 @@ useEffect(() => {
           }
           newItemInstance = {
             id: uuidv4(),
-            furnitureItemId: furnitureId,
-            item: { ...clickedItem },
-            tags: [...(clickedItem.tags || [])],
+            furnitureItemId,
+            tags,
             notes: "",
             cuft: clickedItem.cuft || "",
             lbs: clickedItem.lbs || "",
-            packingNeedsCounts: defaultPacking,
+            packingNeeds,
             link: "",
             uploadedImages: [],
             cameraImages: [],
+            name: clickedItem.name || "", 
+            imageName: clickedItem.imageName || "",
+            letters: [...(clickedItem.letters || [])],
+            search: clickedItem.search ?? true,
           };
           newItemInstance.groupingKey = generateGroupingKey(newItemInstance);
         }
@@ -422,10 +435,15 @@ useEffect(() => {
         notes: "",
         cuft: baseItem.cuft || "",
         lbs: baseItem.lbs || "",
-        packingNeedsCounts: defaultPacking,
+        packingNeeds: defaultPacking,
         link: "",
         uploadedImages: [],
         cameraImages: [],
+        name: baseItem.name || "",
+        imageName: baseItem.imageName || "",
+        letters: [...(baseItem.letters || [])],
+        search: baseItem.search ?? true,
+        tags: [...(baseItem.tags || [])],
       };
       resetItem.groupingKey = generateGroupingKey(resetItem);
       
@@ -633,12 +651,11 @@ useEffect(() => {
             const newInst = {
               id: uuidv4(),
               furnitureItemId: bx.itemId,
-              item: { ...itemData },
               tags: [...(itemData.tags || [])],
               notes: "",
               cuft: itemData.cuft || "",
               lbs: itemData.lbs || "",
-              packingNeedsCounts: packing,
+              packingNeeds: packing,
               autoAdded: true,
               groupingKey: "",
               sortKey: `auto-${bx.itemId}-${i}`,

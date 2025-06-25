@@ -59,23 +59,20 @@ export async function POST(req: Request) {
         },
       };
 
-      if (id) {
-        const updateData = {
+      await prisma.inventoryItem.upsert({
+        where: { id },
+        update: {
           ...baseData,
           [stopType === 'origin' ? 'destinations' : 'origins']: {
             disconnect: true,
           },
-        };
-
-        await prisma.inventoryItem.update({
-          where: { id },
-          data: updateData,
-        });
-      } else {
-        await prisma.inventoryItem.create({
-          data: baseData,
-        });
-      }
+        },
+        create: {
+          id,
+          ...baseData,
+        },
+      });
+      
     }
   
 

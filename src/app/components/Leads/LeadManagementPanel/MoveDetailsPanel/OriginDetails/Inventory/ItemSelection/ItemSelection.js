@@ -92,7 +92,7 @@ function ItemSelection({
   // Compute itemCounts for individual instances
   const itemCounts = useMemo(() => {
     return itemInstances.reduce((counts, instance) => {
-      const key = (instance.furnitureItemId || instance.itemId || instance.id).toString();
+      const key = (instance.furnitureItemId || instance.id).toString();
       counts[key] = (counts[key] || 0) + 1;
       return counts;
     }, {});
@@ -108,22 +108,19 @@ function ItemSelection({
       const key = generateGroupingKey(instance);
       
       if (!groups.has(key)) {
-        const stableItemId = instance.furnitureItemId || instance.itemId || instance.item?.id;
+        const stableItemId = instance.furnitureItemId ;
         
         groups.set(key, {
           id: key,
           groupingKey: key,
           furnitureItemId: instance.furnitureItemId,
-          itemId: instance.itemId || instance.furnitureItemId,
-          item: instance.item,
-          name: instance.name || instance.item?.name,
-          imageName: instance.imageName || instance.item?.imageName,
+          name: instance.name,
+          imageName: instance.imageName,
           tags: [...(instance.tags || [])],
           notes: instance.notes || '',
           cuft: instance.cuft || '',
           lbs: instance.lbs || '',
-          packingNeedsCounts: { ...(instance.packingNeedsCounts || {}) },
-          packingNeeds: instance.packingNeeds || [],
+          packingNeeds: { ...(instance.packingNeeds || {}) },
           link: instance.link || '',
           uploadedImages: [...(instance.uploadedImages || [])],
           cameraImages: [...(instance.cameraImages || [])],

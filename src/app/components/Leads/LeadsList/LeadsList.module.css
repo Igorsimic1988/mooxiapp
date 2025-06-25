@@ -36,6 +36,7 @@
   overflow: hidden; /* Prevent horizontal overflow */
   min-width: 0; /* For proper shrinking of columns */
   position: relative; /* For the colored left border */
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
 }
 
 /* Ensure columns can shrink */
@@ -264,6 +265,11 @@
   z-index: 1; /* Ensure the green border appears on top if both active */
 }
 
+/* Style for selected lead - blue border */
+.selectedCard {
+  border: 1px solid #3FA9F5;
+}
+
 /* Media query for smaller screens */
 @media (max-width: 392px) {
   .dateText {
@@ -281,5 +287,11 @@
 
   .statusIcon {
     transform: scale(0.8);
+  }
+}
+
+@media (min-width: 1024px) {
+  .listContainer {
+    padding-top: 0; /* Remove top padding on desktop */
   }
 }

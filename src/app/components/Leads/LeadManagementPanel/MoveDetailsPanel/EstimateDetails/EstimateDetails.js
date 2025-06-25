@@ -54,10 +54,6 @@ function EstimateDetails({
   onLeadUpdated,   // Callback to update the lead in the parent
   isStorageEnabled, // Prop to determine if storage is enabled
 }) {
-  // Helper to handle both camelCase and snake_case field names
-  const getLeadField = (fieldName, snakeCaseName) => {
-    return lead?.[fieldName] ?? lead?.[snakeCaseName] ?? undefined;
-  };
   
   // Get the correct lead ID (handle both 'id' and 'lead_id')
   const leadId = lead?.id || lead?.lead_id;

@@ -32,19 +32,23 @@
   flex-direction: column;
   position: relative;
   padding-top: 20px; /* Space for the blue bar */
+  border-radius: 16px 16px 0 0;
 }
 
 .panelContainer {
   padding: 0px 20px 30px 20px;
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
+  background: transparent;
   scrollbar-width: none;
   position: relative;
   z-index: 10;
+  
+  
 }
 .panelContainer::-webkit-scrollbar {
   display: none; /* Hide scrollbar in Chrome, Safari, Opera */
+  
 }
 
 /* ===== Top Row (Name + Score + More Button) ===== */
@@ -884,4 +888,17 @@
 
 .animateNextAction {
   animation: nextActionBounce 0.6s ease-out;
+}
+
+
+@media (min-width: 1024px) {
+  /* Completely remove the blue bar on desktop */
+  .topBarContainer {
+    display: none;
+  }
+  
+  /* Remove the padding that was reserved for the blue bar */
+  .panelContainer {
+    padding-top: 20px;
+  }
 }

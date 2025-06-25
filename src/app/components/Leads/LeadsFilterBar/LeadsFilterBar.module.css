@@ -80,3 +80,10 @@
   background: #3FA9F5;
   border-radius: 50%;
 }
+
+@media (min-width: 1024px) {
+  .filterBarContainer {
+    height: 60px; /* Remove top padding on desktop */
+    margin-top: 10px;
+  }
+}

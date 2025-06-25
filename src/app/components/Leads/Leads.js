@@ -1,5 +1,4 @@
 "use client"; 
-// If you're using Next.js 13 app router, you often need "use client" at the top
 
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import styles from "./Leads.module.css";
@@ -14,6 +13,7 @@ import LeadManagementPanel from "./LeadManagementPanel/LeadManagementPanel";
 import Inventory from "./LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory";
 import LeadFormPopup from "./LeadFormPopup/LeadFormPopup";
 import FilterButtonPopup from "./FilterButtonPopup/FilterButtonPopup";
+import LeadsDesktop from "./LeadsDesktop/LeadsDesktop";
 import { getAllLeads, createLead, updateLead } from "src/app/services/leadsService";
 import { useAccessToken } from "src/app/lib/useAccessToken";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -77,7 +77,7 @@ function filterLeadsByTab(leads, activeTab) {
         return true;
       });
 
-    case "Closed Leads":
+    case "Lost Leads":
       return leads.filter(
         (ld) => ld.leadStatus === "Bad Lead" || ld.leadStatus === "Declined"
       );
@@ -415,7 +415,10 @@ function Leads() {
     checkedStatuses
   ]);
 
-  // On mount -> set the app height
+  // Track if we're on desktop
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // On mount -> set the app height and check for desktop
   useEffect(() => {
     function setAppHeight() {
       document.documentElement.style.setProperty(
@@ -423,9 +426,20 @@ function Leads() {
         `${window.innerHeight}px`
       );
     }
+    
+    function checkDesktop() {
+      setIsDesktop(window.innerWidth >= 1024);
+    }
+    
     window.addEventListener("resize", setAppHeight);
+    window.addEventListener("resize", checkDesktop);
     setAppHeight();
-    return () => window.removeEventListener("resize", setAppHeight);
+    checkDesktop();
+    
+    return () => {
+      window.removeEventListener("resize", setAppHeight);
+      window.removeEventListener("resize", checkDesktop);
+    };
   }, []);
 
   // Reset pagination when search changes
@@ -551,14 +565,8 @@ function Leads() {
   const handleLeadClick = (lead) => {
     // If transfer mode is active, update the lead's sales_name
     if (transferModeActive && selectedSalesRepForTransfer) {
-      const updatedLead = {
-        ...lead,
-        salesName: selectedSalesRepForTransfer,
-        lastUpdated: new Date().toISOString()
-      };
-      
       // Update the lead
-      handleLeadUpdated(updatedLead);
+      handleLeadUpdated(lead.id, { salesName: selectedSalesRepForTransfer });
       
       // Log the transfer action
       console.log(`Transferred lead ${lead.jobNumber} to ${selectedSalesRepForTransfer}`);
@@ -589,93 +597,93 @@ function Leads() {
   };
 
   // CRUD: Update existing lead
-const handleLeadUpdated = (id, updates) => {
-  // Console log so you can follow all changes
-  console.log("UPDATE LEAD → id:", id, "updates:", updates);
-  
-  updateLeadMutation.mutate({ id, data: updates, token }, {
-    onSuccess: (updatedLead) => {
-      console.log("Lead updated successfully:", updatedLead);
-      
-      // Update the selected lead immediately with the updates
-      // This ensures the UI reflects changes right away
-      setSelectedLead((prev) => {
-        if (prev && (prev.id === id || prev.lead_id === id)) {
-          return {
-            ...prev,
-            ...updates, // Apply the updates immediately
-            ...updatedLead, // Then apply any additional data from the server
-          };
-        }
-        return prev;
-      });
-      
-      // Also update the leads in the query cache
-      queryClient.setQueryData(['leads', token], (oldData) => {
-        if (!oldData) return oldData;
-        return oldData.map(lead => {
-          if (lead.id === id || lead.lead_id === id) {
+  const handleLeadUpdated = (id, updates) => {
+    // Console log so you can follow all changes
+    console.log("UPDATE LEAD → id:", id, "updates:", updates);
+    
+    updateLeadMutation.mutate({ id, data: updates, token }, {
+      onSuccess: (updatedLead) => {
+        console.log("Lead updated successfully:", updatedLead);
+        
+        // Update the selected lead immediately with the updates
+        // This ensures the UI reflects changes right away
+        setSelectedLead((prev) => {
+          if (prev && (prev.id === id || prev.lead_id === id)) {
             return {
-              ...lead,
-              ...updates,
-              ...updatedLead,
+              ...prev,
+              ...updates, // Apply the updates immediately
+              ...updatedLead, // Then apply any additional data from the server
             };
           }
-          return lead;
+          return prev;
         });
-      });
-      
-      // Then refetch to ensure consistency
-      refetch();
-      
-      // Handle events for status changes
-      const prev = selectedLead;
-      if (prev) {
-        if (updates.leadStatus && updates.leadStatus !== prev.leadStatus) {
-          createEventMutation.mutate({
-            type: "LEAD_STATUS_CHANGED",
-            data: {
-              leadId: updatedLead.id,
-              field: "leadStatus",
-              oldValue: prev.leadStatus || null,
-              newValue: updates.leadStatus || null,
-            },
-            token,
-          });
-        }
         
-        if (updates.leadActivity && updates.leadActivity !== prev.leadActivity) {
-          createEventMutation.mutate({
-            type: "LEAD_ACTIVITY_CHANGED",
-            data: {
-              leadId: updatedLead.id,
-              field: "leadActivity",
-              oldValue: prev.leadActivity || null,
-              newValue: updates.leadActivity || null,
-            },
-            token,
+        // Also update the leads in the query cache
+        queryClient.setQueryData(['leads', token], (oldData) => {
+          if (!oldData) return oldData;
+          return oldData.map(lead => {
+            if (lead.id === id || lead.lead_id === id) {
+              return {
+                ...lead,
+                ...updates,
+                ...updatedLead,
+              };
+            }
+            return lead;
           });
-        }
+        });
         
-        if (updates.nextAction && updates.nextAction !== prev.nextAction) {
-          createEventMutation.mutate({
-            type: "NEXT_ACTION_CHANGED",
-            data: {
-              leadId: updatedLead.id,
-              field: "nextAction",
-              oldValue: prev.nextAction || null,
-              newValue: updates.nextAction || null,
-            },
-            token,
-          });
+        // Then refetch to ensure consistency
+        refetch();
+        
+        // Handle events for status changes
+        const prev = selectedLead;
+        if (prev) {
+          if (updates.leadStatus && updates.leadStatus !== prev.leadStatus) {
+            createEventMutation.mutate({
+              type: "LEAD_STATUS_CHANGED",
+              data: {
+                leadId: updatedLead.id,
+                field: "leadStatus",
+                oldValue: prev.leadStatus || null,
+                newValue: updates.leadStatus || null,
+              },
+              token,
+            });
+          }
+          
+          if (updates.leadActivity && updates.leadActivity !== prev.leadActivity) {
+            createEventMutation.mutate({
+              type: "LEAD_ACTIVITY_CHANGED",
+              data: {
+                leadId: updatedLead.id,
+                field: "leadActivity",
+                oldValue: prev.leadActivity || null,
+                newValue: updates.leadActivity || null,
+              },
+              token,
+            });
+          }
+          
+          if (updates.nextAction && updates.nextAction !== prev.nextAction) {
+            createEventMutation.mutate({
+              type: "NEXT_ACTION_CHANGED",
+              data: {
+                leadId: updatedLead.id,
+                field: "nextAction",
+                oldValue: prev.nextAction || null,
+                newValue: updates.nextAction || null,
+              },
+              token,
+            });
+          }
         }
+      },
+      onError: (err) => {
+        console.error("Failed to update lead:", err);
       }
-    },
-    onError: (err) => {
-      console.error("Failed to update lead:", err);
-    }
-  });
-};
+    });
+  };
 
   // Edit lead
   const handleEditLead = (lead) => {
@@ -706,19 +714,14 @@ const handleLeadUpdated = (id, updates) => {
     
     // If a lead is already selected, update it
     if (selectedLead) {
-      const updatedLead = {
-        ...selectedLead,
-        salesName: salesRepName,
-        lastUpdated: new Date().toISOString()
-      };
-      
       // Use the existing handleLeadUpdated function to update the lead
-      handleLeadUpdated(updatedLead);
+      handleLeadUpdated(selectedLead.id, { salesName: salesRepName });
       
       // Optional: Show a success notification
-      console.log(`Lead ${selectedLead.leadId} transferred to ${salesRepName}`);
+      console.log(`Lead ${selectedLead.jobNumber} transferred to ${salesRepName}`);
     }
   };
+  
   const handleLeadRefetch = async () => {
     const freshLeads = await refetch(); // ovo refetchuje sve leadove
     const updatedLead = freshLeads.data?.find(ld => ld.id === selectedLead?.id);
@@ -726,7 +729,6 @@ const handleLeadUpdated = (id, updates) => {
       setSelectedLead(updatedLead);
     }
   };
-  
 
   // Inventory
   const openInventoryFullScreen = () => {
@@ -796,8 +798,6 @@ const handleLeadUpdated = (id, updates) => {
   }
 
   const filterCount = getActiveFilterCount();
-  const isDesktopScreen =
-    typeof window !== "undefined" && window.innerWidth >= 1024;
 
   // If showing the Inventory
   if (showInventoryFullScreen) {
@@ -811,7 +811,7 @@ const handleLeadUpdated = (id, updates) => {
           roomName={inventoryRoom?.name || ""}
           onRoomBack={() => setInventoryRoom(null)}
           onCloseInventory={closeInventoryFullScreen}
-          isDesktopInventory={isDesktopScreen}
+          isDesktopInventory={isDesktop}
         />
         <Inventory
           lead={selectedLead}
@@ -823,7 +823,72 @@ const handleLeadUpdated = (id, updates) => {
     );
   }
 
-  // Normal leads screen
+  // Show desktop version if on desktop
+  if (isDesktop) {
+    return (
+      <LeadsDesktop
+        // Data
+        leads={leads}
+        refetch={refetch}
+        
+        // State
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedLead={selectedLead}
+        setSelectedLead={setSelectedLead}
+        editingLead={editingLead}
+        setEditingLead={setEditingLead}
+        transferModeActive={transferModeActive}
+        setTransferModeActive={setTransferModeActive}
+        selectedSalesRepForTransfer={selectedSalesRepForTransfer}
+        setSelectedSalesRepForTransfer={setSelectedSalesRepForTransfer}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        leadsPerPage={leadsPerPage}
+        showLeadForm={showLeadForm}
+        setShowLeadForm={setShowLeadForm}
+        showFilterPopup={showFilterPopup}
+        setShowFilterPopup={setShowFilterPopup}
+        
+        // Filter states
+        selectedCompany={selectedCompany}
+        setSelectedCompany={setSelectedCompany}
+        selectedSalesRep={selectedSalesRep}
+        setSelectedSalesRep={setSelectedSalesRep}
+        selectedMode={selectedMode}
+        setSelectedMode={setSelectedMode}
+        selectedWorkflow={selectedWorkflow}
+        setSelectedWorkflow={setSelectedWorkflow}
+        selectedWhere={selectedWhere}
+        setSelectedWhere={setSelectedWhere}
+        fromDate={fromDate}
+        setFromDate={setFromDate}
+        toDate={toDate}
+        setToDate={setToDate}
+        statusOptions={statusOptions}
+        checkedStatuses={checkedStatuses}
+        setCheckedStatuses={setCheckedStatuses}
+        
+        // Handlers
+        handleLeadCreated={handleLeadCreated}
+        handleLeadUpdated={handleLeadUpdated}
+        handleEditLead={handleEditLead}
+        openInventoryFullScreen={openInventoryFullScreen}
+        
+        // Computed values
+        currentLeads={currentLeads}
+        totalLeads={totalLeads}
+        totalPages={totalPages}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        filterCount={filterCount}
+      />
+    );
+  }
+
+  // Mobile view - normal leads screen
   return (
     <div className={styles.container} ref={mainContainerRef}>
       <HeaderDashboard
@@ -878,6 +943,7 @@ const handleLeadUpdated = (id, updates) => {
             leadsListRef={leadsListRef}
             onScroll={(e) => setScrollPosition(e.target.scrollTop)}
             transferModeActive={transferModeActive}
+            selectedLeadJobNumber={selectedLead?.jobNumber}
           />
 
           <div className={styles.paginationContainer}>

@@ -1,0 +1,176 @@
+/* Desktop layout container */
+.container {
+  display: flex;
+  height: 100vh;
+  background: #F2F5F8;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 80px;
+  background: #3FA9F5;
+  flex-shrink: 0;
+  /* Add any sidebar styles here */
+}
+
+/* Main content area */
+.contentArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Top section with filters and actions */
+.topSection {
+  display: flex;
+  flex-direction: column;
+  background: #F2F5F8;
+}
+
+/* Desktop filter wrapper - makes the filter bar 90px tall */
+.desktopFilterWrapper > div > div:first-child { /* targets .topBarBack */
+  height: 30px;
+}
+
+.desktopFilterWrapper > div > div:first-child > div { /* targets .topBar */
+  height: 30px;
+}
+
+.desktopFilterWrapper > div > div:nth-child(2) { /* targets .filterBarContainer */
+  height: 60px;
+  align-items: center; /* Center the tabs vertically */
+}
+
+.desktopFilterWrapper > div > div:nth-child(2) > div { /* targets .tabsContainer */
+  align-items: center; /* Center the tabs */
+}
+
+/* Actions row - horizontal layout */
+.actionsRow {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  gap: 20px;
+}
+
+.actionsContainer {
+  flex: 0 0 auto;
+}
+
+.searchAndAddContainer {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0px;
+}
+
+.searchContainer {
+  flex: 0 1 400px; /* Max width of 400px but can shrink */
+  min-width: 250px;
+}
+
+.addButtonContainer {
+  flex: 0 0 auto;
+}
+
+/* Bottom section - side by side layout */
+.bottomSection {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left side - Leads list */
+.leadsListWrapper {
+  width: 45%;
+  min-width: 400px;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+}
+
+/* Right side - Lead management panel */
+.leadManagementWrapper {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background: #FFFFFF;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+}
+
+/* When no lead is selected */
+.leadManagementWrapper.noLead {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.noLeadMessage {
+  color: #90A4B7;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Pagination container */
+.paginationContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #FFFFFF;
+  padding: 5px 20px;
+}
+
+.paginationText {
+  font-family: Satoshi, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2F3236;
+  margin-right: 20px;
+}
+
+.paginationButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.pageButton {
+  background: #E4EAEF;
+  border: none;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #2F3236;
+  transition: all 0.2s ease;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #D8DCE0;
+}
+
+.pageButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Responsive adjustments for larger screens */
+@media (min-width: 1440px) {
+  .leadsListWrapper {
+    width: 40%;
+    max-width: 700px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .leadsListWrapper {
+    width: 35%;
+    max-width: 800px;
+  }
+}

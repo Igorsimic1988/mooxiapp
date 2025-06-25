@@ -396,46 +396,48 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     <div className={styles.panelContainer}>
       {/* ---------- TABS ---------- */}
       <div className={styles.sectionsRow}>
-        <div
-          className={`${styles.sectionItem} ${isSelectedTab(0) ? styles.selected : ''}`}
-          onClick={() => setSelectedIndex(0)}
-        >
-          <Icon name="TruckCouch" className={`${styles.sectionIcon} ${isSelectedTab(0) ? styles.iconActive : ''}`} />
-          <span className={`${styles.sectionText} ${isSelectedTab(0) ? styles.textActive : ''}`}>
-            Move
-          </span>
-        </div>
+  <div
+    className={`${styles.sectionItem} ${isSelectedTab(0) ? styles.selected : ''}`}
+    onClick={() => setSelectedIndex(0)}
+  >
+    <Icon name="TruckCouch" className={`${styles.sectionIcon} ${isSelectedTab(0) ? styles.iconActive : ''}`} />
+    <span className={`${styles.sectionText} ${isSelectedTab(0) ? styles.textActive : ''}`}>
+      Move
+    </span>
+  </div>
 
-        <div
-          className={`${styles.sectionItem} ${isSelectedTab(1) ? styles.selected : ''}`}
-          onClick={() => setSelectedIndex(1)}
-        >
-          <Icon name="Notebook" className={`${styles.sectionIcon} ${isSelectedTab(1) ? styles.iconActive : ''}`} />
-          <span className={`${styles.sectionText} ${isSelectedTab(1) ? styles.textActive : ''}`}>
-            Notes
-          </span>
-        </div>
+  <div
+    className={`${styles.sectionItem} ${isSelectedTab(1) ? styles.selected : ''}`}
+    onClick={() => setSelectedIndex(1)}
+  >
+    <Icon name="Notebook" className={`${styles.sectionIcon} ${isSelectedTab(1) ? styles.iconActive : ''}`} />
+    <span className={`${styles.sectionText} ${isSelectedTab(1) ? styles.textActive : ''}`}>
+      Notes
+    </span>
+  </div>
 
-        <div
-          className={`${styles.sectionItem} ${isSelectedTab(2) ? styles.selected : ''}`}
-          onClick={() => setSelectedIndex(2)}
-        >
-          <Icon name="EmailWithDot" className={`${styles.sectionIcon} ${isSelectedTab(2) ? styles.iconActive : ''}`} />
-          <span className={`${styles.sectionText} ${isSelectedTab(2) ? styles.textActive : ''}`}>
-            Email
-          </span>
-        </div>
+  <div
+    className={`${styles.sectionItem} ${isSelectedTab(2) ? styles.selected : ''}`}
+    onClick={() => setSelectedIndex(2)}
+  >
+    <Icon name="EmailWithDot" className={`${styles.sectionIcon} ${isSelectedTab(2) ? styles.iconActive : ''}`} />
+    <span className={`${styles.sectionText} ${isSelectedTab(2) ? styles.textActive : ''}`}>
+      Email
+    </span>
+  </div>
 
-        <div
-          className={`${styles.sectionItem} ${isSelectedTab(3) ? styles.selected : ''}`}
-          onClick={() => setSelectedIndex(3)}
-        >
-          <div className={styles.greenDot}></div>
-          <span className={`${styles.sectionText} ${isSelectedTab(3) ? styles.textActive : ''}`}>
-            Availability
-          </span>
-        </div>
-      </div>
+  {false && ( // Set to true when you want to show the Availability tab
+    <div
+      className={`${styles.sectionItem} ${isSelectedTab(3) ? styles.selected : ''}`}
+      onClick={() => setSelectedIndex(3)}
+    >
+      <div className={styles.greenDot}></div>
+      <span className={`${styles.sectionText} ${isSelectedTab(3) ? styles.textActive : ''}`}>
+        Availability
+      </span>
+    </div>
+  )}
+</div>
 
       {/* ---------- MOVE DATE ---------- */}
       <div className={`${styles.inputContainer} ${showMoveCalendar ? styles.activeInput : ''}`} style={{ position: 'relative' }}>

@@ -155,7 +155,7 @@ function generateTimeSlots() {
 const timeSlots = generateTimeSlots();
 
 const inventoryDropdownOptions = [
-  { label: 'Detailed Inventory', textColor: '#3FA9F5', iconBg: '#3FA9F5' },
+  { label: 'Detailed Inventory Estimate', textColor: '#3FA9F5', iconBg: '#3FA9F5' },
   { label: 'Quick Estimate',           textColor: '#faa612', iconBg: '#faa612' },
   { label: 'I Know My Shipment Size',  textColor: '#616161', iconBg: '#90a4b7' },
 ];
@@ -194,7 +194,7 @@ function LeadManagementPanel({
       estimator: lead.estimator || '',
       surveyDate: lead.surveyDate || '',
       surveyTime: lead.surveyTime || '',
-      inventoryOption: lead.inventoryOption || 'Detailed Inventory',
+      inventoryOption: lead.inventoryOption || 'Detailed Inventory Esimate',
       rateType: lead.rateType || 'Hourly Rate', // Add rateType to form defaults
     },
   });

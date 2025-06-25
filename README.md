@@ -1,4 +1,3 @@
-
 ## Getting Started
 
 For initial development setup

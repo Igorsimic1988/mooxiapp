@@ -38,7 +38,6 @@ function ItemSelection({
   onAddItem,
   isToggled,
   setIsToggled,
-  onStartFresh,
   onBackToRooms,
   onOpenPopup,
   fuse: propFuse,
@@ -225,7 +224,6 @@ function ItemSelection({
             isDeleteActive={isDeleteActive}
             onUpdateItem={onUpdateItem}
             onAddItem={onAddItem}
-            onStartFresh={onStartFresh}
             setIsMyItemsActive={setIsMyItemsActive}
             onBackToRooms={onBackToRooms}
             onOpenPopup={onOpenPopup}

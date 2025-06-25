@@ -13,7 +13,6 @@ function ItemList({
   isDeleteActive,
   onUpdateItem,
   onAddItem,
-  onStartFresh,
   setIsMyItemsActive,
   onBackToRooms,
   isDesktop = false,
@@ -150,7 +149,6 @@ function ItemList({
       onUpdateItem={onUpdateItem}
       onAddItem={onAddItem}
       itemInstance={itemInstance}
-      onStartFresh={onStartFresh}
       isDesktop={isDesktop}
       isMoved={isMoved.current}
       onOpenPopup={onOpenPopup}

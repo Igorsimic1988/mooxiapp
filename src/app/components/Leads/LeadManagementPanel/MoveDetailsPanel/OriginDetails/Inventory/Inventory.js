@@ -400,57 +400,6 @@ useEffect(() => {
   }, [selectedRoom, selectedStopInfo, isDeleteActive, isMyItemsActive, getStopData, setInventoryByStop]);
 
   // Other callbacks optimized similarly...
-  const handleStartFresh = useCallback((newItemInstance) => {
-    if (!selectedRoom || !selectedStopInfo) return;
-    
-    const baseItem = allItems.find(
-      (f) => f.id?.toString() === newItemInstance.furnitureItemId
-    );
-    if (!baseItem) return;
-
-    setInventoryByStop((prev) => {
-      const stopData = getStopData(selectedStopInfo.id);
-      const items = [...(stopData.itemsByRoom[selectedRoom.id] || [])];
-      
-      const idx = items.findIndex((itm) => itm.id === newItemInstance.id);
-      if (idx === -1) return prev;
-
-      let defaultPacking = {};
-      if (baseItem.packingNeeds?.length) {
-        baseItem.packingNeeds.forEach((pack) => {
-          defaultPacking[pack.type] = pack.quantity;
-        });
-      }
-
-      const resetItem = {
-        ...items[idx],
-        notes: "",
-        cuft: baseItem.cuft || "",
-        lbs: baseItem.lbs || "",
-        packingNeeds: defaultPacking,
-        link: "",
-        uploadedImages: [],
-        cameraImages: [],
-        name: baseItem.name || "",
-        imageName: baseItem.imageName || "",
-        letters: [...(baseItem.letters || [])],
-        search: baseItem.search ?? true,
-        tags: [...(baseItem.tags || [])],
-      };
-      resetItem.groupingKey = generateGroupingKey(resetItem);
-      
-      items[idx] = resetItem;
-
-      const updatedStopData = {
-        ...stopData,
-        itemsByRoom: {
-          ...stopData.itemsByRoom,
-          [selectedRoom.id]: items,
-        },
-      };
-      return { ...prev, [selectedStopInfo.id]: updatedStopData };
-    });
-  }, [selectedRoom, selectedStopInfo, allItems, getStopData, setInventoryByStop]);
 
   const handleToggleRoom = useCallback((roomId) => {
     if (roomId === 13 || !selectedStopInfo) return;
@@ -742,11 +691,11 @@ useEffect(() => {
         handleItemSelection={handleItemSelection}
         handleUpdateItem={handleUpdateItem}
         handleAddItem={handleAddItem}
-        handleStartFresh={handleStartFresh}
         isDeleteActive={isDeleteActive}
         setIsDeleteActive={setIsDeleteActive}
         handleToggleRoom={handleToggleRoom}
         allItems={allItems}
+        selectedStopInfo={selectedStopInfo}
         fuse={fuse}
       />
     );
@@ -819,7 +768,6 @@ useEffect(() => {
             onAddItem={handleAddItem}
             isToggled={isToggled}
             setIsToggled={setIsToggled}
-            onStartFresh={handleStartFresh}
             onBackToRooms={handleBackToRooms}
             onOpenPopup={handleOpenPopup}
             fuse={fuse}
@@ -842,11 +790,11 @@ useEffect(() => {
           onUpdateItem={handleUpdateItem}
           onAddItem={handleAddItem}
           handleDeleteItem={handleItemSelection}
-          onStartFresh={handleStartFresh}
           onOpenPopup={handleOpenPopup} 
           lead={lead}
           selectedRoom={selectedRoom}
           roomItemSelections={stopData.itemsByRoom}
+          selectedStopInfo={selectedStopInfo}
           setRoomItemSelections={(fnOrObj) => {
             setInventoryByStop((prev) => {
               const oldStopData = getStopData(selectedStopInfo.id);

@@ -333,13 +333,11 @@ useEffect(() => {
         // Remove one instance
         let idx = -1;
         if (isMyItemsActive) {
-          console.log('aaa')
           idx = items.findIndex(
             (itm) => itm.groupingKey === clickedItem.groupingKey
           );
         } else {
           const itemIdToDelete = clickedItem.furnitureItemId?.toString() || clickedItem.id?.toString();
-          console.log(itemIdToDelete, ' dele')
           idx = items.findIndex((itm) => itm.furnitureItemId?.toString() === itemIdToDelete);
         }
         if (idx !== -1) items.splice(idx, 1);
@@ -368,12 +366,6 @@ useEffect(() => {
         } else {
           // Create new from furniture item
           //const furnitureId = clickedItem.id?.toString();
-          let defaultPacking = {};
-          if (clickedItem.packingNeeds?.length) {
-            clickedItem.packingNeeds.forEach((pack) => {
-              defaultPacking[pack.type] = pack.quantity;
-            });
-          }
           newItemInstance = {
             id: uuidv4(),
             furnitureItemId,

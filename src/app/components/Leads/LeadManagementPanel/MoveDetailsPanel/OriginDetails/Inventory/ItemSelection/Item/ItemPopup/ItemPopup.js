@@ -316,8 +316,28 @@ function ItemPopup({
     }
 
     // packingNeeds
-    if (Array.isArray(currentItemInstance?.packingNeeds)) {
-      setPackingNeeds(currentItemInstance.packingNeeds);
+    if (currentItemInstance?.packingNeeds) {
+      const rawPacking = currentItemInstance.packingNeeds;
+
+  let normalizedPacking = [];
+
+
+
+  if (Array.isArray(rawPacking)) {
+    normalizedPacking = rawPacking;
+  }
+  else if (
+    rawPacking &&
+    typeof rawPacking === 'object' &&
+    Object.keys(rawPacking).every((k) => !isNaN(k)) &&
+    Object.values(rawPacking).every((v) => typeof v === 'object')
+  ) {
+    normalizedPacking = Object.values(rawPacking);
+  }
+
+
+    setPackingNeeds(normalizedPacking);
+
     } else if (item.packingNeeds && item.packingNeeds.length > 0) {
       setPackingNeeds(item.packingNeeds);
     } else {
@@ -461,7 +481,6 @@ const handleSaveItem = (overrides = {}) => {
     cuft: cuft !== '' ? parseInt(cuft, 10) : item.cuft || 0,
     lbs: lbs !== '' ? parseInt(lbs, 10) : item.lbs || 0,
     packingNeeds,
-    packingNeeds: {}, // Keep empty for compatibility
     link: overrides.link ?? link,
     uploadedImages: overrides.uploadedImages ?? uploadedImages,
     cameraImages: overrides.cameraImages ?? cameraImages,
@@ -594,12 +613,12 @@ const handleSaveItem = (overrides = {}) => {
     const furnitureId = item.id?.toString() || currentItemInstance?.furnitureItemId;
     
     // Create default packing needs
-    let defaultPacking = {};
-    if (item.packingNeeds?.length) {
-      item.packingNeeds.forEach((pack) => {
-        defaultPacking[pack.type] = pack.quantity;
-      });
-    }
+    //let defaultPacking = {};
+    // if (item.packingNeeds?.length) {
+    //   item.packingNeeds.forEach((pack) => {
+    //     defaultPacking[pack.type] = pack.quantity;
+    //   });
+    // }
     
     // Create a brand new item instance with default values (not saved yet)
     const freshItemInstance = {
@@ -609,8 +628,7 @@ const handleSaveItem = (overrides = {}) => {
       notes: "",
       cuft: item.cuft || "",
       lbs: item.lbs || "",
-      packingNeeds: defaultPacking,
-      packingNeeds: item.packingNeeds || [],
+      packingNeeds: Array.isArray(item.packingNeeds) ? [...item.packingNeeds] : [],
       link: "",
       uploadedImages: [],
       cameraImages: [],

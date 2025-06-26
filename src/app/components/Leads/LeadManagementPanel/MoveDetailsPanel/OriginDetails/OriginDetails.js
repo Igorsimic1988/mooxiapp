@@ -15,7 +15,6 @@ import ServicesPopup from './ServicesPopup/ServicesPopup';
 // Reusable row of stops
 import MainAndStopOffs from './MainAndStopOffs/MainAndStopOffs';
 import { useUiState } from '../UiStateContext';
-import { useInventoryContext } from '../InventoryContext';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createOrigin } from 'src/app/services/originsService';
 import { useAccessToken } from "src/app/lib/useAccessToken";
@@ -105,35 +104,32 @@ function OriginDetails({
     });
   }
   // ---------- ORIGIN STOPS ----------
-  const { inventoryByStop } = useInventoryContext();
   
   // Calculate totals across all stops
   const inventoryTotals = React.useMemo(() => {
- let totalCuft = 0;
+  
+    let totalCuft = 0;
     let totalLbs = 0;
-    
-   
-    
-    // Calculate across all stops
-  Object.values(inventoryByStop).forEach((stopData) => {
-      const itemsByRoom = stopData.itemsByRoom || {};
-      
-      Object.values(itemsByRoom).forEach((items) => {
-        items.forEach((itemInstance) => {
-          const cuftVal = parseFloat(itemInstance.cuft) || 0;
-          const lbsVal = parseFloat(itemInstance.lbs) || 0;
-          
-          totalCuft += cuftVal;
-          totalLbs += lbsVal;
+  
+    originStops.forEach((stop) => {
+      if (!stop?.isVisible || !stop?.itemsByRoom) return;
+  
+      Object.values(stop.itemsByRoom).forEach((items) => {
+        items.forEach((item) => {
+          const cuft = parseFloat(item.cuft) || 0;
+          const lbs = parseFloat(item.lbs) || 0;
+          totalCuft += cuft;
+          totalLbs += lbs;
         });
       });
     });
-    
+  
     return {
       totalCuft: Math.round(totalCuft),
       totalLbs: Math.round(totalLbs),
     };
-  }, [inventoryByStop]);
+  }, [originStops]);
+  
 
   // Instead of local useState, we read isCollapsed from props:
   const {selectedOriginStopId, setSelectedOriginStopId, isOriginCollapsed, setIsOriginCollapsed} = useUiState();

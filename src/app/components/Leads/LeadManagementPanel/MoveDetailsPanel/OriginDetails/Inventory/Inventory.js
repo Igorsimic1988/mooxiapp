@@ -372,6 +372,7 @@ useEffect(() => {
           newItemInstance = {
             id: uuidv4(),
             furnitureItemId,
+            roomId: selectedRoom.id, 
             tags,
             notes: clickedItem.notes || "",
             cuft: clickedItem.cuft || "",
@@ -392,6 +393,7 @@ useEffect(() => {
           newItemInstance = {
             id: uuidv4(),
             furnitureItemId,
+            roomId: selectedRoom.id,
             tags,
             notes: "",
             cuft: clickedItem.cuft || "",
@@ -647,31 +649,20 @@ useEffect(() => {
         setInventoryByStop={setInventoryByStop}
         stopIndex={selectedStopInfo.id}
         setStopIndex={selectedStopInfo.setId}
-        roomItemSelections={stopData.itemsByRoom} 
-        setDeleteItemIds={(updater) => {
-          setInventoryByStop(prev => {
-            const stopData = getStopData(selectedStopInfo.id);
-            const oldDeleteIds = stopData.deleteItemIds || [];
-      
-            const newDeleteIds = typeof updater === 'function'
-              ? updater(oldDeleteIds)
-              : updater;
-      
-            return {
-              ...prev,
-              [selectedStopInfo.id]: {
-                ...stopData,
-                deleteItemIds: newDeleteIds,
-              },
-            };
-          });
-        }}     
+        roomItemSelections={stopData.itemsByRoom}     
         setRoomItemSelections={(fnOrObj) => {
           setInventoryByStop((prev) => {
-            const oldStopData = getStopData(selectedStopInfo.id);
+            const oldStopData = prev[selectedStopInfo.id] || {
+              itemsByRoom: {},
+              deleteItemIds: [],
+              displayedRooms: defaultRoomIds.slice(),
+              autoBoxEnabled: true,
+              inventoryItems: [],
+            };
+        
             const oldItems = oldStopData.itemsByRoom;
-            const newItems =
-              typeof fnOrObj === "function" ? fnOrObj(oldItems) : fnOrObj;
+            const newItems = typeof fnOrObj === "function" ? fnOrObj(oldItems) : fnOrObj;
+        
             return {
               ...prev,
               [selectedStopInfo.id]: {

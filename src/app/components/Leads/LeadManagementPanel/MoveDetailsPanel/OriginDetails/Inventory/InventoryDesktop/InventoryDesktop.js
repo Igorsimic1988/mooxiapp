@@ -115,7 +115,6 @@ function InventoryDesktop({
   // Items and Fuse instance
   allItems: propAllItems,
   fuse: propFuse,
-  setDeleteItemIds
 }) {
   // Fetch furniture items from backend if not provided
   const { data: fetchedAllItems = [] } = useQuery({
@@ -373,6 +372,7 @@ const handleItemClick = (itemData, action) => {
       const newItemInstance = {
         id: uuidv4(),
         furnitureItemId: itemData.furnitureItemId,
+        roomId,
         name: itemData.name || '',
         imageName: itemData.imageName || '',
         tags,

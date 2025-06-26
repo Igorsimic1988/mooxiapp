@@ -503,11 +503,8 @@ const handleSaveItem = (overrides = {}) => {
   setRoomItemSelections((prev) => {
     const items = [...(prev[selectedRoom.id] || [])];
     
-    // Check if this is a new item (has isNew flag)
     if (currentItemInstance?.isNew) {
-      // It's a new item - just add the requested count
       if (itemCount === 0) {
-        // Don't add anything if count is 0
         return prev;
       }
       

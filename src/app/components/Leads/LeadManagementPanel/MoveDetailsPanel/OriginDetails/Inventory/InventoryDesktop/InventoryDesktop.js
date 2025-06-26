@@ -27,6 +27,7 @@ import DeleteButton from '../FooterNavigation/DeleteButton/DeleteButton';
 import { getAllFurnitureItems } from 'src/app/services/furnitureService';
 import { useQuery } from '@tanstack/react-query';
 import { useInventoryContext } from '../../../InventoryContext';
+import { addDefaultTags } from '../utils/addDefaultTags';
 
 import Icon from 'src/app/components/Icon';
 
@@ -106,7 +107,6 @@ function InventoryDesktop({
   handleUpdateItem,
   handleDeleteItem,
   handleAddItem,
-  handleStartFresh,
 
   // Delete toggle
   isDeleteActive,
@@ -115,6 +115,7 @@ function InventoryDesktop({
   // Items and Fuse instance
   allItems: propAllItems,
   fuse: propFuse,
+  setDeleteItemIds
 }) {
   // Fetch furniture items from backend if not provided
   const { data: fetchedAllItems = [] } = useQuery({
@@ -335,55 +336,121 @@ function InventoryDesktop({
   
   return result;
 }, [selectedRoom, roomItemSelections]);
+const handleItemClick = (itemData, action) => {
+  if (!selectedRoom || !stopIndex) return;
+
+  const roomId = selectedRoom.id;
+
+  setInventoryByStop((prev) => {
+    const stopData = prev[stopIndex] || {};
+    const itemsByRoom = { ...stopData.itemsByRoom };
+    const deleteItemIds = [...(stopData.deleteItemIds || [])];
+
+    const currentItems = [...(itemsByRoom[roomId] || [])];
+    const idx = currentItems.findIndex(item => item.groupingKey === itemData.groupingKey);
+
+    if (action === 'decrease' && idx !== -1) {
+      const [removedItem] = currentItems.splice(idx, 1);
+
+      if (removedItem?.id) {
+        deleteItemIds.push(removedItem.id);
+      }
+
+      itemsByRoom[roomId] = currentItems;
+
+      return {
+        ...prev,
+        [stopIndex]: {
+          ...stopData,
+          itemsByRoom,
+          deleteItemIds,
+        },
+      };
+    }
+
+    if (action === 'increase') {
+      const { tags, packingNeeds } = addDefaultTags(itemData, roomId, lead, inventoryByStop[stopIndex]);
+      const newItemInstance = {
+        id: uuidv4(),
+        furnitureItemId: itemData.furnitureItemId,
+        name: itemData.name || '',
+        imageName: itemData.imageName || '',
+        tags,
+        notes: itemData.notes || '',
+        cuft: itemData.cuft || '',
+        lbs: itemData.lbs || '',
+        packingNeeds,
+        link: itemData.link || '',
+        uploadedImages: [...(itemData.uploadedImages || [])],
+        cameraImages: [...(itemData.cameraImages || [])],
+        groupingKey: itemData.groupingKey,
+      };
+
+      currentItems.push(newItemInstance);
+      itemsByRoom[roomId] = currentItems;
+
+      return {
+        ...prev,
+        [stopIndex]: {
+          ...stopData,
+          itemsByRoom,
+        },
+      };
+    }
+
+    return prev; // fallback ako ništa nije urađeno
+  });
+};
+
+// const handleItemClick = (itemData, action) => {
+//   if (!selectedRoom) return;
+  
+//   if (action === 'decrease') {
+//     // Remove an item with the specific groupingKey
+//     if (itemData.groupingKey) {
+//       const items = [...(roomItemSelections[selectedRoom.id] || [])];
+//       const idx = items.findIndex(item => item.groupingKey === itemData.groupingKey);
+      
+//       if (idx !== -1) {
+//         items.splice(idx, 1);
+//         setRoomItemSelections({
+//           ...roomItemSelections,
+//           [selectedRoom.id]: items
+//         });
+//       }
+//     }
+//   } else { // 'increase'
+//     // Add a new instance of this item with the same properties
+//     if (itemData.groupingKey) {
+//       const newItemInstance = {
+//         id: uuidv4(),
+//         furnitureItemId: itemData.furnitureItemId,
+//         name: itemData.name || '',
+//         imageName: itemData.imageName  || '',
+//         tags: [...(itemData.tags || [])],
+//         notes: itemData.notes || '',
+//         cuft: itemData.cuft || '',
+//         lbs: itemData.lbs || '',
+//         packingNeeds: { ...(itemData.packingNeeds || {}) },
+//         packingNeeds: [...(itemData.packingNeeds || [])],
+//         link: itemData.link || '',
+//         uploadedImages: [...(itemData.uploadedImages || [])],
+//         cameraImages: [...(itemData.cameraImages || [])],
+//         groupingKey: itemData.groupingKey
+//       };
+      
+//       const items = [...(roomItemSelections[selectedRoom.id] || [])];
+//       items.push(newItemInstance);
+      
+//       setRoomItemSelections({
+//         ...roomItemSelections,
+//         [selectedRoom.id]: items
+//       });
+//     }
+//   }
+// };
 
   // Handle item click for "My Items" panel (grouped items)
-  const handleItemClick = (itemData, action) => {
-    if (!selectedRoom) return;
-    
-    if (action === 'decrease') {
-      // Remove an item with the specific groupingKey
-      if (itemData.groupingKey) {
-        const items = [...(roomItemSelections[selectedRoom.id] || [])];
-        const idx = items.findIndex(item => item.groupingKey === itemData.groupingKey);
-        
-        if (idx !== -1) {
-          items.splice(idx, 1);
-          setRoomItemSelections({
-            ...roomItemSelections,
-            [selectedRoom.id]: items
-          });
-        }
-      }
-    } else { // 'increase'
-      // Add a new instance of this item with the same properties
-      if (itemData.groupingKey) {
-        const newItemInstance = {
-          id: uuidv4(),
-          furnitureItemId: itemData.furnitureItemId,
-          name: itemData.name || '',
-          imageName: itemData.imageName  || '',
-          tags: [...(itemData.tags || [])],
-          notes: itemData.notes || '',
-          cuft: itemData.cuft || '',
-          lbs: itemData.lbs || '',
-          packingNeeds: { ...(itemData.packingNeeds || {}) },
-          packingNeeds: [...(itemData.packingNeeds || [])],
-          link: itemData.link || '',
-          uploadedImages: [...(itemData.uploadedImages || [])],
-          cameraImages: [...(itemData.cameraImages || [])],
-          groupingKey: itemData.groupingKey
-        };
-        
-        const items = [...(roomItemSelections[selectedRoom.id] || [])];
-        items.push(newItemInstance);
-        
-        setRoomItemSelections({
-          ...roomItemSelections,
-          [selectedRoom.id]: items
-        });
-      }
-    }
-  };
 
   // Wrapper function for standard items panel
   const handleRegularItemClick = (itemData, action) => {

@@ -8,10 +8,21 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { stopId, stopType, displayedRooms, itemsByRoom, inventoryItems, autoBoxEnabled } = body;
+    const { stopId, stopType, displayedRooms, itemsByRoom, inventoryItems, autoBoxEnabled, deleteItemIds = [] } = body;
 
     if (!stopId || !stopType) {
       return NextResponse.json({ error: "Stop ID and stopType are required" }, { status: 400 });
+    }
+
+    if (Array.isArray(deleteItemIds) && deleteItemIds.length > 0) {
+      console.log(deleteItemIds, '  aaaa')
+      await prisma.inventoryItem.deleteMany({
+        where: {
+          id: {
+            in: deleteItemIds,
+          },
+        },
+      });
     }
 
     if (stopType === 'origin') {

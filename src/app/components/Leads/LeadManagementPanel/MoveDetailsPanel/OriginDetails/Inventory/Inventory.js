@@ -68,7 +68,7 @@ function Inventory({
 
   // Sync mutation for backend
   const syncAllInventoryDataMutation = useMutation({
-    mutationFn: ({stopId, stopType, displayedRooms, itemsByRoom}) => {
+    mutationFn: ({stopId, stopType, displayedRooms, itemsByRoom, deleteItemIds}) => {
       const inventoryItems = Object.values(itemsByRoom).flat();
       const autoBoxEnabled = isToggled;
       
@@ -78,7 +78,8 @@ function Inventory({
         displayedRooms, 
         itemsByRoom,
         inventoryItems,
-        autoBoxEnabled
+        autoBoxEnabled,
+        deleteItemIds,
       });
     },
     onSuccess: (_data, variables) => {
@@ -116,23 +117,37 @@ function Inventory({
 
   const { inventoryByStop, setInventoryByStop } = useInventoryContext();
 
+const stopId = selectedStopInfo?.id;
+
 const getStopData = useCallback((stopId) => {
-  let stopData = inventoryByStop[stopId];
-  if (!stopData) {
-    stopData = {
+  if (!stopId || !inventoryByStop || typeof inventoryByStop !== 'object') {
+    return {
       displayedRooms: defaultRoomIds.slice(),
       itemsByRoom: {},
       inventoryItems: [],
       autoBoxEnabled: true,
+      deleteItemIds: [],
     };
   }
-  return stopData;
+
+  const stopData = inventoryByStop[stopId];
+
+  return {
+    displayedRooms: stopData?.displayedRooms || defaultRoomIds.slice(),
+    itemsByRoom: stopData?.itemsByRoom || {},
+    inventoryItems: stopData?.inventoryItems || [],
+    autoBoxEnabled: stopData?.autoBoxEnabled ?? true,
+    deleteItemIds: stopData?.deleteItemIds || [],
+  };
 }, [inventoryByStop]);
 
-const stopId = selectedStopInfo?.id;
 
 
-const isToggled = stopId ? getStopData(stopId).autoBoxEnabled ?? true : true;
+
+const isToggled = useMemo(() => {
+  if (!stopId || !inventoryByStop || !inventoryByStop[stopId]) return true;
+  return inventoryByStop[stopId].autoBoxEnabled ?? true;
+}, [stopId, inventoryByStop]);
 
 const setIsToggled = (newValue) => {
   setInventoryByStop((prev) => {
@@ -233,6 +248,8 @@ useEffect(() => {
           inventoryData.autoBoxEnabled !== undefined
             ? inventoryData.autoBoxEnabled
             : true,
+        deleteItemIds: inventoryData.deleteItemIds || [], 
+
       },
     }));
          setHasLoadedInventory(true);
@@ -328,6 +345,7 @@ useEffect(() => {
     setInventoryByStop((prev) => {
       const stopData = getStopData(selectedStopInfo.id);
       const items = [...(stopData.itemsByRoom[selectedRoom.id] || [])];
+      const deleteItemIds = [...(stopData.deleteItemIds || [])];
 
       if (doAction === "decrease") {
         // Remove one instance
@@ -336,11 +354,16 @@ useEffect(() => {
           idx = items.findIndex(
             (itm) => itm.groupingKey === clickedItem.groupingKey
           );
-        } else {
+        }else {
           const itemIdToDelete = clickedItem.furnitureItemId?.toString() || clickedItem.id?.toString();
           idx = items.findIndex((itm) => itm.furnitureItemId?.toString() === itemIdToDelete);
         }
-        if (idx !== -1) items.splice(idx, 1);
+        if (idx !== -1) {
+          const [removedItem] = items.splice(idx, 1);
+          if (removedItem?.id) {
+            deleteItemIds.push(removedItem.id);
+          }
+        }
       } else {
         // Add new instance
         let newItemInstance;
@@ -394,6 +417,7 @@ useEffect(() => {
           ...stopData.itemsByRoom,
           [selectedRoom.id]: items,
         },
+        deleteItemIds,
       };
       return { ...prev, [selectedStopInfo.id]: updatedStopData };
     });
@@ -435,47 +459,6 @@ useEffect(() => {
     return items.length;
   }, [selectedRoom, selectedStopInfo, getStopData]);
   
-  
-  const handleDeleteItem = (itemToDelete) => {
-    const roomId = selectedRoom?.id;
-    if (!roomId) return;
-    const stopData = getStopData(stopId);
-  const currentItems = stopData.itemsByRoom[roomId] || [];
-      const inventoryItems = stopData.inventoryItems || [];
-
-  
-    const currentItem = currentItems.find(itm => itm.groupingKey === itemToDelete.groupingKey);
-    if (!currentItem) return;
-    let updatedRoomItems;
-    let updatedInventory;
-    if (currentItem.count > 1) {
-      const updatedItem = { ...currentItem, count: currentItem.count - 1 };
-      updatedRoomItems = currentItems.map(itm =>
-        itm.groupingKey === itemToDelete.groupingKey ? updatedItem : itm
-      );
-  
-      updatedInventory = inventoryItems.map(itm =>
-        itm.groupingKey === itemToDelete.groupingKey ? updatedItem : itm
-      );
-    } else {
-      updatedRoomItems = currentItems.filter(itm => itm.groupingKey !== itemToDelete.groupingKey);
-      updatedInventory = inventoryItems.filter(itm => itm.groupingKey !== itemToDelete.groupingKey);
-    }
-    setInventoryByStop((prev) => {
-  const stopData = getStopData(stopId);
-  return {
-    ...prev,
-    [stopId]: {
-      ...stopData,
-      itemsByRoom: {
-        ...stopData.itemsByRoom,
-        [roomId]: updatedRoomItems,
-      },
-      inventoryItems: updatedInventory,
-    },
-  };
-});
-  };
   
   const handleUpdateItem = useCallback((updatedItemInstance, originalItemInstance) => {
     if (!selectedRoom || !selectedStopInfo) return;
@@ -630,10 +613,20 @@ useEffect(() => {
           stopType,
           displayedRooms: stopData.displayedRooms,
           itemsByRoom: stopData.itemsByRoom,
+          deleteItemIds: stopData.deleteItemIds || [], 
         });
       });
       
       await Promise.all(stopSyncs);
+      setInventoryByStop((prev) => {
+        const updated = { ...prev };
+        for (const stopId in updated) {
+          updated[stopId] = {
+            ...updated[stopId],
+            deleteItemIds: [],
+          };
+        }
+      });
       onCloseInventory();
     } catch (error) {
       console.error("Sync failed:", error);
@@ -654,7 +647,25 @@ useEffect(() => {
         setInventoryByStop={setInventoryByStop}
         stopIndex={selectedStopInfo.id}
         setStopIndex={selectedStopInfo.setId}
-        roomItemSelections={stopData.itemsByRoom}
+        roomItemSelections={stopData.itemsByRoom} 
+        setDeleteItemIds={(updater) => {
+          setInventoryByStop(prev => {
+            const stopData = getStopData(selectedStopInfo.id);
+            const oldDeleteIds = stopData.deleteItemIds || [];
+      
+            const newDeleteIds = typeof updater === 'function'
+              ? updater(oldDeleteIds)
+              : updater;
+      
+            return {
+              ...prev,
+              [selectedStopInfo.id]: {
+                ...stopData,
+                deleteItemIds: newDeleteIds,
+              },
+            };
+          });
+        }}     
         setRoomItemSelections={(fnOrObj) => {
           setInventoryByStop((prev) => {
             const oldStopData = getStopData(selectedStopInfo.id);

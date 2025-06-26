@@ -255,7 +255,7 @@ useEffect(() => {
          setHasLoadedInventory(true);
 
   }
-}, [inventoryData, selectedStopInfo]);
+}, [inventoryData, selectedStopInfo, setInventoryByStop]);
 
 
   useEffect(() => {
@@ -423,7 +423,7 @@ useEffect(() => {
       };
       return { ...prev, [selectedStopInfo.id]: updatedStopData };
     });
-  }, [selectedRoom, selectedStopInfo, isDeleteActive, isMyItemsActive, getStopData, setInventoryByStop]);
+  }, [selectedRoom, selectedStopInfo, isDeleteActive, isMyItemsActive, getStopData, setInventoryByStop, lead]);
 
   // Other callbacks optimized similarly...
 

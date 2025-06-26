@@ -192,9 +192,6 @@ function AccessPopup({
 
   // Filter out inactive stops
   const activeStops = (currentStops || []).filter((s) => s.isActive !== false);
-  console.log(activeStops, '   active')
-  console.log('originStops:', originStops);
-console.log('active origin stops:', originStops.filter(s => s.isActive !== false));
 
   return (
     <div className={styles.popup}>

@@ -18,6 +18,8 @@ import { updateOrigin } from 'src/app/services/originsService';
 import { updateDestination } from 'src/app/services/destinationsService';
 import { useAccessToken } from "src/app/lib/useAccessToken";
 import { useQueryClient } from '@tanstack/react-query';
+import { updateAddStorageWithInventory } from 'src/app/services/leadsService';
+import { useInventoryContext } from './InventoryContext';
 
 /** Generate time slots from 7:00 AM to 9:00 PM in 15-min increments */
 function generateTimeSlots() {
@@ -67,6 +69,8 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         arrivalTime: lead?.arrivalTime || '',
       },
     });
+    const { setInventoryByStop } = useInventoryContext();
+    
 
   const moveDate = watch('moveDate');
   const deliveryDate = watch('deliveryDate');
@@ -145,6 +149,53 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     );
   };
 
+  const updateAddStorageWithInventoryMutation = useMutation({
+    mutationFn: ({id, addStorage, storageItems}) =>updateAddStorageWithInventory({id, addStorage, storageItems}),
+    onSuccess: (updatedLead) => {
+      console.log("Updated lead:", updatedLead);
+      queryClient.invalidateQueries(['leads']);
+    
+      (updatedLead?.origins || []).forEach((origin) => {
+        queryClient.invalidateQueries(['inventoryByOrigin', origin.id]);
+    
+        // Ažuriraj lokalni state iz context-a:
+        setInventoryByStop((prev) => ({
+          ...prev,
+          [origin.id]: {
+            ...prev[origin.id],
+            inventoryItems: origin.inventoryItems || [],
+            itemsByRoom: origin.itemsByRoom || {},
+            displayedRooms: origin.displayedRooms || [],
+            autoBoxEnabled: origin.autoBoxEnabled ?? true,
+          },
+        }));
+      });
+    
+      (updatedLead?.destinations || []).forEach((destination) => {
+        queryClient.invalidateQueries(['inventoryByDestination', destination.id]);
+    
+        setInventoryByStop((prev) => ({
+          ...prev,
+          [destination.id]: {
+            ...prev[destination.id],
+            inventoryItems: destination.inventoryItems || [],
+            itemsByRoom: destination.itemsByRoom || {},
+            displayedRooms: destination.displayedRooms || [],
+            autoBoxEnabled: destination.autoBoxEnabled ?? true,
+          },
+        }));
+      });
+    },
+    onError: (err) => {
+      console.log(err)
+    }
+  });
+
+  const handleAddStorageWithInventoryUpdated = (id, addStorage, storageItems) => {
+    updateAddStorageWithInventoryMutation.mutate(
+      { id, addStorage, storageItems }
+    );
+  };
 
   // Tabs
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -283,42 +334,21 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       
       if (!isWeightOrVolumeBased) {
         setValue('deliveryDate', '')
-        if (onLeadUpdated) {
-          onLeadUpdated(lead.id, {
-            addStorage: false,
-            storageItems: '',
-            deliveryDate: '',
-          });
-        }
+        handleAddStorageWithInventoryUpdated(lead.id, false, '')
       } else {
         // Keep delivery date for Weight/Volume Based
-        if (onLeadUpdated) {
-          onLeadUpdated(lead.id, {
-            addStorage: false,
-            storageItems: '',
-          });
-        }
+        handleAddStorageWithInventoryUpdated(lead.id, false, '')
       }
     } else {
+      handleAddStorageWithInventoryUpdated(lead.id, true, storageItems)
       // If toggling storage ON => keep current or set default
-      if (onLeadUpdated) {
-        onLeadUpdated(lead.id, {
-          addStorage: true,
-          storageItems: storageItems,
-        });
-      }
     }
   };
 
   const handleSelectStorage = (option) => {
     setValue('storageItems', option)
     setStorageDropdownOpen(false);
-    if (onLeadUpdated) {
-      onLeadUpdated(lead.id, {
-        addStorage: true,
-        storageItems: option,
-      });
-    }
+    handleAddStorageWithInventoryUpdated(lead.id, true, option)
   };
 
   // ---------- "Time Promised" ----------
@@ -850,13 +880,11 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
       <LogisticsDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
-        isStorageEnabled={addStorage}
       />
 
       <EstimateDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
-         isStorageEnabled={addStorage}
       />
     </div>
   );

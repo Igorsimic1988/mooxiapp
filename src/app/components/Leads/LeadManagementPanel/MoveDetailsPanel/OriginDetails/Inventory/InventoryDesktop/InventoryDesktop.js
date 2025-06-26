@@ -26,6 +26,8 @@ import SpecialH from '../FooterNavigation/SpecialH/SpecialH';
 import DeleteButton from '../FooterNavigation/DeleteButton/DeleteButton';
 import { getAllFurnitureItems } from 'src/app/services/furnitureService';
 import { useQuery } from '@tanstack/react-query';
+import { useInventoryContext } from '../../../InventoryContext';
+import { addDefaultTags } from '../utils/addDefaultTags';
 
 import Icon from 'src/app/components/Icon';
 
@@ -105,7 +107,6 @@ function InventoryDesktop({
   handleUpdateItem,
   handleDeleteItem,
   handleAddItem,
-  handleStartFresh,
 
   // Delete toggle
   isDeleteActive,
@@ -155,6 +156,9 @@ function InventoryDesktop({
 
   // Convert displayedRooms = [{id, name}] => numeric array [id, ...] for MyInventory & SpecialH
   const displayedRoomIds = displayedRooms.map((r) => r.id);
+
+  const { inventoryByStop, setInventoryByStop } = useInventoryContext();
+  
 
   // Expand/collapse
   const handleExpandCollapse = () => {
@@ -217,7 +221,7 @@ function InventoryDesktop({
   // Count how many times each item appears in "Items" panel (for individual items)
   const itemCounts = (roomItemSelections[selectedRoom?.id] || []).reduce(
     (acc, inst) => {
-      const key = (inst.furnitureItemId || inst.itemId)?.toString();
+      const key = (inst.furnitureItemId)?.toString();
       if (key) {
         acc[key] = (acc[key] || 0) + 1;
       }
@@ -296,22 +300,14 @@ function InventoryDesktop({
         groupingKey: gKey,
         // Keep React key simple and stable
         id: gKey,
-        furnitureItemId: inst.furnitureItemId || inst.itemId,
-        itemId: inst.itemId || inst.furnitureItemId,
-        item: inst.item || {
-          id: inst.furnitureItemId || inst.itemId,
-          name: inst.name || inst.item?.name || '',
-          imageName: inst.imageName || inst.item?.imageName || inst.item?.src || '',
-          src: inst.item?.src || inst.imageName || '',
-        },
-        name: inst.name || inst.item?.name || '',
-        imageName: inst.imageName || inst.item?.imageName || inst.item?.src || '',
+        furnitureItemId: inst.furnitureItemId,
+        name: inst.name  || '',
+        imageName: inst.imageName || '',
         tags: [...(inst.tags || [])],
         notes: inst.notes || '',
         cuft: inst.cuft || '',
         lbs: inst.lbs || '',
-        packingNeedsCounts: { ...(inst.packingNeedsCounts || {}) },
-        packingNeeds: inst.packingNeeds || [],
+        packingNeeds: { ...(inst.packingNeeds || {}) },
         link: inst.link || '',
         uploadedImages: [...(inst.uploadedImages || [])],
         cameraImages: [...(inst.cameraImages || [])],
@@ -337,57 +333,122 @@ function InventoryDesktop({
   
   return result;
 }, [selectedRoom, roomItemSelections]);
+const handleItemClick = (itemData, action) => {
+  if (!selectedRoom || !stopIndex) return;
+
+  const roomId = selectedRoom.id;
+
+  setInventoryByStop((prev) => {
+    const stopData = prev[stopIndex] || {};
+    const itemsByRoom = { ...stopData.itemsByRoom };
+    const deleteItemIds = [...(stopData.deleteItemIds || [])];
+
+    const currentItems = [...(itemsByRoom[roomId] || [])];
+    const idx = currentItems.findIndex(item => item.groupingKey === itemData.groupingKey);
+
+    if (action === 'decrease' && idx !== -1) {
+      const [removedItem] = currentItems.splice(idx, 1);
+
+      if (removedItem?.id) {
+        deleteItemIds.push(removedItem.id);
+      }
+
+      itemsByRoom[roomId] = currentItems;
+
+      return {
+        ...prev,
+        [stopIndex]: {
+          ...stopData,
+          itemsByRoom,
+          deleteItemIds,
+        },
+      };
+    }
+
+    if (action === 'increase') {
+      const { tags, packingNeeds } = addDefaultTags(itemData, roomId, lead, inventoryByStop[stopIndex]);
+      const newItemInstance = {
+        id: uuidv4(),
+        furnitureItemId: itemData.furnitureItemId,
+        roomId,
+        name: itemData.name || '',
+        imageName: itemData.imageName || '',
+        tags,
+        notes: itemData.notes || '',
+        cuft: itemData.cuft || '',
+        lbs: itemData.lbs || '',
+        packingNeeds,
+        link: itemData.link || '',
+        uploadedImages: [...(itemData.uploadedImages || [])],
+        cameraImages: [...(itemData.cameraImages || [])],
+        groupingKey: itemData.groupingKey,
+      };
+
+      currentItems.push(newItemInstance);
+      itemsByRoom[roomId] = currentItems;
+
+      return {
+        ...prev,
+        [stopIndex]: {
+          ...stopData,
+          itemsByRoom,
+        },
+      };
+    }
+
+    return prev; // fallback ako ništa nije urađeno
+  });
+};
+
+// const handleItemClick = (itemData, action) => {
+//   if (!selectedRoom) return;
+  
+//   if (action === 'decrease') {
+//     // Remove an item with the specific groupingKey
+//     if (itemData.groupingKey) {
+//       const items = [...(roomItemSelections[selectedRoom.id] || [])];
+//       const idx = items.findIndex(item => item.groupingKey === itemData.groupingKey);
+      
+//       if (idx !== -1) {
+//         items.splice(idx, 1);
+//         setRoomItemSelections({
+//           ...roomItemSelections,
+//           [selectedRoom.id]: items
+//         });
+//       }
+//     }
+//   } else { // 'increase'
+//     // Add a new instance of this item with the same properties
+//     if (itemData.groupingKey) {
+//       const newItemInstance = {
+//         id: uuidv4(),
+//         furnitureItemId: itemData.furnitureItemId,
+//         name: itemData.name || '',
+//         imageName: itemData.imageName  || '',
+//         tags: [...(itemData.tags || [])],
+//         notes: itemData.notes || '',
+//         cuft: itemData.cuft || '',
+//         lbs: itemData.lbs || '',
+//         packingNeeds: { ...(itemData.packingNeeds || {}) },
+//         packingNeeds: [...(itemData.packingNeeds || [])],
+//         link: itemData.link || '',
+//         uploadedImages: [...(itemData.uploadedImages || [])],
+//         cameraImages: [...(itemData.cameraImages || [])],
+//         groupingKey: itemData.groupingKey
+//       };
+      
+//       const items = [...(roomItemSelections[selectedRoom.id] || [])];
+//       items.push(newItemInstance);
+      
+//       setRoomItemSelections({
+//         ...roomItemSelections,
+//         [selectedRoom.id]: items
+//       });
+//     }
+//   }
+// };
 
   // Handle item click for "My Items" panel (grouped items)
-  const handleItemClick = (itemData, action) => {
-    if (!selectedRoom) return;
-    
-    if (action === 'decrease') {
-      // Remove an item with the specific groupingKey
-      if (itemData.groupingKey) {
-        const items = [...(roomItemSelections[selectedRoom.id] || [])];
-        const idx = items.findIndex(item => item.groupingKey === itemData.groupingKey);
-        
-        if (idx !== -1) {
-          items.splice(idx, 1);
-          setRoomItemSelections({
-            ...roomItemSelections,
-            [selectedRoom.id]: items
-          });
-        }
-      }
-    } else { // 'increase'
-      // Add a new instance of this item with the same properties
-      if (itemData.groupingKey) {
-        const newItemInstance = {
-          id: uuidv4(),
-          furnitureItemId: itemData.furnitureItemId || itemData.itemId,
-          itemId: itemData.itemId || itemData.furnitureItemId,
-          item: { ...itemData.item },
-          name: itemData.name || itemData.item?.name || '',
-          imageName: itemData.imageName || itemData.item?.imageName || '',
-          tags: [...(itemData.tags || [])],
-          notes: itemData.notes || '',
-          cuft: itemData.cuft || '',
-          lbs: itemData.lbs || '',
-          packingNeedsCounts: { ...(itemData.packingNeedsCounts || {}) },
-          packingNeeds: [...(itemData.packingNeeds || [])],
-          link: itemData.link || '',
-          uploadedImages: [...(itemData.uploadedImages || [])],
-          cameraImages: [...(itemData.cameraImages || [])],
-          groupingKey: itemData.groupingKey
-        };
-        
-        const items = [...(roomItemSelections[selectedRoom.id] || [])];
-        items.push(newItemInstance);
-        
-        setRoomItemSelections({
-          ...roomItemSelections,
-          [selectedRoom.id]: items
-        });
-      }
-    }
-  };
 
   // Wrapper function for standard items panel
   const handleRegularItemClick = (itemData, action) => {
@@ -515,7 +576,6 @@ function InventoryDesktop({
               isDeleteActive={isDeleteActive}
               onUpdateItem={handleUpdateItem}
               onAddItem={handleAddItem}
-              onStartFresh={handleStartFresh}
               isDesktop={true}
               fuse={fuse}
             />
@@ -536,6 +596,8 @@ function InventoryDesktop({
           <div
             className={`${styles.itemListPlaceholder} ${styles.myItemsListPlaceholder}`}
           >
+            
+
             <ItemList
               items={groupedItems}
               itemClickCounts={{}}
@@ -545,7 +607,6 @@ function InventoryDesktop({
               isDeleteActive={isDeleteActive}
               onUpdateItem={handleUpdateItem}
               onAddItem={handleAddItem}
-              onStartFresh={handleStartFresh}
               isDesktop={true}
               onOpenPopup={handleOpenItemPopup}
             />
@@ -601,7 +662,6 @@ function InventoryDesktop({
     onAddItem={handleAddItem}
     handleDeleteItem={handleDeleteItem}
     onOpenPopup={handleOpenItemPopup}
-    onStartFresh={handleStartFresh}
     lead={lead}
     selectedRoom={selectedRoom}
     roomItemSelections={roomItemSelections}

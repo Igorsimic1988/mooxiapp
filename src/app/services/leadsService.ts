@@ -62,4 +62,26 @@ export const updateLead= async ({id, data, token}:
   
     return data.leads;
 };
+export const updateAddStorageWithInventory= async ({id, addStorage, storageItems}:
+  {id: string,
+  addStorage: boolean,
+  storageItems: string}
+) => {
+
+  const res = await fetch('/api/leads/updateAddStorageWithInventory', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ id, addStorage, storageItems }),
+  });
+
+  const response = await res.json();
+
+  if (!res.ok) {
+    throw new Error(response.error || 'Failed to update lead');
+  }
+
+  return response.lead;
+};
 

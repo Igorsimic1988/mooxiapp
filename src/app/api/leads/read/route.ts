@@ -15,13 +15,21 @@ export async function GET(req: Request) {
         if (!account) {
           return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
-    const leads = await prisma.lead.findMany({
-      include: {
-        brand: true, 
-        origins: true,        
-        destinations: true, 
-      }
-    });
+        const leads = await prisma.lead.findMany({
+          include: {
+            brand: true, 
+            origins: {
+              include: {
+                inventoryItems: true,
+              },
+            },
+            destinations: {
+              include: {
+                inventoryItems: true,
+              },
+            },
+          }
+        });
 
     const events = await prisma.event.findMany({
       where: {

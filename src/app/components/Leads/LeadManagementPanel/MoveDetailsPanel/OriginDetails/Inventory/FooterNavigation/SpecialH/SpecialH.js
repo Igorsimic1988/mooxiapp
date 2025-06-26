@@ -385,9 +385,9 @@ function SpecialH({
                       <ItemCard
                         key={inst.id}
                         id={inst.id}
-                        item={inst.item || inst}
-                        name={inst.name || inst.item?.name}
-                        imageName={inst.imageName || inst.item?.imageName}
+                        item={inst}
+                        name={inst.name}
+                        imageName={inst.imageName}
                         tags={inst.tags}
                         isSelected={
                           !!currentTag && inst.tags?.includes(currentTag)

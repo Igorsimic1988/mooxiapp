@@ -9,7 +9,7 @@
  * @param {string} [instance.notes] - Optional notes for the item.
  * @param {string} [instance.cuft] - Optional cubic feet measurement.
  * @param {string} [instance.lbs] - Optional pounds measurement.
- * @param {Object} [instance.packingNeedsCounts] - Optional packing needs counts.
+ * @param {Object} [instance.packingNeeds] - Optional packing needs counts.
  * @param {string} [instance.link] - Optional link associated with the item.
  * @param {Array<string>} [instance.uploadedImages] - Array of uploaded image data.
  * @param {Array<string>} [instance.cameraImages] - Array of camera image data.

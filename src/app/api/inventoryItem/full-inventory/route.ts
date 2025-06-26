@@ -8,13 +8,29 @@ const prisma = new PrismaClient();
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { stopId, stopType, displayedRooms, itemsByRoom, inventoryItems, autoBoxEnabled } = body;
+    const { stopId, stopType, displayedRooms, itemsByRoom, inventoryItems, autoBoxEnabled, deleteItemIds = [] } = body;
 
     if (!stopId || !stopType) {
       return NextResponse.json({ error: "Stop ID and stopType are required" }, { status: 400 });
     }
 
+    if (Array.isArray(deleteItemIds) && deleteItemIds.length > 0) {
+      console.log(deleteItemIds, '  aaaa')
+      await prisma.inventoryItem.deleteMany({
+        where: {
+          id: {
+            in: deleteItemIds,
+          },
+        },
+      });
+    }
+
     if (stopType === 'origin') {
+      const originExists = await prisma.origins.findUnique({ where: { id: stopId } });
+      if (!originExists) {
+        return NextResponse.json({ error: "Origin stop not found" }, { status: 404 });
+      }
+    
       await prisma.origins.update({
         where: { id: stopId },
         data: {
@@ -24,6 +40,10 @@ export async function POST(req: Request) {
         },
       });
     } else {
+      const destinationExists = await prisma.destinations.findUnique({ where: { id: stopId } });
+      if (!destinationExists) {
+        return NextResponse.json({ error: "Destination stop not found" }, { status: 404 });
+      }
       await prisma.destinations.update({
         where: { id: stopId },
         data: {
@@ -36,6 +56,7 @@ export async function POST(req: Request) {
 
     for (const item of inventoryItems) {
       const { id, furnitureItemId, destinationId, originId, ...rest } = item;
+      
 
       const relationField = stopType === 'origin' ? 'origins' : 'destinations';
 
@@ -49,23 +70,20 @@ export async function POST(req: Request) {
         },
       };
 
-      if (id) {
-        const updateData = {
+      await prisma.inventoryItem.upsert({
+        where: { id },
+        update: {
           ...baseData,
           [stopType === 'origin' ? 'destinations' : 'origins']: {
             disconnect: true,
           },
-        };
-
-        await prisma.inventoryItem.update({
-          where: { id },
-          data: updateData,
-        });
-      } else {
-        await prisma.inventoryItem.create({
-          data: baseData,
-        });
-      }
+        },
+        create: {
+          id,
+          ...baseData,
+        },
+      });
+      
     }
   
 

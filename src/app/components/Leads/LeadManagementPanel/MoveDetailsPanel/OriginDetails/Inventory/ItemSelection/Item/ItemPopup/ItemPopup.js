@@ -11,7 +11,9 @@ import packingOptions from '../../../../../../../../../data/constants/packingOpt
 import { generateGroupingKey } from '../../../utils/generateGroupingKey';
 import Icon from 'src/app/components/Icon';
 import { labelToDropTag, EXCLUSIVE_LOCATION_TAGS, BASE_INCOMPATIBLE_TAGS, REQUIRED_TAGS, buildExclusiveIncompat } from '../../../utils/tagsRules';
-
+import { getAllFurnitureItems } from 'src/app/services/furnitureService';
+import { useQuery } from '@tanstack/react-query';
+import { addDefaultTags } from '../../../utils/addDefaultTags';
 /** 
  * ==============================================
  * HELPER COMPONENTS
@@ -134,7 +136,14 @@ function ItemPopup({
   roomItemSelections,
   setRoomItemSelections,
   onOpenPopup,
+  selectedStopInfo,
 }) {
+
+  const { data: allItems = [] } = useQuery({
+    queryKey: ['furnitureItems', lead?.brandId],
+    queryFn: () => getAllFurnitureItems({ brandId: lead?.brandId }),
+    enabled: !!lead?.brandId,
+  });
   const [currentItemInstance, setCurrentItemInstance] = useState(itemInstance);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -316,8 +325,28 @@ function ItemPopup({
     }
 
     // packingNeeds
-    if (Array.isArray(currentItemInstance?.packingNeeds)) {
-      setPackingNeeds(currentItemInstance.packingNeeds);
+    if (currentItemInstance?.packingNeeds) {
+      const rawPacking = currentItemInstance.packingNeeds;
+
+  let normalizedPacking = [];
+
+
+
+  if (Array.isArray(rawPacking)) {
+    normalizedPacking = rawPacking;
+  }
+  else if (
+    rawPacking &&
+    typeof rawPacking === 'object' &&
+    Object.keys(rawPacking).every((k) => !isNaN(k)) &&
+    Object.values(rawPacking).every((v) => typeof v === 'object')
+  ) {
+    normalizedPacking = Object.values(rawPacking);
+  }
+
+
+    setPackingNeeds(normalizedPacking);
+
     } else if (item.packingNeeds && item.packingNeeds.length > 0) {
       setPackingNeeds(item.packingNeeds);
     } else {
@@ -452,18 +481,15 @@ const handleSaveItem = (overrides = {}) => {
   const updatedInstance = {
     ...currentItemInstance,
     furnitureItemId: item.furnitureItemId || item.id,
-    itemId: item.id || item.furnitureItemId,
-    item: { ...item },
     name: item.name || '',
-    imageName: item.imageName || item.src || '',
+    imageName: item.imageName || '',
     letters: item.letters || [],
     search: item.search ?? true,
     tags: selectedTags,
     notes,
-    cuft: cuft !== '' ? cuft : (item.cuft || ''),
-    lbs: lbs !== '' ? lbs : (item.lbs || ''),
+    cuft: cuft !== '' ? parseInt(cuft, 10) : item.cuft || 0,
+    lbs: lbs !== '' ? parseInt(lbs, 10) : item.lbs || 0,
     packingNeeds,
-    packingNeedsCounts: {}, // Keep empty for compatibility
     link: overrides.link ?? link,
     uploadedImages: overrides.uploadedImages ?? uploadedImages,
     cameraImages: overrides.cameraImages ?? cameraImages,
@@ -477,11 +503,8 @@ const handleSaveItem = (overrides = {}) => {
   setRoomItemSelections((prev) => {
     const items = [...(prev[selectedRoom.id] || [])];
     
-    // Check if this is a new item (has isNew flag)
     if (currentItemInstance?.isNew) {
-      // It's a new item - just add the requested count
       if (itemCount === 0) {
-        // Don't add anything if count is 0
         return prev;
       }
       
@@ -592,27 +615,37 @@ const handleSaveItem = (overrides = {}) => {
     if (!item || !onOpenPopup) return;
     
     // Get the base furniture item
-    const furnitureId = item.id?.toString() || currentItemInstance?.furnitureItemId;
+    // Pretpostavka: negde imaš listu svih furnitureItem-a
+    const furnitureItem = allItems.find(fi => fi.id === item.furnitureItemId);
+    if (!furnitureItem) {
+      console.warn("❗ Furniture item not found!");
+      return;
+    }
+
     
     // Create default packing needs
-    let defaultPacking = {};
-    if (item.packingNeeds?.length) {
-      item.packingNeeds.forEach((pack) => {
-        defaultPacking[pack.type] = pack.quantity;
-      });
-    }
+    //let defaultPacking = {};
+    // if (item.packingNeeds?.length) {
+    //   item.packingNeeds.forEach((pack) => {
+    //     defaultPacking[pack.type] = pack.quantity;
+    //   });
+    // }
     
     // Create a brand new item instance with default values (not saved yet)
+    const { tags, packingNeeds } = addDefaultTags(
+      furnitureItem,
+      selectedRoom?.id,
+      lead,
+      selectedStopInfo // ✅ sad imaš pun kontekst
+    );
     const freshItemInstance = {
       id: uuidv4(),
-      furnitureItemId: furnitureId,
-      item: { ...item },
-      tags: [...(item.tags || [])],
+      furnitureItemId: furnitureItem.id,
+      tags,
       notes: "",
-      cuft: item.cuft || "",
-      lbs: item.lbs || "",
-      packingNeedsCounts: defaultPacking,
-      packingNeeds: item.packingNeeds || [],
+      cuft: furnitureItem.cuft || "",
+      lbs: furnitureItem.lbs || "",
+      packingNeeds,
       link: "",
       uploadedImages: [],
       cameraImages: [],

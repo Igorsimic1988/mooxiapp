@@ -561,7 +561,6 @@ function Inventory({
               packingNeedsCounts: packing,
               autoAdded: true,
               groupingKey: "",
-              sortKey: `auto-${bx.itemId}-${i}`,
             };
             newInst.groupingKey = generateGroupingKey(newInst);
             newBoxes.push(newInst);

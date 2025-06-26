@@ -129,7 +129,16 @@ const statusMapping = {
   },
 };
 
-function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, transferModeActive, selectedLeadJobNumber }) {
+function LeadsList({ 
+  leads, 
+  onLeadClick, 
+  activeTab, 
+  leadsListRef, 
+  onScroll, 
+  transferModeActive, 
+  selectedLeadJobNumber,
+  recentlyUpdatedLeadId // NEW PROP FOR ANIMATION
+}) {
   const isSearchResults = activeTab === 'Search Results';
 
   if (leads.length === 0) {
@@ -171,6 +180,9 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, tran
           ),
         };
 
+        // Check if this lead was recently updated
+        const wasRecentlyUpdated = recentlyUpdatedLeadId === lead.id;
+
         // Default top/middle/bottom
         let topLineText     = lead.leadStatus;
         let showTopLineIcon = true;
@@ -181,6 +193,11 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, tran
 
         // We'll handle adding a .completedText class if needed:
         let bottomLineClasses = `${styles.truncate} ${styles.salesName}`;
+        
+        // Add animation class if this lead was recently updated
+        if (wasRecentlyUpdated) {
+          bottomLineClasses += ` ${styles.salesNameUpdated}`;
+        }
 
         // My Appointments
         if (activeTab === 'My Appointments') {
@@ -192,6 +209,10 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, tran
           if (lead.next_action === 'Completed') {
             bottomLineText    = 'Completed';
             bottomLineClasses = `${styles.truncate} ${styles.salesName} ${styles.completedText}`;
+            // Still add animation if recently updated
+            if (wasRecentlyUpdated) {
+              bottomLineClasses += ` ${styles.salesNameUpdated}`;
+            }
           } else {
             bottomLineText = lead.estimator || '';
           }
@@ -199,7 +220,11 @@ function LeadsList({ leads, onLeadClick, activeTab, leadsListRef, onScroll, tran
 
         // Determine card class based on mode
         let cardClass = styles.card;
-        if (lead.jobNumber === selectedLeadJobNumber) {
+
+        // Only show selected card styling if NOT in search mode and NOT in transfer mode
+        const showSelectedStyling = !isSearchResults && !transferModeActive;
+
+        if (showSelectedStyling && lead.jobNumber === selectedLeadJobNumber) {
           cardClass = `${styles.card} ${styles.selectedCard}`;
         } else if (transferModeActive) {
           cardClass = `${styles.card} ${styles.transferCard}`;

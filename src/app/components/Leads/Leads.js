@@ -348,6 +348,9 @@ function Leads() {
   const [transferModeActive, setTransferModeActive] = useState(false);
   const [selectedSalesRepForTransfer, setSelectedSalesRepForTransfer] = useState("");
 
+  // NEW STATE FOR ANIMATION
+  const [recentlyUpdatedLeadId, setRecentlyUpdatedLeadId] = useState(null);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const leadsPerPage = 20;
@@ -561,12 +564,20 @@ function Leads() {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  // Click a lead in the list - modified to handle transfer mode
+  // Click a lead in the list - UPDATED WITH ANIMATION
   const handleLeadClick = (lead) => {
     // If transfer mode is active, update the lead's sales_name
     if (transferModeActive && selectedSalesRepForTransfer) {
       // Update the lead
       handleLeadUpdated(lead.id, { salesName: selectedSalesRepForTransfer });
+      
+      // Track this lead as recently updated for animation
+      setRecentlyUpdatedLeadId(lead.id);
+      
+      // Clear the animation after 1.5 seconds
+      setTimeout(() => {
+        setRecentlyUpdatedLeadId(null);
+      }, 400);
       
       // Log the transfer action
       console.log(`Transferred lead ${lead.jobNumber} to ${selectedSalesRepForTransfer}`);
@@ -707,19 +718,15 @@ function Leads() {
     }
   };
 
-  // Handle transfer lead - now sets the selected sales rep for transfer
+  // Handle transfer lead - FIXED: NO AUTOMATIC TRANSFER
   const handleTransferLead = (salesRepName) => {
     // Store the selected sales rep for transfer
     setSelectedSalesRepForTransfer(salesRepName);
     
-    // If a lead is already selected, update it
-    if (selectedLead) {
-      // Use the existing handleLeadUpdated function to update the lead
-      handleLeadUpdated(selectedLead.id, { salesName: salesRepName });
-      
-      // Optional: Show a success notification
-      console.log(`Lead ${selectedLead.jobNumber} transferred to ${salesRepName}`);
-    }
+    // REMOVED: The automatic transfer of selected lead
+    // Now the transfer only happens when clicking on a card
+    
+    console.log(`Transfer mode ready: Sales rep ${salesRepName} selected`);
   };
   
   const handleLeadRefetch = async () => {
@@ -884,6 +891,10 @@ function Leads() {
         startIndex={startIndex}
         endIndex={endIndex}
         filterCount={filterCount}
+        
+        // ANIMATION PROPS
+        recentlyUpdatedLeadId={recentlyUpdatedLeadId}
+        setRecentlyUpdatedLeadId={setRecentlyUpdatedLeadId}
       />
     );
   }
@@ -944,6 +955,7 @@ function Leads() {
             onScroll={(e) => setScrollPosition(e.target.scrollTop)}
             transferModeActive={transferModeActive}
             selectedLeadJobNumber={selectedLead?.jobNumber}
+            recentlyUpdatedLeadId={recentlyUpdatedLeadId} // PASS ANIMATION PROP
           />
 
           <div className={styles.paginationContainer}>

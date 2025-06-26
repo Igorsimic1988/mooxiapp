@@ -99,7 +99,7 @@ function ItemSelection({
   }, [itemInstances]);
 
   // Group items by current properties when isMyItemsActive is true
-  const groupedItems = useMemo(() => {
+const groupedItems = useMemo(() => {
     if (!isMyItemsActive) return [];
     
     const groups = new Map();
@@ -108,7 +108,7 @@ function ItemSelection({
       const key = generateGroupingKey(instance);
       
       if (!groups.has(key)) {
-        const stableItemId = instance.furnitureItemId || instance.itemId || instance.item?.id;
+       
         
         groups.set(key, {
           id: key,
@@ -128,7 +128,6 @@ function ItemSelection({
           uploadedImages: [...(instance.uploadedImages || [])],
           cameraImages: [...(instance.cameraImages || [])],
           count: 1,
-          sortKey: parseInt(stableItemId) || 0,
         });
       } else {
         const group = groups.get(key);
@@ -137,8 +136,8 @@ function ItemSelection({
     });
     
     return Array.from(groups.values()).sort((a, b) => {
-      const idA = a.sortKey;
-      const idB = b.sortKey;
+      const idA = parseInt(a.furnitureItemId) || 0;
+      const idB = parseInt(b.furnitureItemId) || 0;
       if (idA !== idB) {
         return idA - idB;
       }

@@ -270,6 +270,32 @@
   border: 1px solid #3FA9F5;
 }
 
+
+@keyframes salesNamePulse {
+  0% {
+    transform: scale(1);
+    color: #90A4B7;
+  }
+  50% {
+    transform: scale(1.15);
+    color: #59B779;
+  }
+  100% {
+    transform: scale(1);
+    color: #90A4B7;
+  }
+}
+
+.salesNameUpdated {
+  animation: salesNamePulse 0.6s ease-in-out !important;
+  display: inline-block;
+  transform-origin: right center;
+}
+
+
+
+
+
 /* Media query for smaller screens */
 @media (max-width: 392px) {
   .dateText {

@@ -71,20 +71,26 @@ function LeadsDesktop({
   startIndex,
   endIndex,
   filterCount,
+  
+  // ANIMATION PROPS
+  recentlyUpdatedLeadId,
+  setRecentlyUpdatedLeadId,
 }) {
   const leadsListRef = useRef(null);
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Handle lead click
+  // Handle lead click - UPDATED WITH ANIMATION
   const handleLeadClick = (lead) => {
     if (transferModeActive && selectedSalesRepForTransfer) {
-      const updatedLead = {
-        ...lead,
-        salesName: selectedSalesRepForTransfer,
-        lastUpdated: new Date().toISOString()
-      };
-      
       handleLeadUpdated(lead.id, { salesName: selectedSalesRepForTransfer });
+      
+      // Track this lead as recently updated for animation
+      setRecentlyUpdatedLeadId(lead.id);
+      
+      // Clear the animation after 1.5 seconds
+      setTimeout(() => {
+        setRecentlyUpdatedLeadId(null);
+      }, 400);
       
       console.log(`Transferred lead ${lead.jobNumber} to ${selectedSalesRepForTransfer}`);
     } else {
@@ -109,13 +115,15 @@ function LeadsDesktop({
     }
   };
 
+  // Handle transfer lead - FIXED: NO AUTOMATIC TRANSFER
   const handleTransferLead = (salesRepName) => {
+    // Store the selected sales rep for transfer
     setSelectedSalesRepForTransfer(salesRepName);
     
-    if (selectedLead) {
-      handleLeadUpdated(selectedLead.id, { salesName: salesRepName });
-      console.log(`Lead ${selectedLead.jobNumber} transferred to ${salesRepName}`);
-    }
+    // REMOVED: The automatic transfer of selected lead
+    // Now the transfer only happens when clicking on a card
+    
+    console.log(`Transfer mode ready: Sales rep ${salesRepName} selected`);
   };
 
   // Pagination handlers
@@ -189,6 +197,7 @@ function LeadsDesktop({
               onScroll={(e) => setScrollPosition(e.target.scrollTop)}
               transferModeActive={transferModeActive}
               selectedLeadJobNumber={selectedLead?.jobNumber}
+              recentlyUpdatedLeadId={recentlyUpdatedLeadId} // PASS ANIMATION PROP
             />
 
             <div className={styles.paginationContainer}>

@@ -419,3 +419,12 @@
 .addHoursButton:hover {
   background: #E6EBEF;
 }
+
+@media (min-width: 1024px) {
+  /* Completely remove the blue bar on desktop */
+ .panelContainer {
+  border-radius: 20px 20px 20px 20px;
+}
+ 
+
+}

@@ -515,7 +515,6 @@ const handleSaveItem = (overrides = {}) => {
         ...updatedInstance,
         id: itm.id, // Preserve original IDs
         autoAdded: itm.autoAdded || false, // Preserve autoAdded flag
-        sortKey: itm.sortKey, // Preserve sortKey for auto-added items
         groupingKey: newGroupingKey
       }));
       

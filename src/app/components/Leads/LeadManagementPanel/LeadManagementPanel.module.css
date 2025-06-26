@@ -901,4 +901,11 @@
   .panelContainer {
     padding-top: 20px;
   }
+
+  .wrapper {
+    padding-left: 20px;
+    padding-right: 5px;
+    padding-bottom: 34px;
+  }
+
 }

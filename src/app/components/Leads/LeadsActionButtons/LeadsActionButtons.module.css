@@ -2,7 +2,7 @@
   background: #F2F5F8;
   padding-left: 20px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   height: 60px; /* adjust if needed */
   position: relative; /* Added for absolute positioning in responsive view */
 }
@@ -56,6 +56,7 @@
   width: 30px;
   height: 30px;
   color: #90A4B7; /* Gray-ish icon by default */
+  flex-shrink: 0; /* Prevent icon from shrinking */
 }
 
 /* If filters are active => bright blue icon */
@@ -106,13 +107,31 @@
   justify-content: center;
 }
 
+/* Button text - hidden by default on mobile */
+.buttonText {
+  display: none;
+  color: #6E7882;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  padding-left: 18px;
+  padding-right: 10px;
+}
+
+/* Active button text color */
+.buttonTextActive {
+  color: #3FA9F5;
+}
+
 /* NEW STYLES FOR SALES REP DROPDOWN */
 
 /* Sales Rep Dropdown */
 .salesRepSelectWrapper {
   position: absolute; /* Take it out of document flow */
   left: 142px; /* Position it right of the transfer button (60px for filter + 10px margin + 50px for transfer + 12px margin) */
-  top: 0px; /* Align it vertically (5px from top) */
+  top: 5px; /* Align it vertically (5px from top) */
   z-index: 1000; /* Make sure it appears above other content */
 }
 
@@ -240,4 +259,29 @@
   background: #F2F5F8;
   padding: 10px;
   color: #000;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 10px;
+  }
+
+  /* Show button text on desktop */
+  .buttonText {
+    display: inline;
+  }
+
+  /* Expand iconBackground to accommodate text + icon */
+  .iconBackground {
+    width: auto;
+    padding-right: 15px;
+  }
+
+  /* Adjust dropdown position when text is shown */
+  .salesRepSelectWrapper {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin-left: 20px;
+  }
 }

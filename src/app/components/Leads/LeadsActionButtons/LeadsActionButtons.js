@@ -69,6 +69,9 @@ function LeadsActionButtons({ onOpenFilterPopup, filterCount = 0, onTransferLead
             <span className={styles.badge}>{filterCount}</span>
           )}
 
+          <span className={hasFilters ? `${styles.buttonText} ${styles.buttonTextActive}` : styles.buttonText}>
+            Filter
+          </span>
           <Icon
             name="Filter"
             className={
@@ -96,6 +99,9 @@ function LeadsActionButtons({ onOpenFilterPopup, filterCount = 0, onTransferLead
             <span className={styles.transferBadge}>!</span>
           )}
 
+          <span className={showTransferOptions ? `${styles.buttonText} ${styles.buttonTextActive}` : styles.buttonText}>
+            Transfer Lead
+          </span>
           <Icon 
             name="Transfer" 
             className={

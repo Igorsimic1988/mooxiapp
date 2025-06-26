@@ -287,15 +287,13 @@ function InventoryDesktop({
     
     if (!grouped.has(gKey)) {
       // Get the stable itemId for sorting
-      const stableItemId = inst.furnitureItemId || inst.itemId || inst.item?.id;
+  
       
       // Create a new grouped item
       grouped.set(gKey, {
         ...inst,
         count: 1,
         groupingKey: gKey,
-        // Use the stable itemId for consistent sorting
-        sortKey: parseInt(stableItemId) || 0,
         // Keep React key simple and stable
         id: gKey,
         furnitureItemId: inst.furnitureItemId || inst.itemId,
@@ -324,11 +322,11 @@ function InventoryDesktop({
     }
   });
   
-  // Convert to array and sort by stable itemId for consistent order
+  // Convert to array and sort by furnitureItemId for consistent order
   const result = Array.from(grouped.values()).sort((a, b) => {
-    // Primary sort: by itemId (stable furniture item number)
-    const idA = a.sortKey;
-    const idB = b.sortKey;
+    // Primary sort: by furnitureItemId (stable furniture item number)
+    const idA = parseInt(a.furnitureItemId) || 0;
+    const idB = parseInt(b.furnitureItemId) || 0;
     if (idA !== idB) {
       return idA - idB;
     }

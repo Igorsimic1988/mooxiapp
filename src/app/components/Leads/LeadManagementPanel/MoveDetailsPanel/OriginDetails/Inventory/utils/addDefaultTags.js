@@ -29,12 +29,13 @@ export function addDefaultTags(item, roomId, lead, stop) {
     }
   
     const packingOption = stop?.packingOption;
-
   if (packingOption === 'No Packing') {
+    console.log(tags)
     const cpIndex = tags.indexOf('cp_packed_by_movers');
     if (cpIndex !== -1) {
-      tags[cpIndex] = 'pbo_packed_by_customer';
+      tags.splice(cpIndex, 1);
     }
+    if (!tags.includes('pbo_packed_by_customer')) tags.push('pbo_packed_by_customer');
 
     if (excludedNames.includes(item.name?.trim())&& !tags.includes('pbo_packed_by_customer') && roomId !== 13) {
       tags.push('pbo_packed_by_customer');

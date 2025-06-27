@@ -13,6 +13,7 @@ import { whatsMovingOriginOptions, packingOriginOptions, unpackingDestinationOpt
 import { useUpdateInventoryTags } from 'src/app/components/Leads/LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/utils/changeCurrentTags'
 import { addDefaultTags } from '../Inventory/utils/addDefaultTags';
 import { generateGroupingKey } from '../Inventory/utils/generateGroupingKey';
+import { useInventoryContext } from '../../InventoryContext';
 
 
 function ServicesPopup({
@@ -25,6 +26,7 @@ function ServicesPopup({
   originStops = [],
 }) {
   const popupContentRef = useRef(null);
+  const {  setInventoryByStop } = useInventoryContext();
 
   const [selectedPlace, setSelectedPlace] = useState(defaultTab);
     const [localStops, setLocalStops] = useState([]);
@@ -72,6 +74,30 @@ function ServicesPopup({
       setSelectedDestinationStopId(id);
     }
   }
+  useEffect(() => {
+    if (!lead) return;
+  
+    const byStop = {};
+  
+    lead.origins.forEach(origin => {
+      byStop[origin.id] = {
+        itemsByRoom: origin.itemsByRoom || {},
+        inventoryItems: origin.inventoryItems || [],
+        deleteItemIds: [],
+      };
+    });
+  
+    lead.destinations.forEach(dest => {
+      byStop[dest.id] = {
+        itemsByRoom: dest.itemsByRoom || {},
+        inventoryItems: dest.inventoryItems || [],
+        deleteItemIds: [],
+      };
+    });
+  
+    setInventoryByStop(byStop);
+  }, [lead]);
+  
 
 
     useEffect(() => {
@@ -166,13 +192,14 @@ function ServicesPopup({
       };
 
     });
-    if (updatedInventoryItems.length > 0) {
-      updateInventoryTagsMutation({
-        stopId: stop.id,
-        stopType: stop.stopType,
-        updatedInventoryItems,
-      });
-    }
+  if (updatedInventoryItems.length > 0) {
+    updateInventoryTagsMutation({
+      stopId: stop.id,
+      stopType: stop.stopType,
+      updatedInventoryItems,
+    });
+  }
+
   });
   
     setIsServicesPopupVisible(false);

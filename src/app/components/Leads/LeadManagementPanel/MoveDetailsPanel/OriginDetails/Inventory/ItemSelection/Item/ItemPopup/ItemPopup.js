@@ -136,7 +136,7 @@ function ItemPopup({
   roomItemSelections,
   setRoomItemSelections,
   onOpenPopup,
-  selectedStopInfo,
+  selectedStop,
 }) {
 
   const { data: allItems = [] } = useQuery({
@@ -636,7 +636,7 @@ const handleSaveItem = (overrides = {}) => {
       furnitureItem,
       selectedRoom?.id,
       lead,
-      selectedStopInfo // ✅ sad imaš pun kontekst
+      selectedStop // ✅ sad imaš pun kontekst
     );
     const freshItemInstance = {
       id: uuidv4(),

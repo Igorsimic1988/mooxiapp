@@ -113,6 +113,13 @@ function Inventory({
     }
     return null;
   }, [selectedOriginStopId, selectedDestinationStopId, setSelectedOriginStopId, setSelectedDestinationStopId]);
+  const selectedStop = useMemo(() => {
+    if (!lead || !selectedStopInfo) return null;
+  
+    const list = selectedStopInfo.type === 'origin' ? lead.origins : lead.destinations;
+    return list?.find((stop) => stop.id === selectedStopInfo.id) || null;
+  }, [lead, selectedStopInfo]);
+  
 
 
   const { inventoryByStop, setInventoryByStop } = useInventoryContext();
@@ -367,7 +374,7 @@ useEffect(() => {
       } else {
         // Add new instance
         let newItemInstance;
-        const { tags, packingNeeds } = addDefaultTags(clickedItem, selectedRoom.id, lead, selectedStopInfo);
+        const { tags, packingNeeds } = addDefaultTags(clickedItem, selectedRoom.id, lead, selectedStop);
         if (isMyItemsActive) {
           newItemInstance = {
             id: uuidv4(),
@@ -795,7 +802,7 @@ useEffect(() => {
           lead={lead}
           selectedRoom={selectedRoom}
           roomItemSelections={stopData.itemsByRoom}
-          selectedStopInfo={selectedStopInfo}
+          selectedStop={selectedStop}
           setRoomItemSelections={(fnOrObj) => {
             setInventoryByStop((prev) => {
               const oldStopData = getStopData(selectedStopInfo.id);

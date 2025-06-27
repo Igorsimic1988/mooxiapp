@@ -11,6 +11,7 @@ export function useUpdateInventoryTags() {
       console.log('✅ Tags successfully updated:', data);
 
       const { stopId, stopType, updatedInventoryItems } = variables;
+      
 
       // Grupuj po roomId
       const groupedByRoom = updatedInventoryItems.reduce((acc, item) => {
@@ -19,7 +20,6 @@ export function useUpdateInventoryTags() {
         return acc;
       }, {});
 
-      // Lokalan update (brz i direktan)
       setInventoryByStop((prev) => {
         const stopData = prev[stopId];
         if (!stopData) return prev;
@@ -33,7 +33,6 @@ export function useUpdateInventoryTags() {
           },
         };
       });
-      console.log(groupedByRoom, ' iz change')
 
       const queryKey =
         stopType === 'origin'

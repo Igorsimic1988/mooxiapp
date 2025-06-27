@@ -573,7 +573,7 @@ function LeadManagementPanel({
         {/* ~ Status + Activity ~ */}
         <div className={styles.buttonsRow}>
           {/* Status */}
-          <div ref={statusContainerRef} style={{ position: 'relative', width: '100%' }}>
+          <div ref={statusContainerRef} className={styles.buttonWrapper}>
             <button
               type="button"
               className={styles.statusButton}
@@ -619,7 +619,7 @@ function LeadManagementPanel({
 
           {/* Activity */}
           {!hideActivityButton && (
-            <div ref={activityContainerRef} style={{ position: 'relative', width: '100%' }}>
+            <div ref={activityContainerRef} className={styles.buttonWrapper}>
               <button
                 type="button"
                 className={styles.activityButton}
@@ -649,146 +649,151 @@ function LeadManagementPanel({
               )}
             </div>
           )}
+
+          {/* Next Action - shown in buttonsRow when not in estimate mode */}
+          {!(
+            leadStatus === 'In Progress' &&
+            (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate')
+          ) && !hideNextAction && (
+            <div className={styles.buttonWrapper}>
+              <button
+                className={`${styles.nextActionButton} ${
+                  animateNextAction ? styles.animateNextAction : ''
+                }`}
+                onClick={handleNextActionClick}
+              >
+                <span className={styles.nextActionLabel}>Next Action:</span>
+                <span className={styles.nextActionValue}>{nextAction}</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ~ Estimator / Survey Date/Time ~ */}
         {leadStatus === 'In Progress' &&
           (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate') && (
             <div className={styles.estimateExtraContainer}>
-              {/* Estimator */}
-              <div className={styles.inputContainer} style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  className={styles.estimatorButton}
-                  onClick={handleToggleEstimatorDropdown}
-                >
-                  <div className={styles.estimatorLeft}>
-                    <span className={styles.estimatorLabel}>Estimator:</span>
-                    <span className={styles.estimatorValue}>
-                      {selectedEstimator || 'Select'}
-                    </span>
-                  </div>
-                  <Icon name="User" className={styles.userIcon} />
-                </button>
-                {showEstimatorDropdown && (
-                  <ul className={styles.estimatorDropdown}>
-                    {users.map((rep) => (
-                      <li
-                        key={rep.id}
-                        className={styles.estimatorOption}
-                        onClick={() => handleSelectEstimator(rep.name)}
-                      >
-                        {rep.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {/* Survey Date */}
-              <div className={styles.inputContainer} style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  className={styles.estimatorDateButton}
-                  onClick={handleToggleCalendar}
-                >
-                  <span className={selectedDate ? styles.dateSelected : styles.datePlaceholder}>
-                    {selectedDate || 'Date'}
-                  </span>
-                  <div className={styles.calendarRightIconWrapper}>
-                    <Icon name="Calendar" className={styles.calendarIcon} />
-                  </div>
-                </button>
-                {showCalendar && (
-                  <div className={styles.calendarPopup}>
-                    <div className={styles.calendarHeader}>
-                      <button onClick={goPrevMonth}>Prev</button>
-                      <span>
-                        {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
-                        {calendarMonth.getFullYear()}
+              <div className={styles.estimateButtonsRow}>
+                {/* Estimator */}
+                <div className={styles.inputContainer}>
+                  <button
+                    type="button"
+                    className={styles.estimatorButton}
+                    onClick={handleToggleEstimatorDropdown}
+                  >
+                    <div className={styles.estimatorLeft}>
+                      <span className={styles.estimatorLabel}>Estimator:</span>
+                      <span className={styles.estimatorValue}>
+                        {selectedEstimator || 'Select'}
                       </span>
-                      <button onClick={goNextMonth}>Next</button>
                     </div>
-                    <div className={styles.calendarGrid}>
-                      {daysInMonth.map((dayNum) => {
-                        // Check if this day matches the selected date
-                        const currentDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNum);
-                        const isSelected = selectedDate === currentDate.toDateString();
-                        
-                        return (
-                          <button
-                            key={dayNum}
-                            type="button"
-                            className={`${styles.calendarDay} ${isSelected ? styles.selected : ''}`}
-                            onClick={() => handleDayClick(dayNum)}
-                          >
-                            {dayNum}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
+                    <Icon name="User" className={styles.userIcon} />
+                  </button>
+                  {showEstimatorDropdown && (
+                    <ul className={styles.estimatorDropdown}>
+                      {users.map((rep) => (
+                        <li
+                          key={rep.id}
+                          className={styles.estimatorOption}
+                          onClick={() => handleSelectEstimator(rep.name)}
+                        >
+                          {rep.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
 
-              {/* Survey Time */}
-              <div className={styles.inputContainer} style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  className={styles.estimatorTimeButton}
-                  onClick={() => setShowTimeDropdown((p) => !p)}
-                >
-                  <span className={selectedTime ? styles.timeSelected : styles.timePlaceholder}>
-                    {selectedTime || 'Time'}
-                  </span>
-                  <Icon name="UnfoldMore" className={styles.unfoldIcon} />
-                </button>
-                {showTimeDropdown && (
-                  <ul className={styles.timeDropdown}>
-                    {timeSlots.map((ts) => (
-                      <li
-                        key={ts}
-                        className={styles.timeOption}
-                        onClick={() => handleSelectTime(ts)}
-                      >
-                        {ts}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                {/* Survey Date */}
+                <div className={styles.inputContainer}>
+                  <button
+                    type="button"
+                    className={styles.estimatorDateButton}
+                    onClick={handleToggleCalendar}
+                  >
+                    <span className={selectedDate ? styles.dateSelected : styles.datePlaceholder}>
+                      {selectedDate || 'Date'}
+                    </span>
+                    <div className={styles.calendarRightIconWrapper}>
+                      <Icon name="Calendar" className={styles.calendarIcon} />
+                    </div>
+                  </button>
+                  {showCalendar && (
+                    <div className={styles.calendarPopup}>
+                      <div className={styles.calendarHeader}>
+                        <button onClick={goPrevMonth}>Prev</button>
+                        <span>
+                          {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
+                          {calendarMonth.getFullYear()}
+                        </span>
+                        <button onClick={goNextMonth}>Next</button>
+                      </div>
+                      <div className={styles.calendarGrid}>
+                        {daysInMonth.map((dayNum) => {
+                          // Check if this day matches the selected date
+                          const currentDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNum);
+                          const isSelected = selectedDate === currentDate.toDateString();
+                          
+                          return (
+                            <button
+                              key={dayNum}
+                              type="button"
+                              className={`${styles.calendarDay} ${isSelected ? styles.selected : ''}`}
+                              onClick={() => handleDayClick(dayNum)}
+                            >
+                              {dayNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Survey Time */}
+                <div className={styles.inputContainer}>
+                  <button
+                    type="button"
+                    className={styles.estimatorTimeButton}
+                    onClick={() => setShowTimeDropdown((p) => !p)}
+                  >
+                    <span className={selectedTime ? styles.timeSelected : styles.timePlaceholder}>
+                      {selectedTime || 'Time'}
+                    </span>
+                    <Icon name="UnfoldMore" className={styles.unfoldIcon} />
+                  </button>
+                  {showTimeDropdown && (
+                    <ul className={styles.timeDropdown}>
+                      {timeSlots.map((ts) => (
+                        <li
+                          key={ts}
+                          className={styles.timeOption}
+                          onClick={() => handleSelectTime(ts)}
+                        >
+                          {ts}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
 
               {/* Next Action */}
               {!hideNextAction && (
-                <button
-                  className={`${styles.nextActionButton} ${
-                    animateNextAction ? styles.animateNextAction : ''
-                  }`}
-                  onClick={handleNextActionClick}
-                >
-                  <span className={styles.nextActionLabel}>Next Action:</span>
-                  <span className={styles.nextActionValue}>{nextAction}</span>
-                </button>
+                <div className={styles.nextActionWrapper}>
+                  <button
+                    className={`${styles.nextActionButton} ${
+                      animateNextAction ? styles.animateNextAction : ''
+                    }`}
+                    onClick={handleNextActionClick}
+                  >
+                    <span className={styles.nextActionLabel}>Next Action:</span>
+                    <span className={styles.nextActionValue}>{nextAction}</span>
+                  </button>
+                </div>
               )}
             </div>
           )}
-
-        {/* If not "In Home/Virtual" but still show Next Action if available */}
-        {!(
-          leadStatus === 'In Progress' &&
-          (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate')
-        ) && !hideNextAction && (
-          <button
-            className={`${styles.nextActionButton} ${
-              animateNextAction ? styles.animateNextAction : ''
-            }`}
-            style={{ marginTop: '10px' }}
-            onClick={handleNextActionClick}
-          >
-            <span className={styles.nextActionLabel}>Next Action:</span>
-            <span className={styles.nextActionValue}>{nextAction}</span>
-          </button>
-        )}
 
         {/* Source, etc. */}
         <div className={styles.sourceSection}>

@@ -71,7 +71,6 @@ export function addDefaultTags(item, roomId, lead, stop) {
     if (oldIndex !== -1) tags.splice(oldIndex, 1);
   
     if (!tags.includes('paper_blanket_wrapped')) tags.push('paper_blanket_wrapped');
-    console.log(packingNeeds)
     const alreadyAdded = packingNeeds.some(p => p.type === 'paper_blanket_wrapped');
     if (!alreadyAdded) {
       packingNeeds.push({
@@ -81,7 +80,6 @@ export function addDefaultTags(item, roomId, lead, stop) {
     }
   }
 
-  // === UNPACKING ===
 const unpacking = stop?.unpackingOption;
 if (unpacking === 'Full Unpacking' && tags.includes('cp_packed_by_movers')) {
   if (!tags.includes('unpacking')) {
@@ -89,14 +87,11 @@ if (unpacking === 'Full Unpacking' && tags.includes('cp_packed_by_movers')) {
   }
 }
 
-// === ASSEMBLY ===
-if (stop?.itemsToBeAssembled) {
-  if (!tags.includes('assembly')) {
-    tags.push('assembly');
-  }
-} else {
-  const index = tags.indexOf('assembly');
-  if (index !== -1) tags.splice(index, 1);
+if (stop?.itemsToBeAssembled === false) {
+  const disIndex = tags.indexOf('assembly');
+    if (disIndex !== -1) {
+      tags.splice(disIndex, 1);
+    }
 }
 
   return {

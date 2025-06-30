@@ -4,6 +4,9 @@ import React, { useEffect, useState, useRef } from 'react';
 
 import Icon from '../../../../Icon';
 
+import SpecialH from './Inventory/FooterNavigation/SpecialH/SpecialH';
+import { useInventoryContext } from '../InventoryContext';
+
 import SimpleToggle from '../../../SimpleToggle/SimpleToggle';
 import styles from './OriginDetails.module.css';
 
@@ -18,7 +21,6 @@ import { useUiState } from '../UiStateContext';
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createOrigin } from 'src/app/services/originsService';
 import { useAccessToken } from "src/app/lib/useAccessToken";
-
 
 /** Generate 15-min increments from 7:00 AM to midnight, excluding midnight duplication */
 function generateTimeOptions() {
@@ -49,8 +51,13 @@ function OriginDetails({
   originStops,
  isPropertyWideLayout,
 }) {
-    const token = useAccessToken();
-    const queryClient = useQueryClient();
+
+  const [isSpecialHVisible, setIsSpecialHVisible] = useState(false);
+  const { inventoryByStop, setInventoryByStop } = useInventoryContext();
+
+  const token = useAccessToken();
+  const queryClient = useQueryClient();
+  
   const createOriginMutation = useMutation({
     mutationFn: (newOriginData) =>createOrigin({originsData: newOriginData, leadId:lead.id,  token: token}),
     onSuccess:(createdOrigin) => {
@@ -60,6 +67,52 @@ function OriginDetails({
       console.log(err)
     }
   });
+
+  // Instead of local useState, we read isCollapsed from props:
+  const {selectedOriginStopId, setSelectedOriginStopId, isOriginCollapsed, setIsOriginCollapsed} = useUiState();
+  const toggleCollapse = () => setIsOriginCollapsed((prev) => !prev);
+
+  // Get room item selections for current stop with proper null checks
+  const roomItemSelections = React.useMemo(() => {
+    if (!selectedOriginStopId || !inventoryByStop || !inventoryByStop[selectedOriginStopId]) {
+      return {};
+    }
+    return inventoryByStop[selectedOriginStopId].itemsByRoom || {};
+  }, [selectedOriginStopId, inventoryByStop]);
+
+  // Handler to update room item selections
+  const setRoomItemSelections = (fnOrObj) => {
+    if (!selectedOriginStopId) return;
+    
+    setInventoryByStop((prev) => {
+      const oldStopData = prev[selectedOriginStopId] || {
+        itemsByRoom: {},
+        displayedRooms: [],
+        inventoryItems: [],
+        autoBoxEnabled: true,
+        deleteItemIds: [],
+      };
+
+      const oldItems = oldStopData.itemsByRoom;
+      const newItems = typeof fnOrObj === "function" ? fnOrObj(oldItems) : fnOrObj;
+
+      return {
+        ...prev,
+        [selectedOriginStopId]: {
+          ...oldStopData,
+          itemsByRoom: newItems,
+        },
+      };
+    });
+  };
+
+  // Get displayed rooms for current stop with proper null checks
+  const displayedRooms = React.useMemo(() => {
+    if (!selectedOriginStopId || !inventoryByStop || !inventoryByStop[selectedOriginStopId]) {
+      return [];
+    }
+    return inventoryByStop[selectedOriginStopId].displayedRooms || [];
+  }, [selectedOriginStopId, inventoryByStop]);
 
   const handleAddNormalStop = () => {
     const reusableStop = originStops.find(
@@ -104,37 +157,36 @@ function OriginDetails({
       }
     });
   }
+  
   // ---------- ORIGIN STOPS ----------
   
   // Calculate totals across all stops
-  const inventoryTotals = React.useMemo(() => {
-  
-    let totalCuft = 0;
-    let totalLbs = 0;
-  
-    originStops.forEach((stop) => {
-      if (!stop?.isVisible || !stop?.itemsByRoom) return;
-  
-      Object.values(stop.itemsByRoom).forEach((items) => {
-        items.forEach((item) => {
-          const cuft = parseFloat(item.cuft) || 0;
-          const lbs = parseFloat(item.lbs) || 0;
-          totalCuft += cuft;
-          totalLbs += lbs;
-        });
+const inventoryTotals = React.useMemo(() => {
+  let totalCuft = 0;
+  let totalLbs = 0;
+
+  originStops.forEach((stop) => {
+    if (!stop?.isVisible) return;
+    
+    // Get inventory data from the context instead
+    const stopInventory = inventoryByStop[stop.id];
+    if (!stopInventory?.itemsByRoom) return;
+
+    Object.values(stopInventory.itemsByRoom).forEach((items) => {
+      items.forEach((item) => {
+        const cuft = parseFloat(item.cuft) || 0;
+        const lbs = parseFloat(item.lbs) || 0;
+        totalCuft += cuft;
+        totalLbs += lbs;
       });
     });
-  
-    return {
-      totalCuft: Math.round(totalCuft),
-      totalLbs: Math.round(totalLbs),
-    };
-  }, [originStops]);
-  
+  });
 
-  // Instead of local useState, we read isCollapsed from props:
-  const {selectedOriginStopId, setSelectedOriginStopId, isOriginCollapsed, setIsOriginCollapsed} = useUiState();
-  const toggleCollapse = () => setIsOriginCollapsed((prev) => !prev);
+  return {
+    totalCuft: Math.round(totalCuft),
+    totalLbs: Math.round(totalLbs),
+  };
+}, [originStops, inventoryByStop]); 
   
   // Enhanced selection logic with fallback
   useEffect(() => {
@@ -183,10 +235,8 @@ function OriginDetails({
   const [startDropdownActive, setStartDropdownActive] = useState(false);
   const [endDropdownActive, setEndDropdownActive] = useState(false);
 
-
   // ---------- Current Stop ----------
   const currentStop = originStops.find((s) => s.id === selectedOriginStopId) || {};
-
 
   /**
    * Deactivate => remove this stop, unless it's "Main Address"
@@ -217,13 +267,13 @@ function OriginDetails({
       setSelectedOriginStopId(nextStop.id);
     }    
    }
+   
    useEffect(() => {
     if (fallbackOriginStopId) {
       setSelectedOriginStopId(fallbackOriginStopId);
       setFallbackOriginStopId(null); 
     }
-  }, [fallbackOriginStopId]);
-  
+  }, [fallbackOriginStopId, setSelectedOriginStopId]);
 
   /**
    * PLACE => remove dotted if typeOfPlace, moveSize, howManyStories all set
@@ -258,11 +308,11 @@ function OriginDetails({
   const handleStopFieldChange = (fieldName, newValue) => {
     const stop = originStops.find((s) => s.id === selectedOriginStopId);
     if (!stop?.id) return;
-  const updatedStop = { ...stop, [fieldName]: newValue };
-  setOriginStops((prev) =>
-    prev.map((s) => (s.id === selectedOriginStopId ? updatedStop : s))
-  );
-  onOriginUpdated(stop.id, { [fieldName]: newValue });
+    const updatedStop = { ...stop, [fieldName]: newValue };
+    setOriginStops((prev) =>
+      prev.map((s) => (s.id === selectedOriginStopId ? updatedStop : s))
+    );
+    onOriginUpdated(stop.id, { [fieldName]: newValue });
   };
 
   // ---------- Time restrictions ----------
@@ -955,6 +1005,14 @@ function OriginDetails({
                 <span className={styles.inventoryButtonText}>Inventory</span>
                 <Icon name="MyInventory" className={styles.myInventoryIcon} />
               </button>
+              
+              {/* Special Handling button - always visible */}
+              <button
+  className={styles.inventoryButtonSecondary}
+  onClick={() => setIsSpecialHVisible(true)}
+>
+  <span className={styles.inventoryButtonTextSecondary}>Special Handling</span>
+</button>
             </div>
             <div className={styles.inventorySummary}>
               <div>Volume (cu ft): {inventoryTotals.totalCuft}</div>
@@ -999,6 +1057,18 @@ function OriginDetails({
           destinationStops={destinationStops}
           defaultTab="origin"
           defaultStopId={selectedOriginStopId}
+        />
+      )}
+      
+      {/* SpecialH Popup - always available */}
+      {isSpecialHVisible && selectedOriginStopId && (
+        <SpecialH
+          lead={lead}
+          setIsSpecialHVisible={setIsSpecialHVisible}
+          roomItemSelections={roomItemSelections}
+          setRoomItemSelections={setRoomItemSelections}
+          selectedRoom={null} // No specific room selected from this context
+          displayedRooms={displayedRooms}
         />
       )}
     </div>

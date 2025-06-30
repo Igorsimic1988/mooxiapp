@@ -314,6 +314,9 @@ function Leads() {
     }
   });
 
+  const [desktopScrollPosition, setDesktopScrollPosition] = useState(0);
+
+
   const updateLeadMutation = useMutation({
     mutationFn: ({id, data, token}) =>updateLead({id, data, token}),
     onSuccess:(updatedLead) => {
@@ -859,6 +862,15 @@ function Leads() {
         showFilterPopup={showFilterPopup}
         setShowFilterPopup={setShowFilterPopup}
         
+        // ADD THESE NEW PROPS FOR INVENTORY SCROLL
+        showInventoryFullScreen={showInventoryFullScreen}
+        setShowInventoryFullScreen={setShowInventoryFullScreen}
+        inventoryScrollPosition={inventoryScrollPosition}
+        setInventoryScrollPosition={setInventoryScrollPosition}
+        inventoryRoom={inventoryRoom}
+        setInventoryRoom={setInventoryRoom}
+        mainContainerRef={mainContainerRef}
+        
         // Filter states
         selectedCompany={selectedCompany}
         setSelectedCompany={setSelectedCompany}
@@ -883,6 +895,8 @@ function Leads() {
         handleLeadUpdated={handleLeadUpdated}
         handleEditLead={handleEditLead}
         openInventoryFullScreen={openInventoryFullScreen}
+        closeInventoryFullScreen={closeInventoryFullScreen}  // ADD THIS
+        handleLeadRefetch={handleLeadRefetch}  // ADD THIS
         
         // Computed values
         currentLeads={currentLeads}
@@ -895,6 +909,8 @@ function Leads() {
         // ANIMATION PROPS
         recentlyUpdatedLeadId={recentlyUpdatedLeadId}
         setRecentlyUpdatedLeadId={setRecentlyUpdatedLeadId}
+        desktopScrollPosition={desktopScrollPosition}
+      setDesktopScrollPosition={setDesktopScrollPosition}
       />
     );
   }

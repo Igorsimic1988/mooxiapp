@@ -549,3 +549,36 @@
 .propertyGridWide .inputContainer {
   margin-bottom: 0;
 }
+
+.inventoryButtons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.inventoryButtonSecondary {
+  /* Colors and Background */
+  background: #FFF;
+  border: 1px solid var(--Blue, #3FA9F5);
+  color: #2F3236;
+  
+  /* Typography */
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  
+  /* Layout */
+  border-radius: 12px;
+  height: 50px;
+  padding: 0 20px;
+  cursor: pointer;
+  
+  /* Flexbox */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import styles from "./LeadsDesktop.module.css";
 
 import HeaderDashboard from "../HeaderDashboard/HeaderDashboard";
@@ -12,6 +12,7 @@ import LeadsList from "../LeadsList/LeadsList";
 import LeadManagementPanel from "../LeadManagementPanel/LeadManagementPanel";
 import LeadFormPopup from "../LeadFormPopup/LeadFormPopup";
 import FilterButtonPopup from "../FilterButtonPopup/FilterButtonPopup";
+import Inventory from "../LeadManagementPanel/MoveDetailsPanel/OriginDetails/Inventory/Inventory";
 
 function LeadsDesktop({
   // Data
@@ -39,6 +40,19 @@ function LeadsDesktop({
   showFilterPopup,
   setShowFilterPopup,
   
+  // Inventory states
+  showInventoryFullScreen,
+  setShowInventoryFullScreen,
+  inventoryScrollPosition,
+  setInventoryScrollPosition,
+  inventoryRoom,
+  setInventoryRoom,
+  mainContainerRef,
+  
+  // Desktop scroll states (NEW)
+  desktopScrollPosition,
+  setDesktopScrollPosition,
+  
   // Filter states
   selectedCompany,
   setSelectedCompany,
@@ -63,6 +77,8 @@ function LeadsDesktop({
   handleLeadUpdated,
   handleEditLead,
   openInventoryFullScreen,
+  closeInventoryFullScreen,
+  handleLeadRefetch,
   
   // Computed values
   currentLeads,
@@ -72,22 +88,65 @@ function LeadsDesktop({
   endIndex,
   filterCount,
   
-  // ANIMATION PROPS
+  // Animation
   recentlyUpdatedLeadId,
   setRecentlyUpdatedLeadId,
 }) {
   const leadsListRef = useRef(null);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const leadManagementRef = useRef(null);
 
-  // Handle lead click - UPDATED WITH ANIMATION
+  // Save scroll position before opening inventory
+  const handleOpenInventoryFullScreen = () => {
+    if (leadManagementRef.current) {
+      const allElements = leadManagementRef.current.querySelectorAll('*');
+      for (let el of allElements) {
+        if (el.scrollTop > 0) {
+          setDesktopScrollPosition(el.scrollTop);
+          
+          break;
+        }
+      }
+    }
+    openInventoryFullScreen();
+  };
+
+  // Restore scroll position when returning from inventory
+  useEffect(() => {
+    if (!showInventoryFullScreen && desktopScrollPosition > 0 && leadManagementRef.current) {
+      const restoreScroll = () => {
+        const allElements = leadManagementRef.current.querySelectorAll('*');
+        for (let el of allElements) {
+          if (el.scrollHeight > el.clientHeight) {
+            el.scrollTop = desktopScrollPosition;
+            if (el.scrollTop > 0) {
+            
+              setDesktopScrollPosition(0); // Reset after restore
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      // Try immediately
+      if (!restoreScroll()) {
+        // If failed, try again after delays
+        const timeouts = [50, 100, 200, 300, 500];
+        timeouts.forEach(delay => {
+          setTimeout(restoreScroll, delay);
+        });
+      }
+    }
+  }, [showInventoryFullScreen, desktopScrollPosition, setDesktopScrollPosition]);
+
+  // Handle lead click
   const handleLeadClick = (lead) => {
     if (transferModeActive && selectedSalesRepForTransfer) {
       handleLeadUpdated(lead.id, { salesName: selectedSalesRepForTransfer });
       
-      // Track this lead as recently updated for animation
       setRecentlyUpdatedLeadId(lead.id);
       
-      // Clear the animation after 1.5 seconds
       setTimeout(() => {
         setRecentlyUpdatedLeadId(null);
       }, 400);
@@ -115,14 +174,9 @@ function LeadsDesktop({
     }
   };
 
-  // Handle transfer lead - FIXED: NO AUTOMATIC TRANSFER
+  // Handle transfer lead
   const handleTransferLead = (salesRepName) => {
-    // Store the selected sales rep for transfer
     setSelectedSalesRepForTransfer(salesRepName);
-    
-    // REMOVED: The automatic transfer of selected lead
-    // Now the transfer only happens when clicking on a card
-    
     console.log(`Transfer mode ready: Sales rep ${salesRepName} selected`);
   };
 
@@ -135,6 +189,42 @@ function LeadsDesktop({
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
+  // Handle back from inventory
+  const handleBack = () => {
+    setSelectedLead(null);
+    setInventoryScrollPosition(0);
+    setTimeout(() => {
+      if (leadsListRef.current) {
+        leadsListRef.current.scrollTop = scrollPosition;
+      }
+    }, 0);
+  };
+
+  // If showing the Inventory
+  if (showInventoryFullScreen) {
+    return (
+      <div className={styles.container} ref={mainContainerRef}>
+        <HeaderDashboard
+          isLeadSelected={!!selectedLead}
+          onBack={handleBack}
+          isInInventory
+          inRoom={!!inventoryRoom}
+          roomName={inventoryRoom?.name || ""}
+          onRoomBack={() => setInventoryRoom(null)}
+          onCloseInventory={closeInventoryFullScreen}
+          isDesktopInventory={true}
+        />
+        <Inventory
+          lead={selectedLead}
+          onCloseInventory={closeInventoryFullScreen}
+          inventoryRoom={inventoryRoom}
+          setInventoryRoom={setInventoryRoom}
+        />
+      </div>
+    );
+  }
+
+  // Normal desktop view
   return (
     <div className={styles.container}>
       {/* Sidebar - 80px wide */}
@@ -197,7 +287,7 @@ function LeadsDesktop({
               onScroll={(e) => setScrollPosition(e.target.scrollTop)}
               transferModeActive={transferModeActive}
               selectedLeadJobNumber={selectedLead?.jobNumber}
-              recentlyUpdatedLeadId={recentlyUpdatedLeadId} // PASS ANIMATION PROP
+              recentlyUpdatedLeadId={recentlyUpdatedLeadId}
             />
 
             <div className={styles.paginationContainer}>
@@ -224,14 +314,17 @@ function LeadsDesktop({
           </div>
 
           {/* Right side - Lead management panel */}
-          <div className={`${styles.leadManagementWrapper} ${!selectedLead ? styles.noLead : ''}`}>
+          <div 
+            className={`${styles.leadManagementWrapper} ${!selectedLead ? styles.noLead : ''}`}
+            ref={leadManagementRef}
+          >
             {selectedLead ? (
               <LeadManagementPanel
                 lead={selectedLead}
                 onClose={() => setSelectedLead(null)}
                 onEditLead={handleEditLead}
                 onLeadUpdated={handleLeadUpdated}
-                onInventoryFullScreen={openInventoryFullScreen}
+                onInventoryFullScreen={handleOpenInventoryFullScreen}
               />
             ) : (
               <div className={styles.noLeadMessage}>Select a lead to view details</div>

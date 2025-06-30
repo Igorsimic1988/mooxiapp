@@ -430,7 +430,7 @@ useEffect(() => {
       };
       return { ...prev, [selectedStopInfo.id]: updatedStopData };
     });
-  }, [selectedRoom, selectedStopInfo, isDeleteActive, isMyItemsActive, getStopData, setInventoryByStop, lead]);
+  }, [selectedRoom, selectedStopInfo, isDeleteActive, isMyItemsActive, getStopData, setInventoryByStop, lead, selectedStop]);
 
   // Other callbacks optimized similarly...
 
@@ -584,6 +584,8 @@ useEffect(() => {
             const newInst = {
               id: uuidv4(),
               furnitureItemId: bx.itemId,
+              name: itemData.name || "", 
+              imageName: itemData.imageName || "", 
               tags: [...(itemData.tags || [])],
               notes: "",
               cuft: itemData.cuft || "",

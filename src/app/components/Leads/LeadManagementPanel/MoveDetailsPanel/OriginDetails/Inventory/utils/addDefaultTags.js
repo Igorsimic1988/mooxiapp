@@ -1,15 +1,6 @@
 const storageLevels = ['More than half', 'Almost all', 'All items'];
-const excludedNames = [
-  "Box Wardrobe 12cuft",
-  "Box Wardrobe Short",
-  "Box Lamp Large",
-  "Box Extra Large 6 cuft",
-  "Box Dishpack",
-  "Box Large 4,5 cuft",
-  "Box Medium 3 cuft",
-  "Box Small 1,5 cuft",
-  "Box Book ",
-];
+const excludedIds = ["529", "530", "531", "532", "533", "534", "535", "536", "537"];
+
 
 
 export function addDefaultTags(item, roomId, lead, stop) {
@@ -37,18 +28,18 @@ export function addDefaultTags(item, roomId, lead, stop) {
     }
     if (!tags.includes('pbo_packed_by_customer')) tags.push('pbo_packed_by_customer');
 
-    if (excludedNames.includes(item.name?.trim())&& !tags.includes('pbo_packed_by_customer') && roomId !== 13) {
+    if (excludedIds.includes(String(item.furnitureItemId))&& !tags.includes('pbo_packed_by_customer')) {
       tags.push('pbo_packed_by_customer');
     }
   } else if (packingOption === 'Full Packing') {
-    if (excludedNames.includes(item.name?.trim()) && roomId !== 13) {
+    if (excludedIds.includes(String(item.furnitureItemId))) {
       const pboIndex = tags.indexOf('pbo_packed_by_customer');
       if (pboIndex !== -1) tags.splice(pboIndex, 1);
       if (!tags.includes('cp_packed_by_movers')) tags.push('cp_packed_by_movers');
     }
 
   } else {
-    if (excludedNames.includes(item.name?.trim()) && !tags.includes('pbo_packed_by_customer') && roomId !== 13) {
+    if (excludedIds.includes(String(item.furnitureItemId)) && !tags.includes('pbo_packed_by_customer')) {
       tags.push('pbo_packed_by_customer'); 
     }
   }

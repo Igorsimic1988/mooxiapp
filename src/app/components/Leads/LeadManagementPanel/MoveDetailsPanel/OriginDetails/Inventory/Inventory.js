@@ -575,12 +575,7 @@ useEffect(() => {
         for (let i = 0; i < bx.count; i++) {
           const itemData = allItems.find((it) => it.id.toString() === bx.itemId);
           if (itemData) {
-            let packing = {};
-            if (itemData.packingNeeds?.length) {
-              itemData.packingNeeds.forEach((p) => {
-                packing[p.type] = p.quantity;
-              });
-            }
+          const { tags, packingNeeds } = addDefaultTags(newInst, 13, lead, selectedStop);            
             const newInst = {
               id: uuidv4(),
               furnitureItemId: bx.itemId,
@@ -590,7 +585,7 @@ useEffect(() => {
               notes: "",
               cuft: itemData.cuft || "",
               lbs: itemData.lbs || "",
-              packingNeeds: packing,
+              packingNeeds,
               autoAdded: true,
               groupingKey: "",
             };

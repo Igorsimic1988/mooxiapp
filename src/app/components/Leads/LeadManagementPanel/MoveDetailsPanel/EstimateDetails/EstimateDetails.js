@@ -56,7 +56,7 @@ function EstimateDetails({
 }) {
   
   // Get the correct lead ID (handle both 'id' and 'lead_id')
-  const leadId = lead?.id || lead?.lead_id;
+  const leadId = lead?.id;
   
   // Check if we should show tabs (storage enabled AND Hourly Rate)
   const showTabs = isStorageEnabled && lead?.rateType === 'Hourly Rate';
@@ -78,17 +78,17 @@ function EstimateDetails({
   // Track invoice state separately for each tab
   // Use local state to track invoice creation immediately
   const [localMoveInHasInvoice, setLocalMoveInHasInvoice] = useState(
-    Boolean(lead?.moveInHasInvoice || lead?.move_in_has_invoice)
+    Boolean(lead?.moveInHasInvoice)
   );
   const [localHasInvoice, setLocalHasInvoice] = useState(
-    Boolean(lead?.hasInvoice || lead?.has_invoice)
+    Boolean(lead?.hasInvoice)
   );
   
   // Update local state when lead changes
   useEffect(() => {
-    setLocalMoveInHasInvoice(Boolean(lead?.moveInHasInvoice || lead?.move_in_has_invoice));
-    setLocalHasInvoice(Boolean(lead?.hasInvoice || lead?.has_invoice));
-  }, [lead?.moveInHasInvoice, lead?.hasInvoice, lead?.move_in_has_invoice, lead?.has_invoice]);
+    setLocalMoveInHasInvoice(Boolean(lead?.moveInHasInvoice));
+    setLocalHasInvoice(Boolean(lead?.hasInvoice));
+  }, [lead?.moveInHasInvoice, lead?.hasInvoice]);
   
   const hasInvoice = showTabs && activeTab === 'moveIn' 
     ? localMoveInHasInvoice
@@ -484,18 +484,18 @@ function EstimateDetails({
   };
 
   // Debug logging
-  console.log('EstimateDetails render:', {
-    leadId,
-    activeTab,
-    hasInvoice,
-    showEstimateSection,
-    showInvoiceSection,
-    currentActiveOption,
-    moveInHasInvoice: lead?.moveInHasInvoice,
-    hasInvoiceField: lead?.hasInvoice,
-    localMoveInHasInvoice,
-    localHasInvoice
-  });
+  // console.log('EstimateDetails render:', {
+  //   leadId,
+  //   activeTab,
+  //   hasInvoice,
+  //   showEstimateSection,
+  //   showInvoiceSection,
+  //   currentActiveOption,
+  //   moveInHasInvoice: lead?.moveInHasInvoice,
+  //   hasInvoiceField: lead?.hasInvoice,
+  //   localMoveInHasInvoice,
+  //   localHasInvoice
+  // });
 
   return (
     <div className={styles.estimateContainer}>

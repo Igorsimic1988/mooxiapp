@@ -379,66 +379,64 @@ function ItemPopup({
   const handleLbsChange = (e) => setLbs(e.target.value);
   const handleNotesChange = (e) => setNotes(e.target.value);
 
-  // Tag logic with incompatible/required
   const handleTagChange = (selectedOptions, setOptions) => {
     const updated = selectedOptions || [];
     const oldAllTags = getAllSelectedTags();
-
-    // figure out which tag was just added or removed
+  
     const newlyChanged =
       updated.length > oldAllTags.length
         ? updated.find((opt) => !oldAllTags.includes(opt.value))
         : oldAllTags.find(
             (tg) => !updated.map((opt) => opt.value).includes(tg)
           );
-
+  
     if (!newlyChanged) {
       setOptions(updated);
       return;
     }
-
+  
     const tagValue = newlyChanged.value;
     const incompArr = INCOMPATIBLE_TAGS[tagValue] || [];
-
-    // If user just added a tag
+  
     if (updated.length > oldAllTags.length) {
-      // remove any incompatible tags from all 4 multi-select states
-      setSelectedPackingTags((prev) =>
-        prev.filter((opt) => !incompArr.includes(opt.value))
-      );
-      setExtraAttentionOptions((prev) =>
-        prev.filter((opt) => !incompArr.includes(opt.value))
-      );
-      setLoadPointsOptions((prev) =>
-        prev.filter((opt) => !incompArr.includes(opt.value))
-      );
-      setDropPointsOptions((prev) =>
-        prev.filter((opt) => !incompArr.includes(opt.value))
-      );
-
-      // Then add any required tags
+      const removeIncompatibles = (opts) =>
+        opts.filter((opt) => !incompArr.includes(opt.value));
+  
+      setSelectedPackingTags((prev) => removeIncompatibles(prev));
+      setExtraAttentionOptions((prev) => removeIncompatibles(prev));
+      setLoadPointsOptions((prev) => removeIncompatibles(prev));
+      setDropPointsOptions((prev) => removeIncompatibles(prev));
+  
       const reqs = REQUIRED_TAGS[tagValue] || [];
-      reqs.forEach((reqTag) => {
-        const found = findOptionByValue(reqTag);
-        if (found && !updated.find((opt) => opt.value === reqTag)) {
-          updated.push(found);
+      const everything = [
+        ...optionsData.itemTags.packing,
+        ...optionsData.itemTags.extraAttention,
+        ...optionsData.locationTags.loadPoints,
+        ...optionsData.locationTags.dropPoints,
+      ];
+  
+      const requiredOptions = reqs
+        .map((reqTag) => everything.find((o) => o.value === reqTag))
+        .filter(
+          (opt) => opt && !updated.find((sel) => sel.value === opt.value)
+        );
+  
+      const finalOptions = [...updated, ...requiredOptions];
+
+      requiredOptions.forEach((opt) => {
+        if (opt.value === 'cp_packed_by_movers') {
+          setSelectedPackingTags((prev) => {
+            const alreadyExists = prev.find((p) => p.value === opt.value);
+            return alreadyExists ? prev : [...prev, opt];
+          });
         }
       });
+      setOptions(finalOptions);
+    } else {
+      // samo obično brisanje
+      setOptions(updated);
     }
-
-    setOptions(updated);
   };
-
-  const findOptionByValue = (value) => {
-    const everything = [
-      ...optionsData.itemTags.packing,
-      ...optionsData.itemTags.extraAttention,
-      ...optionsData.locationTags.loadPoints,
-      ...optionsData.locationTags.dropPoints,
-    ];
-    return everything.find((o) => o.value === value);
-  };
-
   // For multi-select of packing materials
   const handlePackingNeedsChange = (selection, actionMeta) => {
     if (actionMeta.action === 'select-option' && actionMeta.option) {
@@ -623,20 +621,13 @@ const handleSaveItem = (overrides = {}) => {
     }
 
     
-    // Create default packing needs
-    //let defaultPacking = {};
-    // if (item.packingNeeds?.length) {
-    //   item.packingNeeds.forEach((pack) => {
-    //     defaultPacking[pack.type] = pack.quantity;
-    //   });
-    // }
-    
+   
     // Create a brand new item instance with default values (not saved yet)
     const { tags, packingNeeds } = addDefaultTags(
       furnitureItem,
       selectedRoom?.id,
       lead,
-      selectedStop // ✅ sad imaš pun kontekst
+      selectedStop
     );
     const freshItemInstance = {
       id: uuidv4(),

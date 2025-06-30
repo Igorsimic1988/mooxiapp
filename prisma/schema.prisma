@@ -192,6 +192,19 @@ model Lead {
   deliveryWindow        String?
   minHours              String?
   maxHours              String?
+  moveInNumTrucks       Int?
+  moveInNumMovers       Int?
+  moveInHourlyRate      Int?
+  moveInPricePerCuft    Float?
+  moveInPricePerLbs     Float?
+  moveInTravelTime      String?
+  moveInMovingMin       String?
+  moveInMinimumCuft     Float?
+  moveInMinimumLbs      Int?
+  moveInPickupWindow    String?
+  moveInDeliveryWindow  String?
+  moveInMinHours        String?
+  moveInMaxHours        String?
   numPackers            Int?
   packingHourlyRate     Int?
   packingTravelTime     String?
@@ -220,6 +233,28 @@ model Lead {
   invoicePayment             Float?
   invoiceDeposit             Float?
   invoiceBalanceDue       Float?
+  moveInTypeOfQuote           String?
+  moveInEstimateQuote         Float?
+  moveInEstimateFuelSurcharge Float?
+  moveInEstimateValuation     Float?
+  moveInEstimatePacking       Float?
+  moveInEstimateAdditionalServices Float?
+  moveInEstimateDiscount      Float?
+  moveInEstimateGrandTotal    Float?
+  moveInEstimateDeposit       Float?
+  moveInEstimatePayment       Float?
+  moveInEstimateBalanceDue    Float?
+  moveInInvoiceQuote         Float?
+  moveInInvoiceFuelSurcharge Float?
+  moveInInvoiceValuation     Float?
+  moveInInvoicePacking       Float?
+  moveInInvoiceAdditionalServices Float?
+  moveInInvoiceDiscount      Float?
+  moveInInvoiceGrandTotal    Float?
+  moveInInvoiceDeposit       Float?
+  moveInInvoicePayment       Float?
+  moveInInvoiceBalanceDue    Float?
+  moveInHasInvoice           Boolean? @default(false)
   origins       Origins[]
   destinations  Destinations[]
 }

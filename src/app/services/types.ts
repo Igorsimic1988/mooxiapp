@@ -50,6 +50,19 @@ export type LeadInput = {
     earliestDeliveryDate?: string;
     deliveryWindow?: string;
     numPackers?: number;
+    moveInNumTrucks?: number;
+    moveInNumMovers?: number;
+    moveInHourlyRate?: number;
+    moveInPricePerCuft?: number;
+    moveInPricePerLbs?: number;
+    moveInTravelTime?: string;
+    moveInMovingMin?: string;
+    moveInMinimumCuft?:number;
+    moveInMinimumLbs?: number;
+    moveInPickupWindow?: string;
+    moveInDeliveryWindow?: string;
+    moveInMinHours?: string;
+    moveInMaxHours?: string;
     packingHourlyRate?: number;
     packingTravelTime?: string;
     packingMinimum?: string;
@@ -71,6 +84,28 @@ export type LeadInput = {
   invoiceGrandTotal?: number;
   invoicePayment?: number;
   invoiceBalanceDue?: number;
+  moveInTypeOfQuote?: string;
+  moveInEstimateQuote?: number;
+  moveInEstimateFuelSurcharge?: number;
+  moveInEstimateValuation?: number;
+  moveInEstimatePacking?: number;
+  moveInEstimateAdditionalServices?: number;
+  moveInEstimateDiscount?: number;
+  moveInEstimateGrandTotal?: number;
+  moveInEstimateDeposit?: number;
+  moveInEstimatePayment?: number;
+  moveInEstimateBalanceDue?: number;
+  moveInInvoiceQuote?: number;
+  moveInInvoiceFuelSurcharge?: number;
+  moveInInvoiceValuation?: number;
+  moveInInvoicePacking?: number;
+  moveInInvoiceAdditionalServices?: number;
+  moveInInvoiceDiscount?: number;
+  moveInInvoiceGrandTotal?: number;
+  moveInInvoiceDeposit?: number;
+  moveInInvoicePayment?: number;
+  moveInInvoiceBalanceDue?: number;
+  moveInHasInvoice?: boolean;
   };
 
   export type OriginInput = {

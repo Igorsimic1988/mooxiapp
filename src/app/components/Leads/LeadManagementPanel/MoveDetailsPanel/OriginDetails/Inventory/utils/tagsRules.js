@@ -32,12 +32,13 @@ export const EXCLUSIVE_LOCATION_TAGS = [
   }
   
   export const BASE_INCOMPATIBLE_TAGS = {
-    cp_packed_by_movers: ['pbo_packed_by_customer'],
+    cp_packed_by_movers: ['pbo_packed_by_customer', 'sold_box_no_labor'],
     pbo_packed_by_customer: [
       'cp_packed_by_movers',
       'crating',
       'unpacking',
       'pack_and_leave_behind',
+      'customer_provided_box'
     ],
     paper_blanket_wrapped: ['purchased_blankets'],
     purchased_blankets: ['paper_blanket_wrapped'],
@@ -47,6 +48,7 @@ export const EXCLUSIVE_LOCATION_TAGS = [
   export const REQUIRED_TAGS = {
     crating: ['cp_packed_by_movers'],
     purchased_blankets: ['cp_packed_by_movers'],
+    customer_provided_box: ['cp_packed_by_movers'],
   };
   
   export function labelToDropTag(labelString) {

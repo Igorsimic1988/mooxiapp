@@ -114,12 +114,11 @@ function ServicesPopup({
           ? destinationStops.filter(s => s.postStorage)
           : destinationStops;
     
-          setSelectedDestinationStopId((prev) => {
-          const exists = stopsToUse.find(s => s.id === prev);
-          return exists ? prev : stopsToUse[0]?.id;
-        });
+          if (!stopsToUse.some(s => s.id === selectedDestinationStopId)) {
+            setSelectedDestinationStopId(stopsToUse[0]?.id);
+          }
       }
-    }, [selectedPlace, originStops, destinationStops, lead.addStorage, lead.storageItems]);
+    }, [selectedPlace, originStops, destinationStops, lead.addStorage, lead.storageItems, selectedDestinationStopId]);
 
     useEffect(() => {
       const selected = currentStops.find((s) => s.id === selectedStopId);
@@ -132,7 +131,7 @@ function ServicesPopup({
       } else {
         setLocalStop({ ...existsInLocal });
       }
-    }, [selectedStopId, selectedPlace, currentStops, localStops]);
+    }, [selectedStopId, selectedPlace, currentStops]);
     
 
 

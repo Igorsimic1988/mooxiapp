@@ -20,8 +20,6 @@
   mask-image: radial-gradient(20px at calc(100% - 0px) 100%, transparent 0, transparent 20px, #000 20px);
 }
 
-/* Remove pseudo-element completely */
-
 /* Keep the wrapper and panel container styles the same */
 .wrapper {
   flex: 1;
@@ -43,12 +41,13 @@
   scrollbar-width: none;
   position: relative;
   z-index: 10;
-  
-  
+  /* IMPORTANT: Set container type for container queries (optional approach) */
+  container-type: inline-size;
+  container-name: panel;
 }
+
 .panelContainer::-webkit-scrollbar {
   display: none; /* Hide scrollbar in Chrome, Safari, Opera */
-  
 }
 
 /* ===== Top Row (Name + Score + More Button) ===== */
@@ -175,7 +174,7 @@
   color: #2F3236;
 }
 
-/* ===== Buttons Row (Status + Activity) ===== */
+/* ===== Buttons Row (Status + Activity + Next Action) ===== */
 .buttonsRow {
   display: flex;
   flex-direction: column; 
@@ -184,12 +183,29 @@
   margin-top: 15px;
   width: 100%;
   padding: 0px 0px 10px 0px;
+  transition: all 0.3s ease;
+}
+
+/* Wide layout class - applied by JavaScript when component width > 872px */
+.buttonsRow.wideLayout {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
+  align-items: stretch;
 }
 
 /* Button wrapper for consistent sizing */
 .buttonWrapper {
   position: relative;
   width: 100%;
+  transition: all 0.3s ease;
+}
+
+/* In wide layout, buttons have fixed width */
+.wideLayout .buttonWrapper {
+  width: auto;
+  max-width: 280px;
+  flex: 0 0 auto;
 }
 
 /* --- Status Button + Dropdown --- */
@@ -206,6 +222,14 @@
   min-width: 100%;
   position: relative;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Wide layout specific button styles */
+.wideLayout .statusButton,
+.wideLayout .activityButton,
+.wideLayout .nextActionButton {
+  max-width: 280px;
+  width: 280px;
 }
 
 .statusButton:focus {
@@ -269,6 +293,14 @@
   overflow-y: auto;
   z-index: 3000;
   box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+}
+
+/* Adjust dropdown width in wide layout */
+.wideLayout .statusDropdown,
+.wideLayout .activityDropdown {
+  width: 254px;
+  right: 0;
+  left: auto;
 }
 
 /* Keep colored text for status options */
@@ -440,11 +472,26 @@
   width: 100%;
 }
 
+/* Wide layout for estimate buttons */
+.wideEstimateButtonsRow {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
+  width: auto;
+}
+
 .inputContainer {
   display: flex;
   flex-direction: column;
   position: relative;
   width: 100%;
+}
+
+/* Wide layout for input containers */
+.wideEstimateButtonsRow .inputContainer {
+  width: 280px;
+  max-width: 280px;
+  flex: 0 0 auto;
 }
 
 /* Estimator button */
@@ -464,6 +511,14 @@
   font-weight: 700;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Wide layout for estimate buttons */
+.wideEstimateButtonsRow .estimatorButton,
+.wideEstimateButtonsRow .estimatorDateButton,
+.wideEstimateButtonsRow .estimatorTimeButton {
+  width: 280px;
+  max-width: 280px;
 }
 
 .estimatorButton:focus {
@@ -501,6 +556,15 @@
   overflow-y: auto;
   z-index: 3100;
   box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
+}
+
+/* Wide layout dropdown widths */
+.wideEstimateButtonsRow .estimatorDropdown,
+.wideEstimateButtonsRow .calendarPopup,
+.wideEstimateButtonsRow .timeDropdown {
+  width: 254px;
+  left: 0;
+  right: auto;
 }
 
 .estimatorOption {
@@ -732,6 +796,39 @@
   line-height: normal;
 }
 
+/* ===== NEW: Wide layout wrapper for source section and buttons ===== */
+.sourceAndRequestsWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Left side: Source and Previous Requests (vertical) */
+.sourceAndPreviousSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* In wide layout, reset margins */
+.sourceAndRequestsWrapper .sourceSection {
+  margin-top: 0;
+}
+
+.sourceAndRequestsWrapper .previousRequestsLabel {
+  margin-top: 0;
+}
+
+/* Right side: Buttons (horizontal) */
+.sourceAndRequestsWrapper .requestsButtonsContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin: 0;
+}
+
 /* ===== Requests Buttons ===== */
 .requestsButtonsContainer {
   margin-top: 16px;
@@ -754,6 +851,14 @@
   justify-content: space-between;
   -webkit-tap-highlight-color: transparent;
   position: relative;
+}
+
+/* Wide layout button styles */
+.sourceAndRequestsWrapper .rateTypeButton,
+.sourceAndRequestsWrapper .inventoryButton {
+  max-width: 270px;
+  width: 270px;
+  flex: 0 0 auto;
 }
 
 .rateTypeText {
@@ -816,8 +921,6 @@
   background: #F2F5F8;
 }
 
-/* Remove the hidden button class - no longer needed */
-
 .userIcon {
   width: 16px;
   height: 16px;
@@ -878,6 +981,13 @@
   box-shadow: 0px 1px 16px 0px rgba(0, 0, 0, 0.08);
 }
 
+/* In wide layout, align inventory dropdown to right edge */
+.sourceAndRequestsWrapper .inventoryDropdown {
+  left: auto;
+  right: 0;
+  width: 240px;
+}
+
 .inventoryOption {
   padding: 7px 10px;
   cursor: pointer;
@@ -897,9 +1007,15 @@
   background: #F2F5F8;
 }
 
-/* Next action wrapper for proper alignment */
-.nextActionWrapper {
+/* Next action mobile only - shown below estimate buttons on narrow layout */
+.nextActionMobileOnly {
+  display: flex;
   width: 100%;
+}
+
+/* Hide mobile next action in wide layout */
+.wideEstimateLayout .nextActionMobileOnly {
+  display: none;
 }
 
 /* --- NextAction Animation Keyframes --- */
@@ -915,9 +1031,8 @@
   animation: nextActionBounce 0.6s ease-out;
 }
 
-/* Desktop styles for when viewport is over 1440px */
-@media (min-width: 1440px) {
-  /* Horizontal layout for status, activity, and next action buttons */
+/* Container queries approach (optional - for modern browsers) */
+@container panel (min-width: 872px) {
   .buttonsRow {
     flex-direction: row;
     justify-content: flex-start;
@@ -931,7 +1046,6 @@
     flex: 0 0 auto;
   }
 
-  /* Ensure all buttons in the row have consistent height and max-width */
   .statusButton,
   .activityButton,
   .nextActionButton {
@@ -939,18 +1053,10 @@
     width: 280px;
   }
 
-  /* Estimate container layout */
-  .estimateExtraContainer {
-    margin-top: 10px;
-    width: 100%;
-  }
-
   .estimateButtonsRow {
-    display: flex;
     flex-direction: row;
-    justify-content: flex-start; /* Align to left */
+    justify-content: flex-start;
     gap: 10px;
-    margin-bottom: 10px;
     width: auto;
   }
 
@@ -958,7 +1064,6 @@
     width: 280px;
     max-width: 280px;
     flex: 0 0 auto;
-    position: relative;
   }
 
   .estimatorButton,
@@ -968,38 +1073,12 @@
     max-width: 280px;
   }
 
-  /* Next action wrapper when inside estimate container */
-  .nextActionWrapper {
-    display: flex;
-    justify-content: flex-start; /* Align to left to match estimate buttons */
-    width: auto; /* Override mobile width */
-  }
-
-  .nextActionWrapper .nextActionButton {
-    width: 280px;
-    max-width: 280px;
-    min-width: 280px;
-  }
-
-  /* Adjust dropdown positioning for horizontal layout */
-  .statusDropdown,
-  .activityDropdown {
-    width: 254px;
-    right: 0;
-    left: auto;
-  }
-  
-  /* Dropdowns for estimate buttons stay left-aligned */
-  .estimatorDropdown,
-  .calendarPopup,
-  .timeDropdown {
-    width: 254px;
-    left: 0;
-    right: auto;
+  .nextActionMobileOnly {
+    display: none !important;
   }
 }
 
-
+/* Desktop viewport styles - keep for overall app layout */
 @media (min-width: 1024px) {
   /* Completely remove the blue bar on desktop */
   .topBarContainer {
@@ -1016,5 +1095,4 @@
     padding-right: 5px;
     padding-bottom: 34px;
   }
-
 }

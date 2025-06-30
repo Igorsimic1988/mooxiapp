@@ -5,15 +5,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import MoveDetailsPanel from './MoveDetailsPanel/MoveDetailsPanel';
 import styles from './LeadManagementPanel.module.css';
 
-
 // 1) IMPORT THE updateLead SERVICE
 import Icon from '../../Icon';
 import { useForm } from 'react-hook-form';
 import { getSalesmen } from 'src/app/services/userService';
 import { useQuery } from '@tanstack/react-query';
 import { useAccessToken } from 'src/app/lib/useAccessToken';
-
-
 
 const statusOptions = [
   {
@@ -221,19 +218,46 @@ function LeadManagementPanel({
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   const [showRateTypeDropdown, setShowRateTypeDropdown] = useState(false);
 
+  // ADD THIS: State for tracking component width
+  const [isWideLayout, setIsWideLayout] = useState(false);
+
   const inventoryRef = useRef(null);
   const statusContainerRef = useRef(null);
   const activityContainerRef = useRef(null);
   const rateTypeRef = useRef(null);
+  
+  // ADD THIS: Ref for the panel container
+  const panelContainerRef = useRef(null);
 
-    const { data: users = [], } = useQuery({
-      queryKey: ['users', token],
-      queryFn: () => getSalesmen(token),
-      enabled: !!token,
-    })
+  const { data: users = [], } = useQuery({
+    queryKey: ['users', token],
+    queryFn: () => getSalesmen(token),
+    enabled: !!token,
+  })
 
+  // ADD THIS: ResizeObserver effect
+  useEffect(() => {
+    if (!panelContainerRef.current) return;
 
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const width = entry.contentRect.width;
+        // Check if component width is more than 872px
+        setIsWideLayout(width > 872);
+      }
+    });
 
+    resizeObserver.observe(panelContainerRef.current);
+
+    // Initial check
+    const initialWidth = panelContainerRef.current.offsetWidth;
+    setIsWideLayout(initialWidth > 872);
+
+    // Cleanup
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   // Build days array
   useEffect(() => {
@@ -316,10 +340,6 @@ function LeadManagementPanel({
       leadStatus: newStatus,
       leadActivity: newActivity,
       nextAction: newNextAction,
-      // estimator: selectedEstimator,
-      // surveyDate: selectedDate,
-      // surveyTime: selectedTime,
-      // inventoryOption: inventoryOption,
     });
   };
 
@@ -526,6 +546,10 @@ function LeadManagementPanel({
   const rawPhone = lead.customerPhoneNumber || '';
   const displayPhone = formatPhoneNumber(rawPhone);
 
+  // Check if we're in estimate mode
+  const isEstimateMode = leadStatus === 'In Progress' && 
+    (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate');
+
   return (
     <div className={styles.wrapper}>
       {/* Simplified blue bar with curved corner */}
@@ -533,7 +557,8 @@ function LeadManagementPanel({
         <div className={styles.topBarBack}></div>
       </div>
       
-      <div className={styles.panelContainer}>
+      {/* UPDATED: Add ref to panelContainer */}
+      <div className={styles.panelContainer} ref={panelContainerRef}>
         {/* ~ Top Row ~ */}
         <div className={styles.topRow}>
           <div className={styles.leftSection}>
@@ -570,8 +595,9 @@ function LeadManagementPanel({
           </div>
         </div>
 
-        {/* ~ Status + Activity ~ */}
-        <div className={styles.buttonsRow}>
+        {/* ~ Status + Activity + Next Action ~ */}
+        {/* UPDATED: Add conditional class based on isWideLayout */}
+        <div className={`${styles.buttonsRow} ${isWideLayout ? styles.wideLayout : ''}`}>
           {/* Status */}
           <div ref={statusContainerRef} className={styles.buttonWrapper}>
             <button
@@ -650,11 +676,8 @@ function LeadManagementPanel({
             </div>
           )}
 
-          {/* Next Action - shown in buttonsRow when not in estimate mode */}
-          {!(
-            leadStatus === 'In Progress' &&
-            (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate')
-          ) && !hideNextAction && (
+          {/* UPDATED: Next Action - show based on isWideLayout instead of viewport */}
+          {!hideNextAction && (isWideLayout || !isEstimateMode) && (
             <div className={styles.buttonWrapper}>
               <button
                 className={`${styles.nextActionButton} ${
@@ -670,10 +693,9 @@ function LeadManagementPanel({
         </div>
 
         {/* ~ Estimator / Survey Date/Time ~ */}
-        {leadStatus === 'In Progress' &&
-          (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate') && (
-            <div className={styles.estimateExtraContainer}>
-              <div className={styles.estimateButtonsRow}>
+        {isEstimateMode && (
+            <div className={`${styles.estimateExtraContainer} ${isWideLayout ? styles.wideEstimateLayout : ''}`}>
+              <div className={`${styles.estimateButtonsRow} ${isWideLayout ? styles.wideEstimateButtonsRow : ''}`}>
                 {/* Estimator */}
                 <div className={styles.inputContainer}>
                   <button
@@ -778,9 +800,9 @@ function LeadManagementPanel({
                 </div>
               </div>
 
-              {/* Next Action */}
-              {!hideNextAction && (
-                <div className={styles.nextActionWrapper}>
+              {/* UPDATED: Next Action for narrow layout only when in estimate mode */}
+              {!hideNextAction && !isWideLayout && (
+                <div className={styles.nextActionMobileOnly}>
                   <button
                     className={`${styles.nextActionButton} ${
                       animateNextAction ? styles.animateNextAction : ''
@@ -795,125 +817,250 @@ function LeadManagementPanel({
             </div>
           )}
 
-        {/* Source, etc. */}
-        <div className={styles.sourceSection}>
-          <span className={styles.sourceLabel}>Source:</span>
-          <span className={styles.sourceValue}>{lead.source || 'Yelp'}</span>
-        </div>
-        <div className={styles.previousRequestsLabel}>Previous Requests:</div>
-
-        <div className={styles.requestsButtonsContainer}>
-          {/* Rate Type Button (Previously Invite Customer) */}
-          <div
-            className={styles.rateTypeButton}
-            style={{ position: 'relative' }}
-            ref={rateTypeRef}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowRateTypeDropdown(!showRateTypeDropdown);
-            }}
-          >
-            <span
-              className={styles.rateTypeText}
-              style={{ color: currentRateType.color }}
-            >
-              {currentRateType.label}
-            </span>
-            <div
-              className={styles.rateTypeIconContainer}
-              style={{ backgroundColor: currentRateType.iconBg }}
-            >
-              <Icon
-                name="Terminal"
-                className={styles.terminalIcon}
-                width={28}
-                height={28}
-                color="#FFF"
-              />
+        {/* UPDATED: Conditional rendering based on isWideLayout */}
+        {isWideLayout ? (
+          // Wide layout: Source and Previous Requests on left, buttons on right
+          <div className={styles.sourceAndRequestsWrapper}>
+            <div className={styles.sourceAndPreviousSection}>
+              <div className={styles.sourceSection}>
+                <span className={styles.sourceLabel}>Source:</span>
+                <span className={styles.sourceValue}>{lead.source || 'Yelp'}</span>
+              </div>
+              <div className={styles.previousRequestsLabel}>Previous Requests:</div>
             </div>
 
-            {showRateTypeDropdown && (
-              <ul className={styles.rateTypeDropdown}>
-                {rateTypeOptions.map((opt) => {
-                  const isSelected = opt.value === rateType;
-                  return (
-                    <li
-                      key={opt.value}
-                      className={`${styles.rateTypeOption} ${
-                        isSelected ? styles.selectedOption : ''
-                      }`}
-                      onClick={() => handleSelectRateType(opt)}
-                    >
-                      {opt.label}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
+            <div className={styles.requestsButtonsContainer}>
+              {/* Rate Type Button */}
+              <div
+                className={styles.rateTypeButton}
+                style={{ position: 'relative' }}
+                ref={rateTypeRef}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowRateTypeDropdown(!showRateTypeDropdown);
+                }}
+              >
+                <span
+                  className={styles.rateTypeText}
+                  style={{ color: currentRateType.color }}
+                >
+                  {currentRateType.label}
+                </span>
+                <div
+                  className={styles.rateTypeIconContainer}
+                  style={{ backgroundColor: currentRateType.iconBg }}
+                >
+                  <Icon
+                    name="Terminal"
+                    className={styles.terminalIcon}
+                    width={28}
+                    height={28}
+                    color="#FFF"
+                  />
+                </div>
 
-          {/* Inventory Option */}
-          <div
-            className={styles.inventoryButton}
-            style={{ position: 'relative' }}
-            ref={inventoryRef}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowInventoryDropdown(!showInventoryDropdown);
-            }}
-          >
-            <span
-              className={styles.inventoryText}
-              style={{
-                color:
-                  inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.textColor ||
-                  '#3FA9F5',
-              }}
-            >
-              {inventoryOption}
-            </span>
-            <div
-              className={styles.inventoryIconContainer}
-              style={{
-                backgroundColor:
-                  inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.iconBg ||
-                  '#3FA9F5',
-              }}
-            >
-              <Icon
-                name="SpecialH"
-                className={styles.specialIcon}
-                width={18}
-                height={18}
-                color="#FFF"
-              />
+                {showRateTypeDropdown && (
+                  <ul className={styles.rateTypeDropdown}>
+                    {rateTypeOptions.map((opt) => {
+                      const isSelected = opt.value === rateType;
+                      return (
+                        <li
+                          key={opt.value}
+                          className={`${styles.rateTypeOption} ${
+                            isSelected ? styles.selectedOption : ''
+                          }`}
+                          onClick={() => handleSelectRateType(opt)}
+                        >
+                          {opt.label}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              {/* Inventory Option */}
+              <div
+                className={styles.inventoryButton}
+                style={{ position: 'relative' }}
+                ref={inventoryRef}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowInventoryDropdown(!showInventoryDropdown);
+                }}
+              >
+                <span
+                  className={styles.inventoryText}
+                  style={{
+                    color:
+                      inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.textColor ||
+                      '#3FA9F5',
+                  }}
+                >
+                  {inventoryOption}
+                </span>
+                <div
+                  className={styles.inventoryIconContainer}
+                  style={{
+                    backgroundColor:
+                      inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.iconBg ||
+                      '#3FA9F5',
+                  }}
+                >
+                  <Icon
+                    name="SpecialH"
+                    className={styles.specialIcon}
+                    width={18}
+                    height={18}
+                    color="#FFF"
+                  />
+                </div>
+
+                {showInventoryDropdown && (
+                  <ul className={styles.inventoryDropdown}>
+                    {inventoryDropdownOptions.map((opt) => {
+                      const isSelected = opt.label === inventoryOption;
+                      return (
+                        <li
+                          key={opt.label}
+                          className={`${styles.inventoryOption} ${
+                            isSelected ? styles.selectedOption : ''
+                          }`}
+                          onClick={() => handleSelectInventoryOption(opt)}
+                        >
+                          {opt.label}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
             </div>
-
-            {showInventoryDropdown && (
-              <ul className={styles.inventoryDropdown}>
-                {inventoryDropdownOptions.map((opt) => {
-                  const isSelected = opt.label === inventoryOption;
-                  return (
-                    <li
-                      key={opt.label}
-                      className={`${styles.inventoryOption} ${
-                        isSelected ? styles.selectedOption : ''
-                      }`}
-                      onClick={() => handleSelectInventoryOption(opt)}
-                    >
-                      {opt.label}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
           </div>
-        </div>
+        ) : (
+          // Narrow layout: Original vertical layout
+          <>
+            <div className={styles.sourceSection}>
+              <span className={styles.sourceLabel}>Source:</span>
+              <span className={styles.sourceValue}>{lead.source || 'Yelp'}</span>
+            </div>
+            <div className={styles.previousRequestsLabel}>Previous Requests:</div>
+
+            <div className={styles.requestsButtonsContainer}>
+              {/* Rate Type Button (Previously Invite Customer) */}
+              <div
+                className={styles.rateTypeButton}
+                style={{ position: 'relative' }}
+                ref={rateTypeRef}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowRateTypeDropdown(!showRateTypeDropdown);
+                }}
+              >
+                <span
+                  className={styles.rateTypeText}
+                  style={{ color: currentRateType.color }}
+                >
+                  {currentRateType.label}
+                </span>
+                <div
+                  className={styles.rateTypeIconContainer}
+                  style={{ backgroundColor: currentRateType.iconBg }}
+                >
+                  <Icon
+                    name="Terminal"
+                    className={styles.terminalIcon}
+                    width={28}
+                    height={28}
+                    color="#FFF"
+                  />
+                </div>
+
+                {showRateTypeDropdown && (
+                  <ul className={styles.rateTypeDropdown}>
+                    {rateTypeOptions.map((opt) => {
+                      const isSelected = opt.value === rateType;
+                      return (
+                        <li
+                          key={opt.value}
+                          className={`${styles.rateTypeOption} ${
+                            isSelected ? styles.selectedOption : ''
+                          }`}
+                          onClick={() => handleSelectRateType(opt)}
+                        >
+                          {opt.label}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              {/* Inventory Option */}
+              <div
+                className={styles.inventoryButton}
+                style={{ position: 'relative' }}
+                ref={inventoryRef}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowInventoryDropdown(!showInventoryDropdown);
+                }}
+              >
+                <span
+                  className={styles.inventoryText}
+                  style={{
+                    color:
+                      inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.textColor ||
+                      '#3FA9F5',
+                  }}
+                >
+                  {inventoryOption}
+                </span>
+                <div
+                  className={styles.inventoryIconContainer}
+                  style={{
+                    backgroundColor:
+                      inventoryDropdownOptions.find((o) => o.label === inventoryOption)?.iconBg ||
+                      '#3FA9F5',
+                  }}
+                >
+                  <Icon
+                    name="SpecialH"
+                    className={styles.specialIcon}
+                    width={18}
+                    height={18}
+                    color="#FFF"
+                  />
+                </div>
+
+                {showInventoryDropdown && (
+                  <ul className={styles.inventoryDropdown}>
+                    {inventoryDropdownOptions.map((opt) => {
+                      const isSelected = opt.label === inventoryOption;
+                      return (
+                        <li
+                          key={opt.label}
+                          className={`${styles.inventoryOption} ${
+                            isSelected ? styles.selectedOption : ''
+                          }`}
+                          onClick={() => handleSelectInventoryOption(opt)}
+                        >
+                          {opt.label}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
       <MoveDetailsPanel
         onShowInventory={onInventoryFullScreen}
         lead={lead}
         onLeadUpdated={onLeadUpdated}
+        isWideLayout={isWideLayout}
       />
     </div>
   );

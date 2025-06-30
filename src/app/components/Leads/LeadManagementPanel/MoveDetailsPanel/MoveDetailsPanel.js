@@ -52,7 +52,7 @@ const storageOptions = [
   'All items',
 ];
 
-function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
+function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated, isWideLayout }) {
 
     const {
       watch,
@@ -324,6 +324,36 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
     defaultToTwoHours,
   ]);
 
+  const panelRef = useRef(null);
+  const [isPropertyWideLayout, setIsPropertyWideLayout] = useState(false);
+
+  useEffect(() => {
+    const checkPanelWidth = () => {
+      if (panelRef.current) {
+        const width = panelRef.current.offsetWidth;
+        setIsPropertyWideLayout(width >= 640);
+      }
+    };
+
+    // Check on mount
+    checkPanelWidth();
+
+    // Create ResizeObserver to monitor panel width changes
+    const resizeObserver = new ResizeObserver(checkPanelWidth);
+    
+    if (panelRef.current) {
+      resizeObserver.observe(panelRef.current);
+    }
+
+    // Also listen to window resize as fallback
+    window.addEventListener('resize', checkPanelWidth);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', checkPanelWidth);
+    };
+  }, []);
+
   // ---------- "Add Storage" ----------
   const handleToggleStorage = (value) => {
     setValue('addStorage', value);
@@ -423,7 +453,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   const selectedDeliveryDateObj = deliveryDate ? new Date(deliveryDate) : null;
 
   return (
-    <div className={styles.panelContainer}>
+    <div className={styles.panelContainer} ref={panelRef}>
       {/* ---------- TABS ---------- */}
       <div className={styles.sectionsRow}>
   <div
@@ -469,167 +499,569 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
   )}
 </div>
 
-      {/* ---------- MOVE DATE ---------- */}
-      <div className={`${styles.inputContainer} ${showMoveCalendar ? styles.activeInput : ''}`} style={{ position: 'relative' }}>
-        <button
-          type="button"
-          className={styles.dateButton}
-          onClick={() => {
-            setShowMoveCalendar((prev) => !prev);
-            setShowDeliveryCalendar(false);
-          }}
-        >
-          <span className={styles.oneLineEllipsis}>
-            <span className={styles.dateLabelPrefix}>Move Date:</span>
-            <span className={moveDate ? styles.dateSelected : styles.datePlaceholder}>
-              {moveDate || ''}
-            </span>
-          </span>
-          <div className={styles.calendarRightIconWrapper}>
-            <Icon name="Calendar" className={styles.calendarIcon} />
-          </div>
-        </button>
-
-        {showMoveCalendar && (
-          <div className={styles.calendarPopup} ref={moveCalendarRef}>
-            <div className={styles.calendarHeader}>
-              <button onClick={goPrevMonth}>Prev</button>
-              <span>
-                {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
-                {calendarMonth.getFullYear()}
+      {/* ---------- MOVE DATE AND DELIVERY DATE ---------- */}
+      {isWideLayout ? (
+        <div className={styles.dateRowWide}>
+          {/* MOVE DATE */}
+          <div className={`${styles.inputContainer} ${showMoveCalendar ? styles.activeInput : ''}`} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              className={styles.dateButton}
+              onClick={() => {
+                setShowMoveCalendar((prev) => !prev);
+                setShowDeliveryCalendar(false);
+              }}
+            >
+              <span className={styles.oneLineEllipsis}>
+                <span className={styles.dateLabelPrefix}>Move Date:</span>
+                <span className={moveDate ? styles.dateSelected : styles.datePlaceholder}>
+                  {moveDate || ''}
+                </span>
               </span>
-              <button onClick={goNextMonth}>Next</button>
-            </div>
-            <div className={styles.calendarGrid}>
-              {daysInMonth.map((day) => {
-                const dayDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
-                // cannot pick a date in the past
-                const disabled = dayDate < today;
-                // check if this day is the currently selected "moveDate"
-                const isSelected =
-                  selectedMoveDateObj &&
-                  dayDate.toDateString() === selectedMoveDateObj.toDateString();
+              <div className={styles.calendarRightIconWrapper}>
+                <Icon name="Calendar" className={styles.calendarIcon} />
+              </div>
+            </button>
 
-                return (
-                  <button
-                    key={day}
-                    type="button"
-                    className={`${styles.calendarDay} ${
-                      isSelected ? styles.selectedDay : ''
-                    }`}
-                    style={{
-                      opacity: disabled ? 0.4 : 1,
-                      cursor: disabled ? 'not-allowed' : 'pointer',
-                    }}
-                    onClick={() => {
-                      if (!disabled) {
-                        handleSelectMoveDate(dayDate);
-                        setShowMoveCalendar(false);
-                      }
-                    }}
-                  >
-                    {day}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ---------- TYPE OF SERVICE (DROPDOWN) ---------- */}
-      <div
-        className={`${styles.storageDropdown} ${showTypeOfServiceDropdown ? styles.activeInput : ''}`}
-        style={{ marginTop: '10px' }}
-        onClick={() => {
-          setShowTypeOfServiceDropdown((prev) => !prev);
-          setShowETARequestDropdown(false);
-          setStorageDropdownOpen(false);
-          setShowMoveCalendar(false);
-          setShowDeliveryCalendar(false);
-        }}
-        ref={typeOfServiceRef}
-      >
-        <span className={styles.oneLineEllipsis}>
-          <span className={styles.inputLabel}>Type of Service:</span>
-          <span className={styles.inputValue}> {serviceType}</span>
-        </span>
-        <Icon name="UnfoldMore" className={styles.moreIcon}/>
-
-        {showTypeOfServiceDropdown && (
-          <div className={styles.dropdownMenu}>
-            {typeOfServiceChoices.map((svc) => {
-              const isSelected = svc.name === serviceType;
-              return (
-                <div
-                  key={svc.id}
-                  className={`${styles.dropdownOption} ${isSelected ? styles.selectedOption : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelectServiceType(svc.name);
-                  }}
-                >
-                  {svc.name}
+            {showMoveCalendar && (
+              <div className={styles.calendarPopup} ref={moveCalendarRef}>
+                <div className={styles.calendarHeader}>
+                  <button onClick={goPrevMonth}>Prev</button>
+                  <span>
+                    {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
+                    {calendarMonth.getFullYear()}
+                  </span>
+                  <button onClick={goNextMonth}>Next</button>
                 </div>
-              );
-            })}
+                <div className={styles.calendarGrid}>
+                  {daysInMonth.map((day) => {
+                    const dayDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+                    const disabled = dayDate < today;
+                    const isSelected =
+                      selectedMoveDateObj &&
+                      dayDate.toDateString() === selectedMoveDateObj.toDateString();
+
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        className={`${styles.calendarDay} ${
+                          isSelected ? styles.selectedDay : ''
+                        }`}
+                        style={{
+                          opacity: disabled ? 0.4 : 1,
+                          cursor: disabled ? 'not-allowed' : 'pointer',
+                        }}
+                        onClick={() => {
+                          if (!disabled) {
+                            handleSelectMoveDate(dayDate);
+                            setShowMoveCalendar(false);
+                          }
+                        }}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* ---------- ADD STORAGE TOGGLE ---------- */}
-      <div className={styles.storageContainer}>
-        <span className={styles.addStorageText}>Add storage</span>
-        <SimpleToggle isToggled={addStorage} onToggle={handleToggleStorage} />
-      </div>
-
-      {/* If toggled => show Storage dropdown */}
-      {addStorage && (
-        <div
-          className={`${styles.storageDropdown} ${storageDropdownOpen ? styles.activeInput : ''}`}
-          onClick={() => {
-            setStorageDropdownOpen((prev) => !prev);
-            setShowTypeOfServiceDropdown(false);
-            setShowETARequestDropdown(false);
-            setShowMoveCalendar(false);
-            setShowDeliveryCalendar(false);
-          }}
-          ref={storageRef}
-        >
-          <span className={styles.oneLineEllipsis}>
-            <span className={styles.inputLabel}>Items in storage:</span>
-            <span className={styles.inputValue}> {storageItems}</span>
-          </span>
-          <Icon name="UnfoldMore" className={styles.moreIcon}/>
-          {storageDropdownOpen && (
-            <div className={styles.dropdownMenu}>
-              {storageOptions.map((option) => {
-                const isSelected = option === storageItems;
-                return (
-                  <div
-                    key={option}
-                    className={`${styles.dropdownOption} ${
-                      isSelected ? styles.selectedOption : ''
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectStorage(option);
-                    }}
-                  >
-                    {option}
+          {/* DELIVERY DATE */}
+          {(() => {
+            const isWeightOrVolumeBased = lead?.rateType === 'Weight Based' || lead?.rateType === 'Volume Based';
+            const isEnabled = isWeightOrVolumeBased || addStorage;
+            
+            return (
+              <div
+                className={`${styles.inputContainer} ${showDeliveryCalendar ? styles.activeInput : ''} ${
+                  !isEnabled ? styles.disabledContainer : ''
+                }`}
+                style={{ position: 'relative' }}
+              >
+                <button
+                  type="button"
+                  className={styles.dateButton}
+                  onClick={() => {
+                    if (!isEnabled) return;
+                    setShowDeliveryCalendar((prev) => !prev);
+                    setShowMoveCalendar(false);
+                  }}
+                  disabled={!isEnabled}
+                >
+                  <span className={styles.oneLineEllipsis}>
+                    <span className={styles.dateLabelPrefix}>Delivery Date:</span>
+                    <span className={deliveryDate ? styles.dateSelected : styles.datePlaceholder}>
+                      {deliveryDate || ''}
+                    </span>
+                  </span>
+                  <div className={styles.calendarRightIconWrapper}>
+                    <Icon name="Calendar" className={styles.calendarIcon} />
                   </div>
-                );
-              })}
-            </div>
-          )}
+                </button>
+
+                {showDeliveryCalendar && (
+                  <div className={styles.calendarPopup} ref={deliveryCalendarRef}>
+                    <div className={styles.calendarHeader}>
+                      <button onClick={goPrevMonth}>Prev</button>
+                      <span>
+                        {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
+                        {calendarMonth.getFullYear()}
+                      </span>
+                      <button onClick={goNextMonth}>Next</button>
+                    </div>
+                    <div className={styles.calendarGrid}>
+                      {daysInMonth.map((day) => {
+                        const dayDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+
+                        let earliestDelivery = new Date(today.getTime());
+                        if (moveDate) {
+                          const moveDateObj = new Date(moveDate);
+                          moveDateObj.setHours(0, 0, 0, 0);
+                          if (!isNaN(moveDateObj)) {
+                            earliestDelivery = moveDateObj;
+                          }
+                        }
+
+                        const disabled = dayDate < earliestDelivery;
+
+                        const isSelected =
+                          selectedDeliveryDateObj &&
+                          dayDate.toDateString() === selectedDeliveryDateObj.toDateString();
+
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            className={`${styles.calendarDay} ${
+                              isSelected ? styles.selectedDay : ''
+                            }`}
+                            style={{
+                              opacity: disabled ? 0.4 : 1,
+                              cursor: disabled ? 'not-allowed' : 'pointer',
+                            }}
+                            onClick={() => {
+                              if (!disabled) {
+                                handleSelectDeliveryDate(dayDate);
+                                setShowDeliveryCalendar(false);
+                              }
+                            }}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
+      ) : (
+        <>
+          {/* ---------- MOVE DATE ---------- */}
+          <div className={`${styles.inputContainer} ${showMoveCalendar ? styles.activeInput : ''}`} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              className={styles.dateButton}
+              onClick={() => {
+                setShowMoveCalendar((prev) => !prev);
+                setShowDeliveryCalendar(false);
+              }}
+            >
+              <span className={styles.oneLineEllipsis}>
+                <span className={styles.dateLabelPrefix}>Move Date:</span>
+                <span className={moveDate ? styles.dateSelected : styles.datePlaceholder}>
+                  {moveDate || ''}
+                </span>
+              </span>
+              <div className={styles.calendarRightIconWrapper}>
+                <Icon name="Calendar" className={styles.calendarIcon} />
+              </div>
+            </button>
+
+            {showMoveCalendar && (
+              <div className={styles.calendarPopup} ref={moveCalendarRef}>
+                <div className={styles.calendarHeader}>
+                  <button onClick={goPrevMonth}>Prev</button>
+                  <span>
+                    {calendarMonth.toLocaleString('default', { month: 'long' })}{' '}
+                    {calendarMonth.getFullYear()}
+                  </span>
+                  <button onClick={goNextMonth}>Next</button>
+                </div>
+                <div className={styles.calendarGrid}>
+                  {daysInMonth.map((day) => {
+                    const dayDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+                    const disabled = dayDate < today;
+                    const isSelected =
+                      selectedMoveDateObj &&
+                      dayDate.toDateString() === selectedMoveDateObj.toDateString();
+
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        className={`${styles.calendarDay} ${
+                          isSelected ? styles.selectedDay : ''
+                        }`}
+                        style={{
+                          opacity: disabled ? 0.4 : 1,
+                          cursor: disabled ? 'not-allowed' : 'pointer',
+                        }}
+                        onClick={() => {
+                          if (!disabled) {
+                            handleSelectMoveDate(dayDate);
+                            setShowMoveCalendar(false);
+                          }
+                        }}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
-      <div className={styles.spacing30}></div>
+      {/* ---------- TYPE OF SERVICE AND ETA REQUEST ---------- */}
+      {isWideLayout ? (
+        <div className={styles.serviceRowWide}>
+          {/* TYPE OF SERVICE */}
+          <div
+            className={`${styles.storageDropdown} ${showTypeOfServiceDropdown ? styles.activeInput : ''}`}
+            onClick={() => {
+              setShowTypeOfServiceDropdown((prev) => !prev);
+              setShowETARequestDropdown(false);
+              setStorageDropdownOpen(false);
+              setShowMoveCalendar(false);
+              setShowDeliveryCalendar(false);
+            }}
+            ref={typeOfServiceRef}
+          >
+            <span className={styles.oneLineEllipsis}>
+              <span className={styles.inputLabel}>Type of Service:</span>
+              <span className={styles.inputValue}> {serviceType}</span>
+            </span>
+            <Icon name="UnfoldMore" className={styles.moreIcon}/>
+
+            {showTypeOfServiceDropdown && (
+              <div className={styles.dropdownMenu}>
+                {typeOfServiceChoices.map((svc) => {
+                  const isSelected = svc.name === serviceType;
+                  return (
+                    <div
+                      key={svc.id}
+                      className={`${styles.dropdownOption} ${isSelected ? styles.selectedOption : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectServiceType(svc.name);
+                      }}
+                    >
+                      {svc.name}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ETA REQUEST */}
+          <div
+            className={`${styles.storageDropdown} ${showETARequestDropdown ? styles.activeInput : ''}`}
+            onClick={() => {
+              setShowETARequestDropdown((prev) => !prev);
+              setShowTypeOfServiceDropdown(false);
+              setStorageDropdownOpen(false);
+              setShowMoveCalendar(false);
+              setShowDeliveryCalendar(false);
+            }}
+            ref={etaRequestRef}
+          >
+            <span className={styles.oneLineEllipsis}>
+              <span className={styles.inputLabel}>ETA Request:</span>
+              <span className={styles.inputValue}> {etaRequest}</span>
+            </span>
+            <Icon name="UnfoldMore" className={styles.moreIcon} />
+
+            {showETARequestDropdown && (
+              <div className={styles.dropdownMenu}>
+                {etaRequestOptions.map((opt) => {
+                  const isSelected = opt === etaRequest;
+                  return (
+                    <div
+                      key={opt}
+                      className={`${styles.dropdownOption} ${
+                        isSelected ? styles.selectedOption : ''
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectEtaRequest(opt);
+                      }}
+                    >
+                      {opt}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* TYPE OF SERVICE (DROPDOWN) */}
+          <div
+            className={`${styles.storageDropdown} ${showTypeOfServiceDropdown ? styles.activeInput : ''}`}
+            style={{ marginTop: '10px' }}
+            onClick={() => {
+              setShowTypeOfServiceDropdown((prev) => !prev);
+              setShowETARequestDropdown(false);
+              setStorageDropdownOpen(false);
+              setShowMoveCalendar(false);
+              setShowDeliveryCalendar(false);
+            }}
+            ref={typeOfServiceRef}
+          >
+            <span className={styles.oneLineEllipsis}>
+              <span className={styles.inputLabel}>Type of Service:</span>
+              <span className={styles.inputValue}> {serviceType}</span>
+            </span>
+            <Icon name="UnfoldMore" className={styles.moreIcon}/>
+
+            {showTypeOfServiceDropdown && (
+              <div className={styles.dropdownMenu}>
+                {typeOfServiceChoices.map((svc) => {
+                  const isSelected = svc.name === serviceType;
+                  return (
+                    <div
+                      key={svc.id}
+                      className={`${styles.dropdownOption} ${isSelected ? styles.selectedOption : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectServiceType(svc.name);
+                      }}
+                    >
+                      {svc.name}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ---------- ADD STORAGE AND TIME PROMISED ---------- */}
+      {isWideLayout ? (
+        <div className={styles.storageTimeRowWide}>
+          {/* ADD STORAGE SECTION */}
+          <div className={styles.storageColumnWide}>
+            <div className={styles.storageContainer}>
+              <span className={styles.addStorageText}>Add storage</span>
+              <SimpleToggle isToggled={addStorage} onToggle={handleToggleStorage} />
+            </div>
+
+            {/* If toggled => show Storage dropdown */}
+            {addStorage && (
+              <div
+                className={`${styles.storageDropdown} ${storageDropdownOpen ? styles.activeInput : ''}`}
+                onClick={() => {
+                  setStorageDropdownOpen((prev) => !prev);
+                  setShowTypeOfServiceDropdown(false);
+                  setShowETARequestDropdown(false);
+                  setShowMoveCalendar(false);
+                  setShowDeliveryCalendar(false);
+                }}
+                ref={storageRef}
+              >
+                <span className={styles.oneLineEllipsis}>
+                  <span className={styles.inputLabel}>Items in storage:</span>
+                  <span className={styles.inputValue}> {storageItems}</span>
+                </span>
+                <Icon name="UnfoldMore" className={styles.moreIcon}/>
+                {storageDropdownOpen && (
+                  <div className={styles.dropdownMenu}>
+                    {storageOptions.map((option) => {
+                      const isSelected = option === storageItems;
+                      return (
+                        <div
+                          key={option}
+                          className={`${styles.dropdownOption} ${
+                            isSelected ? styles.selectedOption : ''
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectStorage(option);
+                          }}
+                        >
+                          {option}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* TIME PROMISED SECTION */}
+          <div className={styles.timeColumnWide}>
+            <div className={styles.timePromisedRow}>
+              <span className={styles.timePromisedText}>Time promised</span>
+              <SimpleToggle isToggled={timePromised} onToggle={handleToggleTimePromised} />
+            </div>
+
+            {timePromised && (
+              <div
+                className={`${styles.arrivalTimeInput} ${showStartTimeDropdown || showIncrementsGrid ? styles.activeInput : ''}`}
+                onClick={() => {
+                  const newVal = !showStartTimeDropdown;
+                  if (!newVal && arrivalStart && !arrivalTime && showIncrementsGrid) {
+                    defaultToTwoHours();
+                  }
+                  setShowStartTimeDropdown(newVal);
+                  setShowIncrementsGrid(false);
+                }}
+              >
+                <span className={styles.oneLineEllipsis}>
+                  <span className={styles.inputLabel}>Arrival Time:</span>
+                  <span className={styles.inputValue}> {arrivalTime || 'Select'}</span>
+                </span>
+                <div className={styles.inputIconContainer}>
+                  <Icon name="Clock" className={styles.inputIcon} />
+                </div>
+
+                {showStartTimeDropdown && (
+                  <div
+                    className={styles.timeDropdown}
+                    ref={startTimeDropdownRef}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {timeSlots.map((slot) => {
+                      const isSelected = slot === arrivalStart;
+                      return (
+                        <div
+                          key={slot}
+                          className={`${styles.timeOption} ${
+                            isSelected ? styles.selectedOption : ''
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setArrivalStart(slot);
+                            setValue('arrivalTime','')
+                            setShowIncrementsGrid(true);
+                            setShowStartTimeDropdown(false);
+                          }}
+                        >
+                          {slot}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {showIncrementsGrid && (
+                  <div
+                    className={styles.addHoursGrid}
+                    ref={incrementsGridRef}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {[2, 4, 6, 8].map((inc) => (
+                      <button
+                        key={inc}
+                        className={styles.addHoursButton}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const [hhmm, ampm] = arrivalStart.split(' ');
+                          const [hS, mS] = hhmm.split(':');
+                          let hh = Number(hS);
+                          let mm = Number(mS);
+                          let suffix = ampm;
+                          hh += inc;
+                          while (hh > 12) {
+                            hh -= 12;
+                            suffix = suffix === 'AM' ? 'PM' : 'AM';
+                          }
+                          if (hh === 0) hh = 12;
+                          const mmStr = mm.toString().padStart(2, '0');
+                          const rangeStr = `${arrivalStart} - ${hh}:${mmStr} ${suffix}`;
+                          setValue('arrivalTime',rangeStr)
+                          setShowIncrementsGrid(false);
+                          handleSetArrivalTime(rangeStr);
+                        }}
+                      >
+                        +{inc}h
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* ---------- ADD STORAGE TOGGLE ---------- */}
+          <div className={styles.storageContainer}>
+            <span className={styles.addStorageText}>Add storage</span>
+            <SimpleToggle isToggled={addStorage} onToggle={handleToggleStorage} />
+          </div>
+
+          {/* If toggled => show Storage dropdown */}
+          {addStorage && (
+            <div
+              className={`${styles.storageDropdown} ${storageDropdownOpen ? styles.activeInput : ''}`}
+              onClick={() => {
+                setStorageDropdownOpen((prev) => !prev);
+                setShowTypeOfServiceDropdown(false);
+                setShowETARequestDropdown(false);
+                setShowMoveCalendar(false);
+                setShowDeliveryCalendar(false);
+              }}
+              ref={storageRef}
+            >
+              <span className={styles.oneLineEllipsis}>
+                <span className={styles.inputLabel}>Items in storage:</span>
+                <span className={styles.inputValue}> {storageItems}</span>
+              </span>
+              <Icon name="UnfoldMore" className={styles.moreIcon}/>
+              {storageDropdownOpen && (
+                <div className={styles.dropdownMenu}>
+                  {storageOptions.map((option) => {
+                    const isSelected = option === storageItems;
+                    return (
+                      <div
+                        key={option}
+                        className={`${styles.dropdownOption} ${
+                          isSelected ? styles.selectedOption : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectStorage(option);
+                        }}
+                      >
+                        {option}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Spacing - only show spacing30 for narrow layout */}
+      {!isWideLayout && <div className={styles.spacing30}></div>}
 
       {/* ---------- DELIVERY DATE ---------- */}
       {/* Always visible, but disabled unless Weight/Volume Based Quote OR Add Storage is ON */}
-      {(() => {
+      {!isWideLayout && (() => {
         const isWeightOrVolumeBased = lead?.rateType === 'Weight Based' || lead?.rateType === 'Volume Based';
         const isEnabled = isWeightOrVolumeBased || addStorage;
         
@@ -719,139 +1151,145 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         );
       })()}
 
-      {/* ---------- ETA REQUEST (DROPDOWN) ---------- */}
-      <div
-        className={`${styles.storageDropdown} ${showETARequestDropdown ? styles.activeInput : ''}`}
-        style={{ marginTop: '10px' }}
-        onClick={() => {
-          setShowETARequestDropdown((prev) => !prev);
-          setShowTypeOfServiceDropdown(false);
-          setStorageDropdownOpen(false);
-          setShowMoveCalendar(false);
-          setShowDeliveryCalendar(false);
-        }}
-        ref={etaRequestRef}
-      >
-        <span className={styles.oneLineEllipsis}>
-          <span className={styles.inputLabel}>ETA Request:</span>
-          <span className={styles.inputValue}> {etaRequest}</span>
-        </span>
-        <Icon name="UnfoldMore" className={styles.moreIcon} />
-
-        {showETARequestDropdown && (
-          <div className={styles.dropdownMenu}>
-            {etaRequestOptions.map((opt) => {
-              const isSelected = opt === etaRequest;
-              return (
-                <div
-                  key={opt}
-                  className={`${styles.dropdownOption} ${
-                    isSelected ? styles.selectedOption : ''
-                  }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelectEtaRequest(opt);
-                  }}
-                >
-                  {opt}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* ---------- TIME PROMISED TOGGLE ---------- */}
-      <div className={styles.timePromisedRow}>
-        <span className={styles.timePromisedText}>Time promised</span>
-        <SimpleToggle isToggled={timePromised} onToggle={handleToggleTimePromised} />
-      </div>
-
-      {timePromised && (
+      {/* ---------- ETA REQUEST (DROPDOWN) - For mobile only ---------- */}
+      {!isWideLayout && (
         <div
-          className={`${styles.arrivalTimeInput} ${showStartTimeDropdown || showIncrementsGrid ? styles.activeInput : ''}`}
+          className={`${styles.storageDropdown} ${showETARequestDropdown ? styles.activeInput : ''}`}
+          style={{ marginTop: '10px' }}
           onClick={() => {
-            const newVal = !showStartTimeDropdown;
-            if (!newVal && arrivalStart && !arrivalTime && showIncrementsGrid) {
-              defaultToTwoHours();
-            }
-            setShowStartTimeDropdown(newVal);
-            setShowIncrementsGrid(false);
+            setShowETARequestDropdown((prev) => !prev);
+            setShowTypeOfServiceDropdown(false);
+            setStorageDropdownOpen(false);
+            setShowMoveCalendar(false);
+            setShowDeliveryCalendar(false);
           }}
+          ref={etaRequestRef}
         >
           <span className={styles.oneLineEllipsis}>
-            <span className={styles.inputLabel}>Arrival Time:</span>
-            <span className={styles.inputValue}> {arrivalTime || 'Select'}</span>
+            <span className={styles.inputLabel}>ETA Request:</span>
+            <span className={styles.inputValue}> {etaRequest}</span>
           </span>
-          <div className={styles.inputIconContainer}>
-            <Icon name="Clock" className={styles.inputIcon} />
-          </div>
+          <Icon name="UnfoldMore" className={styles.moreIcon} />
 
-          {showStartTimeDropdown && (
-            <div
-              className={styles.timeDropdown}
-              ref={startTimeDropdownRef}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {timeSlots.map((slot) => {
-                const isSelected = slot === arrivalStart;
+          {showETARequestDropdown && (
+            <div className={styles.dropdownMenu}>
+              {etaRequestOptions.map((opt) => {
+                const isSelected = opt === etaRequest;
                 return (
                   <div
-                    key={slot}
-                    className={`${styles.timeOption} ${
+                    key={opt}
+                    className={`${styles.dropdownOption} ${
                       isSelected ? styles.selectedOption : ''
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setArrivalStart(slot);
-                      setValue('arrivalTime','')
-                      setShowIncrementsGrid(true);
-                      setShowStartTimeDropdown(false);
+                      handleSelectEtaRequest(opt);
                     }}
                   >
-                    {slot}
+                    {opt}
                   </div>
                 );
               })}
             </div>
           )}
+        </div>
+      )}
 
-          {showIncrementsGrid && (
+      {/* ---------- TIME PROMISED TOGGLE - For mobile only ---------- */}
+      {!isWideLayout && (
+        <>
+          <div className={styles.timePromisedRow}>
+            <span className={styles.timePromisedText}>Time promised</span>
+            <SimpleToggle isToggled={timePromised} onToggle={handleToggleTimePromised} />
+          </div>
+
+          {timePromised && (
             <div
-              className={styles.addHoursGrid}
-              ref={incrementsGridRef}
-              onClick={(e) => e.stopPropagation()}
+              className={`${styles.arrivalTimeInput} ${showStartTimeDropdown || showIncrementsGrid ? styles.activeInput : ''}`}
+              onClick={() => {
+                const newVal = !showStartTimeDropdown;
+                if (!newVal && arrivalStart && !arrivalTime && showIncrementsGrid) {
+                  defaultToTwoHours();
+                }
+                setShowStartTimeDropdown(newVal);
+                setShowIncrementsGrid(false);
+              }}
             >
-              {[2, 4, 6, 8].map((inc) => (
-                <button
-                  key={inc}
-                  className={styles.addHoursButton}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const [hhmm, ampm] = arrivalStart.split(' ');
-                    const [hS, mS] = hhmm.split(':');
-                    let hh = Number(hS);
-                    let mm = Number(mS);
-                    let suffix = ampm;
-                    hh += inc;
-                    while (hh > 12) {
-                      hh -= 12;
-                      suffix = suffix === 'AM' ? 'PM' : 'AM';
-                    }
-                    if (hh === 0) hh = 12;
-                    const mmStr = mm.toString().padStart(2, '0');
-                    const rangeStr = `${arrivalStart} - ${hh}:${mmStr} ${suffix}`;
-                    setValue('arrivalTime',rangeStr)
-                    setShowIncrementsGrid(false);
-                    handleSetArrivalTime(rangeStr);
-                  }}
+              <span className={styles.oneLineEllipsis}>
+                <span className={styles.inputLabel}>Arrival Time:</span>
+                <span className={styles.inputValue}> {arrivalTime || 'Select'}</span>
+              </span>
+              <div className={styles.inputIconContainer}>
+                <Icon name="Clock" className={styles.inputIcon} />
+              </div>
+
+              {showStartTimeDropdown && (
+                <div
+                  className={styles.timeDropdown}
+                  ref={startTimeDropdownRef}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  +{inc}h
-                </button>
-              ))}
+                  {timeSlots.map((slot) => {
+                    const isSelected = slot === arrivalStart;
+                    return (
+                      <div
+                        key={slot}
+                        className={`${styles.timeOption} ${
+                          isSelected ? styles.selectedOption : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setArrivalStart(slot);
+                          setValue('arrivalTime','')
+                          setShowIncrementsGrid(true);
+                          setShowStartTimeDropdown(false);
+                        }}
+                      >
+                        {slot}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {showIncrementsGrid && (
+                <div
+                  className={styles.addHoursGrid}
+                  ref={incrementsGridRef}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {[2, 4, 6, 8].map((inc) => (
+                    <button
+                      key={inc}
+                      className={styles.addHoursButton}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const [hhmm, ampm] = arrivalStart.split(' ');
+                        const [hS, mS] = hhmm.split(':');
+                        let hh = Number(hS);
+                        let mm = Number(mS);
+                        let suffix = ampm;
+                        hh += inc;
+                        while (hh > 12) {
+                          hh -= 12;
+                          suffix = suffix === 'AM' ? 'PM' : 'AM';
+                        }
+                        if (hh === 0) hh = 12;
+                        const mmStr = mm.toString().padStart(2, '0');
+                        const rangeStr = `${arrivalStart} - ${hh}:${mmStr} ${suffix}`;
+                        setValue('arrivalTime',rangeStr)
+                        setShowIncrementsGrid(false);
+                        handleSetArrivalTime(rangeStr);
+                      }}
+                    >
+                      +{inc}h
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
-        </div>
+        </>
       )}
 
       <div className={styles.spacing20}></div>
@@ -865,6 +1303,7 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         originStops={originStops}
         setOriginStops={setOriginStops}
         destinationStops={destinationStops}
+         isPropertyWideLayout={isPropertyWideLayout}
       />
 
       <DestinationDetails
@@ -875,16 +1314,20 @@ function MoveDetailsPanel({ onShowInventory, lead, onLeadUpdated }) {
         originStops={originStops}
         destinationStops={destinationStops}
         setDestinationStops={setDestinationStops}
+         isPropertyWideLayout={isPropertyWideLayout}
       />
 
       <LogisticsDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
+         isPropertyWideLayout={isPropertyWideLayout}
+         isStorageEnabled={addStorage}
       />
 
       <EstimateDetails
         lead={lead}
         onLeadUpdated={onLeadUpdated}
+        isStorageEnabled={addStorage}
       />
     </div>
   );

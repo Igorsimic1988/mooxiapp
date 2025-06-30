@@ -47,6 +47,7 @@ function OriginDetails({
   destinationStops,
   setOriginStops,
   originStops,
+ isPropertyWideLayout,
 }) {
     const token = useAccessToken();
     const queryClient = useQueryClient();
@@ -551,82 +552,150 @@ function OriginDetails({
           />
 
           {/* Address Inputs */}
-          <div className={styles.propertySection}>
-            <div className={styles.propertySectionHeader}>
-              <span className={styles.propertyAddressText}>Property Address</span>
+         <div className={styles.propertySection}>
+    <div className={styles.propertySectionHeader}>
+      <span className={styles.propertyAddressText}>Property Address</span>
 
-              {/* Deactivate link => hidden if "Main Address" */}
-              {canDeactivate && (
-                <button
-                  type="button"
-                  className={styles.deactivateStopLink}
-                  onClick={handleDeactivateThisStop}
-                >
-                  Remove this stop
-                </button>
-              )}
-            </div>
+      {/* Deactivate link => hidden if "Main Address" */}
+      {canDeactivate && (
+        <button
+          type="button"
+          className={styles.deactivateStopLink}
+          onClick={handleDeactivateThisStop}
+        >
+          Remove this stop
+        </button>
+      )}
+    </div>
 
-            <div className={`${styles.inputContainer} ${focusedAddressInput === 'address' ? styles.activeInput : ''}`}>
-              <input
-                type="text"
-                className={styles.addressInput}
-                placeholder="Property Address"
-                value={currentStop.address || ''}
-                onChange={(e) => handleStopFieldChange('address', e.target.value)}
-                onFocus={() => setFocusedAddressInput('address')}
-              />
-              <div className={styles.inputIconContainer}>
-                <Icon name="Location" className={styles.inputIcon} />
-              </div>
-            </div>
-
-            <div className={styles.twoInputsRow}>
-              <div className={`${styles.inputContainer} ${focusedAddressInput === 'apt' ? styles.activeInput : ''}`}>
-                <input
-                  type="text"
-                  className={styles.addressInput}
-                  placeholder="Apt/Suite"
-                  value={currentStop.apt || ''}
-                  onChange={(e) => handleStopFieldChange('apt', e.target.value)}
-                  onFocus={() => setFocusedAddressInput('apt')}
-                />
-              </div>
-              <div className={`${styles.inputContainer} ${focusedAddressInput === 'city' ? styles.activeInput : ''}`}>
-                <input
-                  type="text"
-                  className={styles.addressInput}
-                  placeholder="City"
-                  value={currentStop.city || ''}
-                  onChange={(e) => handleStopFieldChange('city', e.target.value)}
-                  onFocus={() => setFocusedAddressInput('city')}
-                />
-              </div>
-            </div>
-
-            <div className={styles.twoInputsRow}>
-              <div className={`${styles.inputContainer} ${focusedAddressInput === 'state' ? styles.activeInput : ''}`}>
-                <input
-                  type="text"
-                  className={styles.addressInput}
-                  placeholder="State"
-                  value={currentStop.state || ''}
-                  onChange={(e) => handleStopFieldChange('state', e.target.value)}
-                  onFocus={() => setFocusedAddressInput('state')}
-                />
-              </div>
-              <div className={`${styles.inputContainer} ${focusedAddressInput === 'zip' ? styles.activeInput : ''}`}>
-                <input
-                  type="text"
-                  className={styles.addressInput}
-                  placeholder="Zip code"
-                  value={currentStop.zipCode || ''}
-                  onChange={(e) => handleStopFieldChange('zipCode', e.target.value)}
-                  onFocus={() => setFocusedAddressInput('zipCode')}
-                />
-              </div>
-            </div>
+    {isPropertyWideLayout ? (
+      // Wide layout (>872px) - 2x2 grid
+      <div className={styles.propertyGridWide}>
+        <div className={`${styles.inputContainer} ${styles.propertyAddressWide} ${focusedAddressInput === 'address' ? styles.activeInput : ''}`}>
+          <input
+            type="text"
+            className={styles.addressInput}
+            placeholder="Property Address"
+            value={currentStop.address || ''}
+            onChange={(e) => handleStopFieldChange('address', e.target.value)}
+            onFocus={() => setFocusedAddressInput('address')}
+          />
+          <div className={styles.inputIconContainer}>
+            <Icon name="Location" className={styles.inputIcon} />
           </div>
+        </div>
+
+        <div className={`${styles.inputContainer} ${styles.aptSuiteWide} ${focusedAddressInput === 'apt' ? styles.activeInput : ''}`}>
+          <input
+            type="text"
+            className={styles.addressInput}
+            placeholder="Apt/Suite"
+            value={currentStop.apt || ''}
+            onChange={(e) => handleStopFieldChange('apt', e.target.value)}
+            onFocus={() => setFocusedAddressInput('apt')}
+          />
+        </div>
+
+        <div className={styles.cityStateContainerWide}>
+          <div className={`${styles.inputContainer} ${styles.cityInputWide} ${focusedAddressInput === 'city' ? styles.activeInput : ''}`}>
+            <input
+              type="text"
+              className={styles.addressInput}
+              placeholder="City"
+              value={currentStop.city || ''}
+              onChange={(e) => handleStopFieldChange('city', e.target.value)}
+              onFocus={() => setFocusedAddressInput('city')}
+            />
+          </div>
+
+          <div className={`${styles.inputContainer} ${styles.stateInputWide} ${focusedAddressInput === 'state' ? styles.activeInput : ''}`}>
+            <input
+              type="text"
+              className={styles.addressInput}
+              placeholder="State"
+              value={currentStop.state || ''}
+              onChange={(e) => handleStopFieldChange('state', e.target.value)}
+              onFocus={() => setFocusedAddressInput('state')}
+            />
+          </div>
+        </div>
+
+        <div className={`${styles.inputContainer} ${styles.zipCodeWide} ${focusedAddressInput === 'zip' ? styles.activeInput : ''}`}>
+          <input
+            type="text"
+            className={styles.addressInput}
+            placeholder="Zip code"
+            value={currentStop.zipCode || ''}
+            onChange={(e) => handleStopFieldChange('zipCode', e.target.value)}
+            onFocus={() => setFocusedAddressInput('zipCode')}
+          />
+        </div>
+      </div>
+    ) : (
+      // Mobile/narrow layout (default) - existing stacked layout
+      <>
+        <div className={`${styles.inputContainer} ${focusedAddressInput === 'address' ? styles.activeInput : ''}`}>
+          <input
+            type="text"
+            className={styles.addressInput}
+            placeholder="Property Address"
+            value={currentStop.address || ''}
+            onChange={(e) => handleStopFieldChange('address', e.target.value)}
+            onFocus={() => setFocusedAddressInput('address')}
+          />
+          <div className={styles.inputIconContainer}>
+            <Icon name="Location" className={styles.inputIcon} />
+          </div>
+        </div>
+
+        <div className={styles.twoInputsRow}>
+          <div className={`${styles.inputContainer} ${focusedAddressInput === 'apt' ? styles.activeInput : ''}`}>
+            <input
+              type="text"
+              className={styles.addressInput}
+              placeholder="Apt/Suite"
+              value={currentStop.apt || ''}
+              onChange={(e) => handleStopFieldChange('apt', e.target.value)}
+              onFocus={() => setFocusedAddressInput('apt')}
+            />
+          </div>
+          <div className={`${styles.inputContainer} ${focusedAddressInput === 'city' ? styles.activeInput : ''}`}>
+            <input
+              type="text"
+              className={styles.addressInput}
+              placeholder="City"
+              value={currentStop.city || ''}
+              onChange={(e) => handleStopFieldChange('city', e.target.value)}
+              onFocus={() => setFocusedAddressInput('city')}
+            />
+          </div>
+        </div>
+
+        <div className={styles.twoInputsRow}>
+          <div className={`${styles.inputContainer} ${focusedAddressInput === 'state' ? styles.activeInput : ''}`}>
+            <input
+              type="text"
+              className={styles.addressInput}
+              placeholder="State"
+              value={currentStop.state || ''}
+              onChange={(e) => handleStopFieldChange('state', e.target.value)}
+              onFocus={() => setFocusedAddressInput('state')}
+            />
+          </div>
+          <div className={`${styles.inputContainer} ${focusedAddressInput === 'zip' ? styles.activeInput : ''}`}>
+            <input
+              type="text"
+              className={styles.addressInput}
+              placeholder="Zip code"
+              value={currentStop.zipCode || ''}
+              onChange={(e) => handleStopFieldChange('zipCode', e.target.value)}
+              onFocus={() => setFocusedAddressInput('zipCode')}
+            />
+          </div>
+        </div>
+      </>
+    )}
+  </div>
 
           {/* Property Info Section */}
           <div className={styles.propertyInfoSection}>

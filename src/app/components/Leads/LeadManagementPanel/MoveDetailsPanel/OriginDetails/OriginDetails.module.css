@@ -506,3 +506,46 @@
   margin: 0;
   padding: 0;
 }
+
+/* Wide Layout Property Section (>872px) */
+.propertyGridWide {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  row-gap: 10px;
+  width: 100%;
+}
+
+/* Row 1 - Property Address takes 2/3, Apt/Suite takes 1/3 */
+.propertyAddressWide {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.aptSuiteWide {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* Row 2 - City & State container takes 2/3, Zip takes 1/3 */
+.cityStateContainerWide {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  gap: 20px;
+}
+
+.cityInputWide,
+.stateInputWide {
+  flex: 1;
+}
+
+.zipCodeWide {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* Remove default gaps in grid layout */
+.propertyGridWide .inputContainer {
+  margin-bottom: 0;
+}

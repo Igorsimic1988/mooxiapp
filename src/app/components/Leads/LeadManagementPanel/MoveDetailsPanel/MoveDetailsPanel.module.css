@@ -420,6 +420,51 @@
   background: #E6EBEF;
 }
 
+/* Wide Layout Styles (>872px) */
+.dateRowWide {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.dateRowWide .inputContainer {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.serviceRowWide {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.serviceRowWide .storageDropdown {
+  flex: 1;
+  margin-top: 0;
+}
+
+.storageTimeRowWide {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  align-items: flex-start;
+}
+
+.storageColumnWide,
+.timeColumnWide {
+  flex: 1;
+}
+
+.storageColumnWide .storageContainer,
+.timeColumnWide .timePromisedRow {
+  margin-top: 0;
+}
+
+.storageColumnWide .storageDropdown,
+.timeColumnWide .arrivalTimeInput {
+  margin-top: 12px;
+}
+
 @media (min-width: 1024px) {
   /* Completely remove the blue bar on desktop */
  .panelContainer {

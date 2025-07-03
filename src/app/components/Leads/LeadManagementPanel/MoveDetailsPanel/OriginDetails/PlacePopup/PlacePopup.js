@@ -395,7 +395,7 @@ function PlacePopup({
               </div>
 
               <div className={styles.featuresGrid}>
-                {['Basement', 'Attic', 'Shed', 'External Storage'].map((feature) => {
+                {['Basement', 'Attic', 'Shed', 'Garage'].map((feature) => {
                   const checked = isFeatureChecked(feature);
                   return (
                     <label className={styles.featureCheckbox} key={feature}>
@@ -521,7 +521,7 @@ function PlacePopup({
               </div>
 
               <div className={styles.featuresGrid}>
-                {['Basement', 'Attic', 'Shed', 'External Storage'].map((feature) => {
+                {['Basement', 'Attic', 'Shed', 'Garage'].map((feature) => {
                   const checked = isFeatureChecked(feature);
                   return (
                     <label className={styles.featureCheckbox} key={feature}>

@@ -1,73 +1,76 @@
 import { LeadInput } from "./types";
 
-
- 
 export const createLead = async ({leadsData, token}: {leadsData: LeadInput; token: string;}) => {
   console.log("Sending new lead to API:", leadsData);
   
+  const res = await fetch("/api/leads/create", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(leadsData),
+  });
 
-    const res = await fetch("/api/leads/create", {
-        method: "POST",
-        headers: { 
-            "Content-Type": "application/json",
-            'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(leadsData),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-        throw new Error(data.error || "Failed to create lead");
-    }
-    return data;
+  const data = await res.json();
+  
+  if (!res.ok) {
+    console.error("API Error:", data);
+    throw new Error(data.error || data.message || "Failed to create lead");
+  }
+  
+  // API returns the lead object directly
+  return data;
 };
 
-export const updateLead= async ({id, data, token}:
-    {id: string,
-    data: Partial<LeadInput>,
-    token: string}
-  ) => {
+export const updateLead = async ({id, data, token}: {
+  id: string,
+  data: Partial<LeadInput>,
+  token: string
+}) => {
+  const res = await fetch('/api/leads/update', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id, ...data }),
+  });
 
-    const res = await fetch('/api/leads/update', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ id, ...data }),
-    });
-  
-    const response = await res.json();
-  
-    if (!res.ok) {
-      throw new Error(response.error || 'Failed to update lead');
-    }
-  
-    return response.lead;
-  };
+  const response = await res.json();
 
-  export const getAllLeads = async (token: string) => {
-    const res = await fetch(`/api/leads/read`, {
-      method: 'GET',
-      headers:{'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  
-    const data = await res.json();
-  
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to fetch all leads');
-    }
-  
-    return data.leads;
+  if (!res.ok) {
+    console.error("API Error:", response);
+    throw new Error(response.error || response.message || 'Failed to update lead');
+  }
+
+  return response.lead;
 };
-export const updateAddStorageWithInventory= async ({id, addStorage, storageItems}:
-  {id: string,
+
+export const getAllLeads = async (token: string) => {
+  const res = await fetch(`/api/leads/read`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    console.error("API Error:", data);
+    throw new Error(data.error || data.message || 'Failed to fetch all leads');
+  }
+
+  return data.leads;
+};
+
+export const updateAddStorageWithInventory = async ({id, addStorage, storageItems}: {
+  id: string,
   addStorage: boolean,
-  storageItems: string}
-) => {
-
+  storageItems: string
+}) => {
   const res = await fetch('/api/leads/updateAddStorageWithInventory', {
     method: 'PATCH',
     headers: {
@@ -79,9 +82,39 @@ export const updateAddStorageWithInventory= async ({id, addStorage, storageItems
   const response = await res.json();
 
   if (!res.ok) {
-    throw new Error(response.error || 'Failed to update lead');
+    console.error("API Error:", response);
+    throw new Error(response.error || response.message || 'Failed to update lead');
   }
 
-  return response.lead;
+  return response.lead || response;
 };
 
+export const updateOrigin = async ({id, data, token}: {
+  id: string,
+  data: Partial<{
+    typeOfPlace?: string;
+    moveSize?: string;
+    howManyStories?: string;
+    features?: string[];
+    // ... other origin fields
+  }>,
+  token: string
+}) => {
+  const res = await fetch('/api/origins/update', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ id, ...data }),
+  });
+
+  const response = await res.json();
+
+  if (!res.ok) {
+    console.error("API Error:", response);
+    throw new Error(response.error || response.message || 'Failed to update origin');
+  }
+
+  return response.origins;
+};

@@ -571,29 +571,31 @@ useEffect(() => {
       const nonAuto = oldBoxes.filter((bx) => !bx.autoAdded);
 
       const newBoxes = [];
-      boxesToAdd.forEach((bx) => {
-        for (let i = 0; i < bx.count; i++) {
-          const itemData = allItems.find((it) => it.id.toString() === bx.itemId);
-          if (itemData) {
-          const { tags, packingNeeds } = addDefaultTags(newInst, 13, lead, selectedStop);            
-            const newInst = {
-              id: uuidv4(),
-              furnitureItemId: bx.itemId,
-              name: itemData.name || "", 
-              imageName: itemData.imageName || "", 
-              tags: [...(itemData.tags || [])],
-              notes: "",
-              cuft: itemData.cuft || "",
-              lbs: itemData.lbs || "",
-              packingNeeds,
-              autoAdded: true,
-              groupingKey: "",
-            };
-            newInst.groupingKey = generateGroupingKey(newInst);
-            newBoxes.push(newInst);
-          }
-        }
-      });
+boxesToAdd.forEach((bx) => {
+  for (let i = 0; i < bx.count; i++) {
+    const itemData = allItems.find((it) => it.id.toString() === bx.itemId);
+    if (itemData) {
+      // Fix: Pass itemData to addDefaultTags instead of newInst
+      const { tags, packingNeeds } = addDefaultTags(itemData, 13, lead, selectedStop);
+      
+      const newInst = {
+        id: uuidv4(),
+        furnitureItemId: bx.itemId,
+        name: itemData.name || "", 
+        imageName: itemData.imageName || "", 
+        tags,  // Use the tags from addDefaultTags
+        notes: "",
+        cuft: itemData.cuft || "",
+        lbs: itemData.lbs || "",
+        packingNeeds,
+        autoAdded: true,
+        groupingKey: "",
+      };
+      newInst.groupingKey = generateGroupingKey(newInst);
+      newBoxes.push(newInst);
+    }
+  }
+});
 
       itemsByRoom2["13"] = [...nonAuto, ...newBoxes];
       

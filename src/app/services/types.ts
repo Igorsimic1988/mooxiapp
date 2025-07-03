@@ -1,80 +1,57 @@
 
-export type LeadInput = {
-    customerName: string;
-    customerEmail: string;
-    customerPhoneNumber: string;
-    companyName: string;
-    brandId?: string;
-    source: string;
-    serviceType: string;
-    salesName?: string;
-    estimator?: string | null;
-    surveyDate?: string | null;
-    surveyTime?: string | null;
-    rateType?: string;
-    leadStatus?: string;
-    leadActivity?: string;
-    nextAction?: string;
-    isNew?: boolean;
-    inventoryOption?: string;
-    addStorage?: boolean;
-    timePromised?: boolean;
-    storageItems?: string;
-    arrivalTime?: string;
-    moveDate?: string | null;
-    fromZip?: string | null;
-    toZip?: string | null;
-    assignSalesRep?: boolean;
-    hasInvoice?: boolean;
-    numMovers?: number;
-    numTrucks?: number;
-    hourlyRate?: number;
-    travelTime?: string;
-    movingMin?: string;
-    estimateQuote?: number;
-    estimateFuelSurcharge?: number;
-    estimateValuation?: number;
-    estimatePacking?: number;
-    estimateAdditionalServices?: number;
-    estimateDiscount?: number;
-    estimateGrandTotal?: number;
-    estimatePayment?: number;
-    estimateBalanceDue?: number;
-    volume?: number;
-    weight?: number;
-    pricePerCuft?: number;
-    pricePerLbs?: number;
-    minimumCuft?: number;
-    minimumLbs?: number;
-    pickupWindow?: string;
-    earliestDeliveryDate?: string;
-    deliveryWindow?: string;
-    numPackers?: number;
-    moveInNumTrucks?: number;
-    moveInNumMovers?: number;
-    moveInHourlyRate?: number;
-    moveInPricePerCuft?: number;
-    moveInPricePerLbs?: number;
-    moveInTravelTime?: string;
-    moveInMovingMin?: string;
-    moveInMinimumCuft?:number;
-    moveInMinimumLbs?: number;
-    moveInPickupWindow?: string;
-    moveInDeliveryWindow?: string;
-    moveInMinHours?: string;
-    moveInMaxHours?: string;
-    packingHourlyRate?: number;
-    packingTravelTime?: string;
-    packingMinimum?: string;
-    packingMinHours?: string;
-    packingMaxHours?: string;
-    jobNumber?: number;
-    deliveryDate?: string;
-    etaRequest?: string;
-    activeDay?: string;
-    hasPackingDay?: boolean;
-    minHours?: string;
-    maxHours?: string;
+export interface LeadInput {
+  // Customer Information
+  customerName: string;
+  customerPhoneNumber: string;
+  customerEmail: string;
+  companyName: string;
+  brandId: string;
+  source: string;
+  
+  // Service Information
+  serviceType: string;
+  salesName?: string;
+  estimator?: string;
+  surveyDate?: string;
+  surveyTime?: string;
+  moveDate?: string;
+  fromZip?: string;
+  toZip?: string;
+  
+  // Lead Status
+  leadStatus: string;
+  leadActivity?: string;
+  nextAction?: string;
+  isNew?: boolean;
+  
+  // Place Information (will be extracted for Origins creation)
+  typeOfPlace?: string;
+  moveSize?: string;
+  howManyStories?: string;
+  features?: string[]; // Array of features
+  
+  // Configuration
+  rateType?: string;
+  hasPackingDay?: boolean;
+  hasInvoice?: boolean;
+  activeDay?: string;
+  timePromised?: boolean;
+  addStorage?: boolean;
+  inventoryOption?: string;
+  
+  // Financial Information - Estimate
+  estimateQuote?: number;
+  estimateFuelSurcharge?: number;
+  estimateValuation?: number;
+  estimatePacking?: number;
+  estimateAdditionalServices?: number;
+  estimateDiscount?: number;
+  estimateGrandTotal?: number;
+  estimateDeposit?: number;
+  estimatePayment?: number;
+  estimateBalanceDue?: number;
+  
+  // Financial Information - Invoice
   invoiceQuote?: number;
   invoiceFuelSurcharge?: number;
   invoiceValuation?: number;
@@ -82,8 +59,52 @@ export type LeadInput = {
   invoiceAdditionalServices?: number;
   invoiceDiscount?: number;
   invoiceGrandTotal?: number;
+  invoiceDeposit?: number;
   invoicePayment?: number;
   invoiceBalanceDue?: number;
+  
+  // Moving Day Details
+  numMovers?: number;
+  numTrucks?: number;
+  hourlyRate?: number;
+  volume?: number;
+  weight?: number;
+  pricePerCuft?: number;
+  pricePerLbs?: number;
+  travelTime?: string;
+  movingMin?: string;
+  minimumCuft?: number;
+  minimumLbs?: number;
+  pickupWindow?: string;
+  earliestDeliveryDate?: string;
+  deliveryWindow?: string;
+  minHours?: string;
+  maxHours?: string;
+  
+  // Move In Details
+  moveInNumTrucks?: number;
+  moveInNumMovers?: number;
+  moveInHourlyRate?: number;
+  moveInPricePerCuft?: number;
+  moveInPricePerLbs?: number;
+  moveInTravelTime?: string;
+  moveInMovingMin?: string;
+  moveInMinimumCuft?: number;
+  moveInMinimumLbs?: number;
+  moveInPickupWindow?: string;
+  moveInDeliveryWindow?: string;
+  moveInMinHours?: string;
+  moveInMaxHours?: string;
+  
+  // Packing Details
+  numPackers?: number;
+  packingHourlyRate?: number;
+  packingTravelTime?: string;
+  packingMinimum?: string;
+  packingMinHours?: string;
+  packingMaxHours?: string;
+  
+  // Move In Financial
   moveInTypeOfQuote?: string;
   moveInEstimateQuote?: number;
   moveInEstimateFuelSurcharge?: number;
@@ -95,6 +116,7 @@ export type LeadInput = {
   moveInEstimateDeposit?: number;
   moveInEstimatePayment?: number;
   moveInEstimateBalanceDue?: number;
+  
   moveInInvoiceQuote?: number;
   moveInInvoiceFuelSurcharge?: number;
   moveInInvoiceValuation?: number;
@@ -106,7 +128,7 @@ export type LeadInput = {
   moveInInvoicePayment?: number;
   moveInInvoiceBalanceDue?: number;
   moveInHasInvoice?: boolean;
-  };
+};
 
   export type OriginInput = {
     address?: string;

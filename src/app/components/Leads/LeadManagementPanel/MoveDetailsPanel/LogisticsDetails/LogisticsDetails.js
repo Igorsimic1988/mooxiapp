@@ -41,6 +41,24 @@ function generateWholeHours(from, to) {
 }
 const MOVING_MINIMUM_OPTIONS = generateWholeHours(1, 24);
 
+// Truck size options
+const TRUCK_SIZE_OPTIONS = [
+  { label: "10' Truck", cuft: 400 },
+  { label: "12' Truck", cuft: 500 },
+  { label: "15' Truck", cuft: 700 },
+  { label: "16' Truck", cuft: 800 },
+  { label: "17' Truck", cuft: 900 },
+  { label: "20' Truck", cuft: 1000 },
+  { label: "22' Truck", cuft: 1200 },
+  { label: "24' Truck", cuft: 1400 },
+  { label: "26' Truck", cuft: 1600 },
+  { label: "26' Truck with Attick", cuft: 1800 },
+  { label: "45' Semi-Trailer", cuft: 3400 },
+  { label: "48' Semi-Trailer", cuft: 3600 },
+  { label: "53' Semi-Trailer", cuft: 4000 },
+  { label: "53' Drop frame Semi-Trailer", cuft: 4500 }
+];
+
 // For pickup/delivery windows
 const PICKUP_WINDOW_OPTIONS = ['1 day', '2 days', '3 days'];
 function generateDeliveryWindowOptions() {
@@ -93,6 +111,7 @@ function LogisticsDetails({
       activeDay: lead?.activeDay ?? 'moving',
       hasPackingDay: Boolean(lead?.hasPackingDay),
       numTrucks: lead?.numTrucks ?? 1,
+      truckSize: lead?.truckSize ?? "26' Truck",
       numMovers: lead?.numMovers ?? 2,
       hourlyRate:lead?.hourlyRate ?? 180,
       pricePerCuft:lead?.pricePerCuft ?? 4.50,
@@ -114,6 +133,7 @@ function LogisticsDetails({
       
       // Move In fields (only used when storage is enabled)
       moveInNumTrucks: lead?.moveInNumTrucks ?? 1,
+      moveInTruckSize: lead?.moveInTruckSize ?? "26' Truck",
       moveInNumMovers: lead?.moveInNumMovers ?? 2,
       moveInHourlyRate: lead?.moveInHourlyRate ?? 180,
       moveInPricePerCuft: lead?.moveInPricePerCuft ?? 4.50,
@@ -139,6 +159,7 @@ function LogisticsDetails({
   
   const activeDay = watch('activeDay');
   const hasPackingDay = watch('hasPackingDay');
+  const truckSize = getFieldValue('truckSize');
   const travelTime = getFieldValue('travelTime');
   const movingMin = getFieldValue('movingMin');
   const pickupWindow = getFieldValue('pickupWindow');
@@ -162,6 +183,9 @@ function LogisticsDetails({
   }, []);
 
   // -------------------- MOVING fields --------------------
+  // Truck size
+  const [showTruckSizeDropdown, setShowTruckSizeDropdown] = useState(false);
+  
   // Travel time
   const [showTravelTimeDropdown, setShowTravelTimeDropdown] = useState(false);
 
@@ -249,6 +273,10 @@ function LogisticsDetails({
   // -------------- close any open dropdowns if user clicks outside --------------
   useEffect(() => {
     function handleClickOutside(e) {
+      // Truck Size
+      if (showTruckSizeDropdown && !e.target.closest('#truckSizeDropdown')) {
+        setShowTruckSizeDropdown(false);
+      }
       // Travel Time => MOVING
       if (showTravelTimeDropdown && !e.target.closest('#travelTimeDropdown')) {
         setShowTravelTimeDropdown(false);
@@ -292,6 +320,7 @@ function LogisticsDetails({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [
+    showTruckSizeDropdown,
     showTravelTimeDropdown,
     showMovingMinDropdown,
     showPickupWindowDropdown,
@@ -371,7 +400,7 @@ function LogisticsDetails({
               ref={movingSectionRef}
               style={{ display: (showMovingSection && (!showTabs || activeTab === 'moveOut')) || (showTabs && activeTab === 'moveIn') ? 'block' : 'none' }}
             >
-              {/* Number of Trucks / Movers / Hourly Rate */}
+              {/* First Row: Number of Trucks / Truck Size / Movers / Hourly Rate */}
               <div className={styles.row}>
                 <div className={styles.logisticsInputContainer}>
                   <label className={styles.inputLabel}>
@@ -389,6 +418,49 @@ function LogisticsDetails({
                       onFocus={handleFocusSelectAll}
                     />
                   </label>
+                </div>
+
+                {/* Truck Size Dropdown - Available for all quote types */}
+                <div
+                  className={`${styles.logisticsButton} ${showTruckSizeDropdown ? styles.activeInput : ''}`}
+                  style={{ position: 'relative' }}
+                  id="truckSizeDropdown"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowTruckSizeDropdown((p) => !p);
+                  }}
+                >
+                  <div className={styles.dropdownLabel}>
+                    <span className={styles.dropdownPrefix}>Truck Size:</span>
+                    <span className={styles.dropdownSelected}>{truckSize}</span>
+                  </div>
+                  <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+
+                  {showTruckSizeDropdown && (
+                    <ul className={styles.rateTypeDropdown}>
+                      {TRUCK_SIZE_OPTIONS.map((opt) => {
+                        const isSelected = opt.label === truckSize;
+                        return (
+                          <li
+                            key={opt.label}
+                            className={`${styles.rateTypeOption} ${isSelected ? styles.selectedOption : ''}`}
+                            onClick={(evt) => {
+                              evt.stopPropagation();
+                              const fieldName = showTabs && activeTab === 'moveIn' ? 'moveInTruckSize' : 'truckSize';
+                              setValue(fieldName, opt.label);
+                              setShowTruckSizeDropdown(false);
+                              handleUpdateLeadField('truckSize', opt.label);
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                              <span>{opt.label}</span>
+                              <span style={{ fontSize: '14px', color: '#6E7882' }}>{opt.cuft.toLocaleString()} cuft</span>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
 
                 <div className={styles.logisticsInputContainer}>

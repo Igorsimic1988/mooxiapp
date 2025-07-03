@@ -95,171 +95,222 @@ export async function createLead(leadData) {
   const tenantId = 'tenant_1';
   const creationDateTime = new Date().toISOString();
 
-  const defaultStops = [
-    {
-      label: 'Main Address',
-      address: '',
-      apt: '',
-      city: '',
-      state: '',
-      zip: '',
-    },
-  ];
-  const originStops =
-    Array.isArray(leadData.originStops) && leadData.originStops.length
-      ? leadData.originStops
-      : defaultStops;
+  // Handle origins data - check both 'origins' and 'originStops' for compatibility
+  let origins = leadData.origins || leadData.originStops || [];
+  
+  // If no origins provided, create a default one
+  if (!origins.length) {
+    origins = [{
+      type_of_place: leadData.type_of_place || '',
+      move_size: leadData.move_size || '',
+      how_many_stories: leadData.how_many_stories || '',
+      features: leadData.features || [],
+      addresses: [{
+        label: 'Main Address',
+        address: '',
+        apt: '',
+        city: '',
+        state: '',
+        zip: leadData.from_zip || '',
+      }]
+    }];
+  }
 
-  // Extract moving day and packing day data
-  const movingDay = leadData.movingDay || {
-    rateType: 'Hourly Rate',
-    numTrucks: '1',
-    numMovers: '2',
-    hourlyRate: '180',
-    volume: '1000',
-    weight: '7000',
-    pricePerCuft: '4.50',
-    pricePerLbs: '0.74',
-    travelTime: '1.00 h',
-    movingMin: '3h',
-    minimumCuft: '0.00',
-    minimumLbs: '0',
-    pickupWindow: '1 day',
-    earliestDeliveryDate: '',
-    deliveryWindow: '7 days',
-    minHours: '1.00 h',
-    maxHours: '2.00 h',
+  // Extract moving day and packing day data - handle both nested and flat structures
+  const movingDay = leadData.movingDay || leadData.moving_day || {
+    rateType: leadData.rate_type || leadData.rateType || 'Hourly Rate',
+    numTrucks: String(leadData.num_trucks || leadData.numTrucks || 1),
+    numMovers: String(leadData.num_movers || leadData.numMovers || 2),
+    hourlyRate: String(leadData.hourly_rate || leadData.hourlyRate || 180),
+    volume: String(leadData.volume || 1000),
+    weight: String(leadData.weight || 7000),
+    pricePerCuft: String(leadData.price_per_cuft || leadData.pricePerCuft || 4.5),
+    pricePerLbs: String(leadData.price_per_lbs || leadData.pricePerLbs || 0.74),
+    travelTime: leadData.travel_time || leadData.travelTime || '1.00 h',
+    movingMin: leadData.moving_min || leadData.movingMin || '3h',
+    minimumCuft: String(leadData.minimum_cuft || leadData.minimumCuft || 0),
+    minimumLbs: String(leadData.minimum_lbs || leadData.minimumLbs || 0),
+    pickupWindow: leadData.pickup_window || leadData.pickupWindow || '1 day',
+    earliestDeliveryDate: leadData.earliest_delivery_date || leadData.earliestDeliveryDate || '',
+    deliveryWindow: leadData.delivery_window || leadData.deliveryWindow || '7 days',
+    minHours: leadData.min_hours || leadData.minHours || '1.00 h',
+    maxHours: leadData.max_hours || leadData.maxHours || '2.00 h',
   };
   
-  const packingDay = leadData.packingDay || {
-    numPackers: '2',
-    packingHourlyRate: '120',
-    packingTravelTime: '0.45 h',
-    packingMinimum: '2h',
-    packingMinHours: '1.00 h',
-    packingMaxHours: '2.00 h',
+  const packingDay = leadData.packingDay || leadData.packing_day || {
+    numPackers: String(leadData.num_packers || leadData.numPackers || 2),
+    packingHourlyRate: String(leadData.packing_hourly_rate || leadData.packingHourlyRate || 120),
+    packingTravelTime: leadData.packing_travel_time || leadData.packingTravelTime || '0.45 h',
+    packingMinimum: leadData.packing_minimum || leadData.packingMinimum || '2h',
+    packingMinHours: leadData.packing_min_hours || leadData.packingMinHours || '1.00 h',
+    packingMaxHours: leadData.packing_max_hours || leadData.packingMaxHours || '2.00 h',
   };
   
   // Initialize estimate data
   const estimate = leadData.estimate || {
-    rateType: 'Flat Rate',
-    deposit: '$50.00',
-    quote: '$520.00 - $585.00',
-    fuelSurcharge: '$0.00',
-    valuation: '$0.00',
-    packing: '$0.00',
-    additionalServices: '$0.00',
-    discount: '$0.00',
-    grandTotal: '$520 - $585',
-    payment: '$0.00',
-    balanceDue: '$520 - $585',
+    rateType: leadData.type_of_quote || leadData.typeOfQuote || 'Flat Rate',
+    deposit: `$${leadData.estimate_deposit || leadData.estimateDeposit || 50}.00`,
+    quote: `$${leadData.estimate_quote || leadData.estimateQuote || 585}.00`,
+    fuelSurcharge: `$${leadData.estimate_fuel_surcharge || leadData.estimateFuelSurcharge || 0}.00`,
+    valuation: `$${leadData.estimate_valuation || leadData.estimateValuation || 0}.00`,
+    packing: `$${leadData.estimate_packing || leadData.estimatePacking || 0}.00`,
+    additionalServices: `$${leadData.estimate_additional_services || leadData.estimateAdditionalServices || 0}.00`,
+    discount: `$${leadData.estimate_discount || leadData.estimateDiscount || 0}.00`,
+    grandTotal: `$${leadData.estimate_grand_total || leadData.estimateGrandTotal || 585}`,
+    payment: `$${leadData.estimate_payment || leadData.estimatePayment || 0}.00`,
+    balanceDue: `$${leadData.estimate_balance_due || leadData.estimateBalanceDue || 585}`,
   };
 
-  // Invoice is not created by default - only when user clicks "Create Invoice"
-  // hasInvoice + activeOption determine which UI is shown
-
-  // Prepare the new lead object
+  // Prepare the new lead object with proper field names
   const newLead = {
     lead_id: newLeadId,
     tenant_id: tenantId,
     job_number: nextJobNumber,
     creation_date_time: creationDateTime,
 
-    customer_name: leadData.customer_name || '',
-    customer_phone_number: leadData.customer_phone_number || '',
-    customer_email: leadData.customer_email || '',
-    company_name: leadData.company_name || '',
+    // Customer info - handle both snake_case and camelCase
+    customer_name: leadData.customer_name || leadData.customerName || '',
+    customer_phone_number: leadData.customer_phone_number || leadData.customerPhoneNumber || '',
+    customer_email: leadData.customer_email || leadData.customerEmail || '',
+    company_name: leadData.company_name || leadData.companyName || '',
+    brand_id: leadData.brand_id || leadData.brandId || '',
     source: leadData.source || '',
 
-    service_type: leadData.service_type || 'Moving',
-    sales_name: leadData.sales_name || '',
+    // Service info
+    service_type: leadData.service_type || leadData.serviceType || 'Moving',
+    sales_name: leadData.sales_name || leadData.salesName || '',
     is_new: typeof leadData.is_new === 'boolean' ? leadData.is_new : true,
 
-    // The top-level fields you already use
-    lead_status: leadData.lead_status || 'New Lead',
-    lead_activity: leadData.lead_activity || '',
-    next_action: leadData.next_action || '',
+    // Status fields
+    lead_status: leadData.lead_status || leadData.leadStatus || 'New Lead',
+    lead_activity: leadData.lead_activity || leadData.leadActivity || '',
+    next_action: leadData.next_action || leadData.nextAction || '',
 
-    // Additional standard fields
+    // Additional fields
     estimator: leadData.estimator || '',
-    survey_date: leadData.survey_date || '',
-    survey_time: leadData.survey_time || '',
-    inventory_option: leadData.inventory_option || 'Detailed Inventory Quote',
-    add_storage: leadData.add_storage ?? false,
-    storage_items: leadData.storage_items ?? '',
-    time_promised: leadData.time_promised ?? false,
-    arrival_time: leadData.arrival_time ?? '',
-    rateType: leadData.rateType || 'Hourly Rate',
-
-    originStops,
-
-    // ---------- Day selection fields ----------
-    hasPackingDay: leadData.hasPackingDay ?? false,
-    activeDay: leadData.activeDay ?? 'moving', // default to lowercase 'moving'
+    survey_date: leadData.survey_date || leadData.surveyDate || '',
+    survey_time: leadData.survey_time || leadData.surveyTime || '',
+    inventory_option: leadData.inventory_option || leadData.inventoryOption || 'Detailed Inventory Quote',
+    add_storage: leadData.add_storage ?? leadData.addStorage ?? false,
+    storage_items: leadData.storage_items || leadData.storageItems || '',
+    time_promised: leadData.time_promised ?? leadData.timePromised ?? false,
+    arrival_time: leadData.arrival_time || leadData.arrivalTime || '',
+    rateType: leadData.rate_type || leadData.rateType || 'Hourly Rate',
     
-    // ---------- Invoice/Estimate fields ----------
-    hasInvoice: leadData.hasInvoice ?? false,
-    activeOption: leadData.activeOption ?? 'estimate', // default to lowercase 'estimate'
+    // Location info
+    from_zip: leadData.from_zip || leadData.fromZip || '',
+    to_zip: leadData.to_zip || leadData.toZip || '',
+    move_date: leadData.move_date || leadData.moveDate || '',
 
-    // ---------- Move Out Estimate fields ----------
-    typeOfQuote: leadData.typeOfQuote || 'Flat Rate',
-    estimateQuote: leadData.estimateQuote || 585,
-    estimateFuelSurcharge: leadData.estimateFuelSurcharge || 0,
-    estimateValuation: leadData.estimateValuation || 0,
-    estimatePacking: leadData.estimatePacking || 0,
-    estimateAdditionalServices: leadData.estimateAdditionalServices || 0,
-    estimateDiscount: leadData.estimateDiscount || 0,
-    estimateGrandTotal: leadData.estimateGrandTotal || 585,
-    estimateDeposit: leadData.estimateDeposit || 50,
-    estimatePayment: leadData.estimatePayment || 0,
-    estimateBalanceDue: leadData.estimateBalanceDue || 585,
+    // Store origins data
+    origins: origins,
+    originStops: origins, // Keep for backward compatibility
+
+    // Day selection fields
+    hasPackingDay: leadData.has_packing_day ?? leadData.hasPackingDay ?? false,
+    activeDay: leadData.active_day || leadData.activeDay || 'moving',
     
-    // ---------- Move Out Invoice fields ----------
-    invoiceQuote: leadData.invoiceQuote || null,
-    invoiceFuelSurcharge: leadData.invoiceFuelSurcharge || null,
-    invoiceValuation: leadData.invoiceValuation || null,
-    invoicePacking: leadData.invoicePacking || null,
-    invoiceAdditionalServices: leadData.invoiceAdditionalServices || null,
-    invoiceDiscount: leadData.invoiceDiscount || null,
-    invoiceGrandTotal: leadData.invoiceGrandTotal || null,
-    invoiceDeposit: leadData.invoiceDeposit || null,
-    invoicePayment: leadData.invoicePayment || null,
-    invoiceBalanceDue: leadData.invoiceBalanceDue || null,
+    // Invoice/Estimate fields
+    hasInvoice: leadData.has_invoice ?? leadData.hasInvoice ?? false,
+    activeOption: leadData.active_option || leadData.activeOption || 'estimate',
 
-    // ---------- Move In Estimate fields ----------
-    moveInTypeOfQuote: leadData.moveInTypeOfQuote || 'Flat Rate',
-    moveInEstimateQuote: leadData.moveInEstimateQuote || 585,
-    moveInEstimateFuelSurcharge: leadData.moveInEstimateFuelSurcharge || 0,
-    moveInEstimateValuation: leadData.moveInEstimateValuation || 0,
-    moveInEstimatePacking: leadData.moveInEstimatePacking || 0,
-    moveInEstimateAdditionalServices: leadData.moveInEstimateAdditionalServices || 0,
-    moveInEstimateDiscount: leadData.moveInEstimateDiscount || 0,
-    moveInEstimateGrandTotal: leadData.moveInEstimateGrandTotal || 585,
-    moveInEstimateDeposit: leadData.moveInEstimateDeposit || 50,
-    moveInEstimatePayment: leadData.moveInEstimatePayment || 0,
-    moveInEstimateBalanceDue: leadData.moveInEstimateBalanceDue || 585,
+    // Move Out Estimate fields
+    typeOfQuote: leadData.type_of_quote || leadData.typeOfQuote || 'Flat Rate',
+    estimateQuote: leadData.estimate_quote || leadData.estimateQuote || 585,
+    estimateFuelSurcharge: leadData.estimate_fuel_surcharge || leadData.estimateFuelSurcharge || 0,
+    estimateValuation: leadData.estimate_valuation || leadData.estimateValuation || 0,
+    estimatePacking: leadData.estimate_packing || leadData.estimatePacking || 0,
+    estimateAdditionalServices: leadData.estimate_additional_services || leadData.estimateAdditionalServices || 0,
+    estimateDiscount: leadData.estimate_discount || leadData.estimateDiscount || 0,
+    estimateGrandTotal: leadData.estimate_grand_total || leadData.estimateGrandTotal || 585,
+    estimateDeposit: leadData.estimate_deposit || leadData.estimateDeposit || 50,
+    estimatePayment: leadData.estimate_payment || leadData.estimatePayment || 0,
+    estimateBalanceDue: leadData.estimate_balance_due || leadData.estimateBalanceDue || 585,
+    
+    // Move Out Invoice fields
+    invoiceQuote: leadData.invoice_quote || leadData.invoiceQuote || null,
+    invoiceFuelSurcharge: leadData.invoice_fuel_surcharge || leadData.invoiceFuelSurcharge || null,
+    invoiceValuation: leadData.invoice_valuation || leadData.invoiceValuation || null,
+    invoicePacking: leadData.invoice_packing || leadData.invoicePacking || null,
+    invoiceAdditionalServices: leadData.invoice_additional_services || leadData.invoiceAdditionalServices || null,
+    invoiceDiscount: leadData.invoice_discount || leadData.invoiceDiscount || null,
+    invoiceGrandTotal: leadData.invoice_grand_total || leadData.invoiceGrandTotal || null,
+    invoiceDeposit: leadData.invoice_deposit || leadData.invoiceDeposit || null,
+    invoicePayment: leadData.invoice_payment || leadData.invoicePayment || null,
+    invoiceBalanceDue: leadData.invoice_balance_due || leadData.invoiceBalanceDue || null,
 
-    // ---------- Move In Invoice fields ----------
-    moveInHasInvoice: leadData.moveInHasInvoice ?? false,
-    moveInInvoiceQuote: leadData.moveInInvoiceQuote || null,
-    moveInInvoiceFuelSurcharge: leadData.moveInInvoiceFuelSurcharge || null,
-    moveInInvoiceValuation: leadData.moveInInvoiceValuation || null,
-    moveInInvoicePacking: leadData.moveInInvoicePacking || null,
-    moveInInvoiceAdditionalServices: leadData.moveInInvoiceAdditionalServices || null,
-    moveInInvoiceDiscount: leadData.moveInInvoiceDiscount || null,
-    moveInInvoiceGrandTotal: leadData.moveInInvoiceGrandTotal || null,
-    moveInInvoiceDeposit: leadData.moveInInvoiceDeposit || null,
-    moveInInvoicePayment: leadData.moveInInvoicePayment || null,
-    moveInInvoiceBalanceDue: leadData.moveInInvoiceBalanceDue || null,
+    // Move In fields
+    moveInTypeOfQuote: leadData.move_in_type_of_quote || leadData.moveInTypeOfQuote || 'Flat Rate',
+    moveInEstimateQuote: leadData.move_in_estimate_quote || leadData.moveInEstimateQuote || 585,
+    moveInEstimateFuelSurcharge: leadData.move_in_estimate_fuel_surcharge || leadData.moveInEstimateFuelSurcharge || 0,
+    moveInEstimateValuation: leadData.move_in_estimate_valuation || leadData.moveInEstimateValuation || 0,
+    moveInEstimatePacking: leadData.move_in_estimate_packing || leadData.moveInEstimatePacking || 0,
+    moveInEstimateAdditionalServices: leadData.move_in_estimate_additional_services || leadData.moveInEstimateAdditionalServices || 0,
+    moveInEstimateDiscount: leadData.move_in_estimate_discount || leadData.moveInEstimateDiscount || 0,
+    moveInEstimateGrandTotal: leadData.move_in_estimate_grand_total || leadData.moveInEstimateGrandTotal || 585,
+    moveInEstimateDeposit: leadData.move_in_estimate_deposit || leadData.moveInEstimateDeposit || 50,
+    moveInEstimatePayment: leadData.move_in_estimate_payment || leadData.moveInEstimatePayment || 0,
+    moveInEstimateBalanceDue: leadData.move_in_estimate_balance_due || leadData.moveInEstimateBalanceDue || 585,
 
-    // ---------- NESTED OBJECTS ----------
+    moveInHasInvoice: leadData.move_in_has_invoice ?? leadData.moveInHasInvoice ?? false,
+    moveInInvoiceQuote: leadData.move_in_invoice_quote || leadData.moveInInvoiceQuote || null,
+    moveInInvoiceFuelSurcharge: leadData.move_in_invoice_fuel_surcharge || leadData.moveInInvoiceFuelSurcharge || null,
+    moveInInvoiceValuation: leadData.move_in_invoice_valuation || leadData.moveInInvoiceValuation || null,
+    moveInInvoicePacking: leadData.move_in_invoice_packing || leadData.moveInInvoicePacking || null,
+    moveInInvoiceAdditionalServices: leadData.move_in_invoice_additional_services || leadData.moveInInvoiceAdditionalServices || null,
+    moveInInvoiceDiscount: leadData.move_in_invoice_discount || leadData.moveInInvoiceDiscount || null,
+    moveInInvoiceGrandTotal: leadData.move_in_invoice_grand_total || leadData.moveInInvoiceGrandTotal || null,
+    moveInInvoiceDeposit: leadData.move_in_invoice_deposit || leadData.moveInInvoiceDeposit || null,
+    moveInInvoicePayment: leadData.move_in_invoice_payment || leadData.moveInInvoicePayment || null,
+    moveInInvoiceBalanceDue: leadData.move_in_invoice_balance_due || leadData.moveInInvoiceBalanceDue || null,
+
+    // Nested objects
     movingDay,
     packingDay,
     estimate,
 
-    // new array for storing history
+    // Status history
     status_history: [],
   };
+
+  // Also store individual move in fields for backward compatibility
+  newLead.moveInNumTrucks = leadData.move_in_num_trucks || leadData.moveInNumTrucks || 1;
+  newLead.moveInNumMovers = leadData.move_in_num_movers || leadData.moveInNumMovers || 2;
+  newLead.moveInHourlyRate = leadData.move_in_hourly_rate || leadData.moveInHourlyRate || 180;
+  newLead.moveInPricePerCuft = leadData.move_in_price_per_cuft || leadData.moveInPricePerCuft || 4.5;
+  newLead.moveInPricePerLbs = leadData.move_in_price_per_lbs || leadData.moveInPricePerLbs || 0.74;
+  newLead.moveInTravelTime = leadData.move_in_travel_time || leadData.moveInTravelTime || '1.00 h';
+  newLead.moveInMovingMin = leadData.move_in_moving_min || leadData.moveInMovingMin || '3h';
+  newLead.moveInMinimumCuft = leadData.move_in_minimum_cuft || leadData.moveInMinimumCuft || 0;
+  newLead.moveInMinimumLbs = leadData.move_in_minimum_lbs || leadData.moveInMinimumLbs || 0;
+  newLead.moveInPickupWindow = leadData.move_in_pickup_window || leadData.moveInPickupWindow || '1 day';
+  newLead.moveInDeliveryWindow = leadData.move_in_delivery_window || leadData.moveInDeliveryWindow || '7 days';
+  newLead.moveInMinHours = leadData.move_in_min_hours || leadData.moveInMinHours || '1.00 h';
+  newLead.moveInMaxHours = leadData.move_in_max_hours || leadData.moveInMaxHours || '2.00 h';
+
+  // Store individual fields for backward compatibility
+  newLead.numMovers = leadData.num_movers || leadData.numMovers || 2;
+  newLead.numTrucks = leadData.num_trucks || leadData.numTrucks || 1;
+  newLead.hourlyRate = leadData.hourly_rate || leadData.hourlyRate || 180;
+  newLead.volume = leadData.volume || 1000;
+  newLead.weight = leadData.weight || 7000;
+  newLead.pricePerCuft = leadData.price_per_cuft || leadData.pricePerCuft || 4.5;
+  newLead.pricePerLbs = leadData.price_per_lbs || leadData.pricePerLbs || 0.74;
+  newLead.travelTime = leadData.travel_time || leadData.travelTime || '1.00 h';
+  newLead.movingMin = leadData.moving_min || leadData.movingMin || '3h';
+  newLead.minimumCuft = leadData.minimum_cuft || leadData.minimumCuft || 0;
+  newLead.minimumLbs = leadData.minimum_lbs || leadData.minimumLbs || 0;
+  newLead.pickupWindow = leadData.pickup_window || leadData.pickupWindow || '1 day';
+  newLead.earliestDeliveryDate = leadData.earliest_delivery_date || leadData.earliestDeliveryDate || '';
+  newLead.deliveryWindow = leadData.delivery_window || leadData.deliveryWindow || '7 days';
+  newLead.minHours = leadData.min_hours || leadData.minHours || '1.00 h';
+  newLead.maxHours = leadData.max_hours || leadData.maxHours || '2.00 h';
+  newLead.numPackers = leadData.num_packers || leadData.numPackers || 2;
+  newLead.packingHourlyRate = leadData.packing_hourly_rate || leadData.packingHourlyRate || 120;
+  newLead.packingTravelTime = leadData.packing_travel_time || leadData.packingTravelTime || '0.45 h';
+  newLead.packingMinimum = leadData.packing_minimum || leadData.packingMinimum || '2h';
+  newLead.packingMinHours = leadData.packing_min_hours || leadData.packingMinHours || '1.00 h';
+  newLead.packingMaxHours = leadData.packing_max_hours || leadData.packingMaxHours || '2.00 h';
 
   // Push the initial record into status_history
   pushStatusRecord(newLead);

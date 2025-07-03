@@ -20,26 +20,25 @@ import Icon from '../../Icon'
 import { useMutation } from '@tanstack/react-query';
 import { createFurnitureItem } from 'src/app/services/furnitureService';
 
-/**
- * Props:
- *   onClose        - function to close the popup
- *   onLeadCreated  - callback to parent if we create a new lead
- *   editingLead    - if present, we're editing an existing lead
- *   onLeadUpdated  - callback to parent if we update an existing lead
- */
+
+// Import Place constants from PlacePopupConstants
+import { 
+  moveSizeOptionsMap, 
+  typeOfPlaceOptions, 
+  storiesEligibleTypes, 
+  howManyStoriesOptions 
+} from '../LeadManagementPanel/MoveDetailsPanel/OriginDetails/PlacePopup/PlacePopupConstants';
 
 function LeadFormPopup({
   onClose,
   onLeadCreated,
   editingLead,
-  onLeadUpdated
+  onLeadUpdated,
+  onOriginUpdated
 }) {
   const salesRepLabel = editingLead ? 'Reassign Sales Rep' : 'Assign Sales Rep';
-
-  // =========================
-  // 1) Pre-populate if editing
-  // =========================
   const token = useAccessToken();
+  
   const {
     register,
     handleSubmit,
@@ -64,20 +63,25 @@ function LeadFormPopup({
       fromZip: '',
       toZip: '',
       assignSalesRep: false,
+      typeOfPlace: '',
+      moveSize: '',
+      howManyStories: '',
+      features: [],
     }
   });
   
-  const { data: brands = [], } = useQuery({
+  const { data: brands = [] } = useQuery({
     queryKey: ['brands', token],
     queryFn: () => getBrandsByTenant(token),
     enabled: !!token,
   });
 
-  const { data: users = [], } = useQuery({
+  const { data: users = [] } = useQuery({
     queryKey: ['users', token],
     queryFn: () => getSalesmen(token),
     enabled: !!token,
-  })
+  });
+
   const createFurnitureItemsMutation = useMutation({
     mutationFn: ({ brandId }) =>
       createFurnitureItem({ data: { brandId }, token }),
@@ -90,6 +94,12 @@ function LeadFormPopup({
   });
 
   const assignSalesRep = watch('assignSalesRep');
+  const serviceType = watch('serviceType');
+  const typeOfPlace = watch('typeOfPlace');
+  const moveSize = watch('moveSize');
+  const howManyStories = watch('howManyStories');
+  const features = watch('features') || [];
+  
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showSourceDropdown, setShowSourceDropdown] = useState(false);
   const [showSalesRepDropdown, setShowSalesRepDropdown] = useState(false);
@@ -97,6 +107,13 @@ function LeadFormPopup({
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [daysArray, setDaysArray] = useState([]);
+  const [showTypeOfPlaceDropdown, setShowTypeOfPlaceDropdown] = useState(false);
+  const [showMoveSizeDropdown, setShowMoveSizeDropdown] = useState(false);
+  const [showStoriesDropdown, setShowStoriesDropdown] = useState(false);
+
+  const hideToZip = serviceType && serviceType !== 'Moving';
+  const moveSizeOptions = moveSizeOptionsMap[typeOfPlace] || [];
+  const storiesApplicable = storiesEligibleTypes.has(typeOfPlace);
 
   useEffect(() => {
     function getDaysInMonth(month, year) {
@@ -113,229 +130,304 @@ function LeadFormPopup({
     setDaysArray(temp);
   }, [currentMonth]);
 
-  useEffect(() => {
-    if (editingLead) {
-      reset({
-        customerName: editingLead.customerName || '',
-        customerPhoneNumber: formatPhoneForDisplay(editingLead.customerPhoneNumber || ''),
-        customerEmail: editingLead.customerEmail || '',
-        companyName: editingLead.companyName || '',
-        brandId: editingLead.brandId || '',
-        source: editingLead.source || '',
-        serviceType: editingLead.serviceType || 'Moving',
-        salesName: editingLead.salesName || '',
-        estimator: editingLead.estimator || '',
-        surveyDate: editingLead.surveyDate || '',
-        surveyTime: editingLead.surveyTime || '',
-        moveDate: '',
-        fromZip: editingLead.fromZip || '',
-        toZip: editingLead.toZip || '',
-        assignSalesRep: !!editingLead.salesName,
-      });
-    }
-  }, [editingLead, reset]);
-
+useEffect(() => {
+  if (editingLead) {
+    const firstOrigin = editingLead.origins?.[0] || {};
+    
+    reset({
+      // Convert fields to form format
+      customerName: editingLead.customerName || '',
+      customerPhoneNumber: formatPhoneForDisplay(editingLead.customerPhoneNumber || ''),
+      customerEmail: editingLead.customerEmail || '',
+      companyName: editingLead.companyName || '',
+      brandId: editingLead.brandId || '',
+      source: editingLead.source || '',
+      serviceType: editingLead.serviceType || 'Moving',
+      salesName: editingLead.salesName || '',
+      estimator: editingLead.estimator || '',
+      surveyDate: editingLead.surveyDate || '',
+      surveyTime: editingLead.surveyTime || '',
+      moveDate: editingLead.moveDate || '',
+      fromZip: editingLead.fromZip || '',
+      toZip: editingLead.toZip || '',
+      assignSalesRep: !!editingLead.salesName,
+      
+      // Get origin data from the first origin
+      typeOfPlace: firstOrigin.typeOfPlace || '',
+      moveSize: firstOrigin.moveSize || '',
+      howManyStories: firstOrigin.howManyStories || '',
+      features: firstOrigin.features || [],
+    });
+  }
+}, [editingLead, reset]);
   const handleToggleCalendar = () => {
     setShowCalendar((prev) => !prev);
   };
 
-  const handleSelectTypeOfService = (serviceName)  => {
+  const handleSelectTypeOfService = (serviceName) => {
     setValue('serviceType', serviceName);
     setShowServiceDropdown(false);
   };
   
-  
+  const handleSelectTypeOfPlace = (option) => {
+    if (option !== typeOfPlace) {
+      setValue('moveSize', '');
+      setValue('howManyStories', '');
+    }
+    setValue('typeOfPlace', option);
+    setShowTypeOfPlaceDropdown(false);
+  };
+
+  const handleSelectMoveSize = (option) => {
+    setValue('moveSize', option);
+    setShowMoveSizeDropdown(false);
+  };
+
+  const handleSelectStories = (option) => {
+    setValue('howManyStories', option);
+    setShowStoriesDropdown(false);
+  };
+
+  const toggleFeature = (feature) => {
+    const currentFeatures = features || [];
+    const idx = currentFeatures.indexOf(feature);
+    let newFeatures;
+    if (idx === -1) {
+      newFeatures = [...currentFeatures, feature];
+    } else {
+      newFeatures = currentFeatures.filter(f => f !== feature);
+    }
+    setValue('features', newFeatures);
+  };
 
   function handlePhoneChange(e) {
     const raw = e.target.value;
-    const nums = raw.replace(/\D/g, ''); // strip all non-digits
+    const nums = raw.replace(/\D/g, '');
 
     let trimmed = nums;
-    // If it starts with '1' and has more than 10 digits, remove the leading '1'
     if (trimmed.startsWith('1') && trimmed.length > 10) {
       trimmed = trimmed.slice(1);
     }
-    // If there's still more than 10 => slice
     if (trimmed.length > 10) {
       trimmed = trimmed.slice(0, 10);
     }
 
     const display = formatPhoneForDisplay(trimmed);
     setValue('customerPhoneNumber', display);
-    //setPhoneNumber(display);
   }
 
-  // Helper => format "6789091876" => "(678) 909-1876"
   function formatPhoneForDisplay(digits) {
     if (!digits) return '';
 
     let result = '';
-    // area code
     if (digits.length <= 3) {
       result = `(${digits}`;
     } else {
       result = `(${digits.slice(0, 3)})`;
     }
-    // next 3
     if (digits.length > 3) {
       result += ` ${digits.slice(3, 6)}`;
     }
-    // last 4
     if (digits.length > 6) {
       result += `-${digits.slice(6)}`;
     }
     return result;
   }
 
-  // ==============
-  //  Save Handler
-  // ==============
-  const onSubmit = async (data) => {
-    // if (!token) {
-    //   console.warn('[onSubmit] Missing access token!');
-    //   alert('You must be logged in to save a lead.');
-    //   return;
-    // }
+const onSubmit = async (data) => {
+  console.log('[onSubmit] Raw form data:', data);
+  try {
+    let finalPhoneDigits = data.customerPhoneNumber.replace(/\D/g, '');
+    if (finalPhoneDigits.startsWith('1') && finalPhoneDigits.length > 10) {
+      finalPhoneDigits = finalPhoneDigits.slice(1);
+    }
+
+    // Use camelCase for Prisma schema
+    const baseData = {
+      customerName: data.customerName,
+      customerPhoneNumber: finalPhoneDigits,
+      customerEmail: data.customerEmail,
+      companyName: data.companyName,
+      brandId: data.brandId,
+      source: data.source,
+      serviceType: data.serviceType,
+      salesName: data.salesName || '',
+      estimator: data.estimator || '',
+      surveyDate: data.surveyDate || '',
+      surveyTime: data.surveyTime || '',
+      moveDate: data.moveDate || '',
+      fromZip: data.fromZip || '',
+      toZip: data.toZip || '',
+    };
+
+   if (editingLead) {
+  console.log('[LeadFormPopup] Attempting update with lead_id:', editingLead.id);
+  if (onLeadUpdated) {
+    // Update lead data
+    const updateData = {
+      ...baseData,
+    };
+    onLeadUpdated(editingLead.id, updateData);
     
-    console.log('[onSubmit] Raw form data:', data);
-    try {
-      // Before storing, convert the phoneNumber (which is in display format)
-      //   to raw digits only. E.g. "(678) 909-1876" => "6789091876"
-      let finalPhoneDigits = data.customerPhoneNumber.replace(/\D/g, '');
-      // If it starts with '1' and is > 10 => remove leading '1'
-      if (finalPhoneDigits.startsWith('1') && finalPhoneDigits.length > 10) {
-        finalPhoneDigits = finalPhoneDigits.slice(1);
-      }
-
-      const updates = {
-        ...data,
-        customerPhoneNumber: finalPhoneDigits,
-      };
-
-      // If editing => update
-      if (editingLead) {
-        console.log('[LeadFormPopup] Attempting update with lead_id:', editingLead.id);
-        if (onLeadUpdated) {
-          onLeadUpdated(editingLead.id, updates);
-        }
-      }
-      // Else create new
-      else {
-        const newLeadData = {
-          ...updates,
-          rateType: 'Hourly Rate',
-          leadStatus: 'New Lead',
-          leadActivity: '',
-          nextAction: '',
-          isNew: true,
-          hasPackingDay: false,
-          hasInvoice: false,
-          activeDay: 'moving',
-          timePromised: false,
-          addStorage: false,
-          inventoryOption: 'Detailed Inventory Quote',
-          estimateQuote: 585,
-          estimateFuelSurcharge: 0,
-          estimateValuation: 0,
-          estimatePacking: 0,
-          estimateAdditionalServices: 0,
-          estimateDiscount: 0,
-          estimateGrandTotal: 585,
-          estimateDeposit: 50,
-          estimatePayment: 0,
-          estimateBalanceDue: 585,
-          invoiceQuote: 585,
-          invoiceFuelSurcharge: 0,
-          invoiceValuation: 0,
-          invoicePacking: 0,
-          invoiceAdditionalServices: 0,
-          invoiceDiscount: 0,
-          invoiceGrandTotal: 585,
-          invoiceDeposit: 50,
-          invoicePayment: 0,
-          invoiceBalanceDue: 585,
-          numMovers: 2,
-          numTrucks: 1,
-          hourlyRate: 180,
-          volume: 1000,
-          weight: 7000,
-          pricePerCuft: 4.5,
-          pricePerLbs: 0.74,
-          travelTime: '1.00 h',
-          movingMin: '3h',
-          minimumCuft: 0.0,
-          minimumLbs: 0,
-          pickupWindow: '1 day',
-          earliestDeliveryDate: '',
-          deliveryWindow: '7 days',
-          minHours: '1.00 h',
-          maxHours: '2.00 h',
-          moveInNumTrucks: 1,
-          moveInNumMovers: 2,
-          moveInHourlyRate: 180,
-          moveInPricePerCuft: 4.5,
-          moveInPricePerLbs: 0.74,
-          moveInTravelTime: '1.00 h',
-          moveInMovingMin: '3h',
-          moveInMinimumCuft: 0.00,
-          moveInMinimumLbs: 0,
-          moveInPickupWindow: '1 day',
-          moveInDeliveryWindow: '7 days',
-          moveInMinHours: '1.00 h',
-          moveInMaxHours: '2.00 h',
-          numPackers: 2,
-          packingHourlyRate: 120,
-          packingTravelTime: '0.45 h',
-          packingMinimum: '2h',
-          packingMinHours: '1.00 h',
-          packingMaxHours: '2.00 h',
-          moveInTypeOfQuote: 'Flat Rate',
-          moveInEstimateQuote: 585,
-          moveInEstimateFuelSurcharge: 0,
-          moveInEstimateValuation: 0,
-          moveInEstimatePacking: 0,
-          moveInEstimateAdditionalServices: 0,
-          moveInEstimateDiscount: 0,
-          moveInEstimateGrandTotal: 585,
-          moveInEstimateDeposit: 50,
-          moveInEstimatePayment: 0,
-          moveInEstimateBalanceDue: 585,
-          moveInInvoiceQuote: 585,
-          moveInInvoiceFuelSurcharge: 0,
-          moveInInvoiceValuation: 0,
-          moveInInvoicePacking: 0,
-          moveInInvoiceAdditionalServices: 0,
-          moveInInvoiceDiscount: 0,
-          moveInInvoiceGrandTotal: 585,
-          moveInInvoiceDeposit: 50,
-          moveInInvoicePayment: 0,
-          moveInInvoiceBalanceDue: 585,
-          moveInHasInvoice: false
+    // Check if there are origin changes
+    const firstOrigin = editingLead.origins?.[0];
+    if (firstOrigin) {
+      const originHasChanges = 
+        data.typeOfPlace !== firstOrigin.typeOfPlace ||
+        data.moveSize !== firstOrigin.moveSize ||
+        data.howManyStories !== firstOrigin.howManyStories ||
+        JSON.stringify(data.features) !== JSON.stringify(firstOrigin.features);
+      
+      if (originHasChanges && onOriginUpdated) {
+        // Update origin data
+        const originUpdateData = {
+          typeOfPlace: data.typeOfPlace || '',
+          moveSize: data.moveSize || '',
+          howManyStories: data.howManyStories || '',
+          features: data.features || [],
         };
         
-        if (onLeadCreated) {
-          onLeadCreated(newLeadData);
-        }
+        // Call the origin update function
+        onOriginUpdated(firstOrigin.id, originUpdateData);
       }
-      onClose();
-    } catch (err) {
-      console.error('Failed to save lead:', err);
     }
-  };
-
-
+  }
+} else {
+      // For new leads, include place-related data that will go to Origins
+      const newLeadData = {
+        ...baseData,
+        // Place-related data (will be extracted in API for Origins)
+        typeOfPlace: data.typeOfPlace || '',
+        moveSize: data.moveSize || '',
+        howManyStories: data.howManyStories || '',
+        features: data.features || [], // Keep as array
+        
+        // Lead-specific fields
+        rateType: 'Hourly Rate',
+        leadStatus: 'New Lead',
+        leadActivity: '',
+        nextAction: '',
+        isNew: true,
+        hasPackingDay: false,
+        hasInvoice: false,
+        activeDay: 'moving',
+        timePromised: false,
+        addStorage: false,
+        inventoryOption: 'Detailed Inventory Quote',
+        
+        // Default financial values
+        estimateQuote: 585,
+        estimateFuelSurcharge: 0,
+        estimateValuation: 0,
+        estimatePacking: 0,
+        estimateAdditionalServices: 0,
+        estimateDiscount: 0,
+        estimateGrandTotal: 585,
+        estimateDeposit: 50,
+        estimatePayment: 0,
+        estimateBalanceDue: 585,
+        
+        invoiceQuote: 585,
+        invoiceFuelSurcharge: 0,
+        invoiceValuation: 0,
+        invoicePacking: 0,
+        invoiceAdditionalServices: 0,
+        invoiceDiscount: 0,
+        invoiceGrandTotal: 585,
+        invoiceDeposit: 50,
+        invoicePayment: 0,
+        invoiceBalanceDue: 585,
+        
+        // Moving day details
+        numMovers: 2,
+        numTrucks: 1,
+        hourlyRate: 180,
+        volume: 1000,
+        weight: 7000,
+        pricePerCuft: 4.5,
+        pricePerLbs: 0.74,
+        travelTime: '1.00 h',
+        movingMin: '3h',
+        minimumCuft: 0.0,
+        minimumLbs: 0,
+        pickupWindow: '1 day',
+        earliestDeliveryDate: '',
+        deliveryWindow: '7 days',
+        minHours: '1.00 h',
+        maxHours: '2.00 h',
+        
+        // Move in details
+        moveInNumTrucks: 1,
+        moveInNumMovers: 2,
+        moveInHourlyRate: 180,
+        moveInPricePerCuft: 4.5,
+        moveInPricePerLbs: 0.74,
+        moveInTravelTime: '1.00 h',
+        moveInMovingMin: '3h',
+        moveInMinimumCuft: 0.00,
+        moveInMinimumLbs: 0,
+        moveInPickupWindow: '1 day',
+        moveInDeliveryWindow: '7 days',
+        moveInMinHours: '1.00 h',
+        moveInMaxHours: '2.00 h',
+        
+        // Packing details
+        numPackers: 2,
+        packingHourlyRate: 120,
+        packingTravelTime: '0.45 h',
+        packingMinimum: '2h',
+        packingMinHours: '1.00 h',
+        packingMaxHours: '2.00 h',
+        
+        // Move in estimate/invoice
+        moveInTypeOfQuote: 'Flat Rate',
+        moveInEstimateQuote: 585,
+        moveInEstimateFuelSurcharge: 0,
+        moveInEstimateValuation: 0,
+        moveInEstimatePacking: 0,
+        moveInEstimateAdditionalServices: 0,
+        moveInEstimateDiscount: 0,
+        moveInEstimateGrandTotal: 585,
+        moveInEstimateDeposit: 50,
+        moveInEstimatePayment: 0,
+        moveInEstimateBalanceDue: 585,
+        
+        moveInInvoiceQuote: 585,
+        moveInInvoiceFuelSurcharge: 0,
+        moveInInvoiceValuation: 0,
+        moveInInvoicePacking: 0,
+        moveInInvoiceAdditionalServices: 0,
+        moveInInvoiceDiscount: 0,
+        moveInInvoiceGrandTotal: 585,
+        moveInInvoiceDeposit: 50,
+        moveInInvoicePayment: 0,
+        moveInInvoiceBalanceDue: 585,
+        moveInHasInvoice: false
+      };
+      
+      if (onLeadCreated) {
+        onLeadCreated(newLeadData);
+      }
+    }
+    onClose();
+  } catch (err) {
+    console.error('Failed to save lead:', err);
+  }
+};
   const handlePrevMonth = () => {
     setCurrentMonth((prevDate) => {
       const newMonth = prevDate.getMonth() - 1;
       return new Date(prevDate.getFullYear(), newMonth, 1);
     });
   };
+
   const handleNextMonth = () => {
     setCurrentMonth((prevDate) => {
       const newMonth = prevDate.getMonth() + 1;
       return new Date(prevDate.getFullYear(), newMonth, 1);
     });
   };
+
   const handleDayClick = (day) => {
     const chosenDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
     const today = new Date();
@@ -344,6 +436,7 @@ function LeadFormPopup({
     setValue('moveDate', chosenDate.toDateString());
     setShowCalendar(false);
   };
+
   const selectedMoveDate = watch('moveDate');
   const moveDateTextClass = selectedMoveDate
     ? styles.moveDateSelectedText
@@ -352,8 +445,7 @@ function LeadFormPopup({
   return (
     <div className={styles.popup} onClick={onClose}>
       <div className={styles.popupContent} onClick={(e) => e.stopPropagation()}>
-
-        {/* ---------- HEADER ---------- */}
+        {/* HEADER */}
         <div className={styles.header}>
           <div className={styles.title}>
             <Icon name="CustomerUser" className={styles.customerUserIcon} width={24} height={24} />
@@ -366,8 +458,8 @@ function LeadFormPopup({
           </div>
         </div>
 
-        {/* ---------- MAIN CONTENT ---------- */}
-      <form className={styles.content} onSubmit={handleSubmit(onSubmit)}>
+        {/* MAIN CONTENT */}
+        <form className={styles.content} onSubmit={handleSubmit(onSubmit)}>
           {/* COMPANY NAME dropdown */}
           <div className={styles.companySelectWrapper}>
             <button
@@ -410,7 +502,6 @@ function LeadFormPopup({
 
           {/* BASIC INPUT FIELDS */}
           <div className={styles.inputSet}>
-            {/* Customer Name */}
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
@@ -420,17 +511,16 @@ function LeadFormPopup({
               />
             </div>
 
-            {/* Phone Number (formatted) */}
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
                 type="text"
                 placeholder="Phone Number"
-                value={watch('customerPhoneNumber') || ''} onChange={handlePhoneChange}
+                value={watch('customerPhoneNumber') || ''} 
+                onChange={handlePhoneChange}
               />
             </div>
 
-            {/* Email */}
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
@@ -440,7 +530,6 @@ function LeadFormPopup({
               />
             </div>
 
-            {/* SOURCE Dropdown */}
             <div className={styles.sourceSelectWrapper}>
               <button
                 type="button"
@@ -481,10 +570,8 @@ function LeadFormPopup({
             </div>
           </div>
 
-          {/* SERVICE SET (Type of Service, fromZip, toZip, etc.) */}
+          {/* SERVICE SET */}
           <div className={styles.serviceSet}>
-
-            {/* Type of Service dropdown */}
             <div className={styles.typeOfServiceSelectWrapper}>
               <button
                 type="button"
@@ -519,7 +606,131 @@ function LeadFormPopup({
               )}
             </div>
 
-            {/* From Zip */}
+            {/* PLACE QUESTIONS */}
+            <div className={styles.placeSelectWrapper}>
+              <button
+                type="button"
+                className={styles.dropdownButton}
+                onClick={() => setShowTypeOfPlaceDropdown(p => !p)}
+              >
+                <div className={styles.dropdownLabel}>
+                  <span className={styles.dropdownPrefix}>Type of Place:</span>
+                  <span className={styles.dropdownSelected}>{typeOfPlace || 'Select'}</span>
+                </div>
+                <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+              </button>
+
+              {showTypeOfPlaceDropdown && (
+                <ul className={styles.optionsList} role="listbox">
+                  {typeOfPlaceOptions.map((option) => {
+                    const isSelected = (typeOfPlace === option);
+                    return (
+                      <li
+                        key={option}
+                        className={`${styles.option} ${isSelected ? styles.selected : ''}`}
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => handleSelectTypeOfPlace(option)}
+                        tabIndex={0}
+                      >
+                        {option}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {typeOfPlace && (
+              <div className={styles.placeSelectWrapper}>
+                <button
+                  type="button"
+                  className={styles.dropdownButton}
+                  onClick={() => setShowMoveSizeDropdown(p => !p)}
+                >
+                  <div className={styles.dropdownLabel}>
+                    <span className={styles.dropdownPrefix}>Move Size:</span>
+                    <span className={styles.dropdownSelected}>{moveSize || 'Select'}</span>
+                  </div>
+                  <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+                </button>
+
+                {showMoveSizeDropdown && (
+                  <ul className={styles.optionsList} role="listbox">
+                    {moveSizeOptions.map((option) => {
+                      const isSelected = (moveSize === option);
+                      return (
+                        <li
+                          key={option}
+                          className={`${styles.option} ${isSelected ? styles.selected : ''}`}
+                          role="option"
+                          aria-selected={isSelected}
+                          onClick={() => handleSelectMoveSize(option)}
+                          tabIndex={0}
+                        >
+                          {option}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {storiesApplicable && (
+              <div className={styles.placeSelectWrapper}>
+                <button
+                  type="button"
+                  className={styles.dropdownButton}
+                  onClick={() => setShowStoriesDropdown(p => !p)}
+                >
+                  <div className={styles.dropdownLabel}>
+                    <span className={styles.dropdownPrefix}>How Many Stories:</span>
+                    <span className={styles.dropdownSelected}>{howManyStories || 'Select'}</span>
+                  </div>
+                  <Icon name="UnfoldMore" className={styles.dropdownIcon} />
+                </button>
+
+                {showStoriesDropdown && (
+                  <ul className={styles.optionsList} role="listbox">
+                    {howManyStoriesOptions.map((option) => {
+                      const isSelected = (howManyStories === option);
+                      return (
+                        <li
+                          key={option}
+                          className={`${styles.option} ${isSelected ? styles.selected : ''}`}
+                          role="option"
+                          aria-selected={isSelected}
+                          onClick={() => handleSelectStories(option)}
+                          tabIndex={0}
+                        >
+                          {option}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            <div className={styles.featuresGrid}>
+              {['Basement', 'Attic', 'Shed', 'Garage'].map((feature) => {
+                const isChecked = features.includes(feature);
+                return (
+                  <label className={styles.featureCheckbox} key={feature}>
+                    <input
+                      type="checkbox"
+                      className={styles.hiddenCheckbox}
+                      checked={isChecked}
+                      onChange={() => toggleFeature(feature)}
+                    />
+                    <span className={styles.customBox} />
+                    <span className={styles.featureLabel}>{feature}</span>
+                  </label>
+                );
+              })}
+            </div>
+
             <div className={styles.inputContainer}>
               <input
                 className={styles.activityInput}
@@ -529,17 +740,17 @@ function LeadFormPopup({
               />
             </div>
 
-            {/* To Zip */}
-            <div className={styles.inputContainer}>
-              <input
-                className={styles.activityInput}
-                type="text"
-                placeholder="To Zip"
-                {...register('toZip')}
-              />
-            </div>
+            {!hideToZip && (
+              <div className={styles.inputContainer}>
+                <input
+                  className={styles.activityInput}
+                  type="text"
+                  placeholder="To Zip"
+                  {...register('toZip')}
+                />
+              </div>
+            )}
 
-            {/* Optional: Move Date */}
             <div className={styles.moveDateWrapper}>
               <button
                 type="button"
@@ -604,7 +815,6 @@ function LeadFormPopup({
             />
           </div>
 
-          {/* If toggled ON => Sales Rep dropdown */}
           {assignSalesRep && (
             <div className={styles.salesRepSelectWrapper}>
               <button
@@ -644,21 +854,18 @@ function LeadFormPopup({
             </div>
           )}
 
-      {/* ---------- FOOTER ---------- */}
-      <div className={styles.stickyFooter}>
-        <button
-        type='submit'
-          className={styles.saveButton}
-        >
-          Save
-        </button>
-        <div className={styles.previousRequests}>
-          Previous requests:
-        </div>
-        </div>
+          {/* FOOTER */}
+          <div className={styles.stickyFooter}>
+            <button type='submit' className={styles.saveButton}>
+              Save
+            </button>
+            <div className={styles.previousRequests}>
+              Previous requests:
+            </div>
+          </div>
         </form>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }
 

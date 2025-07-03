@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import styles from './LeadsFilterBar.module.css';
 
 function LeadsFilterBar({ activeTab, onTabChange }) {
-  const tabs = ["Active Leads", "Lost Leads", "My Appointments", "Pending", "Booked"];
+  const tabs = ["Active Leads", "Lost Leads", "My Appointments", "Surveyed", "Pending", "Booked"];
   const containerRef = useRef(null);
   const isDraggingRef = useRef(false);
   const startXRef = useRef(0);

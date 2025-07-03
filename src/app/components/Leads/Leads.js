@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import styles from "./Leads.module.css";
 
+
 import HeaderDashboard from "./HeaderDashboard/HeaderDashboard";
 import LeadsFilterBar from "./LeadsFilterBar/LeadsFilterBar";
 import LeadsSearchBar from "./LeadsSearchBar/LeadsSearchBar";
@@ -64,6 +65,12 @@ function filterLeadsByTab(leads, activeTab) {
 
         if (!isActive) return false;
 
+        // Exclude leads that belong in "Surveyed" tab
+        // (have both surveyDate and surveyTime)
+        if (ld.surveyDate && ld.surveyTime) {
+          return false;
+        }
+
         // Additional exclusions for "In Progress"
         if (st === "In Progress") {
           if (na === "Survey Completed" || na === "Completed") {
@@ -94,6 +101,17 @@ function filterLeadsByTab(leads, activeTab) {
             ld.leadActivity === "Virtual Estimate") &&
           (ld.nextAction === "Survey Completed" ||
             ld.nextAction === "Completed")
+      );
+
+    case "Surveyed":
+      // Show leads that have completed surveys:
+      // 1) lead_status is "In Progress" or "Quoted"
+      // 2) Have estimator, surveyDate, and surveyTime filled out
+      return leads.filter(
+        (ld) =>
+          (ld.leadStatus === "In Progress" || ld.leadStatus === "Quoted") &&
+          ld.surveyDate &&
+          ld.surveyTime
       );
 
     case "Pending":
@@ -315,7 +333,15 @@ function Leads() {
   });
 
   const [desktopScrollPosition, setDesktopScrollPosition] = useState(0);
-
+const handleOriginUpdated = async (originId, data) => {
+  try {
+    await updateOrigin({ id: originId, data, token });
+    // Refresh the lead data
+    refetch();
+  } catch (error) {
+    console.error('Failed to update origin:', error);
+  }
+};
 
   const updateLeadMutation = useMutation({
     mutationFn: ({id, data, token}) =>updateLead({id, data, token}),
@@ -568,30 +594,30 @@ function Leads() {
   };
 
   // Click a lead in the list - UPDATED WITH ANIMATION
-  const handleLeadClick = (lead) => {
-    // If transfer mode is active, update the lead's sales_name
-    if (transferModeActive && selectedSalesRepForTransfer) {
-      // Update the lead
-      handleLeadUpdated(lead.id, { salesName: selectedSalesRepForTransfer });
-      
-      // Track this lead as recently updated for animation
-      setRecentlyUpdatedLeadId(lead.id);
-      
-      // Clear the animation after 1.5 seconds
-      setTimeout(() => {
-        setRecentlyUpdatedLeadId(null);
-      }, 400);
-      
-      // Log the transfer action
-      console.log(`Transferred lead ${lead.jobNumber} to ${selectedSalesRepForTransfer}`);
-    } else {
-      // Normal mode - open the lead details panel
-      if (leadsListRef.current) {
-        setScrollPosition(leadsListRef.current.scrollTop);
-      }
-      setSelectedLead(lead);
+const handleLeadClick = (lead) => {
+  // If transfer mode is active, update the lead's sales_name
+  if (transferModeActive && selectedSalesRepForTransfer) {
+    // Update the lead with camelCase field name
+    handleLeadUpdated(lead.id, { salesName: selectedSalesRepForTransfer });
+    
+    // Track this lead as recently updated for animation
+    setRecentlyUpdatedLeadId(lead.id);
+    
+    // Clear the animation after 1.5 seconds
+    setTimeout(() => {
+      setRecentlyUpdatedLeadId(null);
+    }, 400);
+    
+    // Log the transfer action
+    console.log(`Transferred lead ${lead.jobNumber} to ${selectedSalesRepForTransfer}`);
+  } else {
+    // Normal mode - open the lead details panel
+    if (leadsListRef.current) {
+      setScrollPosition(leadsListRef.current.scrollTop);
     }
-  };
+    setSelectedLead(lead);
+  }
+};
 
   const handleBack = () => {
     setSelectedLead(null);
@@ -611,93 +637,92 @@ function Leads() {
   };
 
   // CRUD: Update existing lead
-  const handleLeadUpdated = (id, updates) => {
-    // Console log so you can follow all changes
-    console.log("UPDATE LEAD → id:", id, "updates:", updates);
-    
-    updateLeadMutation.mutate({ id, data: updates, token }, {
-      onSuccess: (updatedLead) => {
-        console.log("Lead updated successfully:", updatedLead);
-        
-        // Update the selected lead immediately with the updates
-        // This ensures the UI reflects changes right away
-        setSelectedLead((prev) => {
-          if (prev && (prev.id === id || prev.lead_id === id)) {
+const handleLeadUpdated = (id, updates) => {
+  // Console log so you can follow all changes
+  console.log("UPDATE LEAD → id:", id, "updates:", updates);
+  
+  // API expects camelCase fields, so use updates as-is
+  updateLeadMutation.mutate({ id, data: updates, token }, {
+    onSuccess: (updatedLead) => {
+      console.log("Lead updated successfully:", updatedLead);
+      
+      // Update the selected lead immediately with the updates
+      setSelectedLead((prev) => {
+        if (prev && (prev.id === id || prev.lead_id === id)) {
+          return {
+            ...prev,
+            ...updates, // Apply the updates immediately
+            ...updatedLead, // Then apply any additional data from the server
+          };
+        }
+        return prev;
+      });
+      
+      // Also update the leads in the query cache
+      queryClient.setQueryData(['leads', token], (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map(lead => {
+          if (lead.id === id || lead.lead_id === id) {
             return {
-              ...prev,
-              ...updates, // Apply the updates immediately
-              ...updatedLead, // Then apply any additional data from the server
+              ...lead,
+              ...updatedLead,
             };
           }
-          return prev;
+          return lead;
         });
-        
-        // Also update the leads in the query cache
-        queryClient.setQueryData(['leads', token], (oldData) => {
-          if (!oldData) return oldData;
-          return oldData.map(lead => {
-            if (lead.id === id || lead.lead_id === id) {
-              return {
-                ...lead,
-                ...updates,
-                ...updatedLead,
-              };
-            }
-            return lead;
+      });
+      
+      // Then refetch to ensure consistency
+      refetch();
+      
+      // Handle events for status changes
+      const prev = selectedLead;
+      if (prev) {
+        if (updates.leadStatus && updates.leadStatus !== prev.leadStatus) {
+          createEventMutation.mutate({
+            type: "LEAD_STATUS_CHANGED",
+            data: {
+              leadId: updatedLead.id,
+              field: "leadStatus",
+              oldValue: prev.leadStatus || null,
+              newValue: updates.leadStatus || null,
+            },
+            token,
           });
-        });
-        
-        // Then refetch to ensure consistency
-        refetch();
-        
-        // Handle events for status changes
-        const prev = selectedLead;
-        if (prev) {
-          if (updates.leadStatus && updates.leadStatus !== prev.leadStatus) {
-            createEventMutation.mutate({
-              type: "LEAD_STATUS_CHANGED",
-              data: {
-                leadId: updatedLead.id,
-                field: "leadStatus",
-                oldValue: prev.leadStatus || null,
-                newValue: updates.leadStatus || null,
-              },
-              token,
-            });
-          }
-          
-          if (updates.leadActivity && updates.leadActivity !== prev.leadActivity) {
-            createEventMutation.mutate({
-              type: "LEAD_ACTIVITY_CHANGED",
-              data: {
-                leadId: updatedLead.id,
-                field: "leadActivity",
-                oldValue: prev.leadActivity || null,
-                newValue: updates.leadActivity || null,
-              },
-              token,
-            });
-          }
-          
-          if (updates.nextAction && updates.nextAction !== prev.nextAction) {
-            createEventMutation.mutate({
-              type: "NEXT_ACTION_CHANGED",
-              data: {
-                leadId: updatedLead.id,
-                field: "nextAction",
-                oldValue: prev.nextAction || null,
-                newValue: updates.nextAction || null,
-              },
-              token,
-            });
-          }
         }
-      },
-      onError: (err) => {
-        console.error("Failed to update lead:", err);
+        
+        if (updates.leadActivity && updates.leadActivity !== prev.leadActivity) {
+          createEventMutation.mutate({
+            type: "LEAD_ACTIVITY_CHANGED",
+            data: {
+              leadId: updatedLead.id,
+              field: "leadActivity",
+              oldValue: prev.leadActivity || null,
+              newValue: updates.leadActivity || null,
+            },
+            token,
+          });
+        }
+        
+        if (updates.nextAction && updates.nextAction !== prev.nextAction) {
+          createEventMutation.mutate({
+            type: "NEXT_ACTION_CHANGED",
+            data: {
+              leadId: updatedLead.id,
+              field: "nextAction",
+              oldValue: prev.nextAction || null,
+              newValue: updates.nextAction || null,
+            },
+            token,
+          });
+        }
       }
-    });
-  };
+    },
+    onError: (err) => {
+      console.error("Failed to update lead:", err);
+    }
+  });
+};
 
   // Edit lead
   const handleEditLead = (lead) => {
@@ -1004,6 +1029,7 @@ function Leads() {
           onLeadCreated={handleLeadCreated}
           editingLead={editingLead}
           onLeadUpdated={handleLeadUpdated}
+          onOriginUpdated={handleOriginUpdated}
         />
       )}
 

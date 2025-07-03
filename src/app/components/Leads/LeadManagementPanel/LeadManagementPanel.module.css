@@ -787,6 +787,13 @@
   line-height: normal;
 }
 
+  .surveyCompletedLabel {
+  font-weight: 600;
+  font-size: 15px;
+  color: #90A4B7;
+  /* Add any other styling you prefer */
+}
+
 .previousRequestsLabel {
   margin-top: 10px;
   color: #90A4B7;
@@ -794,6 +801,60 @@
   font-size: 15px;
   font-weight: 500;
   line-height: normal;
+}
+
+/* ===== Survey Details Section ===== */
+.surveyDetailsSection {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.surveyDetailItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.surveyDetailLabel {
+  color: #90A4B7;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.surveyDetailValue {
+  color: #2F3236;
+  font-family: Satoshi, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+/* Wide layout styles for survey details */
+.sourceAndRequestsWrapper .surveyDetailsSection {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+/* Responsive layout for survey details */
+@media (min-width: 1200px) {
+  .surveyDetailsSection {
+    flex-direction: row;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+}
+
+/* Container query approach for wide layout */
+@container panel (min-width: 1200px) {
+  .surveyDetailsSection {
+    flex-direction: row;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
 }
 
 /* ===== NEW: Wide layout wrapper for source section and buttons ===== */
@@ -827,6 +888,7 @@
   flex-direction: row;
   gap: 10px;
   margin: 0;
+  align-self: flex-end;
 }
 
 /* ===== Requests Buttons ===== */
@@ -1052,6 +1114,8 @@
     max-width: 280px;
     width: 280px;
   }
+
+
 
   .estimateButtonsRow {
     flex-direction: row;

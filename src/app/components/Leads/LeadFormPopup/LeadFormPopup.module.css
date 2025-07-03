@@ -494,3 +494,89 @@
   line-height: normal;
   text-align: left;
 }
+
+
+.placeQuestionsSection {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Wrapper for place-related dropdowns */
+.placeSelectWrapper {
+  position: relative;
+}
+
+/* Features Grid - 2x2 layout for checkboxes */
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 40px;
+  row-gap: 15px;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  padding: 0 5px;
+}
+
+/* Feature checkbox styling */
+.featureCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-family: Satoshi, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #2F3236;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom checkbox styling */
+.hiddenCheckbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Custom checkbox box */
+.customBox {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  border-radius: 8px;
+  box-shadow: 0px 1px 26px rgba(0, 0, 0, 0.08);
+  border: 2px solid #90A4B7;
+  background-color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+/* Checked state */
+.hiddenCheckbox:checked + .customBox {
+  border-color: #3FA9F5;
+  background-color: #3FA9F5;
+  box-shadow: 0px 1px 26px rgba(0, 0, 0, 0.08);
+}
+
+/* Checkmark */
+.hiddenCheckbox:checked + .customBox::before {
+  content: "✓";
+  position: absolute;
+  font-size: 16px;
+  line-height: 1;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* Label text */
+.featureLabel {
+  line-height: normal;
+  user-select: none;
+}

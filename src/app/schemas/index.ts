@@ -66,4 +66,10 @@ export const LeadFormSchema = z.object({
   surveyDate: z.string().optional(),
   surveyTime: z.string().optional(),
   assignSalesRep: z.boolean(),
+  salesName: z.string().optional(),
+  // Add the new place-related fields
+  typeOfPlace: z.string().optional(),
+  moveSize: z.string().optional(),
+  howManyStories: z.string().optional(),
+  features: z.array(z.string()).optional(),
 });

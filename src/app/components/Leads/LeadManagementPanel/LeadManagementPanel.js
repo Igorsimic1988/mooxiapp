@@ -183,6 +183,7 @@ function LeadManagementPanel({
     watch,
     setValue,
     getValues,
+    reset,
   } = useForm({
     defaultValues: {
       leadStatus: lead.leadStatus || '',
@@ -191,7 +192,7 @@ function LeadManagementPanel({
       estimator: lead.estimator || '',
       surveyDate: lead.surveyDate || '',
       surveyTime: lead.surveyTime || '',
-      inventoryOption: lead.inventoryOption || 'Detailed Inventory Esimate',
+      inventoryOption: lead.inventoryOption || 'Detailed Inventory Estimate',
       rateType: lead.rateType || 'Hourly Rate', // Add rateType to form defaults
     },
   });
@@ -234,6 +235,46 @@ function LeadManagementPanel({
     queryFn: () => getSalesmen(token),
     enabled: !!token,
   })
+
+  // Helper function to check if we should show survey details instead of input buttons
+  const shouldShowSurveyDetails = () => {
+    // Show survey details when:
+    // 1. Status is "Quoted" (after clicking Survey Completed)
+    // 2. OR we're not in estimate mode anymore but have survey data
+    if (leadStatus === 'Quoted' && (lead.surveyDate || lead.surveyTime)) {
+      return true;
+    }
+    // Also show if we have survey data but are no longer in estimate mode
+    if (!isEstimateMode && (lead.surveyDate || lead.surveyTime)) {
+      return true;
+    }
+    return false;
+  };
+
+  // Get survey data from either form or lead
+  const getSurveyData = () => {
+    return {
+      estimator: selectedEstimator || lead.estimator || '',
+      date: selectedDate || lead.surveyDate || '',
+      time: selectedTime || lead.surveyTime || ''
+    };
+  };
+
+  // FIXED: Update form when lead changes
+  useEffect(() => {
+    if (lead) {
+      reset({
+        leadStatus: lead.leadStatus || '',
+        leadActivity: lead.leadActivity || 'Contacting',
+        nextAction: lead.nextAction || '',
+        estimator: lead.estimator || '',
+        surveyDate: lead.surveyDate || '',
+        surveyTime: lead.surveyTime || '',
+        inventoryOption: lead.inventoryOption || 'Detailed Inventory Estimate',
+        rateType: lead.rateType || 'Hourly Rate',
+      });
+    }
+  }, [lead, reset]);
 
   // ADD THIS: ResizeObserver effect
   useEffect(() => {
@@ -328,7 +369,7 @@ function LeadManagementPanel({
       newNextAction = 'Attempt 1';
       setHideNextActionAfterSurvey(false);
     } else if (newStatus === 'Quoted') {
-      newNextAction = 'Follow up 1';
+      newNextAction = 'Send Estimate'; // Set Send Estimate as first action
       setHideNextActionAfterSurvey(false);
     }
     setValue('leadStatus', newStatus);
@@ -377,6 +418,12 @@ function LeadManagementPanel({
 
   // NEXT ACTION
   const handleNextActionClick = async () => {
+    // Validate before completing survey
+    if (nextAction === 'Survey Completed' && !canCompleteSurvey()) {
+      alert('Please select Date and Time before completing the survey.');
+      return;
+    }
+
     setAnimateNextAction(true);
     setTimeout(() => setAnimateNextAction(false), 600);
 
@@ -388,12 +435,23 @@ function LeadManagementPanel({
       return;
     }
 
-    // If nextAction === 'Survey Completed', we set it to 'Completed'
+    // If nextAction === 'Survey Completed', change to Quoted status with Send Estimate
     if (nextAction === 'Survey Completed') {
-      setHideNextActionAfterSurvey(true);
-      setValue('nextAction', 'Completed');
+      setValue('leadStatus', 'Quoted');
+      setValue('leadActivity', 'Quote Follow Up');
+      setValue('nextAction', 'Send Estimate');
+      
+      // Get current form values to preserve survey data
+      const currentValues = getValues();
+      
       await doUpdateLead({
-        nextAction: 'Completed',
+        leadStatus: 'Quoted',
+        leadActivity: 'Quote Follow Up',
+        nextAction: 'Send Estimate',
+        // Include the survey data in the update
+        estimator: currentValues.estimator,
+        surveyDate: currentValues.surveyDate,
+        surveyTime: currentValues.surveyTime,
       });
       return;
     }
@@ -433,7 +491,10 @@ function LeadManagementPanel({
         }
       }
     } else if (leadStatus === 'Quoted') {
-      if (!nextAction.startsWith('Follow up')) {
+      // Handle Send Estimate as first action
+      if (nextAction === 'Send Estimate') {
+        newNextAction = 'Follow up 1';
+      } else if (!nextAction.startsWith('Follow up')) {
         newNextAction = 'Follow up 1';
       } else {
         const fuNum = parseInt(nextAction.replace('Follow up ', ''), 10);
@@ -510,7 +571,7 @@ function LeadManagementPanel({
 
   // INVENTORY
   const handleSelectInventoryOption = async (opt) => {
-    if (opt.label === inventoryOption ) return;
+    if (opt.label === inventoryOption) return;
     setValue('inventoryOption', opt.label);
     setShowInventoryDropdown(false);
 
@@ -549,6 +610,14 @@ function LeadManagementPanel({
   // Check if we're in estimate mode
   const isEstimateMode = leadStatus === 'In Progress' && 
     (leadActivity === 'In Home Estimate' || leadActivity === 'Virtual Estimate');
+
+  // Check if survey fields are filled for validation (only date and time are mandatory)
+  const canCompleteSurvey = () => {
+    return selectedDate && selectedTime;
+  };
+
+  // Get the survey data to display
+  const surveyData = getSurveyData();
 
   return (
     <div className={styles.wrapper}>
@@ -682,8 +751,16 @@ function LeadManagementPanel({
               <button
                 className={`${styles.nextActionButton} ${
                   animateNextAction ? styles.animateNextAction : ''
+                } ${
+                  nextAction === 'Survey Completed' && !canCompleteSurvey() ? styles.disabledButton : ''
                 }`}
                 onClick={handleNextActionClick}
+                disabled={nextAction === 'Survey Completed' && !canCompleteSurvey()}
+                title={
+                  nextAction === 'Survey Completed' && !canCompleteSurvey()
+                    ? 'Please select Date and Time before completing survey'
+                    : ''
+                }
               >
                 <span className={styles.nextActionLabel}>Next Action:</span>
                 <span className={styles.nextActionValue}>{nextAction}</span>
@@ -695,6 +772,11 @@ function LeadManagementPanel({
         {/* ~ Estimator / Survey Date/Time ~ */}
         {isEstimateMode && (
             <div className={`${styles.estimateExtraContainer} ${isWideLayout ? styles.wideEstimateLayout : ''}`}>
+              {nextAction === 'Survey Completed' && !canCompleteSurvey() && (
+                <div className={styles.requiredFieldsMessage}>
+                  Please select Date and Time to complete the survey
+                </div>
+              )}
               <div className={`${styles.estimateButtonsRow} ${isWideLayout ? styles.wideEstimateButtonsRow : ''}`}>
                 {/* Estimator */}
                 <div className={styles.inputContainer}>
@@ -730,7 +812,9 @@ function LeadManagementPanel({
                 <div className={styles.inputContainer}>
                   <button
                     type="button"
-                    className={styles.estimatorDateButton}
+                    className={`${styles.estimatorDateButton} ${
+                      nextAction === 'Survey Completed' && !selectedDate ? styles.requiredField : ''
+                    }`}
                     onClick={handleToggleCalendar}
                   >
                     <span className={selectedDate ? styles.dateSelected : styles.datePlaceholder}>
@@ -776,7 +860,9 @@ function LeadManagementPanel({
                 <div className={styles.inputContainer}>
                   <button
                     type="button"
-                    className={styles.estimatorTimeButton}
+                    className={`${styles.estimatorTimeButton} ${
+                      nextAction === 'Survey Completed' && !selectedTime ? styles.requiredField : ''
+                    }`}
                     onClick={() => setShowTimeDropdown((p) => !p)}
                   >
                     <span className={selectedTime ? styles.timeSelected : styles.timePlaceholder}>
@@ -806,8 +892,16 @@ function LeadManagementPanel({
                   <button
                     className={`${styles.nextActionButton} ${
                       animateNextAction ? styles.animateNextAction : ''
+                    } ${
+                      nextAction === 'Survey Completed' && !canCompleteSurvey() ? styles.disabledButton : ''
                     }`}
                     onClick={handleNextActionClick}
+                    disabled={nextAction === 'Survey Completed' && !canCompleteSurvey()}
+                    title={
+                      nextAction === 'Survey Completed' && !canCompleteSurvey()
+                        ? 'Please select Date and Time before completing survey'
+                        : ''
+                    }
                   >
                     <span className={styles.nextActionLabel}>Next Action:</span>
                     <span className={styles.nextActionValue}>{nextAction}</span>
@@ -817,11 +911,79 @@ function LeadManagementPanel({
             </div>
           )}
 
+        {/* UPDATED: Show survey details BEFORE source section when survey is completed - only for narrow layout */}
+        {shouldShowSurveyDetails() && !isWideLayout && (
+          <div className={styles.surveyDetailsSection}>
+            <span className={styles.surveyCompletedLabel}>Survey Completed/</span>
+            {surveyData.estimator && (
+              <div className={styles.surveyDetailItem}>
+                <span className={styles.surveyDetailLabel}>Estimator:</span>
+                <span className={styles.surveyDetailValue}>{surveyData.estimator}</span>
+              </div>
+            )}
+            <div className={styles.surveyDetailItem}>
+              <span className={styles.surveyDetailLabel}>Date:</span>
+              <span className={styles.surveyDetailValue}>
+                {surveyData.date ? (
+                  surveyData.date instanceof Date 
+                    ? surveyData.date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })
+                    : new Date(surveyData.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })
+                ) : ''}
+              </span>
+            </div>
+            <div className={styles.surveyDetailItem}>
+              <span className={styles.surveyDetailLabel}>Time:</span>
+              <span className={styles.surveyDetailValue}>{surveyData.time}</span>
+            </div>
+          </div>
+        )}
+
         {/* UPDATED: Conditional rendering based on isWideLayout */}
         {isWideLayout ? (
           // Wide layout: Source and Previous Requests on left, buttons on right
           <div className={styles.sourceAndRequestsWrapper}>
             <div className={styles.sourceAndPreviousSection}>
+              {shouldShowSurveyDetails() && (
+                <div className={styles.surveyDetailsSection}>
+                  <span className={styles.surveyCompletedLabel}>Survey Completed/</span>
+                  {surveyData.estimator && (
+                    <div className={styles.surveyDetailItem}>
+                      <span className={styles.surveyDetailLabel}>Estimator:</span>
+                      <span className={styles.surveyDetailValue}>{surveyData.estimator}</span>
+                    </div>
+                  )}
+                  <div className={styles.surveyDetailItem}>
+                    <span className={styles.surveyDetailLabel}>Date:</span>
+                    <span className={styles.surveyDetailValue}>
+                      {surveyData.date ? (
+                        surveyData.date instanceof Date 
+                          ? surveyData.date.toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })
+                          : new Date(surveyData.date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })
+                      ) : ''}
+                    </span>
+                  </div>
+                  <div className={styles.surveyDetailItem}>
+                    <span className={styles.surveyDetailLabel}>Time:</span>
+                    <span className={styles.surveyDetailValue}>{surveyData.time}</span>
+                  </div>
+                </div>
+              )}
               <div className={styles.sourceSection}>
                 <span className={styles.sourceLabel}>Source:</span>
                 <span className={styles.sourceValue}>{lead.source || 'Yelp'}</span>

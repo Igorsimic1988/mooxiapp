@@ -64,6 +64,10 @@ function DestinationDetails({
   const postStorageStops = destinationStops.filter((s) => s.postStorage);
   const normalStops = destinationStops.filter((s) => !s.postStorage);
 
+  // Add rate type awareness
+  const rateType = lead?.rateType || 'Hourly Rate';
+  const isWeightOrVolumeBased = rateType === 'Weight Based' || rateType === 'Volume Based';
+
   const createDestinationMutation = useMutation({
     mutationFn: (newDestinationData) =>createDestination({destinationsData: newDestinationData, leadId:lead.id,  token: token}),
     onSuccess:(createdDestination) => {
@@ -105,101 +109,95 @@ function DestinationDetails({
     }
   }, [destinationStops, selectedDestinationStopId, isStorageToggled, setSelectedDestinationStopId]);
 
-
-
-
-
-
-
-const handleAddNormalStop = () => {
-  const reusableStop = destinationStops.find(
-    (s) => !s.postStorage && s.isVisible === false
-  );
-
-  if (reusableStop) {
-    onDestinationUpdated(reusableStop.id, {
-      isVisible: true,
-      isActive: true,
-    });
-
-    setDestinationStops((prev) =>
-      prev.map((s) =>
-        s.id === reusableStop.id
-          ? { ...s, isVisible: true, isActive: true }
-          : s
-      )
+  const handleAddNormalStop = () => {
+    const reusableStop = destinationStops.find(
+      (s) => !s.postStorage && s.isVisible === false
     );
 
-    setSelectedDestinationStopId(reusableStop.id);
-    return;
-  }
-  const newStop = {
-    address: '',
-    apt: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    isActive: true,
-    isVisible: true,
-    postStorage: false,
-  };
-  createDestinationMutation.mutate(newStop, {
-    onSuccess: (createdDestination) => {
-      console.log("New destination created:", createdDestination);
-      setDestinationStops((prev) => [...prev, createdDestination]);
-      setSelectedDestinationStopId(createdDestination.id);
-      queryClient.invalidateQueries(['destinations']);
-    },
-    onError: (err) => {
-      console.error('Failed to create destination stop', err);
+    if (reusableStop) {
+      onDestinationUpdated(reusableStop.id, {
+        isVisible: true,
+        isActive: true,
+      });
+
+      setDestinationStops((prev) =>
+        prev.map((s) =>
+          s.id === reusableStop.id
+            ? { ...s, isVisible: true, isActive: true }
+            : s
+        )
+      );
+
+      setSelectedDestinationStopId(reusableStop.id);
+      return;
     }
-  });
-}
-const handleAddPostStorageStop = () => {
-  const reusableStop = destinationStops.find(
-    (s) => s.postStorage && s.isVisible === false
-  );
-
-  if (reusableStop) {
-    onDestinationUpdated(reusableStop.id, {
-      isVisible: true,
+    const newStop = {
+      address: '',
+      apt: '',
+      city: '',
+      state: '',
+      zipCode: '',
       isActive: true,
+      isVisible: true,
+      postStorage: false,
+    };
+    createDestinationMutation.mutate(newStop, {
+      onSuccess: (createdDestination) => {
+        console.log("New destination created:", createdDestination);
+        setDestinationStops((prev) => [...prev, createdDestination]);
+        setSelectedDestinationStopId(createdDestination.id);
+        queryClient.invalidateQueries(['destinations']);
+      },
+      onError: (err) => {
+        console.error('Failed to create destination stop', err);
+      }
     });
+  }
 
-    setDestinationStops((prev) =>
-      prev.map((s) =>
-        s.id === reusableStop.id
-          ? { ...s, isVisible: true, isActive: true }
-          : s
-      )
+  const handleAddPostStorageStop = () => {
+    const reusableStop = destinationStops.find(
+      (s) => s.postStorage && s.isVisible === false
     );
 
-    setSelectedDestinationStopId(reusableStop.id);
-    return;
-  }
-  const newStop = {
-    address: '',
-    apt: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    isActive: true,
-    isVisible: true,
-    postStorage: true,
-  };
-  createDestinationMutation.mutate(newStop, {
-    onSuccess: (createdDestination) => {
-      console.log("New destination created:", createdDestination);
-      setDestinationStops((prev) => [...prev, createdDestination]);
-      setSelectedDestinationStopId(createdDestination.id);
-      queryClient.invalidateQueries(['destinations']);
-    },
-    onError: (err) => {
-      console.error('Failed to create destination stop', err);
-    }
-  });
-};
+    if (reusableStop) {
+      onDestinationUpdated(reusableStop.id, {
+        isVisible: true,
+        isActive: true,
+      });
 
+      setDestinationStops((prev) =>
+        prev.map((s) =>
+          s.id === reusableStop.id
+            ? { ...s, isVisible: true, isActive: true }
+            : s
+        )
+      );
+
+      setSelectedDestinationStopId(reusableStop.id);
+      return;
+    }
+    const newStop = {
+      address: '',
+      apt: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      isActive: true,
+      isVisible: true,
+      postStorage: true,
+    };
+    createDestinationMutation.mutate(newStop, {
+      onSuccess: (createdDestination) => {
+        console.log("New destination created:", createdDestination);
+        setDestinationStops((prev) => [...prev, createdDestination]);
+        setSelectedDestinationStopId(createdDestination.id);
+        queryClient.invalidateQueries(['destinations']);
+      },
+      onError: (err) => {
+        console.error('Failed to create destination stop', err);
+      }
+    });
+  };
 
   // Toggle open/close
   const toggleCollapse = () => setIsDestinationCollapsed((prev) => !prev);
@@ -209,10 +207,12 @@ const handleAddPostStorageStop = () => {
   const [isAccessPopupOpen, setIsAccessPopupOpen] = useState(false);
   const [isServicesPopupOpen, setIsServicesPopupOpen] = useState(false);
 
-  // If "Add storage" is ON + user picked 'All items' => hide normal stops
+  // Update hideNormalStops logic to consider rate type
+  // For Weight/Volume based quotes, never hide normal stops just because of storage
   const hideNormalStops =
-    isStorageToggled && lead.storageItems === 'All items';
-
+    !isWeightOrVolumeBased && // Only hide for Hourly Rate
+    isStorageToggled && 
+    lead.storageItems === 'All items';
 
   function usePrevious(value) {
     const ref = useRef();
@@ -222,56 +222,80 @@ const handleAddPostStorageStop = () => {
     return ref.current;
   }
   const prevIsStorageToggled = usePrevious(isStorageToggled);
+
+  // Update the main useEffect that handles stop visibility
   useEffect(() => {
     if (!destinationStops.length) return;
 
     const updatedStops = [...destinationStops];
     let changed = false;
 
-    if (hideNormalStops) {
+    // For Weight/Volume Based quotes, handle differently
+    if (isWeightOrVolumeBased) {
+      // Weight/Volume Based: normal stops are always active
+      // Post-storage stops are active only if storage is toggled
       updatedStops.forEach((stop, i) => {
-        // Only modify isActive if the stop is visible
         if (stop.isVisible !== false) {
           if (stop.postStorage) {
+            const shouldBeActive = isStorageToggled;
+            if (stop.isActive !== shouldBeActive) {
+              updatedStops[i] = { ...stop, isActive: shouldBeActive };
+              changed = true;
+            }
+          } else {
+            // Normal stops always active for Weight/Volume based
             if (stop.isActive !== true) {
               updatedStops[i] = { ...stop, isActive: true };
               changed = true;
             }
-          } else {
-            if (stop.isActive !== false) {
-              updatedStops[i] = { ...stop, isActive: false };
-              changed = true;
-            }
           }
-        }
-      });
-    } else if (isStorageToggled) {
-      updatedStops.forEach((stop, i) => {
-        // Only activate visible stops
-        if (stop.isVisible !== false && !stop.isActive) {
-          updatedStops[i] = { ...stop, isActive: true };
-          changed = true;
         }
       });
     } else {
-      // storage off => normal => active, post => inactive
-      updatedStops.forEach((stop, i) => {
-        // Only modify isActive if the stop is visible
-        if (stop.isVisible !== false) {
-          if (stop.postStorage) {
-            if (stop.isActive !== false) {
-              updatedStops[i] = { ...stop, isActive: false };
-              changed = true;
-            }
-          } else {
-            if (!stop.isActive) {
-              updatedStops[i] = { ...stop, isActive: true };
-              changed = true;
+      // Hourly Rate: existing logic
+      if (hideNormalStops) {
+        updatedStops.forEach((stop, i) => {
+          if (stop.isVisible !== false) {
+            if (stop.postStorage) {
+              if (stop.isActive !== true) {
+                updatedStops[i] = { ...stop, isActive: true };
+                changed = true;
+              }
+            } else {
+              if (stop.isActive !== false) {
+                updatedStops[i] = { ...stop, isActive: false };
+                changed = true;
+              }
             }
           }
-        }
-      });
+        });
+      } else if (isStorageToggled) {
+        updatedStops.forEach((stop, i) => {
+          if (stop.isVisible !== false && !stop.isActive) {
+            updatedStops[i] = { ...stop, isActive: true };
+            changed = true;
+          }
+        });
+      } else {
+        // storage off => normal => active, post => inactive
+        updatedStops.forEach((stop, i) => {
+          if (stop.isVisible !== false) {
+            if (stop.postStorage) {
+              if (stop.isActive !== false) {
+                updatedStops[i] = { ...stop, isActive: false };
+                changed = true;
+              }
+            } else {
+              if (!stop.isActive) {
+                updatedStops[i] = { ...stop, isActive: true };
+                changed = true;
+              }
+            }
+          }
+        });
+      }
     }
+
     if (changed) {
       updatedStops.forEach((stop, index) => {
         const original = destinationStops[index];
@@ -286,50 +310,47 @@ const handleAddPostStorageStop = () => {
       setDestinationStops(updatedStops);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hideNormalStops, isStorageToggled]);
-  // const handleDestinationUpdated = (id, updates) => {
-  //   setDestinationStops((prevStops) =>
-  //     prevStops.map((stop) =>
-  //       stop.id === id ? { ...stop, ...updates } : stop
-  //     )
-  //   );
-  //   onDestinationUpdated(id, updates); 
-  // };
-  
+  }, [hideNormalStops, isStorageToggled, isWeightOrVolumeBased]);
 
-  /**
-   * 4) If expanded & normal hidden => auto-select the *first post‐storage* if current is normal
-   */
+  // Update the auto-selection logic when expanded & normal hidden
   useEffect(() => {
     if (!isDestinationCollapsed && hideNormalStops && destinationStops.length > 0) {
       const curStop = destinationStops.find((s) => s.id === selectedDestinationStopId);
       if (curStop && !curStop.postStorage) {
-        const firstPostStorageStop = postStorageStops[0];
-        if (firstPostStorageStop && firstPostStorageStop !== selectedDestinationStopId) {
-          setSelectedDestinationStopId(firstPostStorageStop.id);
+        const activePostStorageStops = postStorageStops.filter(s => s.isActive !== false);
+        const firstActivePostStorage = activePostStorageStops[0];
+        if (firstActivePostStorage && firstActivePostStorage.id !== selectedDestinationStopId) {
+          setSelectedDestinationStopId(firstActivePostStorage.id);
         }
       }
     }
-  }, [isDestinationCollapsed, hideNormalStops, destinationStops, selectedDestinationStopId]);
+  }, [isDestinationCollapsed, hideNormalStops, destinationStops, selectedDestinationStopId, postStorageStops]);
 
+  // Update the selection logic when storage toggles
   useEffect(() => {
     if (!destinationStops.length) return;
   
     const current = destinationStops.find((s) => s.id === selectedDestinationStopId);
+    const activeNormalStops = normalStops.filter(s => s.isActive !== false);
+    const activePostStorageStops = postStorageStops.filter(s => s.isActive !== false);
   
-    // Ako je storage isključen i trenutno selektovan postStorage stop
+    // If storage turned off and currently on a post-storage stop
     if (prevIsStorageToggled && !isStorageToggled && current?.postStorage) {
-      const firstNormal = normalStops[0];
-      if (firstNormal) {
-        setSelectedDestinationStopId(firstNormal.id);
+      const firstActiveNormal = activeNormalStops[0];
+      if (firstActiveNormal) {
+        setSelectedDestinationStopId(firstActiveNormal.id);
       }
     }
   
-    // Ako je storage uključen i trenutno selektovan normal stop
+    // If storage turned on and currently on a normal stop
+    // For Weight/Volume based, keep normal stop selected since both are active
     if (!prevIsStorageToggled && isStorageToggled && !current?.postStorage) {
-      const firstPostStorage = postStorageStops[0];
-      if (firstPostStorage) {
-        setSelectedDestinationStopId(firstPostStorage.id);
+      // Only auto-switch for Hourly Rate when normal stops will be hidden
+      if (!isWeightOrVolumeBased && lead.storageItems === 'All items') {
+        const firstActivePostStorage = activePostStorageStops[0];
+        if (firstActivePostStorage) {
+          setSelectedDestinationStopId(firstActivePostStorage.id);
+        }
       }
     }
   }, [
@@ -339,12 +360,12 @@ const handleAddPostStorageStop = () => {
     prevIsStorageToggled,
     postStorageStops,
     normalStops,
+    isWeightOrVolumeBased,
+    lead.storageItems,
   ]);
-  
 
   // Currently selected
   const currentStop = destinationStops.find((s) => s.id === selectedDestinationStopId) || {};
-
 
   const handleStopFieldChange = (fieldName, newValue) => {
     const stop = destinationStops.find((s) => s.id === selectedDestinationStopId);
@@ -355,6 +376,7 @@ const handleAddPostStorageStop = () => {
     );
     onDestinationUpdated(stop.id, { [fieldName]: newValue })
   };
+
   function handleDeactivateThisStop() {
     if (!currentStop?.id) {
       return;
@@ -398,7 +420,7 @@ const handleAddPostStorageStop = () => {
   // Time Restrictions
   function updateCurrentStopRestrictions(partial) {
     const stop = destinationStops.find((s) => s.id === selectedDestinationStopId);
-  if (!stop?.id) return;
+    if (!stop?.id) return;
     const updates = {};
     if ('isEnabled' in partial)
       updates.timeRestriction = partial.isEnabled;
@@ -416,6 +438,7 @@ const handleAddPostStorageStop = () => {
     );
     onDestinationUpdated(stop.id, updates);
   }
+
   const currentTR = {
     isEnabled: currentStop.timeRestriction ?? false,
     option: currentStop.timeRestrictionOption || 'Select',
@@ -523,15 +546,13 @@ const handleAddPostStorageStop = () => {
     updateCurrentStopRestrictions({ endTime: val });
   }
   
- 
   const isFirstStopInGroup =
-  currentStop?.postStorage
-    ? destinationStops.filter(s => s.postStorage && s.isVisible !== false).findIndex(s => s.id === currentStop.id) === 0
-    : destinationStops.filter(s => !s.postStorage && s.isVisible !== false).findIndex(s => s.id === currentStop.id) === 0;
+    currentStop?.postStorage
+      ? destinationStops.filter(s => s.postStorage && s.isVisible !== false).findIndex(s => s.id === currentStop.id) === 0
+      : destinationStops.filter(s => !s.postStorage && s.isVisible !== false).findIndex(s => s.id === currentStop.id) === 0;
 
-  const isDeactivateVisible  = !isFirstStopInGroup; 
+  const isDeactivateVisible = !isFirstStopInGroup; 
   const visibleDestinationStops = destinationStops.filter((s) => s.isVisible !== false);
-
 
   return (
     <div className={styles.destinationContainer}>

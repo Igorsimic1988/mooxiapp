@@ -55,17 +55,13 @@ function FilterButtonPopup({
   const workflowOptions = [
     'Show All',
     'Today workflow',
-    'Tomorrow workflow',
-    'Next 7 days',
-    'Current Month',
-    'Next Month',
   ];
 
   const whereOptions = [
     'Creation Date',
     'Move Date',
     'Appointment Date',
-    'Sales Activity',
+    'Booked Date',
   ];
 
   // For calendars
